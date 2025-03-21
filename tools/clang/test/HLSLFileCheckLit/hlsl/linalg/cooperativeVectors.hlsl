@@ -1,0 +1,193 @@
+// RUN: %dxc -T lib_6_9 %s | FileCheck %s
+
+namespace dx {
+namespace linalg {
+
+// NOTE: can't be an enum class because we get this error:
+//     error: non-type template argument of type 'dx::linalg::DataType' is not an integral constant expression
+//
+enum DataType {
+    DATA_TYPE_SINT16          =  2, // ComponentType::I16
+    DATA_TYPE_UINT16          =  3, // ComponentType::U16
+    DATA_TYPE_SINT32          =  4, // ComponentType::I32
+    DATA_TYPE_UINT32          =  5, // ComponentType::U32
+    DATA_TYPE_FLOAT16         =  7, // ComponentType::F16
+    DATA_TYPE_FLOAT32         =  8, // ComponentType::F32
+    DATA_TYPE_SINT8_T4_PACKED = 16, // ComponentType::PackedS8x32
+    DATA_TYPE_UINT8_T4_PACKED = 17, // ComponentType::PackedU8x32
+    DATA_TYPE_UINT8           = 18, // ComponentType::U8
+    DATA_TYPE_SINT8           = 19, // ComponentType::I8
+    DATA_TYPE_E4M3            = 20, // ComponentType::F8_E4M3 (1 sign, 4 exp, 3 mantissa bits)
+    DATA_TYPE_E5M2            = 21, // ComponentType::F8_E5M2 (1 sign, 5 exp, 2 mantissa bits)  
+};
+
+enum MatrixLayout {
+  MATRIX_LAYOUT_ROW_MAJOR = 0,
+  MATRIX_LAYOUT_COLUMN_MAJOR = 1,
+  MATRIX_LAYOUT_INFERENCING_OPTIMAL = 2,
+  MATRIX_LAYOUT_TRAINING_OPTIMAL = 3
+};
+
+
+
+
+namespace details {
+
+template <typename BUFFER, DataType TYPE, uint M, uint K, MatrixLayout ML, bool TRANSPOSE>
+struct MatrixRefImpl {
+  BUFFER Buffer;
+  uint StartOffset;
+  uint Stride;
+
+  static const DataType Type = TYPE;
+  static const uint DimensionM = M;
+  static const uint DimensionK = K;
+  static const MatrixLayout Layout = ML;
+  static const bool Transpose = TRANSPOSE;
+};
+
+template <typename BUFFER, DataType TYPE>
+struct VectorRefImpl {
+  BUFFER Buffer;
+  uint StartOffset;
+
+  static const DataType Type = TYPE;
+};
+
+}
+
+//
+// (RW)MatrixRef
+//
+
+template <DataType TYPE, uint M, uint K, MatrixLayout ML, bool TRANSPOSE = false>
+struct MatrixRef : details::MatrixRefImpl<ByteAddressBuffer, TYPE, M, K, ML, TRANSPOSE> {
+};
+
+template <DataType TYPE, uint M, uint K, MatrixLayout ML, bool TRANSPOSE = false>
+struct RWMatrixRef : details::MatrixRefImpl<RWByteAddressBuffer, TYPE, M, K, ML, TRANSPOSE> {
+};
+
+//
+// (RW)VectorRef
+//
+
+template <DataType TYPE>
+struct VectorRef : details::VectorRefImpl<ByteAddressBuffer, TYPE> {
+};
+
+template <DataType TYPE>
+struct RWVectorRef : details::VectorRefImpl<RWByteAddressBuffer, TYPE> {
+};
+
+//
+// Vector
+//
+
+template <typename T, int N, DataType TYPE>
+struct Vector {
+    vector<T, N> Data;
+    static const DataType Type = TYPE;
+};
+
+template<DataType TYPE, typename T, int N>
+Vector<T, N, TYPE> InterpretedVector(vector<T, N> Vec) { 
+  Vector<T, N, TYPE> IV = { Vec };
+  return IV;
+}
+
+
+
+//
+// MulAdd
+//
+
+#define BUFFER_HANDLE(H) (0)
+
+namespace details {
+//
+// As close as possible this matches dx.op.matvecmuladd. Template parameters are here to allow it to compile in HLSL. I
+// expect the builtin itself will just take all of these parameters and can then do its own checking to make sure the things
+// that need to be compile-time constants are correct etc.
+//
+template <typename RETURN_ELEMENT_TYPE, int RETURN_SIZE, typename INPUT_VECTOR_ELEMENT, int INPUT_VECTOR_N>
+vector<RETURN_ELEMENT_TYPE, RETURN_SIZE> __builtin_MulAdd(
+    vector<INPUT_VECTOR_ELEMENT, INPUT_VECTOR_N> InputVector,
+    DataType InputVectorInterpretation,
+
+    uint FAKE_MATRIX_BUFFER_HANDLE, // dxc doesn't like resources in exported functions
+    uint MatrixStartOffset,
+    DataType MatrixInterpretation,
+    uint M,
+    uint K,
+    MatrixLayout Layout,
+    bool MatrixTranspose,
+    uint MatrixStride,
+
+    uint FAKE_BIAS_VECTOR_BUFFER_HNADLE, // dxc doesn't like resources in exported functions
+    uint BiasVectorOffset,
+    DataType BiasVectorInterpretation
+ );
+
+}
+
+template <typename RESULT_TYPE, typename MATRIX, typename INPUT_VECTOR, typename BIAS_VECTOR>
+vector<RESULT_TYPE, MATRIX::DimensionM> MulAdd(
+    MATRIX Matrix,
+    INPUT_VECTOR InputVector,
+    BIAS_VECTOR BiasVector) {
+
+  return details::__builtin_MulAdd<RESULT_TYPE, MATRIX::DimensionM>(
+      InputVector.Data,
+      INPUT_VECTOR::Type,
+      BUFFER_HANDLE(Matrix.Buffer),
+      Matrix.StartOffset,
+      MATRIX::Type,
+      MATRIX::DimensionM,
+      MATRIX::DimensionK,
+      MATRIX::Layout,
+      MATRIX::Transpose,
+      Matrix.Stride,
+      BUFFER_HANDLE(BiasVector.Buffer),
+      BiasVector.StartOffset,
+      BIAS_VECTOR::Type
+  );
+}
+
+}
+}
+
+
+ByteAddressBuffer Buf;
+
+export float4 Test1(float4 input) {
+  using namespace dx::linalg;
+
+  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL> matrix = {Buf, 0, 0};
+  VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
+
+  Vector<float, 4, DATA_TYPE_FLOAT16> theVector = {input};
+
+  return MulAdd<float>(matrix, theVector, biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 7, i32 0, i32 0, i32 7, i32 4, i32 4, i32 2, i1 zeroext false, i32 0, i32 0, i32 256, i32 7)
+}
+
+export float4 Test2(float4 input) {
+    using namespace dx::linalg;
+  
+    MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL, true> matrix = {Buf, 0, 0};
+    VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
+  
+    Vector<float, 4, DATA_TYPE_FLOAT16> theVector = {input};
+  
+    return MulAdd<float>(matrix, theVector, biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 7, i32 0, i32 0, i32 7, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 7)
+}
+
+export float4 Test3(float4 input) {
+    using namespace dx::linalg;
+  
+    MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL, true> matrix = {Buf, 0, 0};
+    VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
+  
+    return MulAdd<float>(matrix, InterpretedVector<DATA_TYPE_FLOAT16>(input), biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 7, i32 0, i32 0, i32 7, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 7)
+}
+
