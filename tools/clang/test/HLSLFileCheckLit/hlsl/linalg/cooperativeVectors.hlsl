@@ -7,18 +7,18 @@ namespace linalg {
 //     error: non-type template argument of type 'dx::linalg::DataType' is not an integral constant expression
 //
 enum DataType {
-    DATA_TYPE_SINT16          =  2, // ComponentType::I16
-    DATA_TYPE_UINT16          =  3, // ComponentType::U16
-    DATA_TYPE_SINT32          =  4, // ComponentType::I32
-    DATA_TYPE_UINT32          =  5, // ComponentType::U32
-    DATA_TYPE_FLOAT16         =  7, // ComponentType::F16
-    DATA_TYPE_FLOAT32         =  8, // ComponentType::F32
-    DATA_TYPE_SINT8_T4_PACKED = 16, // ComponentType::PackedS8x32
-    DATA_TYPE_UINT8_T4_PACKED = 17, // ComponentType::PackedU8x32
-    DATA_TYPE_UINT8           = 18, // ComponentType::U8
-    DATA_TYPE_SINT8           = 19, // ComponentType::I8
-    DATA_TYPE_E4M3            = 20, // ComponentType::F8_E4M3 (1 sign, 4 exp, 3 mantissa bits)
-    DATA_TYPE_E5M2            = 21, // ComponentType::F8_E5M2 (1 sign, 5 exp, 2 mantissa bits)  
+  DATA_TYPE_SINT16 = 2,           // ComponentType::I16
+  DATA_TYPE_UINT16 = 3,           // ComponentType::U16
+  DATA_TYPE_SINT32 = 4,           // ComponentType::I32
+  DATA_TYPE_UINT32 = 5,           // ComponentType::U32
+  DATA_TYPE_FLOAT16 = 7,          // ComponentType::F16
+  DATA_TYPE_FLOAT32 = 8,          // ComponentType::F32
+  DATA_TYPE_SINT8_T4_PACKED = 16, // ComponentType::PackedS8x32
+  DATA_TYPE_UINT8_T4_PACKED = 17, // ComponentType::PackedU8x32
+  DATA_TYPE_UINT8 = 18,           // ComponentType::U8
+  DATA_TYPE_SINT8 = 19,           // ComponentType::I8
+  DATA_TYPE_E4M3 = 20,            // ComponentType::F8_E4M3 (1 sign, 4 exp, 3 mantissa bits)
+  DATA_TYPE_E5M2 = 21,            // ComponentType::F8_E5M2 (1 sign, 5 exp, 2 mantissa bits)
 };
 
 enum MatrixLayout {
@@ -27,9 +27,6 @@ enum MatrixLayout {
   MATRIX_LAYOUT_INFERENCING_OPTIMAL = 2,
   MATRIX_LAYOUT_TRAINING_OPTIMAL = 3
 };
-
-
-
 
 namespace details {
 
@@ -54,7 +51,7 @@ struct VectorRefImpl {
   static const DataType Type = TYPE;
 };
 
-}
+} // namespace details
 
 //
 // (RW)MatrixRef
@@ -86,17 +83,15 @@ struct RWVectorRef : details::VectorRefImpl<RWByteAddressBuffer, TYPE> {
 
 template <typename T, int N, DataType TYPE>
 struct Vector {
-    vector<T, N> Data;
-    static const DataType Type = TYPE;
+  vector<T, N> Data;
+  static const DataType Type = TYPE;
 };
 
-template<DataType TYPE, typename T, int N>
-Vector<T, N, TYPE> InterpretedVector(vector<T, N> Vec) { 
-  Vector<T, N, TYPE> IV = { Vec };
+template <DataType TYPE, typename T, int N>
+Vector<T, N, TYPE> InterpretedVector(vector<T, N> Vec) {
+  Vector<T, N, TYPE> IV = {Vec};
   return IV;
 }
-
-
 
 //
 // MulAdd
@@ -126,10 +121,9 @@ vector<RETURN_ELEMENT_TYPE, RETURN_SIZE> __builtin_MulAdd(
 
     uint FAKE_BIAS_VECTOR_BUFFER_HNADLE, // dxc doesn't like resources in exported functions
     uint BiasVectorOffset,
-    DataType BiasVectorInterpretation
- );
+    DataType BiasVectorInterpretation);
 
-}
+} // namespace details
 
 template <typename RESULT_TYPE, typename MATRIX, typename INPUT_VECTOR, typename BIAS_VECTOR>
 vector<RESULT_TYPE, MATRIX::DimensionM> MulAdd(
@@ -150,13 +144,11 @@ vector<RESULT_TYPE, MATRIX::DimensionM> MulAdd(
       Matrix.Stride,
       BUFFER_HANDLE(BiasVector.Buffer),
       BiasVector.StartOffset,
-      BIAS_VECTOR::Type
-  );
+      BIAS_VECTOR::Type);
 }
 
-}
-}
-
+} // namespace linalg
+} // namespace dx
 
 ByteAddressBuffer Buf;
 
@@ -172,22 +164,72 @@ export float4 Test1(float4 input) {
 }
 
 export float4 Test2(float4 input) {
-    using namespace dx::linalg;
-  
-    MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL, true> matrix = {Buf, 0, 0};
-    VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
-  
-    Vector<float, 4, DATA_TYPE_FLOAT16> theVector = {input};
-  
-    return MulAdd<float>(matrix, theVector, biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 7, i32 0, i32 0, i32 7, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 7)
+  using namespace dx::linalg;
+
+  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL, true> matrix = {Buf, 0, 0};
+  VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
+
+  Vector<float, 4, DATA_TYPE_FLOAT16> theVector = {input};
+
+  return MulAdd<float>(matrix, theVector, biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 7, i32 0, i32 0, i32 7, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 7)
 }
 
 export float4 Test3(float4 input) {
-    using namespace dx::linalg;
-  
-    MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL, true> matrix = {Buf, 0, 0};
-    VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
-  
-    return MulAdd<float>(matrix, InterpretedVector<DATA_TYPE_FLOAT16>(input), biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 7, i32 0, i32 0, i32 7, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 7)
+  using namespace dx::linalg;
+
+  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL, true> matrix = {Buf, 0, 0};
+  VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
+
+  return MulAdd<float>(matrix, InterpretedVector<DATA_TYPE_FLOAT16>(input), biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 7, i32 0, i32 0, i32 7, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 7)
 }
 
+namespace ProposalExample {
+
+ByteAddressBuffer model;
+
+vector<float, 3> ApplyNeuralMaterial(vector<half, 8> inputVector) {
+  using namespace dx::linalg;
+
+  MatrixRef<
+      DATA_TYPE_E4M3, 32, 8,
+      MATRIX_LAYOUT_INFERENCING_OPTIMAL>
+      matrix0 = {model, 0, 0};
+
+  VectorRef<DATA_TYPE_FLOAT16> biasVector0 = {model, 1024};
+
+  MatrixRef<
+      DATA_TYPE_E4M3,
+      32, 32, MATRIX_LAYOUT_INFERENCING_OPTIMAL>
+      matrix1 = {model, 2048, 0};
+
+  VectorRef<DATA_TYPE_FLOAT16> biasVector1 = {model, 3072};
+
+  MatrixRef<
+      DATA_TYPE_E4M3,
+      3, 32, MATRIX_LAYOUT_INFERENCING_OPTIMAL>
+      matrix2 = {model, 4096, 0};
+
+  VectorRef<DATA_TYPE_FLOAT16> biasVector2 = {model, 5120};
+
+  vector<half, 32> layer0 = MulAdd<half>(
+      matrix0,
+      InterpretedVector<DATA_TYPE_E4M3>(inputVector),
+      biasVector0);
+  layer0 = max(layer0, 0);
+
+  vector<half, 32> layer1 = MulAdd<half>(
+      matrix1,
+      InterpretedVector<DATA_TYPE_E4M3>(layer0),
+      biasVector1);
+  layer1 = max(layer1, 0);
+
+  vector<float, 3> output = MulAdd<float>(
+      matrix2,
+      InterpretedVector<DATA_TYPE_E4M3>(layer1),
+      biasVector2);
+  output = exp(output);
+
+  return output;
+}
+
+} // namespace ProposalExample
