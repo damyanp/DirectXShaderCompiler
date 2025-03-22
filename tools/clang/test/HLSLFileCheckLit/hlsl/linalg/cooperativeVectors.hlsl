@@ -47,46 +47,41 @@ namespace details {
 //
 // dx.op.matvecmul
 //
-template <typename RETURN_ELEMENT_TYPE, int RETURN_SIZE,
-          typename INPUT_VECTOR_ELEMENT, int INPUT_VECTOR_N>
-vector<RETURN_ELEMENT_TYPE, RETURN_SIZE>
-__builtin_Mul(vector<INPUT_VECTOR_ELEMENT, INPUT_VECTOR_N> InputVector,
-              DataType InputVectorInterpretation,
-              uint FAKE_MATRIX_BUFFER_HANDLE, uint MatrixStartOffset,
-              DataType MatrixInterpretation, uint M, uint K,
-              MatrixLayout Layout, bool MatrixTranspose, uint MatrixStride);
+template <typename TYo, int NUMo, typename TYi, int NUMi, typename RES>
+vector<TYo, NUMo>
+__builtin_Mul(vector<TYi, NUMi> InputVector, uint InputVectorInterpretation,
+              RES MatrixResource, uint MatrixStartOffset,
+              uint MatrixInterpretation, uint M, uint K, uint Layout,
+              bool MatrixTranspose, uint MatrixStride);
 
 //
 // dx.op.matvecmuladd
 //
-template <typename RETURN_ELEMENT_TYPE, int RETURN_SIZE,
-          typename INPUT_VECTOR_ELEMENT, int INPUT_VECTOR_N>
-vector<RETURN_ELEMENT_TYPE, RETURN_SIZE>
-__builtin_MulAdd(vector<INPUT_VECTOR_ELEMENT, INPUT_VECTOR_N> InputVector,
-                 DataType InputVectorInterpretation,
-                 uint FAKE_MATRIX_BUFFER_HANDLE, uint MatrixStartOffset,
-                 DataType MatrixInterpretation, uint M, uint K,
-                 MatrixLayout Layout, bool MatrixTranspose, uint MatrixStride,
-                 uint FAKE_BIAS_VECTOR_BUFFER_HNADLE, uint BiasVectorOffset,
-                 DataType BiasVectorInterpretation);
+template <typename TYo, int NUMo, typename TYi, int NUMi, typename RESm,
+          typename RESv>
+vector<TYo, NUMo>
+__builtin_MulAdd(vector<TYi, NUMi> InputVector, uint InputVectorInterpretation,
+                 RESm MatrixResource, uint MatrixStartOffset,
+                 uint MatrixInterpretation, uint M, uint K, uint Layout,
+                 bool MatrixTranspose, uint MatrixStride,
+                 RESv BiasVectorResource, uint BiasVectorOffset,
+                 uint BiasVectorInterpretation);
 
 //
 // dx.op.outerproductaccumulate
 //
-template <typename T, int M, int N>
-void __builtin_OuterProductAccumulate(vector<T, M> InputVector1,
-                                      vector<T, N> InputVector2,
-                                      uint FAKE_MATRIX_BUFFER_HANDLE,
-                                      uint MatrixStartOffset,
-                                      DataType MatrixInterpretation,
-                                      MatrixLayout Layout);
+template <typename TY, int M, int N, typename RES>
+void __builtin_OuterProductAccumulate(
+    vector<TY, M> InputVector1, vector<TY, N> InputVector2, RES MatrixResource,
+    uint MatrixStartOffset, DataType MatrixInterpretation, MatrixLayout Layout);
 
 //
 // dx.op.vectoraccumulate
 //
-template <typename T, int N>
-void __builtin_VectorAccumulate(vector<T, N> InputVector,
-                                uint FAKE_BUFFER_HANDLE, uint Offset);
+template <typename TY, int NUM, typename RES>
+void __builtin_VectorAccumulate(vector<TY, NUM> InputVector,
+                                RES OutputArrayResource,
+                                uint OutputArrayOffset);
 
 } // namespace details
 
