@@ -48,24 +48,24 @@ namespace details {
 // dx.op.matvecmul
 //
 template <typename TYo, int NUMo, typename TYi, int NUMi, typename RES>
-vector<TYo, NUMo>
-__builtin_Mul(vector<TYi, NUMi> InputVector, uint InputVectorInterpretation,
-              RES MatrixResource, uint MatrixStartOffset,
-              uint MatrixInterpretation, uint M, uint K, uint Layout,
-              bool MatrixTranspose, uint MatrixStride);
+void __builtin_Mul(vector<TYi, NUMi> InputVector,
+                   uint InputVectorInterpretation, RES MatrixResource,
+                   uint MatrixStartOffset, uint MatrixInterpretation, uint M,
+                   uint K, uint Layout, bool MatrixTranspose, uint MatrixStride,
+                   out vector<TYo, NUMo> OutputVector);
 
 //
 // dx.op.matvecmuladd
 //
 template <typename TYo, int NUMo, typename TYi, int NUMi, typename RESm,
           typename RESv>
-vector<TYo, NUMo>
-__builtin_MulAdd(vector<TYi, NUMi> InputVector, uint InputVectorInterpretation,
-                 RESm MatrixResource, uint MatrixStartOffset,
-                 uint MatrixInterpretation, uint M, uint K, uint Layout,
-                 bool MatrixTranspose, uint MatrixStride,
-                 RESv BiasVectorResource, uint BiasVectorOffset,
-                 uint BiasVectorInterpretation);
+void __builtin_MulAdd(vector<TYi, NUMi> InputVector,
+                      uint InputVectorInterpretation, RESm MatrixResource,
+                      uint MatrixStartOffset, uint MatrixInterpretation, uint M,
+                      uint K, uint Layout, bool MatrixTranspose,
+                      uint MatrixStride, RESv BiasVectorResource,
+                      uint BiasVectorOffset, uint BiasVectorInterpretation,
+                      out vector<TYo, NUMo> OutputVector);
 
 //
 // dx.op.outerproductaccumulate
@@ -158,10 +158,14 @@ template <typename RESULT_TYPE, typename MATRIX, typename INPUT_VECTOR>
 vector<RESULT_TYPE, MATRIX::DimensionM> Mul(MATRIX Matrix,
                                             INPUT_VECTOR InputVector) {
 
-  return details::__builtin_Mul<RESULT_TYPE, MATRIX::DimensionM>(
+  vector<RESULT_TYPE, MATRIX::DimensionM> OutputVector;
+
+  details::__builtin_Mul<RESULT_TYPE, MATRIX::DimensionM>(
       InputVector.Data, INPUT_VECTOR::Type, BUFFER_HANDLE(Matrix.Buffer),
       Matrix.StartOffset, MATRIX::Type, MATRIX::DimensionM, MATRIX::DimensionK,
-      MATRIX::Layout, MATRIX::Transpose, Matrix.Stride);
+      MATRIX::Layout, MATRIX::Transpose, Matrix.Stride, /*out*/ OutputVector);
+
+  return OutputVector;
 }
 
 //
@@ -172,13 +176,16 @@ template <typename RESULT_TYPE, typename MATRIX, typename INPUT_VECTOR,
           typename BIAS_VECTOR>
 vector<RESULT_TYPE, MATRIX::DimensionM>
 MulAdd(MATRIX Matrix, INPUT_VECTOR InputVector, BIAS_VECTOR BiasVector) {
+  vector<RESULT_TYPE, MATRIX::DimensionM> OutputVector;
 
-  return details::__builtin_MulAdd<RESULT_TYPE, MATRIX::DimensionM>(
+  details::__builtin_MulAdd<RESULT_TYPE, MATRIX::DimensionM>(
       InputVector.Data, INPUT_VECTOR::Type, BUFFER_HANDLE(Matrix.Buffer),
       Matrix.StartOffset, MATRIX::Type, MATRIX::DimensionM, MATRIX::DimensionK,
       MATRIX::Layout, MATRIX::Transpose, Matrix.Stride,
       BUFFER_HANDLE(BiasVector.Buffer), BiasVector.StartOffset,
-      BIAS_VECTOR::Type);
+      BIAS_VECTOR::Type, /*out*/ OutputVector);
+
+  return OutputVector;
 }
 
 //
@@ -224,9 +231,10 @@ export float4 Test1(float4 input) {
   Vector<float, 4, DATA_TYPE_FLOAT16> theVector = {input};
 
   // clang-format off
+  // CHECK: call void {{.*__builtin_MulAdd@.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext false, i32 0, i32 0, i32 256, i32 8, <4 x float>* nonnull dereferenceable(16) %{{.+}})
   return MulAdd<float>(
       matrix, theVector,
-      biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext false, i32 0, i32 0, i32 256, i32 8)
+      biasVector);
   // clang-format on
 }
 
@@ -242,7 +250,7 @@ export float4 Test2(float4 input) {
   // clang-format off
   return MulAdd<float>(
       matrix, theVector,
-      biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8)
+      biasVector); // CHECK: call void {{.*__builtin_MulAdd@.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8, <4 x float>* nonnull dereferenceable(16) %{{.+}})
   // clang-format on
 }
 
@@ -254,9 +262,10 @@ export float4 Test3(float4 input) {
   VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
 
   // clang-format off
+  // CHECK: call void {{.*__builtin_MulAdd@.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8, <4 x float>* nonnull dereferenceable(16) %{{.+}}) 
   return MulAdd<float>(
       matrix, InterpretedVector<DATA_TYPE_FLOAT16>(input),
-      biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8)
+      biasVector);
   // clang-format on
 }
 
@@ -267,8 +276,9 @@ export float4 Test4(float4 input) {
       matrix = {Buf, 0, 0};
 
   // clang-format off
-  return Mul<float>(
-      matrix, InterpretedVector<DATA_TYPE_FLOAT16>(input)); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_Mul.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0)
+  // CHECK: call void {{.*__builtin_Mul@.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, <4 x float>* nonnull dereferenceable(16) %{{.+}})
+  return Mul<float>(    
+      matrix, InterpretedVector<DATA_TYPE_FLOAT16>(input));
   // clang-format on
 }
 
