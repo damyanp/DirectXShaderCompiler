@@ -206,12 +206,11 @@ export float4 Test1(float4 input) {
 
   Vector<float, 4, DATA_TYPE_FLOAT16> theVector = {input};
 
+  // clang-format off
   return MulAdd<float>(
       matrix, theVector,
-      biasVector); // CHECK: %{{.+}} = call <4 x float>
-                   // {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 7, i32
-                   // 0, i32 0, i32 7, i32 4, i32 4, i32 2, i1 zeroext false,
-                   // i32 0, i32 0, i32 256, i32 7)
+      biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext false, i32 0, i32 0, i32 256, i32 8)
+  // clang-format on
 }
 
 export float4 Test2(float4 input) {
@@ -223,12 +222,11 @@ export float4 Test2(float4 input) {
 
   Vector<float, 4, DATA_TYPE_FLOAT16> theVector = {input};
 
+  // clang-format off
   return MulAdd<float>(
       matrix, theVector,
-      biasVector); // CHECK: %{{.+}} = call <4 x float>
-                   // {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 7, i32
-                   // 0, i32 0, i32 7, i32 4, i32 4, i32 2, i1 zeroext true, i32
-                   // 0, i32 0, i32 256, i32 7)
+      biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8)
+  // clang-format on
 }
 
 export float4 Test3(float4 input) {
@@ -238,12 +236,11 @@ export float4 Test3(float4 input) {
       matrix = {Buf, 0, 0};
   VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
 
+  // clang-format off
   return MulAdd<float>(
       matrix, InterpretedVector<DATA_TYPE_FLOAT16>(input),
-      biasVector); // CHECK: %{{.+}} = call <4 x float>
-                   // {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 7, i32
-                   // 0, i32 0, i32 7, i32 4, i32 4, i32 2, i1 zeroext true, i32
-                   // 0, i32 0, i32 256, i32 7)
+      biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8)
+  // clang-format on
 }
 
 namespace ProposalExample {
