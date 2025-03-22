@@ -40,26 +40,35 @@ enum MatrixLayout {
 // take all of these parameters and can then do its own checking to make sure
 // the things that need to be compile-time constants are correct etc.
 //
+// Fake buffer handles are used because DXC does not allow resource types in
+// exported functions.
 
 namespace details {
+//
+// dx.op.matvecmul
+//
+template <typename RETURN_ELEMENT_TYPE, int RETURN_SIZE,
+          typename INPUT_VECTOR_ELEMENT, int INPUT_VECTOR_N>
+vector<RETURN_ELEMENT_TYPE, RETURN_SIZE>
+__builtin_Mul(vector<INPUT_VECTOR_ELEMENT, INPUT_VECTOR_N> InputVector,
+              DataType InputVectorInterpretation,
+              uint FAKE_MATRIX_BUFFER_HANDLE, uint MatrixStartOffset,
+              DataType MatrixInterpretation, uint M, uint K,
+              MatrixLayout Layout, bool MatrixTranspose, uint MatrixStride);
 
 //
 // dx.op.matvecmuladd
 //
 template <typename RETURN_ELEMENT_TYPE, int RETURN_SIZE,
           typename INPUT_VECTOR_ELEMENT, int INPUT_VECTOR_N>
-vector<RETURN_ELEMENT_TYPE, RETURN_SIZE> __builtin_MulAdd(
-    vector<INPUT_VECTOR_ELEMENT, INPUT_VECTOR_N> InputVector,
-    DataType InputVectorInterpretation,
-
-    uint FAKE_MATRIX_BUFFER_HANDLE, // dxc doesn't like resources in exported
-                                    // functions
-    uint MatrixStartOffset, DataType MatrixInterpretation, uint M, uint K,
-    MatrixLayout Layout, bool MatrixTranspose, uint MatrixStride,
-
-    uint FAKE_BIAS_VECTOR_BUFFER_HNADLE, // dxc doesn't like resources in
-                                         // exported functions
-    uint BiasVectorOffset, DataType BiasVectorInterpretation);
+vector<RETURN_ELEMENT_TYPE, RETURN_SIZE>
+__builtin_MulAdd(vector<INPUT_VECTOR_ELEMENT, INPUT_VECTOR_N> InputVector,
+                 DataType InputVectorInterpretation,
+                 uint FAKE_MATRIX_BUFFER_HANDLE, uint MatrixStartOffset,
+                 DataType MatrixInterpretation, uint M, uint K,
+                 MatrixLayout Layout, bool MatrixTranspose, uint MatrixStride,
+                 uint FAKE_BIAS_VECTOR_BUFFER_HNADLE, uint BiasVectorOffset,
+                 DataType BiasVectorInterpretation);
 
 //
 // dx.op.outerproductaccumulate
@@ -145,11 +154,24 @@ Vector<T, N, TYPE> InterpretedVector(vector<T, N> Vec) {
   return IV;
 }
 
+#define BUFFER_HANDLE(H) (0)
+
+//
+// Mul
+//
+template <typename RESULT_TYPE, typename MATRIX, typename INPUT_VECTOR>
+vector<RESULT_TYPE, MATRIX::DimensionM> Mul(MATRIX Matrix,
+                                            INPUT_VECTOR InputVector) {
+
+  return details::__builtin_Mul<RESULT_TYPE, MATRIX::DimensionM>(
+      InputVector.Data, INPUT_VECTOR::Type, BUFFER_HANDLE(Matrix.Buffer),
+      Matrix.StartOffset, MATRIX::Type, MATRIX::DimensionM, MATRIX::DimensionK,
+      MATRIX::Layout, MATRIX::Transpose, Matrix.Stride);
+}
+
 //
 // MulAdd
 //
-
-#define BUFFER_HANDLE(H) (0)
 
 template <typename RESULT_TYPE, typename MATRIX, typename INPUT_VECTOR,
           typename BIAS_VECTOR>
@@ -240,6 +262,18 @@ export float4 Test3(float4 input) {
   return MulAdd<float>(
       matrix, InterpretedVector<DATA_TYPE_FLOAT16>(input),
       biasVector); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_MulAdd.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8)
+  // clang-format on
+}
+
+export float4 Test4(float4 input) {
+  using namespace dx::linalg;
+
+  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL, true>
+      matrix = {Buf, 0, 0};
+
+  // clang-format off
+  return Mul<float>(
+      matrix, InterpretedVector<DATA_TYPE_FLOAT16>(input)); // CHECK: %{{.+}} = call <4 x float> {{.*__builtin_Mul.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0)
   // clang-format on
 }
 
