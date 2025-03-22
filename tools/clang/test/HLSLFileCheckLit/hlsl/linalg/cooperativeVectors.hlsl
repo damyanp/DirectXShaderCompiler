@@ -162,6 +162,23 @@ void OuterProductAccumulate(vector<T, M> InputVector1,
       Matrix.StartOffset, Matrix.Type, Matrix.Layout);
 }
 
+//
+// VectorAccumulate
+//
+namespace details {
+// Matching dx.op.vectoraccumulate
+template <typename T, int N>
+void __builtin_VectorAccumulate(vector<T, N> InputVector,
+                                uint FAKE_BUFFER_HANDLE, uint Offset);
+} // namespace details
+
+template <typename T, int N>
+void VectorAccumulate(vector<T, N> InputVector, RWByteAddressBuffer Buffer,
+                      uint Offset) {
+  details::__builtin_VectorAccumulate(InputVector, BUFFER_HANDLE(Buffer),
+                                      Offset);
+}
+
 } // namespace linalg
 } // namespace dx
 
@@ -264,4 +281,10 @@ export void Test4(vector<half, 128> input1, vector<half, 256> input2) {
       matrix = {RWBuf, 0, 0};
 
   OuterProductAccumulate(input1, input2, matrix);
+}
+
+export void Test5(vector<half, 128> Input) {
+  using namespace dx::linalg;
+
+  VectorAccumulate(Input, RWBuf, 0);
 }
