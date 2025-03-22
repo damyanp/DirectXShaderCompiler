@@ -18,10 +18,10 @@ enum DataType {
   DATA_TYPE_UINT8_T4_PACKED = 18, // ComponentType::PackedU8x32
   DATA_TYPE_UINT8 = 19,           // ComponentType::U8
   DATA_TYPE_SINT8 = 20,           // ComponentType::I8
-  DATA_TYPE_E4M3 =
-      21, // ComponentType::F8_E4M3 (1 sign, 4 exp, 3 mantissa bits)
-  DATA_TYPE_E5M2 =
-      22, // ComponentType::F8_E5M2 (1 sign, 5 exp, 2 mantissa bits)
+  DATA_TYPE_E4M3 = 21,            // ComponentType::F8_E4M3
+                                  // (1 sign, 4 exp, 3 mantissa bits)
+  DATA_TYPE_E5M2 = 22,            // ComponentType::F8_E5M2
+                                  // (1 sign, 5 exp, 2 mantissa bits)
 };
 
 enum MatrixLayout {
@@ -30,6 +30,56 @@ enum MatrixLayout {
   MATRIX_LAYOUT_INFERENCING_OPTIMAL = 2,
   MATRIX_LAYOUT_TRAINING_OPTIMAL = 3
 };
+
+//
+// Builtins
+//
+//
+// As close as possible these match the DXIL operations. Template parameters are
+// here to allow it to compile in HLSL. I expect the builtin itself will just
+// take all of these parameters and can then do its own checking to make sure
+// the things that need to be compile-time constants are correct etc.
+//
+
+namespace details {
+
+//
+// dx.op.matvecmuladd
+//
+template <typename RETURN_ELEMENT_TYPE, int RETURN_SIZE,
+          typename INPUT_VECTOR_ELEMENT, int INPUT_VECTOR_N>
+vector<RETURN_ELEMENT_TYPE, RETURN_SIZE> __builtin_MulAdd(
+    vector<INPUT_VECTOR_ELEMENT, INPUT_VECTOR_N> InputVector,
+    DataType InputVectorInterpretation,
+
+    uint FAKE_MATRIX_BUFFER_HANDLE, // dxc doesn't like resources in exported
+                                    // functions
+    uint MatrixStartOffset, DataType MatrixInterpretation, uint M, uint K,
+    MatrixLayout Layout, bool MatrixTranspose, uint MatrixStride,
+
+    uint FAKE_BIAS_VECTOR_BUFFER_HNADLE, // dxc doesn't like resources in
+                                         // exported functions
+    uint BiasVectorOffset, DataType BiasVectorInterpretation);
+
+//
+// dx.op.outerproductaccumulate
+//
+template <typename T, int M, int N>
+void __builtin_OuterProductAccumulate(vector<T, M> InputVector1,
+                                      vector<T, N> InputVector2,
+                                      uint FAKE_MATRIX_BUFFER_HANDLE,
+                                      uint MatrixStartOffset,
+                                      DataType MatrixInterpretation,
+                                      MatrixLayout Layout);
+
+//
+// dx.op.vectoraccumulate
+//
+template <typename T, int N>
+void __builtin_VectorAccumulate(vector<T, N> InputVector,
+                                uint FAKE_BUFFER_HANDLE, uint Offset);
+
+} // namespace details
 
 namespace details {
 
@@ -101,30 +151,6 @@ Vector<T, N, TYPE> InterpretedVector(vector<T, N> Vec) {
 
 #define BUFFER_HANDLE(H) (0)
 
-namespace details {
-//
-// As close as possible this matches dx.op.matvecmuladd. Template parameters are
-// here to allow it to compile in HLSL. I expect the builtin itself will just
-// take all of these parameters and can then do its own checking to make sure
-// the things that need to be compile-time constants are correct etc.
-//
-template <typename RETURN_ELEMENT_TYPE, int RETURN_SIZE,
-          typename INPUT_VECTOR_ELEMENT, int INPUT_VECTOR_N>
-vector<RETURN_ELEMENT_TYPE, RETURN_SIZE> __builtin_MulAdd(
-    vector<INPUT_VECTOR_ELEMENT, INPUT_VECTOR_N> InputVector,
-    DataType InputVectorInterpretation,
-
-    uint FAKE_MATRIX_BUFFER_HANDLE, // dxc doesn't like resources in exported
-                                    // functions
-    uint MatrixStartOffset, DataType MatrixInterpretation, uint M, uint K,
-    MatrixLayout Layout, bool MatrixTranspose, uint MatrixStride,
-
-    uint FAKE_BIAS_VECTOR_BUFFER_HNADLE, // dxc doesn't like resources in
-                                         // exported functions
-    uint BiasVectorOffset, DataType BiasVectorInterpretation);
-
-} // namespace details
-
 template <typename RESULT_TYPE, typename MATRIX, typename INPUT_VECTOR,
           typename BIAS_VECTOR>
 vector<RESULT_TYPE, MATRIX::DimensionM>
@@ -141,17 +167,6 @@ MulAdd(MATRIX Matrix, INPUT_VECTOR InputVector, BIAS_VECTOR BiasVector) {
 //
 // OuterProductAccumulate
 //
-namespace details {
-// Matching dx.op.outerproductaccumulate
-template <typename T, int M, int N>
-void __builtin_OuterProductAccumulate(vector<T, M> InputVector1,
-                                      vector<T, N> InputVector2,
-                                      uint FAKE_MATRIX_BUFFER_HANDLE,
-                                      uint MatrixStartOffset,
-                                      DataType MatrixInterpretation,
-                                      MatrixLayout Layout);
-
-} // namespace details
 
 template <typename T, int M, int N, DataType TYPE, MatrixLayout ML>
 void OuterProductAccumulate(vector<T, M> InputVector1,
@@ -165,12 +180,6 @@ void OuterProductAccumulate(vector<T, M> InputVector1,
 //
 // VectorAccumulate
 //
-namespace details {
-// Matching dx.op.vectoraccumulate
-template <typename T, int N>
-void __builtin_VectorAccumulate(vector<T, N> InputVector,
-                                uint FAKE_BUFFER_HANDLE, uint Offset);
-} // namespace details
 
 template <typename T, int N>
 void VectorAccumulate(vector<T, N> InputVector, RWByteAddressBuffer Buffer,
@@ -181,6 +190,10 @@ void VectorAccumulate(vector<T, N> InputVector, RWByteAddressBuffer Buffer,
 
 } // namespace linalg
 } // namespace dx
+
+//
+// Tests / Examples
+//
 
 ByteAddressBuffer Buf;
 
