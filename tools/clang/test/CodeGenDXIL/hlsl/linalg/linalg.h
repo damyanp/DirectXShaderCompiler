@@ -51,21 +51,22 @@ namespace details {
 // dx.op.matvecmul
 template <typename TYo, int NUMo, typename TYi, int NUMi, typename RES>
 void __builtin_MatVecMul(vector<TYi, NUMi> InputVector,
-                   uint InputVectorInterpretation, RES MatrixResource,
-                   uint MatrixStartOffset, uint MatrixInterpretation, uint M,
-                   uint K, uint Layout, bool MatrixTranspose, uint MatrixStride,
-                   out vector<TYo, NUMo> OutputVector);
+                         uint InputVectorInterpretation, RES MatrixResource,
+                         uint MatrixStartOffset, uint MatrixInterpretation,
+                         uint M, uint K, uint Layout, bool MatrixTranspose,
+                         uint MatrixStride, out vector<TYo, NUMo> OutputVector);
 
 // dx.op.matvecmuladd
 template <typename TYo, int NUMo, typename TYi, int NUMi, typename RESm,
           typename RESv>
 void __builtin_MatVecMulAdd(vector<TYi, NUMi> InputVector,
-                      uint InputVectorInterpretation, RESm MatrixResource,
-                      uint MatrixStartOffset, uint MatrixInterpretation, uint M,
-                      uint K, uint Layout, bool MatrixTranspose,
-                      uint MatrixStride, RESv BiasVectorResource,
-                      uint BiasVectorOffset, uint BiasVectorInterpretation,
-                      out vector<TYo, NUMo> OutputVector);
+                            uint InputVectorInterpretation, RESm MatrixResource,
+                            uint MatrixStartOffset, uint MatrixInterpretation,
+                            uint M, uint K, uint Layout, bool MatrixTranspose,
+                            uint MatrixStride, RESv BiasVectorResource,
+                            uint BiasVectorOffset,
+                            uint BiasVectorInterpretation,
+                            out vector<TYo, NUMo> OutputVector);
 
 // dx.op.outerproductaccumulate
 template <typename TY, int M, int N, typename RES>
@@ -81,67 +82,49 @@ void __builtin_VectorAccumulate(vector<TY, NUM> InputVector,
 
 } // namespace details
 
-namespace details {
-
-template <typename BUFFER, DataType TY, uint M, uint K, MatrixLayout ML,
+template <typename BUFFER, DataType DT, uint M, uint K, MatrixLayout ML,
           bool TRANSPOSE>
 struct MatrixRefImpl {
   BUFFER Buffer;
   uint StartOffset;
   uint Stride;
-
-  static const DataType Type = TY;
-  static const uint DimensionM = M;
-  static const uint DimensionK = K;
-  static const MatrixLayout Layout = ML;
-  static const bool Transpose = TRANSPOSE;
 };
 
-template <typename BUFFER, DataType TYPE> struct VectorRefImpl {
+template <typename BUFFER, DataType DT> struct VectorRefImpl {
   BUFFER Buffer;
   uint StartOffset;
-
-  static const DataType Type = TYPE;
 };
-
-} // namespace details
 
 //
 // (RW)MatrixRef
 //
 
-template <DataType TYPE, uint M, uint K, MatrixLayout ML,
-          bool TRANSPOSE = false>
-struct MatrixRef
-    : details::MatrixRefImpl<ByteAddressBuffer, TYPE, M, K, ML, TRANSPOSE> {};
+template <DataType DT, uint M, uint K, MatrixLayout ML, bool TRANSPOSE = false>
+using MatrixRef = MatrixRefImpl<ByteAddressBuffer, DT, M, K, ML, TRANSPOSE>;
 
-template <DataType TYPE, uint M, uint K, MatrixLayout ML,
-          bool TRANSPOSE = false>
-struct RWMatrixRef
-    : details::MatrixRefImpl<RWByteAddressBuffer, TYPE, M, K, ML, TRANSPOSE> {};
+template <DataType DT, uint M, uint K, MatrixLayout ML, bool TRANSPOSE = false>
+using RWMatrixRef = MatrixRefImpl<RWByteAddressBuffer, DT, M, K, ML, TRANSPOSE>;
 
 //
 // (RW)VectorRef
 //
 
-template <DataType TYPE>
-struct VectorRef : details::VectorRefImpl<ByteAddressBuffer, TYPE> {};
+template <DataType DT> using VectorRef = VectorRefImpl<ByteAddressBuffer, DT>;
 
-template <DataType TYPE>
-struct RWVectorRef : details::VectorRefImpl<RWByteAddressBuffer, TYPE> {};
+template <DataType DT>
+using RWVectorRef = VectorRefImpl<RWByteAddressBuffer, DT>;
 
 //
 // Vector
 //
 
-template <typename T, int N, DataType TYPE> struct Vector {
+template <typename T, int N, DataType DT> struct Vector {
   vector<T, N> Data;
-  static const DataType Type = TYPE;
 };
 
-template <DataType TYPE, typename T, int N>
-Vector<T, N, TYPE> InterpretedVector(vector<T, N> Vec) {
-  Vector<T, N, TYPE> IV = {Vec};
+template <DataType DT, typename T, int N>
+Vector<T, N, DT> InterpretedVector(vector<T, N> Vec) {
+  Vector<T, N, DT> IV = {Vec};
   return IV;
 }
 
@@ -151,56 +134,42 @@ Vector<T, N, TYPE> InterpretedVector(vector<T, N> Vec) {
 // Mul
 //
 
-#define APPROACH 1
-
-#if APPROACH == 0
-template <typename TYo, typename MATRIX, typename INPUT_VECTOR>
-vector<TYo, MATRIX::DimensionM> Mul(MATRIX Matrix, INPUT_VECTOR InputVector) {
-
-  vector<TYo, MATRIX::DimensionM> OutputVector;
-
-  details::__builtin_MatVecMul<TYo, MATRIX::DimensionM>(
-      InputVector.Data, INPUT_VECTOR::Type, BUFFER_HANDLE(Matrix.Buffer),
-      Matrix.StartOffset, MATRIX::Type, MATRIX::DimensionM, MATRIX::DimensionK,
-      MATRIX::Layout, MATRIX::Transpose, Matrix.Stride, /*out*/ OutputVector);
-
-  return OutputVector;
-}
-#elif APPROACH == 1
-
-template <typename TYo, typename TYi, int NUMi, typename RES, DataType V_TYPE,
-          DataType M_TYPE, uint M, uint K, MatrixLayout M_LAYOUT,
+template <typename TYo, typename TYi, int NUMi, typename M_RES, DataType IV_DT,
+          DataType M_DT, uint M_M, uint M_K, MatrixLayout M_LAYOUT,
           bool M_TRANSPOSE>
-vector<TYo, M>
-Mul(details::MatrixRefImpl<RES, M_TYPE, M, K, M_LAYOUT, M_TRANSPOSE> Matrix,
-    Vector<TYi, NUMi, V_TYPE> InputVector) {
+vector<TYo, M_M>
+Mul(MatrixRefImpl<M_RES, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE> Matrix,
+    Vector<TYi, NUMi, IV_DT> InputVector) {
 
-  vector<TYo, M> OutputVector;
+  vector<TYo, M_M> OutputVector;
 
-  details::__builtin_MatVecMul(InputVector.Data, V_TYPE, BUFFER_HANDLE(Matrix.Buffer),
-                         Matrix.StartOffset, M_TYPE, M, K, M_LAYOUT,
-                         M_TRANSPOSE, Matrix.Stride, /*out*/ OutputVector);
+  details::__builtin_MatVecMul(InputVector.Data, IV_DT,
+                               BUFFER_HANDLE(Matrix.Buffer), Matrix.StartOffset,
+                               M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE,
+                               Matrix.Stride, /*out*/ OutputVector);
 
   return OutputVector;
 }
-#endif
 
 //
 // MulAdd
 //
 
-template <typename RESULT_TYPE, typename MATRIX, typename INPUT_VECTOR,
-          typename BIAS_VECTOR>
-vector<RESULT_TYPE, MATRIX::DimensionM>
-MulAdd(MATRIX Matrix, INPUT_VECTOR InputVector, BIAS_VECTOR BiasVector) {
-  vector<RESULT_TYPE, MATRIX::DimensionM> OutputVector;
+template <typename TYo, typename TYi, int NUMi, typename M_RES, DataType IV_DT,
+          DataType M_DT, uint M_M, uint M_K, MatrixLayout M_LAYOUT,
+          bool M_TRANSPOSE, typename BV_RES, DataType BV_DT>
+vector<TYo, M_M>
+MulAdd(MatrixRefImpl<M_RES, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE> Matrix,
+       Vector<TYi, NUMi, IV_DT> InputVector,
+       VectorRefImpl<BV_RES, BV_DT> BiasVector) {
 
-  details::__builtin_MatVecMulAdd<RESULT_TYPE, MATRIX::DimensionM>(
-      InputVector.Data, INPUT_VECTOR::Type, BUFFER_HANDLE(Matrix.Buffer),
-      Matrix.StartOffset, MATRIX::Type, MATRIX::DimensionM, MATRIX::DimensionK,
-      MATRIX::Layout, MATRIX::Transpose, Matrix.Stride,
-      BUFFER_HANDLE(BiasVector.Buffer), BiasVector.StartOffset,
-      BIAS_VECTOR::Type, /*out*/ OutputVector);
+  vector<TYo, M_M> OutputVector;
+
+  details::__builtin_MatVecMulAdd(
+      InputVector.Data, IV_DT, BUFFER_HANDLE(Matrix.Buffer), Matrix.StartOffset,
+      M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE, Matrix.Stride,
+      BUFFER_HANDLE(BiasVector.Buffer), BiasVector.StartOffset, BV_DT,
+      /*out*/ OutputVector);
 
   return OutputVector;
 }
@@ -209,13 +178,13 @@ MulAdd(MATRIX Matrix, INPUT_VECTOR InputVector, BIAS_VECTOR BiasVector) {
 // OuterProductAccumulate
 //
 
-template <typename T, int M, int N, DataType TYPE, MatrixLayout ML>
+template <typename T, int M, int N, DataType M_DT, MatrixLayout M_LAYOUT>
 void OuterProductAccumulate(vector<T, M> InputVector1,
                             vector<T, N> InputVector2,
-                            RWMatrixRef<TYPE, M, N, ML, false> Matrix) {
-  details::__builtin_OuterProductAccumulate(
-      InputVector1, InputVector2, BUFFER_HANDLE(Matrix.Buffer),
-      Matrix.StartOffset, Matrix.Type, Matrix.Layout);
+                            RWMatrixRef<M_DT, M, N, M_LAYOUT, false> Matrix) {
+  details::__builtin_OuterProductAccumulate(InputVector1, InputVector2,
+                                            BUFFER_HANDLE(Matrix.Buffer),
+                                            Matrix.StartOffset, M_DT, M_LAYOUT);
 }
 
 //
