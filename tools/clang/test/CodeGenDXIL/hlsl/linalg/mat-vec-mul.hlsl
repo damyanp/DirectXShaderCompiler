@@ -8,7 +8,7 @@ ByteAddressBuffer Buf;
 export float4 Test4(float4 input) {
   using namespace dx::linalg;
 
-  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL, true>
+  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_MUL_OPTIMAL, true>
       matrix = {Buf, 0, 0};
 
   // clang-format off

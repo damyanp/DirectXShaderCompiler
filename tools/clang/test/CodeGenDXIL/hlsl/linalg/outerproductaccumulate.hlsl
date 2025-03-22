@@ -7,7 +7,7 @@ RWByteAddressBuffer RWBuf;
 export void Test4(vector<half, 128> Input1, vector<half, 256> Input2) {
   using namespace dx::linalg;
 
-  RWMatrixRef<DATA_TYPE_FLOAT16, 128, 256, MATRIX_LAYOUT_TRAINING_OPTIMAL>
+  RWMatrixRef<DATA_TYPE_FLOAT16, 128, 256, MATRIX_LAYOUT_OUTER_PRODUCT_OPTIMAL>
       matrix = {RWBuf, 0, 0};
 
   // clang-format off
