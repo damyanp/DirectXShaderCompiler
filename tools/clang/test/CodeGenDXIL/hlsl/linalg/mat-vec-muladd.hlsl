@@ -14,7 +14,7 @@ export float4 Test1(float4 input) {
   Vector<float, 4, DATA_TYPE_FLOAT16> theVector = {input};
 
   // clang-format off
-  // CHECK: call void {{.*__builtin_MulAdd@.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext false, i32 0, i32 0, i32 256, i32 8, <4 x float>* nonnull dereferenceable(16) %{{.+}})
+  // CHECK: call void {{.*__builtin_MatVecMulAdd@.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext false, i32 0, i32 0, i32 256, i32 8, <4 x float>* nonnull dereferenceable(16) %{{.+}})
   return MulAdd<float>(
       matrix, theVector,
       biasVector);
@@ -33,7 +33,7 @@ export float4 Test2(float4 input) {
   // clang-format off
   return MulAdd<float>(
       matrix, theVector,
-      biasVector); // CHECK: call void {{.*__builtin_MulAdd@.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8, <4 x float>* nonnull dereferenceable(16) %{{.+}})
+      biasVector); // CHECK: call void {{.*__builtin_MatVecMulAdd@.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8, <4 x float>* nonnull dereferenceable(16) %{{.+}})
   // clang-format on
 }
 
@@ -45,7 +45,7 @@ export float4 Test3(float4 input) {
   VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
 
   // clang-format off
-  // CHECK: call void {{.*__builtin_MulAdd@.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8, <4 x float>* nonnull dereferenceable(16) %{{.+}}) 
+  // CHECK: call void {{.*__builtin_MatVecMulAdd@.*}}(<4 x float> %{{.+}}, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8, <4 x float>* nonnull dereferenceable(16) %{{.+}}) 
   return MulAdd<float>(
       matrix, InterpretedVector<DATA_TYPE_FLOAT16>(input),
       biasVector);
