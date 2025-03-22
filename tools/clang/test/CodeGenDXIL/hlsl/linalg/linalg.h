@@ -1,4 +1,4 @@
-//
+
 // Header for linear algebra APIs.
 //
 // This needs to find a proper home!
@@ -31,8 +31,8 @@ enum DataType {
 enum MatrixLayout {
   MATRIX_LAYOUT_ROW_MAJOR = 0,
   MATRIX_LAYOUT_COLUMN_MAJOR = 1,
-  MATRIX_LAYOUT_INFERENCING_OPTIMAL = 2,
-  MATRIX_LAYOUT_TRAINING_OPTIMAL = 3
+  MATRIX_LAYOUT_MUL_OPTIMAL = 2,
+  MATRIX_LAYOUT_OUTER_PRODUCT_OPTIMAL = 3
 };
 
 //
@@ -82,6 +82,12 @@ void __builtin_VectorAccumulate(vector<TY, NUM> InputVector,
 
 } // namespace details
 
+
+
+//
+// (RW)MatrixRef
+//
+
 template <typename BUFFER, DataType DT, uint M, uint K, MatrixLayout ML,
           bool TRANSPOSE>
 struct MatrixRefImpl {
@@ -89,15 +95,6 @@ struct MatrixRefImpl {
   uint StartOffset;
   uint Stride;
 };
-
-template <typename BUFFER, DataType DT> struct VectorRefImpl {
-  BUFFER Buffer;
-  uint StartOffset;
-};
-
-//
-// (RW)MatrixRef
-//
 
 template <DataType DT, uint M, uint K, MatrixLayout ML, bool TRANSPOSE = false>
 using MatrixRef = MatrixRefImpl<ByteAddressBuffer, DT, M, K, ML, TRANSPOSE>;
@@ -108,6 +105,11 @@ using RWMatrixRef = MatrixRefImpl<RWByteAddressBuffer, DT, M, K, ML, TRANSPOSE>;
 //
 // (RW)VectorRef
 //
+
+template <typename BUFFER, DataType DT> struct VectorRefImpl {
+  BUFFER Buffer;
+  uint StartOffset;
+};
 
 template <DataType DT> using VectorRef = VectorRefImpl<ByteAddressBuffer, DT>;
 

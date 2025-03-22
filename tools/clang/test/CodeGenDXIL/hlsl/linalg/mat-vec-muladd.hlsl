@@ -7,7 +7,7 @@ ByteAddressBuffer Buf;
 export float4 Test1(float4 input) {
   using namespace dx::linalg;
 
-  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL> matrix =
+  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_MUL_OPTIMAL> matrix =
       {Buf, 0, 0};
   VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
 
@@ -24,7 +24,7 @@ export float4 Test1(float4 input) {
 export float4 Test2(float4 input) {
   using namespace dx::linalg;
 
-  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL, true>
+  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_MUL_OPTIMAL, true>
       matrix = {Buf, 0, 0};
   VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
 
@@ -40,7 +40,7 @@ export float4 Test2(float4 input) {
 export float4 Test3(float4 input) {
   using namespace dx::linalg;
 
-  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_INFERENCING_OPTIMAL, true>
+  MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_MUL_OPTIMAL, true>
       matrix = {Buf, 0, 0};
   VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
 
@@ -59,17 +59,17 @@ ByteAddressBuffer model;
 vector<float, 3> ApplyNeuralMaterial(vector<half, 8> inputVector) {
   using namespace dx::linalg;
 
-  MatrixRef<DATA_TYPE_E4M3, 32, 8, MATRIX_LAYOUT_INFERENCING_OPTIMAL> matrix0 =
+  MatrixRef<DATA_TYPE_E4M3, 32, 8, MATRIX_LAYOUT_MUL_OPTIMAL> matrix0 =
       {model, 0, 0};
 
   VectorRef<DATA_TYPE_FLOAT16> biasVector0 = {model, 1024};
 
-  MatrixRef<DATA_TYPE_E4M3, 32, 32, MATRIX_LAYOUT_INFERENCING_OPTIMAL> matrix1 =
+  MatrixRef<DATA_TYPE_E4M3, 32, 32, MATRIX_LAYOUT_MUL_OPTIMAL> matrix1 =
       {model, 2048, 0};
 
   VectorRef<DATA_TYPE_FLOAT16> biasVector1 = {model, 3072};
 
-  MatrixRef<DATA_TYPE_E4M3, 3, 32, MATRIX_LAYOUT_INFERENCING_OPTIMAL> matrix2 =
+  MatrixRef<DATA_TYPE_E4M3, 3, 32, MATRIX_LAYOUT_MUL_OPTIMAL> matrix2 =
       {model, 4096, 0};
 
   VectorRef<DATA_TYPE_FLOAT16> biasVector2 = {model, 5120};
