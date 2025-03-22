@@ -44,9 +44,7 @@ enum MatrixLayout {
 // exported functions.
 
 namespace details {
-//
 // dx.op.matvecmul
-//
 template <typename TYo, int NUMo, typename TYi, int NUMi, typename RES>
 void __builtin_Mul(vector<TYi, NUMi> InputVector,
                    uint InputVectorInterpretation, RES MatrixResource,
@@ -54,9 +52,7 @@ void __builtin_Mul(vector<TYi, NUMi> InputVector,
                    uint K, uint Layout, bool MatrixTranspose, uint MatrixStride,
                    out vector<TYo, NUMo> OutputVector);
 
-//
 // dx.op.matvecmuladd
-//
 template <typename TYo, int NUMo, typename TYi, int NUMi, typename RESm,
           typename RESv>
 void __builtin_MulAdd(vector<TYi, NUMi> InputVector,
@@ -67,17 +63,13 @@ void __builtin_MulAdd(vector<TYi, NUMi> InputVector,
                       uint BiasVectorOffset, uint BiasVectorInterpretation,
                       out vector<TYo, NUMo> OutputVector);
 
-//
 // dx.op.outerproductaccumulate
-//
 template <typename TY, int M, int N, typename RES>
 void __builtin_OuterProductAccumulate(
     vector<TY, M> InputVector1, vector<TY, N> InputVector2, RES MatrixResource,
     uint MatrixStartOffset, DataType MatrixInterpretation, MatrixLayout Layout);
 
-//
 // dx.op.vectoraccumulate
-//
 template <typename TY, int NUM, typename RES>
 void __builtin_VectorAccumulate(vector<TY, NUM> InputVector,
                                 RES OutputArrayResource,
