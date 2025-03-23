@@ -82,8 +82,6 @@ void __builtin_VectorAccumulate(vector<TY, NUM> InputVector,
 
 } // namespace details
 
-
-
 //
 // (RW)MatrixRef
 //
@@ -132,23 +130,36 @@ Vector<T, N, DT> InterpretedVector(vector<T, N> Vec) {
 
 #define BUFFER_HANDLE(H) (0)
 
+namespace details {
+template <typename TY> DataType InputVectorDataType(DataType M_DT) {
+  return M_DT;
+}
+
+template <> DataType InputVectorDataType<uint8_t4_packed>(DataType M_DT) {
+  return DATA_TYPE_UINT8_T4_PACKED;
+}
+
+template <> DataType InputVectorDataType<int8_t4_packed>(DataType M_DT) {
+  return DATA_TYPE_SINT8_T4_PACKED;
+}
+} // namespace details
+
 //
 // Mul
 //
 
-template <typename TYo, typename TYi, int NUMi, typename M_RES, DataType IV_DT,
-          DataType M_DT, uint M_M, uint M_K, MatrixLayout M_LAYOUT,
-          bool M_TRANSPOSE>
+template <typename TYo, typename TYi, int NUMi, typename M_RES, DataType M_DT,
+          uint M_M, uint M_K, MatrixLayout M_LAYOUT, bool M_TRANSPOSE>
 vector<TYo, M_M>
 Mul(MatrixRefImpl<M_RES, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE> Matrix,
-    Vector<TYi, NUMi, IV_DT> InputVector) {
+    vector<TYi, NUMi> InputVector) {
 
   vector<TYo, M_M> OutputVector;
 
-  details::__builtin_MatVecMul(InputVector.Data, IV_DT,
-                               BUFFER_HANDLE(Matrix.Buffer), Matrix.StartOffset,
-                               M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE,
-                               Matrix.Stride, /*out*/ OutputVector);
+  details::__builtin_MatVecMul(
+      InputVector, /*IV_DT*/ details::InputVectorDataType<TYi>(M_DT),
+      BUFFER_HANDLE(Matrix.Buffer), Matrix.StartOffset, M_DT, M_M, M_K,
+      M_LAYOUT, M_TRANSPOSE, Matrix.Stride, /*out*/ OutputVector);
 
   return OutputVector;
 }
