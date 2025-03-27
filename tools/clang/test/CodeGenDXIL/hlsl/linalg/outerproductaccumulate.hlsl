@@ -11,7 +11,7 @@ export void Test4(vector<half, 128> Input1, vector<half, 256> Input2) {
       matrix = {RWBuf, 0, 0};
 
   // clang-format off
-  // CHECK: call void {{.*}}__builtin_OuterProductAccumulate@{{.*}}(<128 x float> %Input1, <256 x float> %Input2, i32 0, i32 0, i32 8, i32 3)
+  // CHECK: call void {{.*}}__builtin_OuterProductAccumulate@{{.*}}(<128 x float> %Input1, <256 x float> %Input2, i32 0, i32 0, i32 8, i32 3, i32 0)
   // clang-format on
   OuterProductAccumulate(Input1, Input2, matrix);
 }

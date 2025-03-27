@@ -50,29 +50,35 @@ enum MatrixLayout {
 namespace details {
 // dx.op.matvecmul
 template <typename TYo, int NUMo, typename TYi, int NUMi, typename RES>
-void __builtin_MatVecMul(vector<TYi, NUMi> InputVector,
-                         uint InputVectorInterpretation, RES MatrixResource,
-                         uint MatrixStartOffset, uint MatrixInterpretation,
-                         uint M, uint K, uint Layout, bool MatrixTranspose,
-                         uint MatrixStride, out vector<TYo, NUMo> OutputVector);
+void __builtin_MatVecMul(out vector<TYo, NUMo> OutputVector,
+                         bool IsOutputUnsigned, vector<TYi, NUMi> InputVector,
+                         bool IsInputUnsigned, uint InputVectorInterpretation,
+                         RES MatrixResource, uint MatrixStartOffset,
+                         uint MatrixInterpretation, uint M, uint K,
+                         uint MatrixLayout, bool MatrixTranspose,
+                         uint MatrixStride);
 
 // dx.op.matvecmuladd
 template <typename TYo, int NUMo, typename TYi, int NUMi, typename RESm,
           typename RESv>
-void __builtin_MatVecMulAdd(vector<TYi, NUMi> InputVector,
+void __builtin_MatVecMulAdd(out vector<TYo, NUMo> OutputVector,
+                            bool IsOutputUnsigned,
+                            vector<TYi, NUMi> InputVector, bool IsInputUnsigned,
                             uint InputVectorInterpretation, RESm MatrixResource,
                             uint MatrixStartOffset, uint MatrixInterpretation,
-                            uint M, uint K, uint Layout, bool MatrixTranspose,
-                            uint MatrixStride, RESv BiasVectorResource,
-                            uint BiasVectorOffset,
-                            uint BiasVectorInterpretation,
-                            out vector<TYo, NUMo> OutputVector);
+                            uint M, uint K, uint MatrixLayout,
+                            bool MatrixTranspose, uint MatrixStride,
+                            RESv BiasVectorResource, uint BiasVectorOffset,
+                            uint BiasVectorInterpretation);
 
 // dx.op.outerproductaccumulate
 template <typename TY, int M, int N, typename RES>
-void __builtin_OuterProductAccumulate(
-    vector<TY, M> InputVector1, vector<TY, N> InputVector2, RES MatrixResource,
-    uint MatrixStartOffset, DataType MatrixInterpretation, MatrixLayout Layout);
+void __builtin_OuterProductAccumulate(vector<TY, M> InputVector1,
+                                      vector<TY, N> InputVector2,
+                                      RES MatrixResource,
+                                      uint MatrixStartOffset,
+                                      DataType MatrixInterpretation,
+                                      MatrixLayout Layout, uint MatrixStride);
 
 // dx.op.vectoraccumulate
 template <typename TY, int NUM, typename RES>
@@ -82,7 +88,19 @@ void __builtin_VectorAccumulate(vector<TY, NUM> InputVector,
 
 } // namespace details
 
+//
+// Helper for signedness
+//
+namespace details {
+template <typename T> bool IsUnsigned() { return false; }
 
+#ifdef __HLSL_ENABLE_16_BIT
+template <> bool IsUnsigned<uint16_t>() { return true; }
+#endif
+
+template <> bool IsUnsigned<uint32_t>() { return true; }
+template <> bool IsUnsigned<uint64_t>() { return true; }
+} // namespace details
 
 //
 // (RW)MatrixRef
@@ -145,10 +163,10 @@ Mul(MatrixRefImpl<M_RES, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE> Matrix,
 
   vector<TYo, M_M> OutputVector;
 
-  details::__builtin_MatVecMul(InputVector.Data, IV_DT,
-                               BUFFER_HANDLE(Matrix.Buffer), Matrix.StartOffset,
-                               M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE,
-                               Matrix.Stride, /*out*/ OutputVector);
+  details::__builtin_MatVecMul(
+      /*out*/ OutputVector, details::IsUnsigned<TYo>(), InputVector.Data,
+      details::IsUnsigned<TYi>(), IV_DT, BUFFER_HANDLE(Matrix.Buffer),
+      Matrix.StartOffset, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE, Matrix.Stride);
 
   return OutputVector;
 }
@@ -168,10 +186,10 @@ MulAdd(MatrixRefImpl<M_RES, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE> Matrix,
   vector<TYo, M_M> OutputVector;
 
   details::__builtin_MatVecMulAdd(
-      InputVector.Data, IV_DT, BUFFER_HANDLE(Matrix.Buffer), Matrix.StartOffset,
-      M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE, Matrix.Stride,
-      BUFFER_HANDLE(BiasVector.Buffer), BiasVector.StartOffset, BV_DT,
-      /*out*/ OutputVector);
+      /*out*/ OutputVector, details::IsUnsigned<TYo>(), InputVector.Data,
+      details::IsUnsigned<TYi>(), IV_DT, BUFFER_HANDLE(Matrix.Buffer),
+      Matrix.StartOffset, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE, Matrix.Stride,
+      BUFFER_HANDLE(BiasVector.Buffer), BiasVector.StartOffset, BV_DT);
 
   return OutputVector;
 }
@@ -184,9 +202,9 @@ template <typename T, int M, int N, DataType M_DT, MatrixLayout M_LAYOUT>
 void OuterProductAccumulate(vector<T, M> InputVector1,
                             vector<T, N> InputVector2,
                             RWMatrixRef<M_DT, M, N, M_LAYOUT, false> Matrix) {
-  details::__builtin_OuterProductAccumulate(InputVector1, InputVector2,
-                                            BUFFER_HANDLE(Matrix.Buffer),
-                                            Matrix.StartOffset, M_DT, M_LAYOUT);
+  details::__builtin_OuterProductAccumulate(
+      InputVector1, InputVector2, BUFFER_HANDLE(Matrix.Buffer),
+      Matrix.StartOffset, M_DT, M_LAYOUT, Matrix.Stride);
 }
 
 //
