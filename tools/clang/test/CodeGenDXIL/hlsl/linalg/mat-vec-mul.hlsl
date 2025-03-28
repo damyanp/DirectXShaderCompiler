@@ -13,7 +13,7 @@ export float4 Test1(float4 Input) {
   // clang-format off
   // CHECK: call void {{.*__builtin_MatVecMul@.*}}(<4 x float>* nonnull dereferenceable(16) %{{.+}}, i1 zeroext false, <4 x float> %Input, i1 zeroext false, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0)
   return Mul<float>(    
-      Matrix, InterpretedVector<DATA_TYPE_FLOAT16>(Input));
+      Matrix, MakeInterpretedVector<DATA_TYPE_FLOAT16>(Input));
   // clang-format on
 }
 
@@ -27,5 +27,5 @@ export vector<float, 8> Test2(vector<uint8_t4_packed, 6> Input) {
   // CHECK: call void {{.*__builtin_MatVecMul@.*}}(<8 x float>* nonnull dereferenceable(32) %{{.+}}, i1 zeroext false, <6 x i32> %Input, i1 zeroext false, i32 18, i32 0, i32 0, i32 19, i32 8, i32 24, i32 2, i1 zeroext false, i32 0)
   // clang-format on
   return Mul<float>(Matrix,
-                    InterpretedVector<DATA_TYPE_UINT8_T4_PACKED>(Input));
+                    MakeInterpretedVector<DATA_TYPE_UINT8_T4_PACKED>(Input));
 }

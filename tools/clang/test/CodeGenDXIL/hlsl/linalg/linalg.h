@@ -106,26 +106,26 @@ template <> bool IsUnsigned<uint64_t>() { return true; }
 // (RW)MatrixRef
 //
 
-template <typename BUFFER, DataType DT, uint M, uint K, MatrixLayout ML,
-          bool TRANSPOSE>
+template <typename BufferTy, DataType DT, uint M, uint K, MatrixLayout ML,
+          bool Transpose>
 struct MatrixRefImpl {
-  BUFFER Buffer;
+  BufferTy Buffer;
   uint StartOffset;
   uint Stride;
 };
 
-template <DataType DT, uint M, uint K, MatrixLayout ML, bool TRANSPOSE = false>
-using MatrixRef = MatrixRefImpl<ByteAddressBuffer, DT, M, K, ML, TRANSPOSE>;
+template <DataType DT, uint M, uint K, MatrixLayout ML, bool Transpose = false>
+using MatrixRef = MatrixRefImpl<ByteAddressBuffer, DT, M, K, ML, Transpose>;
 
-template <DataType DT, uint M, uint K, MatrixLayout ML, bool TRANSPOSE = false>
-using RWMatrixRef = MatrixRefImpl<RWByteAddressBuffer, DT, M, K, ML, TRANSPOSE>;
+template <DataType DT, uint M, uint K, MatrixLayout ML, bool Transpose = false>
+using RWMatrixRef = MatrixRefImpl<RWByteAddressBuffer, DT, M, K, ML, Transpose>;
 
 //
 // (RW)VectorRef
 //
 
-template <typename BUFFER, DataType DT> struct VectorRefImpl {
-  BUFFER Buffer;
+template <typename BufferTy, DataType DT> struct VectorRefImpl {
+  BufferTy Buffer;
   uint StartOffset;
 };
 
@@ -138,13 +138,13 @@ using RWVectorRef = VectorRefImpl<RWByteAddressBuffer, DT>;
 // Vector
 //
 
-template <typename T, int N, DataType DT> struct Vector {
+template <typename T, int N, DataType DT> struct InterpretedVector {
   vector<T, N> Data;
 };
 
 template <DataType DT, typename T, int N>
-Vector<T, N, DT> InterpretedVector(vector<T, N> Vec) {
-  Vector<T, N, DT> IV = {Vec};
+InterpretedVector<T, N, DT> MakeInterpretedVector(vector<T, N> Vec) {
+  InterpretedVector<T, N, DT> IV = {Vec};
   return IV;
 }
 
@@ -154,19 +154,23 @@ Vector<T, N, DT> InterpretedVector(vector<T, N> Vec) {
 // Mul
 //
 
-template <typename TYo, typename TYi, int NUMi, typename M_RES, DataType IV_DT,
-          DataType M_DT, uint M_M, uint M_K, MatrixLayout M_LAYOUT,
-          bool M_TRANSPOSE>
-vector<TYo, M_M>
-Mul(MatrixRefImpl<M_RES, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE> Matrix,
-    Vector<TYi, NUMi, IV_DT> InputVector) {
+template <typename OutputElTy, typename InputElTy, int InputElCount,
+          typename MatrixBufferTy, DataType InputDT, DataType MatrixDT,
+          uint MatrixM, uint MatrixK, MatrixLayout MatrixLayout,
+          bool MatrixTranspose>
+vector<OutputElTy, MatrixM>
+Mul(MatrixRefImpl<MatrixBufferTy, MatrixDT, MatrixM, MatrixK, MatrixLayout,
+                  MatrixTranspose>
+        Matrix,
+    InterpretedVector<InputElTy, InputElCount, InputDT> InputVector) {
 
-  vector<TYo, M_M> OutputVector;
+  vector<OutputElTy, MatrixM> OutputVector;
 
   details::__builtin_MatVecMul(
-      /*out*/ OutputVector, details::IsUnsigned<TYo>(), InputVector.Data,
-      details::IsUnsigned<TYi>(), IV_DT, BUFFER_HANDLE(Matrix.Buffer),
-      Matrix.StartOffset, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE, Matrix.Stride);
+      /*out*/ OutputVector, details::IsUnsigned<OutputElTy>(), InputVector.Data,
+      details::IsUnsigned<InputElTy>(), InputDT, BUFFER_HANDLE(Matrix.Buffer),
+      Matrix.StartOffset, MatrixDT, MatrixM, MatrixK, MatrixLayout,
+      MatrixTranspose, Matrix.Stride);
 
   return OutputVector;
 }
@@ -175,21 +179,26 @@ Mul(MatrixRefImpl<M_RES, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE> Matrix,
 // MulAdd
 //
 
-template <typename TYo, typename TYi, int NUMi, typename M_RES, DataType IV_DT,
-          DataType M_DT, uint M_M, uint M_K, MatrixLayout M_LAYOUT,
-          bool M_TRANSPOSE, typename BV_RES, DataType BV_DT>
-vector<TYo, M_M>
-MulAdd(MatrixRefImpl<M_RES, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE> Matrix,
-       Vector<TYi, NUMi, IV_DT> InputVector,
-       VectorRefImpl<BV_RES, BV_DT> BiasVector) {
+template <typename OutputElTy, typename InputElTy, int InputElCount,
+          typename MatrixBufferTy, DataType InputDT, DataType MatrixDT,
+          uint MatrixM, uint MatrixK, MatrixLayout MatrixLayout,
+          bool MatrixTranspose, typename BiasVectorBufferTy,
+          DataType BiasVectorDT>
+vector<OutputElTy, MatrixM>
+MulAdd(MatrixRefImpl<MatrixBufferTy, MatrixDT, MatrixM, MatrixK, MatrixLayout,
+                     MatrixTranspose>
+           Matrix,
+       InterpretedVector<InputElTy, InputElCount, InputDT> InputVector,
+       VectorRefImpl<BiasVectorBufferTy, BiasVectorDT> BiasVector) {
 
-  vector<TYo, M_M> OutputVector;
+  vector<OutputElTy, MatrixM> OutputVector;
 
   details::__builtin_MatVecMulAdd(
-      /*out*/ OutputVector, details::IsUnsigned<TYo>(), InputVector.Data,
-      details::IsUnsigned<TYi>(), IV_DT, BUFFER_HANDLE(Matrix.Buffer),
-      Matrix.StartOffset, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE, Matrix.Stride,
-      BUFFER_HANDLE(BiasVector.Buffer), BiasVector.StartOffset, BV_DT);
+      /*out*/ OutputVector, details::IsUnsigned<OutputElTy>(), InputVector.Data,
+      details::IsUnsigned<InputElTy>(), InputDT, BUFFER_HANDLE(Matrix.Buffer),
+      Matrix.StartOffset, MatrixDT, MatrixM, MatrixK, MatrixLayout,
+      MatrixTranspose, Matrix.Stride, BUFFER_HANDLE(BiasVector.Buffer),
+      BiasVector.StartOffset, BiasVectorDT);
 
   return OutputVector;
 }
@@ -198,22 +207,23 @@ MulAdd(MatrixRefImpl<M_RES, M_DT, M_M, M_K, M_LAYOUT, M_TRANSPOSE> Matrix,
 // OuterProductAccumulate
 //
 
-template <typename T, int M, int N, DataType M_DT, MatrixLayout M_LAYOUT>
-void OuterProductAccumulate(vector<T, M> InputVector1,
-                            vector<T, N> InputVector2,
-                            RWMatrixRef<M_DT, M, N, M_LAYOUT, false> Matrix) {
+template <typename ElTy, int MatrixM, int MatrixN, DataType MatrixDT,
+          MatrixLayout MatrixLayout>
+void OuterProductAccumulate(
+    vector<ElTy, MatrixM> InputVector1, vector<ElTy, MatrixN> InputVector2,
+    RWMatrixRef<MatrixDT, MatrixM, MatrixN, MatrixLayout, false> Matrix) {
   details::__builtin_OuterProductAccumulate(
       InputVector1, InputVector2, BUFFER_HANDLE(Matrix.Buffer),
-      Matrix.StartOffset, M_DT, M_LAYOUT, Matrix.Stride);
+      Matrix.StartOffset, MatrixDT, MatrixLayout, Matrix.Stride);
 }
 
 //
 // VectorAccumulate
 //
 
-template <typename T, int N>
-void VectorAccumulate(vector<T, N> InputVector, RWByteAddressBuffer Buffer,
-                      uint Offset) {
+template <typename ElTy, int ElCount>
+void VectorAccumulate(vector<ElTy, ElCount> InputVector,
+                      RWByteAddressBuffer Buffer, uint Offset) {
   details::__builtin_VectorAccumulate(InputVector, BUFFER_HANDLE(Buffer),
                                       Offset);
 }

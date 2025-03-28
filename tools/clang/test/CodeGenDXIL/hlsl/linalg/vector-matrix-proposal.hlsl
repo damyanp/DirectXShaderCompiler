@@ -24,15 +24,15 @@ vector<float, 3> ApplyNeuralMaterial(vector<half, 8> inputVector) {
   VectorRef<DATA_TYPE_FLOAT16> biasVector2 = {model, 5120};
 
   vector<half, 32> layer0 = MulAdd<half>(
-      matrix0, InterpretedVector<DATA_TYPE_E4M3>(inputVector), biasVector0);
+      matrix0, MakeInterpretedVector<DATA_TYPE_E4M3>(inputVector), biasVector0);
   layer0 = max(layer0, 0);
 
   vector<half, 32> layer1 = MulAdd<half>(
-      matrix1, InterpretedVector<DATA_TYPE_E4M3>(layer0), biasVector1);
+      matrix1, MakeInterpretedVector<DATA_TYPE_E4M3>(layer0), biasVector1);
   layer1 = max(layer1, 0);
 
   vector<float, 3> output = MulAdd<float>(
-      matrix2, InterpretedVector<DATA_TYPE_E4M3>(layer1), biasVector2);
+      matrix2, MakeInterpretedVector<DATA_TYPE_E4M3>(layer1), biasVector2);
   output = exp(output);
 
   return output;
@@ -80,10 +80,10 @@ void Example() {
 
   vector<float, 128> V = 0;
   vector<float, 128> Result =
-      Mul<float>(Matrix, InterpretedVector<DATA_TYPE_E4M3>(V));
+      Mul<float>(Matrix, MakeInterpretedVector<DATA_TYPE_E4M3>(V));
 
   // alternative:
-  Vector<float, 128, DATA_TYPE_E4M3> IV = {V};
+  InterpretedVector<float, 128, DATA_TYPE_E4M3> IV = {V};
   vector<float, 128> Result2 = Mul<float>(Matrix, IV);
 }
 } // namespace vector_example
@@ -96,7 +96,7 @@ float4 Example(float4 Input) {
   MatrixRef<DATA_TYPE_FLOAT16, 4, 4, MATRIX_LAYOUT_MUL_OPTIMAL, true> Matrix = {
       Buffer, 0, 0};
 
-  return Mul<float>(Matrix, InterpretedVector<DATA_TYPE_FLOAT16>(Input));
+  return Mul<float>(Matrix, MakeInterpretedVector<DATA_TYPE_FLOAT16>(Input));
 }
 } // namespace mul_example
 
@@ -113,7 +113,7 @@ void Example() {
 
   vector<float, 8> V = 0;
   vector<float, 32> Result =
-      MulAdd<float>(Matrix, InterpretedVector<DATA_TYPE_E4M3>(V), BiasVector);
+      MulAdd<float>(Matrix, MakeInterpretedVector<DATA_TYPE_E4M3>(V), BiasVector);
 }
 } // namespace muladd_example
 
