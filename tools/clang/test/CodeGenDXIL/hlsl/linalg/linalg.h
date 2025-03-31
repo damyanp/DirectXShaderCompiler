@@ -22,9 +22,9 @@ enum DataType {
   DATA_TYPE_UINT8_T4_PACKED = 18, // ComponentType::PackedU8x32
   DATA_TYPE_UINT8 = 19,           // ComponentType::U8
   DATA_TYPE_SINT8 = 20,           // ComponentType::I8
-  DATA_TYPE_E4M3 = 21,            // ComponentType::F8_E4M3
+  DATA_TYPE_FLOAT8_E4M3 = 21,     // ComponentType::F8_E4M3
                                   // (1 sign, 4 exp, 3 mantissa bits)
-  DATA_TYPE_E5M2 = 22,            // ComponentType::F8_E5M2
+  DATA_TYPE_FLOAT8_E5M2 = 22,     // ComponentType::F8_E5M2
                                   // (1 sign, 5 exp, 2 mantissa bits)
 };
 
