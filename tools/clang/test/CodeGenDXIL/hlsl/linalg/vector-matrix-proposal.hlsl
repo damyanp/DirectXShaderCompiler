@@ -8,13 +8,13 @@ ByteAddressBuffer Model;
 vector<float, 3> ApplyNeuralMaterial(vector<half, 8> InputVector) {
   using namespace dx::linalg;
 
-  MatrixRef<DATA_TYPE_FLOAT8_E4M3, 32, 8, MATRIX_LAYOUT_MUL_OPTIMAL> Matrix0 = {Model,
-                                                                         0, 0};
+  MatrixRef<DATA_TYPE_FLOAT8_E4M3, 32, 8, MATRIX_LAYOUT_MUL_OPTIMAL> Matrix0 = {
+      Model, 0, 0};
 
   VectorRef<DATA_TYPE_FLOAT16> BiasVector0 = {Model, 1024};
 
-  MatrixRef<DATA_TYPE_FLOAT8_E4M3, 32, 32, MATRIX_LAYOUT_MUL_OPTIMAL> Matrix1 = {
-      Model, 2048, 0};
+  MatrixRef<DATA_TYPE_FLOAT8_E4M3, 32, 32, MATRIX_LAYOUT_MUL_OPTIMAL> Matrix1 =
+      {Model, 2048, 0};
 
   VectorRef<DATA_TYPE_FLOAT16> BiasVector1 = {Model, 3072};
 
@@ -24,15 +24,18 @@ vector<float, 3> ApplyNeuralMaterial(vector<half, 8> InputVector) {
   VectorRef<DATA_TYPE_FLOAT16> BiasVector2 = {Model, 5120};
 
   vector<half, 32> Layer0 = MulAdd<half>(
-      Matrix0, MakeInterpretedVector<DATA_TYPE_FLOAT8_E4M3>(InputVector), BiasVector0);
+      Matrix0, MakeInterpretedVector<DATA_TYPE_FLOAT8_E4M3>(InputVector),
+      BiasVector0);
   Layer0 = max(Layer0, 0);
 
   vector<half, 32> Layer1 = MulAdd<half>(
-      Matrix1, MakeInterpretedVector<DATA_TYPE_FLOAT8_E4M3>(Layer0), BiasVector1);
+      Matrix1, MakeInterpretedVector<DATA_TYPE_FLOAT8_E4M3>(Layer0),
+      BiasVector1);
   Layer1 = max(Layer1, 0);
 
   vector<float, 3> Output = MulAdd<float>(
-      Matrix2, MakeInterpretedVector<DATA_TYPE_FLOAT8_E4M3>(Layer1), BiasVector2);
+      Matrix2, MakeInterpretedVector<DATA_TYPE_FLOAT8_E4M3>(Layer1),
+      BiasVector2);
   Output = exp(Output);
 
   return Output;
@@ -106,8 +109,8 @@ ByteAddressBuffer Buffer;
 void Example() {
   using namespace dx::linalg;
 
-  MatrixRef<DATA_TYPE_FLOAT8_E4M3, 32, 8, MATRIX_LAYOUT_MUL_OPTIMAL> Matrix = {Buffer,
-                                                                        0, 0};
+  MatrixRef<DATA_TYPE_FLOAT8_E4M3, 32, 8, MATRIX_LAYOUT_MUL_OPTIMAL> Matrix = {
+      Buffer, 0, 0};
 
   VectorRef<DATA_TYPE_FLOAT16> BiasVector = {Buffer, 1024};
 
