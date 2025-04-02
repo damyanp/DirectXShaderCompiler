@@ -14,7 +14,7 @@ export float4 Test1(float4 input) {
   InterpretedVector<float, 4, DATA_TYPE_FLOAT16> theVector = {input};
 
   // clang-format off
-  // CHECK: call void {{.*__builtin_MatVecMulAdd@.*}}(<4 x float>* nonnull dereferenceable(16) %{{.+}}, i1 zeroext false, <4 x float> %input, i1 zeroext false, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext false, i32 0, i32 0, i32 256, i32 8)
+  // CHECK: %{{.+}} = call <4 x float> @dx.op.matVecMulAdd.v4f32.v4f32(i32 306, <4 x float> %{{.+}}, i1 false, i32 8, %dx.types.Handle [[RES:%.+]], i32 0, i32 8, i32 4, i32 4, i32 2, i1 false, i32 0, %dx.types.Handle [[RES]], i32 256, i32 8, i1 false)
   return MulAdd<float>(
       matrix, theVector,
       biasVector);
@@ -31,9 +31,10 @@ export float4 Test2(float4 input) {
   InterpretedVector<float, 4, DATA_TYPE_FLOAT16> theVector = {input};
 
   // clang-format off
+  // CHECK: %{{.+}} = call <4 x float> @dx.op.matVecMulAdd.v4f32.v4f32(i32 306, <4 x float> %{{.+}}, i1 false, i32 8, %dx.types.Handle [[RES:%.+]], i32 0, i32 8, i32 4, i32 4, i32 2, i1 true, i32 0, %dx.types.Handle [[RES]], i32 256, i32 8, i1 false)
   return MulAdd<float>(
       matrix, theVector,
-      biasVector); // CHECK: call void {{.*__builtin_MatVecMulAdd@.*}}(<4 x float>* nonnull dereferenceable(16) %{{.+}}, i1 zeroext false, <4 x float> %input, i1 zeroext false, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8)
+      biasVector);
   // clang-format on
 }
 
@@ -45,7 +46,7 @@ export float4 Test3(float4 input) {
   VectorRef<DATA_TYPE_FLOAT16> biasVector = {Buf, 256};
 
   // clang-format off
-  // CHECK: call void {{.*__builtin_MatVecMulAdd@.*}}(<4 x float>* nonnull dereferenceable(16) %{{.+}}, i1 zeroext false, <4 x float> %input, i1 zeroext false, i32 8, i32 0, i32 0, i32 8, i32 4, i32 4, i32 2, i1 zeroext true, i32 0, i32 0, i32 256, i32 8)
+  // CHECK: %{{.+}} = call <4 x float> @dx.op.matVecMulAdd.v4f32.v4f32(i32 306, <4 x float> %{{.+}}, i1 false, i32 8, %dx.types.Handle [[RES:%.+]], i32 0, i32 8, i32 4, i32 4, i32 2, i1 true, i32 0, %dx.types.Handle [[RES]], i32 256, i32 8, i1 false)
   return MulAdd<float>(
       matrix, MakeInterpretedVector<DATA_TYPE_FLOAT16>(input),
       biasVector);

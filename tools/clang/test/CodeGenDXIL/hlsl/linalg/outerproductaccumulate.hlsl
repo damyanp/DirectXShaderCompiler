@@ -1,17 +1,23 @@
-// RUN: %dxc -T lib_6_9 %s | FileCheck %s
+// RUN: %dxc -T lib_6_9 -enable-16bit-types %s | FileCheck %s
 
 #include "linalg.h"
 
 RWByteAddressBuffer RWBuf;
 
-export void Test4(vector<half, 128> Input1, vector<half, 256> Input2) {
+export void Test4(vector<half, 128> Input1, vector<half, 64> Input2) {
   using namespace dx::linalg;
 
-  RWMatrixRef<DATA_TYPE_FLOAT16, 128, 256, MATRIX_LAYOUT_OUTER_PRODUCT_OPTIMAL>
+  RWMatrixRef<DATA_TYPE_FLOAT16, 128, 64, MATRIX_LAYOUT_OUTER_PRODUCT_OPTIMAL>
       matrix = {RWBuf, 0, 0};
 
   // clang-format off
-  // CHECK: call void {{.*}}__builtin_OuterProductAccumulate@{{.*}}(<128 x float> %Input1, <256 x float> %Input2, i32 0, i32 0, i32 8, i32 3, i32 0)
+  // CHECK: call void @dx.op.outerProductAccumulate.v128f16.v64f16(i32 307, <128 x half> %{{.+}}, <64 x half> %{{.+}}, %dx.types.Handle %{{.+}}, i32 0, i32 8, i32 3, i32 0)
   // clang-format on
-  OuterProductAccumulate(Input1, Input2, matrix);
+  //  OuterProductAccumulate(Input1, Input2, matrix);
+  __builtin_OuterProductAccumulate(Input1, Input2, RWBuf,
+                                   0, DATA_TYPE_FLOAT16, MATRIX_LAYOUT_OUTER_PRODUCT_OPTIMAL,
+                                   0);
 }
+
+
+

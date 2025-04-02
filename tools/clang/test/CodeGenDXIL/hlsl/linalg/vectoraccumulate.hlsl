@@ -7,8 +7,10 @@ RWByteAddressBuffer RWBuf;
 export void Test5(vector<half, 128> Input) {
   using namespace dx::linalg;
 
+  RWBuf.Store<vector<half, 128> >(0, Input);
+
   // clang-format off
-  // CHECK: call void {{.*}}__builtin_VectorAccumulate@{{.*}}(<128 x float> %Input, i32 0, i32 0)
+  // CHECK: call void @dx.op.vectorAccumulate.v128f32(i32 308, <128 x float> %{{.*}}, %dx.types.Handle %{{.*}}, i32 0)
   VectorAccumulate(Input, RWBuf, 0);
   // clang-format on
 }

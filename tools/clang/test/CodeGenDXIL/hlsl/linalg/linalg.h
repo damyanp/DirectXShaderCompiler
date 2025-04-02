@@ -36,59 +36,6 @@ enum MatrixLayout {
 };
 
 //
-// Builtins
-//
-//
-// As close as possible these match the DXIL operations. Template parameters are
-// here to allow it to compile in HLSL. I expect the builtin itself will just
-// take all of these parameters and can then do its own checking to make sure
-// the things that need to be compile-time constants are correct etc.
-//
-// Fake buffer handles are used because DXC does not allow resource types in
-// exported functions.
-
-namespace details {
-// dx.op.matvecmul
-template <typename TYo, int NUMo, typename TYi, int NUMi, typename RES>
-void __builtin_MatVecMul(out vector<TYo, NUMo> OutputVector,
-                         bool IsOutputUnsigned, vector<TYi, NUMi> InputVector,
-                         bool IsInputUnsigned, uint InputVectorInterpretation,
-                         RES MatrixResource, uint MatrixStartOffset,
-                         uint MatrixInterpretation, uint M, uint K,
-                         uint MatrixLayout, bool MatrixTranspose,
-                         uint MatrixStride);
-
-// dx.op.matvecmuladd
-template <typename TYo, int NUMo, typename TYi, int NUMi, typename RESm,
-          typename RESv>
-void __builtin_MatVecMulAdd(out vector<TYo, NUMo> OutputVector,
-                            bool IsOutputUnsigned,
-                            vector<TYi, NUMi> InputVector, bool IsInputUnsigned,
-                            uint InputVectorInterpretation, RESm MatrixResource,
-                            uint MatrixStartOffset, uint MatrixInterpretation,
-                            uint M, uint K, uint MatrixLayout,
-                            bool MatrixTranspose, uint MatrixStride,
-                            RESv BiasVectorResource, uint BiasVectorOffset,
-                            uint BiasVectorInterpretation);
-
-// dx.op.outerproductaccumulate
-template <typename TY, int M, int N, typename RES>
-void __builtin_OuterProductAccumulate(vector<TY, M> InputVector1,
-                                      vector<TY, N> InputVector2,
-                                      RES MatrixResource,
-                                      uint MatrixStartOffset,
-                                      DataType MatrixInterpretation,
-                                      MatrixLayout Layout, uint MatrixStride);
-
-// dx.op.vectoraccumulate
-template <typename TY, int NUM, typename RES>
-void __builtin_VectorAccumulate(vector<TY, NUM> InputVector,
-                                RES OutputArrayResource,
-                                uint OutputArrayOffset);
-
-} // namespace details
-
-//
 // Helper for signedness
 //
 namespace details {
@@ -148,8 +95,6 @@ InterpretedVector<T, N, DT> MakeInterpretedVector(vector<T, N> Vec) {
   return IV;
 }
 
-#define BUFFER_HANDLE(H) (0)
-
 //
 // Mul
 //
@@ -166,9 +111,9 @@ Mul(MatrixRefImpl<MatrixBufferTy, MatrixDT, MatrixM, MatrixK, MatrixLayout,
 
   vector<OutputElTy, MatrixM> OutputVector;
 
-  details::__builtin_MatVecMul(
+  __builtin_MatVecMul(
       /*out*/ OutputVector, details::IsUnsigned<OutputElTy>(), InputVector.Data,
-      details::IsUnsigned<InputElTy>(), InputDT, BUFFER_HANDLE(Matrix.Buffer),
+      details::IsUnsigned<InputElTy>(), InputDT, Matrix.Buffer,
       Matrix.StartOffset, MatrixDT, MatrixM, MatrixK, MatrixLayout,
       MatrixTranspose, Matrix.Stride);
 
@@ -193,12 +138,12 @@ MulAdd(MatrixRefImpl<MatrixBufferTy, MatrixDT, MatrixM, MatrixK, MatrixLayout,
 
   vector<OutputElTy, MatrixM> OutputVector;
 
-  details::__builtin_MatVecMulAdd(
+  __builtin_MatVecMulAdd(
       /*out*/ OutputVector, details::IsUnsigned<OutputElTy>(), InputVector.Data,
-      details::IsUnsigned<InputElTy>(), InputDT, BUFFER_HANDLE(Matrix.Buffer),
+      details::IsUnsigned<InputElTy>(), InputDT, Matrix.Buffer,
       Matrix.StartOffset, MatrixDT, MatrixM, MatrixK, MatrixLayout,
-      MatrixTranspose, Matrix.Stride, BUFFER_HANDLE(BiasVector.Buffer),
-      BiasVector.StartOffset, BiasVectorDT);
+      MatrixTranspose, Matrix.Stride, BiasVector.Buffer, BiasVector.StartOffset,
+      BiasVectorDT);
 
   return OutputVector;
 }
@@ -212,9 +157,9 @@ template <typename ElTy, int MatrixM, int MatrixN, DataType MatrixDT,
 void OuterProductAccumulate(
     vector<ElTy, MatrixM> InputVector1, vector<ElTy, MatrixN> InputVector2,
     RWMatrixRef<MatrixDT, MatrixM, MatrixN, MatrixLayout, false> Matrix) {
-  details::__builtin_OuterProductAccumulate(
-      InputVector1, InputVector2, BUFFER_HANDLE(Matrix.Buffer),
-      Matrix.StartOffset, MatrixDT, MatrixLayout, Matrix.Stride);
+  __builtin_OuterProductAccumulate(InputVector1, InputVector2, Matrix.Buffer,
+                                   Matrix.StartOffset, MatrixDT, MatrixLayout,
+                                   Matrix.Stride);
 }
 
 //
@@ -224,8 +169,7 @@ void OuterProductAccumulate(
 template <typename ElTy, int ElCount>
 void VectorAccumulate(vector<ElTy, ElCount> InputVector,
                       RWByteAddressBuffer Buffer, uint Offset) {
-  details::__builtin_VectorAccumulate(InputVector, BUFFER_HANDLE(Buffer),
-                                      Offset);
+  __builtin_VectorAccumulate(InputVector, Buffer, Offset);
 }
 
 } // namespace linalg
