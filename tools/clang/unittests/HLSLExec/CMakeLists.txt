@@ -3,6 +3,8 @@
 find_package(TAEF REQUIRED)
 find_package(D3D12 REQUIRED) # Used for ExecutionTest.cpp.
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+
 add_clang_library(ExecHLSLTests SHARED
   ExecutionTest.cpp
   ShaderOpTest.cpp
@@ -39,3 +41,4 @@ endif()
 file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" DOS_STYLE_SOURCE_DIR)
 file(TO_NATIVE_PATH "${TAEF_BIN_DIR}" DOS_TAEF_BIN_DIR)
 configure_file(ExecHLSLTests.vcxproj.user.txt ExecHLSLTests.vcxproj.user)
+
