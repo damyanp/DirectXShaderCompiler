@@ -157,6 +157,42 @@ struct HLSLHalf_t {
   DirectX::PackedVector::HALF val = 0;
 };
 
+template <typename T> struct LongVectorTestTraits {
+  std::uniform_int_distribution<T> UD = std::uniform_int_distribution(
+      std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+};
+
+template <> struct LongVectorTestTraits<HLSLHalf_t> {
+  // Float values for this were taken from Microsoft online documentation for
+  // the DirectX HALF data type. HALF is equivalent to IEEE 754 binary 16
+  // format.
+  std::uniform_int_distribution<DirectX::PackedVector::HALF> UD =
+      std::uniform_int_distribution(
+          DirectX::PackedVector::XMConvertFloatToHalf(float(6.10e-5f)),
+          DirectX::PackedVector::XMConvertFloatToHalf(float(65504.0f)));
+};
+
+template <> struct LongVectorTestTraits<HLSLBool_t> {
+  std::uniform_int_distribution<uint16_t> UD =
+      std::uniform_int_distribution<uint16_t>(0u, 1u);
+};
+
+template <> struct LongVectorTestTraits<float> {
+  //  The ranges for generation. A std::uniform_real_distribution can only
+  //  have a range that is equal to the types largest value. This is due to
+  //  precision issues. So instead we define some large values.
+  std::uniform_real_distribution<float> UD =
+      std::uniform_real_distribution(-1e20f, 1e20f);
+};
+
+template <> struct LongVectorTestTraits<double> {
+  //  The ranges for generation. A std::uniform_real_distribution can only
+  //  have a range that is equal to the types largest value. This is due to
+  //  precision issues. So instead we define some large values.
+  std::uniform_real_distribution<double> UD =
+      std::uniform_real_distribution(-1e100, 1e100);
+};
+
 // Used to pass into LongVectorOpTestBase
 template <typename T, LongVectorOpType OpType> struct LongVectorOpTestConfig {
   LongVectorOpTestConfig() {
@@ -200,7 +236,7 @@ template <typename T, LongVectorOpType OpType> struct LongVectorOpTestConfig {
 
   // A helper to get the hlsl type as a string for a given C++ type.
   // Used in the long vector tests.
-  std::string GetHLSLTypeString() {
+  static std::string GetHLSLTypeString() {
     if (std::is_same_v<T, HLSLBool_t>)
       return "bool";
     if (std::is_same_v<T, HLSLHalf_t>)
@@ -243,54 +279,28 @@ template <typename T, LongVectorOpType OpType> struct LongVectorOpTestConfig {
 // the generated sequence will always be the same. Each call to generate() will
 // return the next number in the sequence.
 
-template <typename T> struct UniformDistribution {
-  std::uniform_int_distribution<T> UD = std::uniform_int_distribution(
-      std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-};
-
-template <> struct UniformDistribution<HLSLHalf_t> {
-  // Float values for this were taken from Microsoft online documentation for
-  // the DirectX HALF data type. HALF is equivalent to IEEE 754 binary 16
-  // format.
-  std::uniform_int_distribution<DirectX::PackedVector::HALF> UD =
-      std::uniform_int_distribution(
-          DirectX::PackedVector::XMConvertFloatToHalf(float(6.10e-5f)),
-          DirectX::PackedVector::XMConvertFloatToHalf(float(65504.0f)));
-};
-
-template <> struct UniformDistribution<HLSLBool_t> {
-  std::uniform_int_distribution<uint16_t> UD =
-      std::uniform_int_distribution<uint16_t>(0u, 1u);
-};
-
-template <> struct UniformDistribution<float> {
-  //  The ranges for generation. A std::uniform_real_distribution can only
-  //  have a range that is equal to the types largest value. This is due to
-  //  precision issues. So instead we define some large values.
-  std::uniform_real_distribution<float> UD =
-      std::uniform_real_distribution(-1e20f, 1e20f);
-};
-
-template <> struct UniformDistribution<double> {
-  //  The ranges for generation. A std::uniform_real_distribution can only
-  //  have a range that is equal to the types largest value. This is due to
-  //  precision issues. So instead we define some large values.
-  std::uniform_real_distribution<double> UD =
-      std::uniform_real_distribution(-1e100, 1e100);
-};
-
 template <typename T> class DeterministicNumberGenerator {
   // Mersenne Twister 'random' number generator. Generated numbers are based
   // on the seed value and are deterministic for any given seed.
   std::mt19937 Generator;
 
-  UniformDistribution<T> UD;
+  LongVectorTestTraits<T> UD;
 
 public:
   DeterministicNumberGenerator(unsigned SeedValue) : Generator(SeedValue) {}
 
   T generate() { return UD.UD(Generator); }
 };
+
+template <typename T> bool DoValuesMismatch(T A, T B, float Tolerance) {
+  if (Tolerance == 0.0f)
+    return A != B;
+
+  T Diff = A > B ? A - B : B - A;
+  return Diff > Tolerance;
+}
+
+inline bool DoValuesMismatch(HLSLBool_t A, HLSLBool_t B, float) { return A == B; }
 
 template <typename T>
 bool DoVectorsMatch(const std::vector<T> &VecInput,
@@ -304,32 +314,8 @@ bool DoVectorsMatch(const std::vector<T> &VecInput,
   // Stash mismatched indexes for easy failure logging later
   std::vector<size_t> MismatchedIndexes;
   for (size_t Index = 0; Index < VecInput.size(); ++Index) {
-    if constexpr (std::is_same_v<T, HLSLBool_t>) {
-      // Compiler was very picky and wanted an explicit case for any T that
-      // doesn't implement the operators in the below else. ( > and -). It
-      // wouldn't accept putting this constexpr as an or case with other
-      // statements.
-      if (VecInput[Index] != VecExpected[Index]) {
-        MismatchedIndexes.push_back(Index);
-      }
-    } else if (Tolerance == 0 && VecInput[Index] != VecExpected[Index]) {
+    if (!DoValuesMismatch(VecInput[Index], VecExpected[Index], Tolerance))
       MismatchedIndexes.push_back(Index);
-    } else if constexpr (std::is_same_v<T, HLSLBool_t>) {
-      // Compiler was very picky and wanted an explicit case for any T that
-      // doesn't implement the operators in the below else. ( > and -). It
-      // wouldn't accept putting this constexpr as an or case with other
-      // statements.
-      if (VecInput[Index] != VecExpected[Index]) {
-        MismatchedIndexes.push_back(Index);
-      }
-    } else {
-      T Diff = VecInput[Index] > VecExpected[Index]
-                   ? VecInput[Index] - VecExpected[Index]
-                   : VecExpected[Index] - VecInput[Index];
-      if (Diff > Tolerance) {
-        MismatchedIndexes.push_back(Index);
-      }
-    }
   }
 
   if (MismatchedIndexes.empty())
