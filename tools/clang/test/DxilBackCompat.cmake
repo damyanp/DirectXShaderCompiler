@@ -1,5 +1,6 @@
 # HLSL: Tests for DXIL backward compatability
 include(ExternalProject)
+cmake_policy(SET CMP0135 NEW)
 
 function(add_released_dxc name version)
     ExternalProject_Add(${name}
