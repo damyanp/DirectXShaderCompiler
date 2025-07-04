@@ -19,12 +19,37 @@
 #include "dxc/Support/Unicode.h"
 #include "dxc/Support/WinFunctions.h"
 
+#include <filesystem>
+
 namespace dxc {
 
 const char *kDxCompilerLib =
     CMAKE_SHARED_LIBRARY_PREFIX "dxcompiler" CMAKE_SHARED_LIBRARY_SUFFIX;
 const char *kDxilLib =
     CMAKE_SHARED_LIBRARY_PREFIX "dxil" CMAKE_SHARED_LIBRARY_SUFFIX;
+
+const char *kDefaultEntryPoint = "DxcCreateInstance";
+const char *kOverrideDxilDllEnvVar = "DXC_DXIL_DLL_PATH";
+
+HRESULT DxcDllSupport::InitializeWithOverrideDxilDll() {
+
+  HRESULT Hr = Initialize();
+  if (FAILED(Hr))
+    return Hr;
+
+  // now handle external dxil.dll
+  const char *EnvVarVal = std::getenv(kOverrideDxilDllEnvVar);
+  if (!EnvVarVal || std::string(EnvVarVal).empty())
+    return S_OK;
+
+  std::filesystem::path DllPath(EnvVarVal);
+
+  // Path must be absolute
+  if (!DllPath.is_absolute())
+    return E_INVALIDARG;
+
+  return OverrideDxilDll.Initialize(DllPath.string().c_str(), kDefaultEntryPoint);
+}
 
 #ifdef _WIN32
 static void TrimEOL(char *pMsg) {

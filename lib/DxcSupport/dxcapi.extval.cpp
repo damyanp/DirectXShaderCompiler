@@ -4,6 +4,7 @@
 // WinIncludes must come before dxcapi.extval.h
 #include "dxc/Support/dxcapi.extval.h"
 
+#if 0
 HRESULT DxcDllExtValidationSupport::InitializeInternal(LPCSTR dllName,
                                                        LPCSTR fnName) {
   // Load dxcompiler.dll
@@ -52,3 +53,4 @@ HRESULT DxcDllExtValidationSupport::CreateInstance2(IMalloc *pMalloc,
 
   return DxcDllSupport::CreateInstance2(pMalloc, clsid, riid, pResult);
 }
+#endif

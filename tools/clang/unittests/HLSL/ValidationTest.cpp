@@ -299,6 +299,10 @@ public:
   TEST_METHOD(AmplificationGreaterThanMaxZ)
   TEST_METHOD(AmplificationGreaterThanMaxXYZ)
 
+  TEST_METHOD(DxcDllSupportDoesNotLoadOverrideByDefault)
+  TEST_METHOD(DxcDllSupportWithOverrideNoEnvVarSet)
+  TEST_METHOD(DxcDllSupportWithOverrideInvalidPathSet)
+
   TEST_METHOD(ValidateRootSigContainer)
   TEST_METHOD(ValidatePrintfNotAllowed)
 
@@ -327,7 +331,6 @@ public:
   TEST_METHOD(PSVContentValidationCS)
   TEST_METHOD(PSVContentValidationMS)
   TEST_METHOD(PSVContentValidationAS)
-  TEST_METHOD(UnitTestExtValidationSupport)
   TEST_METHOD(WrongPSVSize)
   TEST_METHOD(WrongPSVSizeOnZeros)
   TEST_METHOD(WrongPSVVersion)
@@ -4212,13 +4215,13 @@ TEST_F(ValidationTest, ValidateWithHash) {
   VERIFY_ARE_EQUAL(memcmp(Result, pHeader->Hash.Digest, sizeof(Result)), 0);
 }
 
-std::wstring GetEnvVarW(const std::wstring &VarName) {
+static std::wstring GetEnvVarW(const wchar_t *VarName) {
 #ifdef _WIN32
-  if (const wchar_t *Result = _wgetenv(VarName.c_str()))
+  if (const wchar_t *Result = _wgetenv(VarName))
     return std::wstring(Result);
 #else
   std::string VarNameUtf8;
-  Unicode::WideToUTF8String(VarName.c_str(), &VarNameUtf8);
+  Unicode::WideToUTF8String(VarName, &VarNameUtf8);
   if (const char *Result = std::getenv(VarNameUtf8.c_str())) {
     std::wstring ResultWide;
     Unicode::UTF8ToWideString(Result, &ResultWide);
@@ -4228,93 +4231,86 @@ std::wstring GetEnvVarW(const std::wstring &VarName) {
   return std::wstring();
 }
 
-void SetEnvVarW(const std::wstring &VarName, const std::wstring &VarValue) {
+static void SetEnvVarW(const wchar_t *VarName, const wchar_t *VarValue) {
 #ifdef _WIN32
-  _wputenv_s(VarName.c_str(), VarValue.c_str());
+  _wputenv_s(VarName, VarValue);
 #else
   std::string VarNameUtf8;
   std::string VarValueUtf8;
-  Unicode::WideToUTF8String(VarName.c_str(), &VarNameUtf8);
-  Unicode::WideToUTF8String(VarValue.c_str(), &VarValueUtf8);
+  Unicode::WideToUTF8String(VarName, &VarNameUtf8);
+  Unicode::WideToUTF8String(VarValue, &VarValueUtf8);
   setenv(VarNameUtf8.c_str(), VarValueUtf8.c_str(), 1);
 #endif
 }
 
-// For now, 3 things are tested:
-// 1. The environment variable is not set. GetDxilDllPath() is empty and
-// DxilDllFailedToLoad() returns false
-// 2. Given a bogus path in the environment variable, GetDxilDllPath()
-// retrieves the path but fails to load it as a dll, and returns true
-// for DxilDllFailedToLoad()
-// 3. CLSID_DxcCompiler, CLSID_DxcLinker, CLSID_DxcValidator
-// may be created through DxcDllExtValidationSupport.
-// This is all to simply test that the new class, DxcDllExtValidationSupport,
-// works as intended.
+struct OverrideDxilDllEnvVar {
+  std::wstring OldValue;
 
-TEST_F(ValidationTest, UnitTestExtValidationSupport) {
-  DxcDllExtValidationSupport ExtSupportEmpty;
-  DxcDllExtValidationSupport ExtSupportBogus;
-
-  // capture any existing value in the environment variable,
-  // so that it can be restored after the test
-  std::wstring OldEnvVal = GetEnvVarW(L"DXC_DXIL_DLL_PATH");
-
-  // 1. with no env var set, test GetDxilDllPath() and DxilDllFailedToLoad()
-
-  // make sure the variable is cleared, in case other tests may have set it
-  SetEnvVarW(L"DXC_DXIL_DLL_PATH", L"");
-
-  // empty initialization should succeed
-  VERIFY_SUCCEEDED(ExtSupportEmpty.Initialize());
-
-  VERIFY_IS_FALSE(ExtSupportEmpty.DxilDllFailedToLoad());
-  std::string EmptyPath = ExtSupportBogus.GetDxilDllPath();
-  VERIFY_ARE_EQUAL_STR(EmptyPath.c_str(), "");
-
-  // 2. Test with a bogus path in the environment variable
-  SetEnvVarW(L"DXC_DXIL_DLL_PATH", L"bogus");
-
-  if (!ExtSupportBogus.IsEnabled()) {
-    VERIFY_SUCCEEDED(ExtSupportBogus.Initialize());
+  explicit OverrideDxilDllEnvVar(const wchar_t *Value) {
+    OldValue = GetEnvVarW(L"DXC_DXIL_DLL_PATH");
+    SetEnvVarW(L"DXC_DXIL_DLL_PATH", Value);
   }
 
-  // validate that m_dllExtSupport2 was able to capture the environment
-  // variable's value, and that loading the bogus path was unsuccessful
-  std::string BogusPath = ExtSupportBogus.GetDxilDllPath();
-  VERIFY_ARE_EQUAL_STR(BogusPath.c_str(), "bogus");
-  VERIFY_IS_TRUE(ExtSupportBogus.DxilDllFailedToLoad());
+  ~OverrideDxilDllEnvVar() {
+    SetEnvVarW(L"DXC_DXIL_DLL_PATH", OldValue.c_str());
+  }
+};
 
-  // 3. Test production of class IDs CLSID_DxcCompiler, CLSID_DxcLinker,
-  // and CLSID_DxcValidator through DxcDllExtValidationSupport.
+TEST_F(ValidationTest, DxcDllSupportDoesNotLoadOverrideByDefault) {
+  dxc::DxcDllSupport S;
+  VERIFY_SUCCEEDED(S.Initialize());
+  VERIFY_IS_TRUE(S.IsEnabled());
+  VERIFY_IS_FALSE(S.HasOverrideDxilDll());
+}
+
+static void ValidateCreateInstance(const dxc::DxcDllSupport &S) {
   CComPtr<IDxcCompiler> Compiler;
   CComPtr<IDxcLinker> Linker;
   CComPtr<IDxcValidator> Validator;
 
-  VERIFY_SUCCEEDED(ExtSupportBogus.CreateInstance(
-      CLSID_DxcCompiler, __uuidof(IDxcCompiler), (IUnknown **)&Compiler));
-  VERIFY_SUCCEEDED(ExtSupportBogus.CreateInstance(
-      CLSID_DxcLinker, __uuidof(IDxcLinker), (IUnknown **)&Linker));
-  VERIFY_SUCCEEDED(ExtSupportBogus.CreateInstance(
-      CLSID_DxcValidator, __uuidof(IDxcValidator), (IUnknown **)&Validator));
+  VERIFY_SUCCEEDED(S.CreateInstance(CLSID_DxcCompiler, __uuidof(IDxcCompiler),
+                                    (IUnknown **)&Compiler));
+  VERIFY_SUCCEEDED(S.CreateInstance(CLSID_DxcLinker, __uuidof(IDxcLinker),
+                                    (IUnknown **)&Linker));
+  VERIFY_SUCCEEDED(S.CreateInstance(CLSID_DxcValidator, __uuidof(IDxcValidator),
+                                    (IUnknown **)&Validator));
+
+  Validator.Release();
+  Linker.Release();
+  Compiler.Release();
 
   CComPtr<IMalloc> Malloc;
   CComPtr<IDxcCompiler2> Compiler2;
-  Linker.Release();
-  Validator.Release();
-  VERIFY_SUCCEEDED(DxcCoGetMalloc(1, &Malloc));
-  VERIFY_SUCCEEDED(ExtSupportBogus.CreateInstance2(Malloc, CLSID_DxcCompiler,
-                                                   __uuidof(IDxcCompiler),
-                                                   (IUnknown **)&Compiler2));
-  VERIFY_SUCCEEDED(ExtSupportBogus.CreateInstance2(
-      Malloc, CLSID_DxcLinker, __uuidof(IDxcLinker), (IUnknown **)&Linker));
-  VERIFY_SUCCEEDED(ExtSupportBogus.CreateInstance2(Malloc, CLSID_DxcValidator,
-                                                   __uuidof(IDxcValidator),
-                                                   (IUnknown **)&Validator));
 
-  // reset the environment variable to its previous value,
-  // or the empty string if there was no previous value
-  SetEnvVarW(L"DXC_DXIL_DLL_PATH", OldEnvVal);
+  VERIFY_SUCCEEDED(DxcCoGetMalloc(1, &Malloc));
+  VERIFY_SUCCEEDED(S.CreateInstance2(Malloc, CLSID_DxcCompiler,
+                                     __uuidof(IDxcCompiler),
+                                     (IUnknown **)&Compiler2));
+  VERIFY_SUCCEEDED(S.CreateInstance2(
+      Malloc, CLSID_DxcLinker, __uuidof(IDxcLinker), (IUnknown **)&Linker));
+  VERIFY_SUCCEEDED(S.CreateInstance2(Malloc, CLSID_DxcValidator,
+                                     __uuidof(IDxcValidator),
+                                     (IUnknown **)&Validator));
 }
+
+TEST_F(ValidationTest, DxcDllSupportWithOverrideNoEnvVarSet) {
+  OverrideDxilDllEnvVar override(L"");
+
+  dxc::DxcDllSupport S;
+  VERIFY_SUCCEEDED(S.InitializeWithOverrideDxilDll());
+  VERIFY_IS_TRUE(S.IsEnabled());
+  VERIFY_IS_FALSE(S.HasOverrideDxilDll());
+
+  ValidateCreateInstance(S);
+}
+
+TEST_F(ValidationTest, DxcDllSupportWithOverrideInvalidPathSet) {
+  OverrideDxilDllEnvVar override(L"bogus");
+
+  dxc::DxcDllSupport S;
+  VERIFY_ARE_EQUAL(E_INVALIDARG, S.InitializeWithOverrideDxilDll());
+}
+// TODO: tests where the override DLL is actually loaded
 
 TEST_F(ValidationTest, ValidatePreviewBypassHash) {
   if (m_ver.SkipDxilVersion(1, ShaderModel::kHighestMinor))

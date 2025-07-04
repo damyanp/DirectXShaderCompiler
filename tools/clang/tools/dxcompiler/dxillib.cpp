@@ -34,7 +34,7 @@ HRESULT DxilLibInitialize() {
 HRESULT DxilLibCleanup(DxilLibCleanUpType type) {
   HRESULT hr = S_OK;
   if (type == DxilLibCleanUpType::ProcessTermination) {
-    g_DllSupport.Detach();
+    (void)g_DllSupport.Detach();
   } else if (type == DxilLibCleanUpType::UnloadLibrary) {
     g_DllSupport.Cleanup();
   } else {

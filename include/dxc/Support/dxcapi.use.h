@@ -18,15 +18,32 @@ namespace dxc {
 
 extern const char *kDxCompilerLib;
 extern const char *kDxilLib;
+extern const char *kDefaultEntryPoint;
+extern const char *kOverrideDxilDllEnvVar;
 
-// Helper class to dynamically load the dxcompiler or a compatible libraries.
-class DxcDllSupport {
-protected:
-  HMODULE m_dll;
-  DxcCreateInstanceProc m_createFn;
-  DxcCreateInstance2Proc m_createFn2;
+class DxcDll {
+  HMODULE m_dll = nullptr;
+  DxcCreateInstanceProc m_createFn = nullptr;
+  DxcCreateInstance2Proc m_createFn2 = nullptr;
 
-  virtual HRESULT InitializeInternal(LPCSTR dllName, LPCSTR fnName) {
+public:
+  DxcDll() = default;
+
+  // DxcDll(DxcDllSupport &&other) {
+  //   m_dll = other.m_dll;
+  //   other.m_dll = nullptr;
+  //   m_createFn = other.m_createFn;
+  //   other.m_createFn = nullptr;
+  //   m_createFn2 = other.m_createFn2;
+  //   other.m_createFn2 = nullptr;
+  // }
+
+  DxcDll(DxcDll &&) = delete;
+  DxcDll(const DxcDll &) = delete;
+
+  ~DxcDll() { Cleanup(); }
+
+  HRESULT Initialize(LPCSTR dllName, LPCSTR fnName) {
     if (m_dll != nullptr)
       return S_OK;
 
@@ -73,35 +90,8 @@ protected:
     return S_OK;
   }
 
-public:
-  DxcDllSupport() : m_dll(nullptr), m_createFn(nullptr), m_createFn2(nullptr) {}
-
-  DxcDllSupport(DxcDllSupport &&other) {
-    m_dll = other.m_dll;
-    other.m_dll = nullptr;
-    m_createFn = other.m_createFn;
-    other.m_createFn = nullptr;
-    m_createFn2 = other.m_createFn2;
-    other.m_createFn2 = nullptr;
-  }
-
-  virtual ~DxcDllSupport() { Cleanup(); }
-
-  HRESULT Initialize() {
-    return InitializeInternal(kDxCompilerLib, "DxcCreateInstance");
-  }
-
-  HRESULT InitializeForDll(LPCSTR dll, LPCSTR entryPoint) {
-    return InitializeInternal(dll, entryPoint);
-  }
-
-  template <typename TInterface>
-  HRESULT CreateInstance(REFCLSID clsid, TInterface **pResult) {
-    return CreateInstance(clsid, __uuidof(TInterface), (IUnknown **)pResult);
-  }
-
-  virtual HRESULT CreateInstance(REFCLSID clsid, REFIID riid,
-                                 IUnknown **pResult) {
+  HRESULT CreateInstance(REFCLSID clsid, REFIID riid,
+                         IUnknown **pResult) const {
     if (pResult == nullptr)
       return E_POINTER;
     if (m_dll == nullptr)
@@ -110,15 +100,8 @@ public:
     return hr;
   }
 
-  template <typename TInterface>
-  HRESULT CreateInstance2(IMalloc *pMalloc, REFCLSID clsid,
-                          TInterface **pResult) {
-    return CreateInstance2(pMalloc, clsid, __uuidof(TInterface),
-                           (IUnknown **)pResult);
-  }
-
-  virtual HRESULT CreateInstance2(IMalloc *pMalloc, REFCLSID clsid, REFIID riid,
-                                  IUnknown **pResult) {
+  HRESULT CreateInstance2(IMalloc *pMalloc, REFCLSID clsid, REFIID riid,
+                          IUnknown **pResult) const {
     if (pResult == nullptr)
       return E_POINTER;
     if (m_dll == nullptr)
@@ -133,6 +116,8 @@ public:
 
   bool IsEnabled() const { return m_dll != nullptr; }
 
+  operator bool() const { return IsEnabled(); }
+
   bool GetCreateInstanceProcs(DxcCreateInstanceProc *pCreateFn,
                               DxcCreateInstance2Proc *pCreateFn2) const {
     if (pCreateFn == nullptr || pCreateFn2 == nullptr || m_createFn == nullptr)
@@ -142,7 +127,7 @@ public:
     return true;
   }
 
-  virtual void Cleanup() {
+  void Cleanup() {
     if (m_dll != nullptr) {
       m_createFn = nullptr;
       m_createFn2 = nullptr;
@@ -155,10 +140,74 @@ public:
     }
   }
 
-  virtual HMODULE Detach() {
+  [[nodiscard]]
+  HMODULE Detach() {
     HMODULE hModule = m_dll;
     m_dll = nullptr;
     return hModule;
+  }
+};
+
+// Helper class to dynamically load the dxcompiler or a compatible libraries.
+class DxcDllSupport {
+  DxcDll DxCompilerDll;
+  DxcDll OverrideDxilDll;
+
+public:
+  HRESULT Initialize() {
+    return DxCompilerDll.Initialize(kDxCompilerLib, kDefaultEntryPoint);
+  }
+
+  HRESULT InitializeForDll(LPCSTR Dll, LPCSTR EntryPoint) {
+    return DxCompilerDll.Initialize(Dll, EntryPoint);
+  }
+
+  HRESULT InitializeWithOverrideDxilDll();
+
+  bool IsEnabled() const { return DxCompilerDll.IsEnabled(); }
+  bool HasOverrideDxilDll() const { return OverrideDxilDll.IsEnabled(); }
+
+  bool HasCreateWithMalloc() const {
+    return DxCompilerDll.HasCreateWithMalloc();
+  }
+
+  [[nodiscard]]
+  HMODULE Detach() {
+    OverrideDxilDll.Cleanup();
+    return DxCompilerDll.Detach();
+  }
+
+  void Cleanup() {
+    OverrideDxilDll.Cleanup();
+    DxCompilerDll.Cleanup();
+  }
+
+  template <typename TInterface>
+  HRESULT CreateInstance(REFCLSID clsid, TInterface **pResult) const {
+    return CreateInstance(clsid, __uuidof(TInterface), (IUnknown **)pResult);
+  }
+
+  template <typename TInterface>
+  HRESULT CreateInstance2(IMalloc *pMalloc, REFCLSID clsid,
+                          TInterface **pResult) const {
+    return CreateInstance2(pMalloc, clsid, __uuidof(TInterface),
+                           (IUnknown **)pResult);
+  }
+
+  HRESULT CreateInstance(REFCLSID clsid, REFIID riid,
+                         IUnknown **pResult) const {
+    if (OverrideDxilDll && clsid == CLSID_DxcValidator)
+      return OverrideDxilDll.CreateInstance(clsid, riid, pResult);
+
+    return DxCompilerDll.CreateInstance(clsid, riid, pResult);
+  }
+
+  HRESULT CreateInstance2(IMalloc *pMalloc, REFCLSID clsid, REFIID riid,
+                          IUnknown **pResult) const {
+    if (OverrideDxilDll && clsid == CLSID_DxcValidator)
+      return OverrideDxilDll.CreateInstance2(pMalloc, clsid, riid, pResult);
+
+    return DxCompilerDll.CreateInstance2(pMalloc, clsid, riid, pResult);
   }
 };
 

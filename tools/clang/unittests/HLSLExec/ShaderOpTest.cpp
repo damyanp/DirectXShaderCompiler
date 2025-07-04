@@ -41,6 +41,7 @@
 // Since this is windows only, we only need the windows variant
 namespace dxc {
 const char *kDxCompilerLib = "dxcompiler.dll";
+const char *kDefaultEntryPoint = "DxcCreateInstance";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
