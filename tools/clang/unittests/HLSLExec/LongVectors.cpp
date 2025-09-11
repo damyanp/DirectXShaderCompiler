@@ -41,7 +41,7 @@ DATA_TYPE_NAME(int16_t, L"int16", "int16_t");
 DATA_TYPE_NAME(int32_t, L"int32", "int");
 DATA_TYPE_NAME(int64_t, L"int64", "int64_t");
 DATA_TYPE_NAME(uint16_t, L"uint16", "uint16_t");
-DATA_TYPE_NAME(uint32_t, L"uint32", "uint32_");
+DATA_TYPE_NAME(uint32_t, L"uint32", "uint32_t");
 DATA_TYPE_NAME(uint64_t, L"uint64", "uint64_t");
 DATA_TYPE_NAME(HLSLHalf_t, L"float16", "half");
 DATA_TYPE_NAME(float, L"float32", "float");
@@ -2013,6 +2013,14 @@ TEST_F(OpTest, unaryOpTest) {
 
   if (auto Config = TestConfig::Create(VerboseLogging))
     dispatchTest<UnaryOpType>(*Config);
+}
+
+TEST_F(OpTest, binaryOpTest) {
+  WEX::TestExecution::SetVerifyOutput verifySettings(
+      WEX::TestExecution::VerifyOutputSettings::LogOnlyFailures);
+
+  if (auto Config = TestConfig::Create(VerboseLogging))
+    dispatchTest<BinaryOpType>(*Config);
 }
 
 TEST_F(OpTest, asTypeOpTest) {
