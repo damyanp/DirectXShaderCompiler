@@ -1308,25 +1308,25 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
 // BinaryOpType
 //
 
-enum BinaryOpType {
-  BinaryOpType_LogicalAnd,
-  BinaryOpType_LogicalOr,
-  BinaryOpType_TernaryAssignment_True,
-  BinaryOpType_TernaryAssignment_False,
-  BinaryOpType_EnumValueCount
+enum class BinaryOpType {
+  LogicalAnd,
+  LogicalOr,
+  TernaryAssignment_True,
+  TernaryAssignment_False,
+  EnumValueCount
 };
 
 static const OpTypeMetaData<BinaryOpType> binaryOpTypeStringToOpMetaData[] = {
-    {L"BinaryOpType_Logical_And", BinaryOpType_LogicalAnd, "and", ","},
-    {L"BinaryOpType_Logical_Or", BinaryOpType_LogicalOr, "or", ","},
+    {L"BinaryOpType_Logical_And", BinaryOpType::LogicalAnd, "and", ","},
+    {L"BinaryOpType_Logical_Or", BinaryOpType::LogicalOr, "or", ","},
     {L"BinaryOpType_TernaryAssignment_True",
-     BinaryOpType_TernaryAssignment_True, "TestTernaryAssignment", ","},
+     BinaryOpType::TernaryAssignment_True, "TestTernaryAssignment", ","},
     {L"BinaryOpType_TernaryAssignment_False",
-     BinaryOpType_TernaryAssignment_False, "TestTernaryAssignment", ","},
+     BinaryOpType::TernaryAssignment_False, "TestTernaryAssignment", ","},
 };
 
 static_assert(_countof(binaryOpTypeStringToOpMetaData) ==
-                  BinaryOpType_EnumValueCount,
+                  (size_t)BinaryOpType::EnumValueCount,
               "binaryOpTypeStringToOpMetaData size mismatch. Did you "
               "add a new enum value?");
 
@@ -1368,7 +1368,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
   std::string ExtraDefines;
 
   switch (OpType) {
-  case BinaryOpType_TernaryAssignment_True:
+  case BinaryOpType::TernaryAssignment_True:
     ExtraDefines = " -DTERNARY_CONDITION=1 -DFUNC_TERNARY_ASSIGNMENT=1";
     DISPATCH(HLSLBool_t, TernaryTrue);
     DISPATCH(HLSLHalf_t, TernaryTrue);
@@ -1382,7 +1382,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(uint64_t, TernaryTrue);
     break;
 
-  case BinaryOpType_TernaryAssignment_False:
+  case BinaryOpType::TernaryAssignment_False:
     ExtraDefines = " -DTERNARY_CONDITION=0 -DFUNC_TERNARY_ASSIGNMENT=1";
     DISPATCH(HLSLBool_t, TernaryFalse);
     DISPATCH(HLSLHalf_t, TernaryFalse);
@@ -1396,15 +1396,15 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(uint64_t, TernaryFalse);
     break;
 
-  case BinaryOpType_LogicalAnd:
+  case BinaryOpType::LogicalAnd:
     DISPATCH(HLSLBool_t, LogicalAnd);
     break;
 
-  case BinaryOpType_LogicalOr:
+  case BinaryOpType::LogicalOr:
     DISPATCH(HLSLBool_t, LogicalOr);
     break;
 
-  case BinaryOpType_EnumValueCount:
+  case BinaryOpType::EnumValueCount:
     break;
   }
 
@@ -1603,34 +1603,34 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
 // BinaryComparisonOp
 //
 
-enum BinaryComparisonOpType {
-  BinaryComparisonOpType_LessThan,
-  BinaryComparisonOpType_LessEqual,
-  BinaryComparisonOpType_GreaterThan,
-  BinaryComparisonOpType_GreaterEqual,
-  BinaryComparisonOpType_Equal,
-  BinaryComparisonOpType_NotEqual,
-  BinaryComparisonOpType_EnumValueCount
+enum class BinaryComparisonOpType {
+  LessThan,
+  LessEqual,
+  GreaterThan,
+  GreaterEqual,
+  Equal,
+  NotEqual,
+  EnumValueCount
 };
 
 static const OpTypeMetaData<BinaryComparisonOpType>
     binaryComparisonOpTypeStringToOpMetaData[] = {
-        {L"BinaryComparisonOpType_LessThan", BinaryComparisonOpType_LessThan,
+        {L"BinaryComparisonOpType_LessThan", BinaryComparisonOpType::LessThan,
          std::nullopt, "<"},
-        {L"BinaryComparisonOpType_LessEqual", BinaryComparisonOpType_LessEqual,
+        {L"BinaryComparisonOpType_LessEqual", BinaryComparisonOpType::LessEqual,
          std::nullopt, "<="},
         {L"BinaryComparisonOpType_GreaterThan",
-         BinaryComparisonOpType_GreaterThan, std::nullopt, ">"},
+         BinaryComparisonOpType::GreaterThan, std::nullopt, ">"},
         {L"BinaryComparisonOpType_GreaterEqual",
-         BinaryComparisonOpType_GreaterEqual, std::nullopt, ">="},
-        {L"BinaryComparisonOpType_Equal", BinaryComparisonOpType_Equal,
+         BinaryComparisonOpType::GreaterEqual, std::nullopt, ">="},
+        {L"BinaryComparisonOpType_Equal", BinaryComparisonOpType::Equal,
          std::nullopt, "=="},
-        {L"BinaryComparisonOpType_NotEqual", BinaryComparisonOpType_NotEqual,
+        {L"BinaryComparisonOpType_NotEqual", BinaryComparisonOpType::NotEqual,
          std::nullopt, "!="},
 };
 
 static_assert(_countof(binaryComparisonOpTypeStringToOpMetaData) ==
-                  BinaryComparisonOpType_EnumValueCount,
+                  (size_t)BinaryComparisonOpType::EnumValueCount,
               "binaryComparisonOpTypeStringToOpMetaData size mismatch. Did "
               "you add a new enum value?");
 
@@ -1663,7 +1663,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
   return dispatchBinaryTest(Config, ValidationConfig{}, OpType, VectorSize,    \
                             BinaryComparisonOps<TYPE>::FUNC)
   switch (OpType) {
-  case BinaryComparisonOpType_LessThan:
+  case BinaryComparisonOpType::LessThan:
     DISPATCH(int16_t, LessThan);
     DISPATCH(int32_t, LessThan);
     DISPATCH(int64_t, LessThan);
@@ -1675,7 +1675,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(double, LessThan);
     break;
 
-  case BinaryComparisonOpType_LessEqual:
+  case BinaryComparisonOpType::LessEqual:
     DISPATCH(int16_t, LessEqual);
     DISPATCH(int32_t, LessEqual);
     DISPATCH(int64_t, LessEqual);
@@ -1687,7 +1687,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(double, LessEqual);
     break;
 
-  case BinaryComparisonOpType_GreaterThan:
+  case BinaryComparisonOpType::GreaterThan:
     DISPATCH(int16_t, GreaterThan);
     DISPATCH(int32_t, GreaterThan);
     DISPATCH(int64_t, GreaterThan);
@@ -1699,7 +1699,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(double, GreaterThan);
     break;
 
-  case BinaryComparisonOpType_GreaterEqual:
+  case BinaryComparisonOpType::GreaterEqual:
     DISPATCH(int16_t, GreaterEqual);
     DISPATCH(int32_t, GreaterEqual);
     DISPATCH(int64_t, GreaterEqual);
@@ -1711,7 +1711,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(double, GreaterEqual);
     break;
 
-  case BinaryComparisonOpType_Equal:
+  case BinaryComparisonOpType::Equal:
     DISPATCH(int16_t, Equal);
     DISPATCH(int32_t, Equal);
     DISPATCH(int64_t, Equal);
@@ -1723,7 +1723,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(double, Equal);
     break;
 
-  case BinaryComparisonOpType_NotEqual:
+  case BinaryComparisonOpType::NotEqual:
     DISPATCH(int16_t, NotEqual);
     DISPATCH(int32_t, NotEqual);
     DISPATCH(int64_t, NotEqual);
@@ -1735,7 +1735,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(double, NotEqual);
     break;
 
-  case BinaryComparisonOpType_EnumValueCount:
+  case BinaryComparisonOpType::EnumValueCount:
     break;
   }
 
@@ -1750,27 +1750,27 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
 // BitwiseOp
 //
 
-enum BitwiseOpType {
-  BitwiseOpType_And,
-  BitwiseOpType_Or,
-  BitwiseOpType_Xor,
-  BitwiseOpType_Not,
-  BitwiseOpType_LeftShift,
-  BitwiseOpType_RightShift,
-  BitwiseOpType_EnumValueCount
+enum class BitwiseOpType {
+  And,
+  Or,
+  Xor,
+  Not,
+  LeftShift,
+  RightShift,
+  EnumValueCount
 };
 
 static const OpTypeMetaData<BitwiseOpType> bitwiseOpTypeStringToOpMetaData[] = {
-    {L"BitwiseOpType_And", BitwiseOpType_And, std::nullopt, "&"},
-    {L"BitwiseOpType_Or", BitwiseOpType_Or, std::nullopt, "|"},
-    {L"BitwiseOpType_Xor", BitwiseOpType_Xor, std::nullopt, "^"},
-    {L"BitwiseOpType_Not", BitwiseOpType_Not, "TestUnaryOperator", "~"},
-    {L"BitwiseOpType_LeftShift", BitwiseOpType_LeftShift, std::nullopt, "<<"},
-    {L"BitwiseOpType_RightShift", BitwiseOpType_RightShift, std::nullopt, ">>"},
+    {L"BitwiseOpType_And", BitwiseOpType::And, std::nullopt, "&"},
+    {L"BitwiseOpType_Or", BitwiseOpType::Or, std::nullopt, "|"},
+    {L"BitwiseOpType_Xor", BitwiseOpType::Xor, std::nullopt, "^"},
+    {L"BitwiseOpType_Not", BitwiseOpType::Not, "TestUnaryOperator", "~"},
+    {L"BitwiseOpType_LeftShift", BitwiseOpType::LeftShift, std::nullopt, "<<"},
+    {L"BitwiseOpType_RightShift", BitwiseOpType::RightShift, std::nullopt, ">>"},
 };
 
 static_assert(_countof(bitwiseOpTypeStringToOpMetaData) ==
-                  BitwiseOpType_EnumValueCount,
+                  (size_t)BitwiseOpType::EnumValueCount,
               "bitwiseOpTypeStringToOpMetaData size mismatch. Did you "
               "add a new enum value?");
 
@@ -1807,7 +1807,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
                            BitwiseOps<TYPE>::FUNC, "-DFUNC_UNARY_OPERATOR=1")
 
   switch (OpType) {
-  case BitwiseOpType_And:
+  case BitwiseOpType::And:
     DISPATCH(int16_t, And);
     DISPATCH(int32_t, And);
     DISPATCH(int64_t, And);
@@ -1816,7 +1816,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(uint64_t, And);
     break;
 
-  case BitwiseOpType_Or:
+  case BitwiseOpType::Or:
     DISPATCH(int16_t, Or);
     DISPATCH(int32_t, Or);
     DISPATCH(int64_t, Or);
@@ -1825,7 +1825,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(uint64_t, Or);
     break;
 
-  case BitwiseOpType_Xor:
+  case BitwiseOpType::Xor:
     DISPATCH(int16_t, Xor);
     DISPATCH(int32_t, Xor);
     DISPATCH(int64_t, Xor);
@@ -1834,7 +1834,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(uint64_t, Xor);
     break;
 
-  case BitwiseOpType_Not:
+  case BitwiseOpType::Not:
     DISPATCH_NOT(int16_t, Not);
     DISPATCH_NOT(int32_t, Not);
     DISPATCH_NOT(int64_t, Not);
@@ -1843,7 +1843,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH_NOT(uint64_t, Not);
     break;
 
-  case BitwiseOpType_LeftShift:
+  case BitwiseOpType::LeftShift:
     DISPATCH(int16_t, LeftShift);
     DISPATCH(int32_t, LeftShift);
     DISPATCH(int64_t, LeftShift);
@@ -1852,7 +1852,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(uint64_t, LeftShift);
     break;
 
-  case BitwiseOpType_RightShift:
+  case BitwiseOpType::RightShift:
     DISPATCH(int16_t, RightShift);
     DISPATCH(int32_t, RightShift);
     DISPATCH(int64_t, RightShift);
@@ -1861,7 +1861,7 @@ void dispatchTestByOpTypeAndVectorSize(const TestConfig &Config,
     DISPATCH(uint64_t, RightShift);
     break;
 
-  case BitwiseOpType_EnumValueCount:
+  case BitwiseOpType::EnumValueCount:
     break;
   }
 
