@@ -2578,7 +2578,11 @@ TEST_F(DxilContainerTest, CompileWhenOKThenIncludesFeatureInfo) {
                            hlsl::DxilPartIsType(hlsl::DFCC_FeatureInfo));
   VERIFY_ARE_NOT_EQUAL(hlsl::end(pHeader), pPartIter);
   VERIFY_ARE_EQUAL(sizeof(uint64_t), (*pPartIter)->PartSize);
-  VERIFY_ARE_EQUAL(0U, *(const uint64_t *)hlsl::GetDxilPartData(*pPartIter));
+
+  uint64_t ExpectedPartData = 0U;
+  VERIFY_ARE_EQUAL(0, memcmp(&ExpectedPartData,
+                             (const void *)hlsl::GetDxilPartData(*pPartIter),
+                             sizeof(ExpectedPartData)));
 }
 
 TEST_F(DxilContainerTest, DisassemblyWhenBCInvalidThenFails) {
