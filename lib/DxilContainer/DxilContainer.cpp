@@ -10,11 +10,19 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "dxc/DxilContainer/DxilContainer.h"
+#include "dxc/Support/Global.h"
 #include <algorithm>
 
 namespace hlsl {
 
+[[maybe_unused]] static bool IsAligned(const void *P) {
+  std::uintptr_t A = reinterpret_cast<std::uintptr_t>(P);
+  return (A % 4) == 0;
+}
+
 DxilPartIterator begin(const DxilContainerHeader *pHeader) {
+  DXASSERT_NOMSG(IsAligned(pHeader));
+
   return {pHeader, 0};
 }
 
