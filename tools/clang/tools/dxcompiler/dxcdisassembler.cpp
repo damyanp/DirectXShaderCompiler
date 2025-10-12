@@ -75,8 +75,13 @@ void PrintSignature(LPCSTR pName, const DxilProgramSignature *pSignature,
       pSigBegin + pSignature->ParamCount;
 
   bool bHasStreams = std::any_of(pSigBegin, pSigEnd, SigElementHasStream);
-  for (const DxilProgramSignatureElement *pSig = pSigBegin; pSig != pSigEnd;
-       ++pSig) {
+  for (const DxilProgramSignatureElement *pSigIt = pSigBegin; pSigIt != pSigEnd;
+       ++pSigIt) {
+
+    DxilProgramSignatureElement AlignedSig;
+    memcpy(&AlignedSig, pSigIt, sizeof(AlignedSig));
+    const DxilProgramSignatureElement *pSig = &AlignedSig;
+    
     OS << comment << " ";
     const char *pSemanticName =
         ByteOffset<char>(pSignature, pSig->SemanticName);
