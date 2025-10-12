@@ -482,7 +482,7 @@ HRESULT DxilContainerReflection::FindFirstPartKind(UINT32 kind,
       std::find_if(begin(m_pHeader), end(m_pHeader), DxilPartIsType(kind));
   if (it == end(m_pHeader))
     return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
-  *pResult = it.index;
+  *pResult = it.GetPartIndex();
   return S_OK;
 }
 

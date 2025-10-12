@@ -94,7 +94,7 @@ HRESULT DxilContainerReader::FindFirstPartKind(uint32_t kind,
     return E_NOT_VALID_STATE;
   DxilPartIterator it =
       std::find_if(begin(m_pHeader), end(m_pHeader), DxilPartIsType(kind));
-  *pResult = (it == end(m_pHeader)) ? DXIL_CONTAINER_BLOB_NOT_FOUND : it.index;
+  *pResult = (it == end(m_pHeader)) ? DXIL_CONTAINER_BLOB_NOT_FOUND : it.GetPartIndex();
   return S_OK;
 }
 
