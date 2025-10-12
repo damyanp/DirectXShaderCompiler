@@ -501,7 +501,7 @@ struct DxilPartIsType {
 /// Use this type as an iterator over the part headers.
 struct DxilPartIterator {
   using iterator_category = std::input_iterator_tag;
-  using value_type = const DxilContainerHeader *;
+  using value_type = const DxilPartHeader *;
   using difference_type = std::ptrdiff_t;
   using pointer = value_type *;
   using reference = value_type &;
