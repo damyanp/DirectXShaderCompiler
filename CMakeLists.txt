@@ -352,7 +352,7 @@ set(LLVM_USE_SANITIZER "" CACHE STRING
 option(LLVM_OPTIMIZE_SANITIZED_BUILDS "Enable -O1 on sanitized builds" On)
 
 option(LLVM_USE_SPLIT_DWARF
-  "Use -gsplit-dwarf when compiling llvm and debug builds." OFF)
+  "Use -gsplit-dwarf when compiling llvm and --gdb-index when linking." OFF)
 
 option(WITH_POLLY "Build LLVM with Polly" ON)
 option(LINK_POLLY_INTO_TOOLS "Static link Polly into tools" OFF)
