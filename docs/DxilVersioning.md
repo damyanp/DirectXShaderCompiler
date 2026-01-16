@@ -119,6 +119,39 @@ struct DxilBitcodeHeader {
 - Container version describes the DXIL container format itself
 - DXIL version within the container describes the shader IL version
 
+### Pipeline State Validation (PSV) Version Constants
+
+**File:** `include/dxc/DxilContainer/DxilPipelineStateValidation.h`
+
+```cpp
+// Line 477
+#define MAX_PSV_VERSION 3
+```
+
+**Purpose:** PSV (Pipeline State Validation) version controls the format of the PSV0 container part which contains runtime validation data.
+
+**Version Mapping:** `lib/DxilContainer/DxilPipelineStateValidation.cpp`
+
+```cpp
+uint32_t GetPSVVersion(uint32_t ValMajor, uint32_t ValMinor) {
+  unsigned PSVVersion = MAX_PSV_VERSION;
+  // Constraint PSVVersion based on validator version
+  if (DXIL::CompareVersions(ValMajor, ValMinor, 1, 1) < 0)
+    PSVVersion = 0;  // Validator < 1.1 uses PSV0
+  else if (DXIL::CompareVersions(ValMajor, ValMinor, 1, 6) < 0)
+    PSVVersion = 1;  // Validator 1.1-1.5 uses PSV1
+  else if (DXIL::CompareVersions(ValMajor, ValMinor, 1, 8) < 0)
+    PSVVersion = 2;  // Validator 1.6-1.7 uses PSV2
+  return PSVVersion;  // Validator >= 1.8 uses PSV3
+}
+```
+
+**PSV Version Evolution:**
+- **PSV0:** Original format (Validator 1.0)
+- **PSV1:** Added resource binding info (Validator 1.1+)
+- **PSV2:** Extended signature information (Validator 1.6+)
+- **PSV3:** Additional runtime data (Validator 1.8+)
+
 ### Compiler Version Constants
 
 **File:** `utils/version/version.inc` (baseline) and generated `dxcversion.inc`
@@ -457,6 +490,7 @@ void ShaderModel::GetMinValidatorVersion(unsigned &ValMajor, unsigned &ValMinor)
    - `include/dxc/DXIL/DxilConstants.h` - Primary DXIL version constants
    - `include/dxc/DXIL/DxilShaderModel.h` - Shader model version constants
    - `include/dxc/DxilContainer/DxilContainer.h` - Container version constants
+   - `include/dxc/DxilContainer/DxilPipelineStateValidation.h` - PSV version constants
 
 2. **Metadata Handling:**
    - `lib/DXIL/DxilMetadataHelper.cpp` - Metadata emission and loading
@@ -466,6 +500,7 @@ void ShaderModel::GetMinValidatorVersion(unsigned &ValMajor, unsigned &ValMinor)
    - `lib/DXIL/DxilShaderModel.cpp` - Shader model to DXIL version mapping
    - `lib/DXIL/DxilModule.cpp` - Module version management
    - `lib/DxilValidation/DxilValidation.cpp` - Version validation logic
+   - `lib/DxilContainer/DxilPipelineStateValidation.cpp` - PSV version logic
 
 4. **Build System:**
    - `utils/version/gen_version.py` - Version generation script
@@ -491,7 +526,8 @@ DXIL versioning is a multi-layered system:
 1. **DXIL Version (1.x)** - The core intermediate language version, defined in `DxilConstants.h`
 2. **Shader Model (6.x)** - The programming model version, mapped to DXIL versions
 3. **Container Version (1.0)** - The binary container format version
-4. **Compiler Version (1.9.xxxx.x)** - The tool version, generated from git history
-5. **Validator Version (1.x)** - The minimum validator version required
+4. **PSV Version (0-3)** - The pipeline state validation data format version
+5. **Compiler Version (1.9.xxxx.x)** - The tool version, generated from git history
+6. **Validator Version (1.x)** - The minimum validator version required
 
-These versions work together to ensure compatibility across the entire shader compilation and execution pipeline, from source code to hardware execution.
+These versions work together to ensure compatibility across the entire shader compilation and execution pipeline, from source code to hardware execution. The DXIL version typically matches the shader model minor version (e.g., SM 6.5 uses DXIL 1.5), the validator version matches the DXIL version, and the PSV version is derived from the validator version requirements.
