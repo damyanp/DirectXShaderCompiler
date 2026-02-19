@@ -201,10 +201,19 @@ ninja -C build-gcc14 check-clang
 grep -A 5 '492738' /tmp/cghlslms.s
 ```
 
+## GCC Bug
+
+**[GCC Bug 119071](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119071)**:
+`[12/13/14/15 Regression] Miscompile at -O2 since r10-7268`
+
+- Component: `rtl-optimization`
+- Affected: GCC 10.1.0 through 15 (known to work in 9.5.0)
+- Fixed in: GCC 12.5, 13.4, **14.3**, 15.0
+- Related: [Bug 118739](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=118739)
+
 ## Related Issues
 
 - GitHub Issue: https://github.com/microsoft/DirectXShaderCompiler/issues/7364
-- GCC Bugzilla PR 112509: Similar tree-vrp switch miscompilation (ICE, fixed)
 - The GCC 13 issue (loop unswitching, fixed with `-fno-unswitch-loops`) is a
   separate bug from this GCC 14 issue
 
