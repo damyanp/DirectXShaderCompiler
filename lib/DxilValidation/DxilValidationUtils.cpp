@@ -26,76 +26,76 @@
 #include "llvm/Support/raw_ostream.h"
 
 namespace hlsl {
-EntryStatus::EntryStatus(DxilEntryProps &entryProps)
-    : m_bCoverageIn(false), m_bInnerCoverageIn(false), hasViewID(false) {
-  for (unsigned i = 0; i < DXIL::kNumOutputStreams; i++) {
-    hasOutputPosition[i] = false;
-    OutputPositionMask[i] = 0;
+EntryStatus::EntryStatus(DxilEntryProps &EntryProps)
+    : m_bCoverageIn(false), m_bInnerCoverageIn(false), HasViewID(false) {
+  for (unsigned I = 0; I < DXIL::kNumOutputStreams; I++) {
+    HasOutputPosition[I] = false;
+    OutputPositionMask[I] = 0;
   }
 
-  outputCols.resize(entryProps.sig.OutputSignature.GetElements().size(), 0);
-  patchConstOrPrimCols.resize(
-      entryProps.sig.PatchConstOrPrimSignature.GetElements().size(), 0);
+  OutputCols.resize(EntryProps.sig.OutputSignature.GetElements().size(), 0);
+  PatchConstOrPrimCols.resize(
+      EntryProps.sig.PatchConstOrPrimSignature.GetElements().size(), 0);
 }
 
-ValidationContext::ValidationContext(Module &llvmModule, Module *DebugModule,
-                                     DxilModule &dxilModule)
-    : M(llvmModule), pDebugModule(DebugModule), DxilMod(dxilModule),
-      DL(llvmModule.getDataLayout()), LastRuleEmit((ValidationRule)-1),
-      kDxilControlFlowHintMDKind(llvmModule.getContext().getMDKindID(
+ValidationContext::ValidationContext(Module &LLVMModule, Module *DebugModule,
+                                     DxilModule &DxilModule)
+    : M(LLVMModule), DebugModule(DebugModule), DxilMod(DxilModule),
+      DL(LLVMModule.getDataLayout()), LastRuleEmit((ValidationRule)-1),
+      kDxilControlFlowHintMDKind(LLVMModule.getContext().getMDKindID(
           DxilMDHelper::kDxilControlFlowHintMDName)),
-      kDxilPreciseMDKind(llvmModule.getContext().getMDKindID(
+      kDxilPreciseMDKind(LLVMModule.getContext().getMDKindID(
           DxilMDHelper::kDxilPreciseAttributeMDName)),
-      kDxilNonUniformMDKind(llvmModule.getContext().getMDKindID(
+      kDxilNonUniformMDKind(LLVMModule.getContext().getMDKindID(
           DxilMDHelper::kDxilNonUniformAttributeMDName)),
-      kLLVMLoopMDKind(llvmModule.getContext().getMDKindID("llvm.loop")),
-      slotTracker(&llvmModule, true) {
+      kLLVMLoopMDKind(LLVMModule.getContext().getMDKindID("llvm.loop")),
+      SlotTracker(&LLVMModule, true) {
   DxilMod.GetDxilVersion(m_DxilMajor, m_DxilMinor);
   HandleTy = DxilMod.GetOP()->GetHandleType();
 
-  for (Function &F : llvmModule.functions()) {
+  for (Function &F : LLVMModule.functions()) {
     if (DxilMod.HasDxilEntryProps(&F)) {
-      DxilEntryProps &entryProps = DxilMod.GetDxilEntryProps(&F);
-      entryStatusMap[&F] = llvm::make_unique<EntryStatus>(entryProps);
+      DxilEntryProps &EntryProps = DxilMod.GetDxilEntryProps(&F);
+      EntryStatusMap[&F] = llvm::make_unique<EntryStatus>(EntryProps);
     }
   }
 
-  isLibProfile = dxilModule.GetShaderModel()->IsLib();
+  IsLibProfile = DxilModule.GetShaderModel()->IsLib();
   BuildResMap();
   // Collect patch constant map.
-  if (isLibProfile) {
-    for (Function &F : dxilModule.GetModule()->functions()) {
-      if (dxilModule.HasDxilEntryProps(&F)) {
-        DxilEntryProps &entryProps = dxilModule.GetDxilEntryProps(&F);
-        DxilFunctionProps &props = entryProps.props;
-        if (props.IsHS()) {
-          PatchConstantFuncMap[props.ShaderProps.HS.patchConstantFunc]
+  if (IsLibProfile) {
+    for (Function &F : DxilModule.GetModule()->functions()) {
+      if (DxilModule.HasDxilEntryProps(&F)) {
+        DxilEntryProps &EntryProps = DxilModule.GetDxilEntryProps(&F);
+        DxilFunctionProps &Props = EntryProps.props;
+        if (Props.IsHS()) {
+          PatchConstantFuncMap[Props.ShaderProps.HS.patchConstantFunc]
               .emplace_back(&F);
         }
       }
     }
   } else {
-    Function *Entry = dxilModule.GetEntryFunction();
-    if (!dxilModule.HasDxilEntryProps(Entry)) {
+    Function *Entry = DxilModule.GetEntryFunction();
+    if (!DxilModule.HasDxilEntryProps(Entry)) {
       // must have props.
       EmitFnError(Entry, ValidationRule::MetaNoEntryPropsForEntry);
       return;
     }
-    DxilEntryProps &entryProps = dxilModule.GetDxilEntryProps(Entry);
-    DxilFunctionProps &props = entryProps.props;
-    if (props.IsHS()) {
-      PatchConstantFuncMap[props.ShaderProps.HS.patchConstantFunc].emplace_back(
+    DxilEntryProps &EntryProps = DxilModule.GetDxilEntryProps(Entry);
+    DxilFunctionProps &Props = EntryProps.props;
+    if (Props.IsHS()) {
+      PatchConstantFuncMap[Props.ShaderProps.HS.patchConstantFunc].emplace_back(
           Entry);
     }
   }
 }
 
 void ValidationContext::PropagateResMap(Value *V, DxilResourceBase *Res) {
-  auto it = ResPropMap.find(V);
-  if (it != ResPropMap.end()) {
+  auto It = ResPropMap.find(V);
+  if (It != ResPropMap.end()) {
     DxilResourceProperties RP = resource_helper::loadPropsFromResourceBase(Res);
-    DxilResourceProperties itRP = it->second;
-    if (itRP != RP) {
+    DxilResourceProperties ItRP = It->second;
+    if (ItRP != RP) {
       EmitResourceError(Res, ValidationRule::InstrResourceMapToSingleEntry);
     }
   } else {
@@ -106,8 +106,8 @@ void ValidationContext::PropagateResMap(Value *V, DxilResourceBase *Res) {
         PropagateResMap(U, Res);
       } else if (CallInst *CI = dyn_cast<CallInst>(U)) {
         // Stop propagate on function call.
-        DxilInst_CreateHandleForLib hdl(CI);
-        if (hdl) {
+        DxilInst_CreateHandleForLib Hdl(CI);
+        if (Hdl) {
           DxilResourceProperties RP =
               resource_helper::loadPropsFromResourceBase(Res);
           ResPropMap[CI] = RP;
@@ -127,7 +127,7 @@ void ValidationContext::PropagateResMap(Value *V, DxilResourceBase *Res) {
 void ValidationContext::BuildResMap() {
   hlsl::OP *hlslOP = DxilMod.GetOP();
 
-  if (isLibProfile) {
+  if (IsLibProfile) {
     std::unordered_set<Value *> ResSet;
     // Start from all global variable in resTab.
     for (auto &Res : DxilMod.GetCBuffers())
@@ -140,35 +140,35 @@ void ValidationContext::BuildResMap() {
       PropagateResMap(Res->GetGlobalSymbol(), Res.get());
   } else {
     // Scan all createHandle.
-    for (auto &it : hlslOP->GetOpFuncList(DXIL::OpCode::CreateHandle)) {
-      Function *F = it.second;
+    for (auto &It : hlslOP->GetOpFuncList(DXIL::OpCode::CreateHandle)) {
+      Function *F = It.second;
       if (!F)
         continue;
       for (User *U : F->users()) {
         CallInst *CI = cast<CallInst>(U);
-        DxilInst_CreateHandle hdl(CI);
+        DxilInst_CreateHandle Hdl(CI);
         // Validate Class/RangeID/Index.
-        Value *resClass = hdl.get_resourceClass();
-        if (!isa<ConstantInt>(resClass)) {
+        Value *ResClass = Hdl.get_resourceClass();
+        if (!isa<ConstantInt>(ResClass)) {
           EmitInstrError(CI, ValidationRule::InstrOpConstRange);
           continue;
         }
-        Value *rangeIndex = hdl.get_rangeId();
-        if (!isa<ConstantInt>(rangeIndex)) {
+        Value *RangeIndex = Hdl.get_rangeId();
+        if (!isa<ConstantInt>(RangeIndex)) {
           EmitInstrError(CI, ValidationRule::InstrOpConstRange);
           continue;
         }
 
         DxilResourceBase *Res = nullptr;
-        unsigned rangeId = hdl.get_rangeId_val();
-        switch (static_cast<DXIL::ResourceClass>(hdl.get_resourceClass_val())) {
+        unsigned RangeId = Hdl.get_rangeId_val();
+        switch (static_cast<DXIL::ResourceClass>(Hdl.get_resourceClass_val())) {
         default:
           EmitInstrError(CI, ValidationRule::InstrOpConstRange);
           continue;
           break;
         case DXIL::ResourceClass::CBuffer:
-          if (DxilMod.GetCBuffers().size() > rangeId) {
-            Res = &DxilMod.GetCBuffer(rangeId);
+          if (DxilMod.GetCBuffers().size() > RangeId) {
+            Res = &DxilMod.GetCBuffer(RangeId);
           } else {
             // Emit Error.
             EmitInstrError(CI, ValidationRule::InstrOpConstRange);
@@ -176,8 +176,8 @@ void ValidationContext::BuildResMap() {
           }
           break;
         case DXIL::ResourceClass::Sampler:
-          if (DxilMod.GetSamplers().size() > rangeId) {
-            Res = &DxilMod.GetSampler(rangeId);
+          if (DxilMod.GetSamplers().size() > RangeId) {
+            Res = &DxilMod.GetSampler(RangeId);
           } else {
             // Emit Error.
             EmitInstrError(CI, ValidationRule::InstrOpConstRange);
@@ -185,8 +185,8 @@ void ValidationContext::BuildResMap() {
           }
           break;
         case DXIL::ResourceClass::SRV:
-          if (DxilMod.GetSRVs().size() > rangeId) {
-            Res = &DxilMod.GetSRV(rangeId);
+          if (DxilMod.GetSRVs().size() > RangeId) {
+            Res = &DxilMod.GetSRV(RangeId);
           } else {
             // Emit Error.
             EmitInstrError(CI, ValidationRule::InstrOpConstRange);
@@ -194,8 +194,8 @@ void ValidationContext::BuildResMap() {
           }
           break;
         case DXIL::ResourceClass::UAV:
-          if (DxilMod.GetUAVs().size() > rangeId) {
-            Res = &DxilMod.GetUAV(rangeId);
+          if (DxilMod.GetUAVs().size() > RangeId) {
+            Res = &DxilMod.GetUAV(RangeId);
           } else {
             // Emit Error.
             EmitInstrError(CI, ValidationRule::InstrOpConstRange);
@@ -204,23 +204,23 @@ void ValidationContext::BuildResMap() {
           break;
         }
 
-        ConstantInt *cIndex = dyn_cast<ConstantInt>(hdl.get_index());
+        ConstantInt *CIndex = dyn_cast<ConstantInt>(Hdl.get_index());
         if (!Res->GetHLSLType()->getPointerElementType()->isArrayTy()) {
-          if (!cIndex) {
+          if (!CIndex) {
             // index must be 0 for none array resource.
             EmitInstrError(CI, ValidationRule::InstrOpConstRange);
             continue;
           }
         }
-        if (cIndex) {
-          unsigned index = cIndex->getLimitedValue();
-          if (index < Res->GetLowerBound() || index > Res->GetUpperBound()) {
+        if (CIndex) {
+          unsigned Index = CIndex->getLimitedValue();
+          if (Index < Res->GetLowerBound() || Index > Res->GetUpperBound()) {
             // index out of range.
             EmitInstrError(CI, ValidationRule::InstrOpConstRange);
             continue;
           }
         }
-        HandleResIndexMap[CI] = rangeId;
+        HandleResIndexMap[CI] = RangeId;
         DxilResourceProperties RP =
             resource_helper::loadPropsFromResourceBase(Res);
         ResPropMap[CI] = RP;
@@ -229,16 +229,16 @@ void ValidationContext::BuildResMap() {
   }
   const ShaderModel &SM = *DxilMod.GetShaderModel();
 
-  for (auto &it : hlslOP->GetOpFuncList(DXIL::OpCode::AnnotateHandle)) {
-    Function *F = it.second;
+  for (auto &It : hlslOP->GetOpFuncList(DXIL::OpCode::AnnotateHandle)) {
+    Function *F = It.second;
     if (!F)
       continue;
 
     for (User *U : F->users()) {
       CallInst *CI = cast<CallInst>(U);
-      DxilInst_AnnotateHandle hdl(CI);
+      DxilInst_AnnotateHandle Hdl(CI);
       DxilResourceProperties RP =
-          resource_helper::loadPropsFromAnnotateHandle(hdl, SM);
+          resource_helper::loadPropsFromAnnotateHandle(Hdl, SM);
       if (RP.getResourceKind() == DXIL::ResourceKind::Invalid) {
         EmitInstrError(CI, ValidationRule::InstrOpConstRange);
         continue;
@@ -250,74 +250,74 @@ void ValidationContext::BuildResMap() {
 }
 
 bool ValidationContext::HasEntryStatus(Function *F) {
-  return entryStatusMap.find(F) != entryStatusMap.end();
+  return EntryStatusMap.find(F) != EntryStatusMap.end();
 }
 
 EntryStatus &ValidationContext::GetEntryStatus(Function *F) {
-  return *entryStatusMap[F];
+  return *EntryStatusMap[F];
 }
 
 CallGraph &ValidationContext::GetCallGraph() {
-  if (!pCallGraph)
-    pCallGraph = llvm::make_unique<CallGraph>(M);
-  return *pCallGraph.get();
+  if (!CG)
+    CG = llvm::make_unique<CallGraph>(M);
+  return *CG.get();
 }
 
 void ValidationContext::EmitGlobalVariableFormatError(
-    GlobalVariable *GV, ValidationRule rule, ArrayRef<StringRef> args) {
-  std::string ruleText = GetValidationRuleText(rule);
-  FormatRuleText(ruleText, args);
-  if (pDebugModule)
-    GV = pDebugModule->getGlobalVariable(GV->getName());
-  dxilutil::EmitErrorOnGlobalVariable(M.getContext(), GV, ruleText);
+    GlobalVariable *GV, ValidationRule Rule, ArrayRef<StringRef> Args) {
+  std::string RuleText = GetValidationRuleText(Rule);
+  FormatRuleText(RuleText, Args);
+  if (DebugModule)
+    GV = DebugModule->getGlobalVariable(GV->getName());
+  dxilutil::EmitErrorOnGlobalVariable(M.getContext(), GV, RuleText);
   Failed = true;
 }
 
 // This is the least desirable mechanism, as it has no context.
-void ValidationContext::EmitError(ValidationRule rule) {
-  dxilutil::EmitErrorOnContext(M.getContext(), GetValidationRuleText(rule));
+void ValidationContext::EmitError(ValidationRule Rule) {
+  dxilutil::EmitErrorOnContext(M.getContext(), GetValidationRuleText(Rule));
   Failed = true;
 }
 
-void ValidationContext::FormatRuleText(std::string &ruleText,
-                                       ArrayRef<StringRef> args) {
-  std::string escapedArg;
+void ValidationContext::FormatRuleText(std::string &RuleText,
+                                       ArrayRef<StringRef> Args) {
+  std::string EscapedArg;
   // Consider changing const char * to StringRef
-  for (unsigned i = 0; i < args.size(); i++) {
-    std::string argIdx = "%" + std::to_string(i);
-    StringRef pArg = args[i];
-    if (pArg == "")
-      pArg = "<null>";
-    if (pArg[0] == 1) {
-      escapedArg = "";
-      raw_string_ostream os(escapedArg);
-      dxilutil::PrintEscapedString(pArg, os);
-      os.flush();
-      pArg = escapedArg;
+  for (unsigned I = 0; I < Args.size(); I++) {
+    std::string ArgIdx = "%" + std::to_string(I);
+    StringRef Arg = Args[I];
+    if (Arg == "")
+      Arg = "<null>";
+    if (Arg[0] == 1) {
+      EscapedArg = "";
+      raw_string_ostream OS(EscapedArg);
+      dxilutil::PrintEscapedString(Arg, OS);
+      OS.flush();
+      Arg = EscapedArg;
     }
 
-    std::string::size_type offset = ruleText.find(argIdx);
-    if (offset == std::string::npos)
+    std::string::size_type Offset = RuleText.find(ArgIdx);
+    if (Offset == std::string::npos)
       continue;
 
-    unsigned size = argIdx.size();
-    ruleText.replace(offset, size, pArg);
+    unsigned Size = ArgIdx.size();
+    RuleText.replace(Offset, Size, Arg);
   }
 }
 
-void ValidationContext::EmitFormatError(ValidationRule rule,
-                                        ArrayRef<StringRef> args) {
-  std::string ruleText = GetValidationRuleText(rule);
-  FormatRuleText(ruleText, args);
-  dxilutil::EmitErrorOnContext(M.getContext(), ruleText);
+void ValidationContext::EmitFormatError(ValidationRule Rule,
+                                        ArrayRef<StringRef> Args) {
+  std::string RuleText = GetValidationRuleText(Rule);
+  FormatRuleText(RuleText, Args);
+  dxilutil::EmitErrorOnContext(M.getContext(), RuleText);
   Failed = true;
 }
 
-void ValidationContext::EmitMetaError(Metadata *Meta, ValidationRule rule) {
+void ValidationContext::EmitMetaError(Metadata *Meta, ValidationRule Rule) {
   std::string O;
   raw_string_ostream OSS(O);
   Meta->print(OSS, &M);
-  dxilutil::EmitErrorOnContext(M.getContext(), GetValidationRuleText(rule) + O);
+  dxilutil::EmitErrorOnContext(M.getContext(), GetValidationRuleText(Rule) + O);
   Failed = true;
 }
 
@@ -326,11 +326,11 @@ std::string
 ValidationContext::GetResourceName(const hlsl::DxilResourceBase *Res) {
   if (!Res)
     return "nullptr";
-  std::string resName = Res->GetGlobalName();
-  if (!resName.empty())
-    return resName;
-  if (pDebugModule) {
-    DxilModule &DM = pDebugModule->GetOrCreateDxilModule();
+  std::string ResName = Res->GetGlobalName();
+  if (!ResName.empty())
+    return ResName;
+  if (DebugModule) {
+    DxilModule &DM = DebugModule->GetOrCreateDxilModule();
     switch (Res->GetClass()) {
     case DXIL::ResourceClass::CBuffer:
       return DM.GetCBuffer(Res->GetID()).GetGlobalName();
@@ -367,20 +367,20 @@ ValidationContext::GetResourceName(const hlsl::DxilResourceBase *Res) {
 }
 
 void ValidationContext::EmitResourceError(const hlsl::DxilResourceBase *Res,
-                                          ValidationRule rule) {
+                                          ValidationRule Rule) {
   std::string QuotedRes = " '" + GetResourceName(Res) + "'";
   dxilutil::EmitErrorOnContext(M.getContext(),
-                               GetValidationRuleText(rule) + QuotedRes);
+                               GetValidationRuleText(Rule) + QuotedRes);
   Failed = true;
 }
 
 void ValidationContext::EmitResourceFormatError(
-    const hlsl::DxilResourceBase *Res, ValidationRule rule,
-    ArrayRef<StringRef> args) {
+    const hlsl::DxilResourceBase *Res, ValidationRule Rule,
+    ArrayRef<StringRef> Args) {
   std::string QuotedRes = " '" + GetResourceName(Res) + "'";
-  std::string ruleText = GetValidationRuleText(rule);
-  FormatRuleText(ruleText, args);
-  dxilutil::EmitErrorOnContext(M.getContext(), ruleText + QuotedRes);
+  std::string RuleText = GetValidationRuleText(Rule);
+  FormatRuleText(RuleText, Args);
+  dxilutil::EmitErrorOnContext(M.getContext(), RuleText + QuotedRes);
   Failed = true;
 }
 
@@ -390,37 +390,37 @@ bool ValidationContext::IsDebugFunctionCall(Instruction *I) {
 
 Instruction *ValidationContext::GetDebugInstr(Instruction *I) {
   DXASSERT_NOMSG(I);
-  if (pDebugModule) {
+  if (DebugModule) {
     // Look up the matching instruction in the debug module.
     llvm::Function *Fn = I->getParent()->getParent();
-    llvm::Function *DbgFn = pDebugModule->getFunction(Fn->getName());
+    llvm::Function *DbgFn = DebugModule->getFunction(Fn->getName());
     if (DbgFn) {
       // Linear lookup, but then again, failing validation is rare.
-      inst_iterator it = inst_begin(Fn);
-      inst_iterator dbg_it = inst_begin(DbgFn);
-      while (IsDebugFunctionCall(&*dbg_it))
-        ++dbg_it;
-      while (&*it != I) {
-        ++it;
-        ++dbg_it;
-        while (IsDebugFunctionCall(&*dbg_it))
-          ++dbg_it;
+      inst_iterator It = inst_begin(Fn);
+      inst_iterator DbgIt = inst_begin(DbgFn);
+      while (IsDebugFunctionCall(&*DbgIt))
+        ++DbgIt;
+      while (&*It != I) {
+        ++It;
+        ++DbgIt;
+        while (IsDebugFunctionCall(&*DbgIt))
+          ++DbgIt;
       }
-      return &*dbg_it;
+      return &*DbgIt;
     }
   }
   return I;
 }
 
 // Emit Error or note on instruction `I` with `Msg`.
-// If `isError` is true, `Rule` may omit repeated errors
+// If `IsError` is true, `Rule` may omit repeated errors
 void ValidationContext::EmitInstrDiagMsg(Instruction *I, ValidationRule Rule,
-                                         std::string Msg, bool isError) {
+                                         std::string Msg, bool IsError) {
   BasicBlock *BB = I->getParent();
   Function *F = BB->getParent();
 
   Instruction *DbgI = GetDebugInstr(I);
-  if (isError) {
+  if (IsError) {
     if (const DebugLoc L = DbgI->getDebugLoc()) {
       // Instructions that get scalarized will likely hit
       // this case. Avoid redundant diagnostic messages.
@@ -438,7 +438,7 @@ void ValidationContext::EmitInstrDiagMsg(Instruction *I, ValidationRule Rule,
   // Add llvm information as a note to instruction string
   std::string InstrStr;
   raw_string_ostream InstrStream(InstrStr);
-  I->print(InstrStream, slotTracker);
+  I->print(InstrStream, SlotTracker);
   InstrStream.flush();
   StringRef InstrStrRef = InstrStr;
   InstrStrRef = InstrStrRef.ltrim(); // Ignore indentation
@@ -449,16 +449,16 @@ void ValidationContext::EmitInstrDiagMsg(Instruction *I, ValidationRule Rule,
   if (!BB->getName().empty()) {
     Msg += BB->getName();
   } else {
-    unsigned idx = 0;
-    for (auto i = F->getBasicBlockList().begin(),
-              e = F->getBasicBlockList().end();
-         i != e; ++i) {
-      if (BB == &(*i)) {
+    unsigned Idx = 0;
+    for (auto BI = F->getBasicBlockList().begin(),
+              BE = F->getBasicBlockList().end();
+         BI != BE; ++BI) {
+      if (BB == &(*BI)) {
         break;
       }
-      idx++;
+      Idx++;
     }
-    Msg += "#" + std::to_string(idx);
+    Msg += "#" + std::to_string(Idx);
   }
   Msg += "'";
 
@@ -470,8 +470,8 @@ void ValidationContext::EmitInstrDiagMsg(Instruction *I, ValidationRule Rule,
   Failed = true;
 }
 
-void ValidationContext::EmitInstrError(Instruction *I, ValidationRule rule) {
-  EmitInstrDiagMsg(I, rule, GetValidationRuleText(rule));
+void ValidationContext::EmitInstrError(Instruction *I, ValidationRule Rule) {
+  EmitInstrDiagMsg(I, Rule, GetValidationRuleText(Rule));
 }
 
 void ValidationContext::EmitInstrNote(Instruction *I, std::string Msg) {
@@ -479,41 +479,41 @@ void ValidationContext::EmitInstrNote(Instruction *I, std::string Msg) {
 }
 
 void ValidationContext::EmitInstrFormatError(Instruction *I,
-                                             ValidationRule rule,
-                                             ArrayRef<StringRef> args) {
-  std::string ruleText = GetValidationRuleText(rule);
-  FormatRuleText(ruleText, args);
-  EmitInstrDiagMsg(I, rule, ruleText);
+                                             ValidationRule Rule,
+                                             ArrayRef<StringRef> Args) {
+  std::string RuleText = GetValidationRuleText(Rule);
+  FormatRuleText(RuleText, Args);
+  EmitInstrDiagMsg(I, Rule, RuleText);
 }
 
 void ValidationContext::EmitSignatureError(DxilSignatureElement *SE,
-                                           ValidationRule rule) {
-  EmitFormatError(rule, {SE->GetName()});
+                                           ValidationRule Rule) {
+  EmitFormatError(Rule, {SE->GetName()});
 }
 
-void ValidationContext::EmitTypeError(Type *Ty, ValidationRule rule) {
+void ValidationContext::EmitTypeError(Type *Ty, ValidationRule Rule) {
   std::string O;
   raw_string_ostream OSS(O);
   Ty->print(OSS);
-  EmitFormatError(rule, {OSS.str()});
+  EmitFormatError(Rule, {OSS.str()});
 }
 
-void ValidationContext::EmitFnError(Function *F, ValidationRule rule) {
-  if (pDebugModule)
-    if (Function *dbgF = pDebugModule->getFunction(F->getName()))
-      F = dbgF;
-  dxilutil::EmitErrorOnFunction(M.getContext(), F, GetValidationRuleText(rule));
+void ValidationContext::EmitFnError(Function *F, ValidationRule Rule) {
+  if (DebugModule)
+    if (Function *DbgF = DebugModule->getFunction(F->getName()))
+      F = DbgF;
+  dxilutil::EmitErrorOnFunction(M.getContext(), F, GetValidationRuleText(Rule));
   Failed = true;
 }
 
-void ValidationContext::EmitFnFormatError(Function *F, ValidationRule rule,
-                                          ArrayRef<StringRef> args) {
-  std::string ruleText = GetValidationRuleText(rule);
-  FormatRuleText(ruleText, args);
-  if (pDebugModule)
-    if (Function *dbgF = pDebugModule->getFunction(F->getName()))
-      F = dbgF;
-  dxilutil::EmitErrorOnFunction(M.getContext(), F, ruleText);
+void ValidationContext::EmitFnFormatError(Function *F, ValidationRule Rule,
+                                          ArrayRef<StringRef> Args) {
+  std::string RuleText = GetValidationRuleText(Rule);
+  FormatRuleText(RuleText, Args);
+  if (DebugModule)
+    if (Function *DbgF = DebugModule->getFunction(F->getName()))
+      F = DbgF;
+  dxilutil::EmitErrorOnFunction(M.getContext(), F, RuleText);
   Failed = true;
 }
 

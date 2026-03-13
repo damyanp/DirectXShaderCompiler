@@ -972,7 +972,7 @@ HRESULT ValidateDxilContainerParts(llvm::Module *pModule,
 
     switch (pPart->PartFourCC) {
     case DFCC_InputSignature:
-      if (ValCtx.isLibProfile) {
+      if (ValCtx.IsLibProfile) {
         ValCtx.EmitFormatError(ValidationRule::ContainerPartInvalid,
                                {szFourCC});
       } else {
@@ -981,7 +981,7 @@ HRESULT ValidateDxilContainerParts(llvm::Module *pModule,
       }
       break;
     case DFCC_OutputSignature:
-      if (ValCtx.isLibProfile) {
+      if (ValCtx.IsLibProfile) {
         ValCtx.EmitFormatError(ValidationRule::ContainerPartInvalid,
                                {szFourCC});
       } else {
@@ -990,7 +990,7 @@ HRESULT ValidateDxilContainerParts(llvm::Module *pModule,
       }
       break;
     case DFCC_PatchConstantSignature:
-      if (ValCtx.isLibProfile) {
+      if (ValCtx.IsLibProfile) {
         ValCtx.EmitFormatError(ValidationRule::ContainerPartInvalid,
                                {szFourCC});
       } else {
@@ -1008,7 +1008,7 @@ HRESULT ValidateDxilContainerParts(llvm::Module *pModule,
       break;
     case DFCC_CompilerVersion:
       // This blob is either a PDB, or a library profile
-      if (ValCtx.isLibProfile) {
+      if (ValCtx.IsLibProfile) {
         if (!ValidateCompilerVersionPart((void *)GetDxilPartData(pPart),
                                          pPart->PartSize)) {
           ValCtx.EmitFormatError(ValidationRule::ContainerPartInvalid,
@@ -1022,14 +1022,14 @@ HRESULT ValidateDxilContainerParts(llvm::Module *pModule,
 
     case DFCC_RootSignature:
       pRootSignaturePart = pPart;
-      if (ValCtx.isLibProfile) {
+      if (ValCtx.IsLibProfile) {
         ValCtx.EmitFormatError(ValidationRule::ContainerPartInvalid,
                                {szFourCC});
       }
       break;
     case DFCC_PipelineStateValidation:
       pPSVPart = pPart;
-      if (ValCtx.isLibProfile) {
+      if (ValCtx.IsLibProfile) {
         ValCtx.EmitFormatError(ValidationRule::ContainerPartInvalid,
                                {szFourCC});
       } else {
@@ -1076,7 +1076,7 @@ HRESULT ValidateDxilContainerParts(llvm::Module *pModule,
 
     // Runtime Data (RDAT) for libraries
     case DFCC_RuntimeData:
-      if (ValCtx.isLibProfile) {
+      if (ValCtx.IsLibProfile) {
         // TODO: validate without exact binary comparison of serialized data
         //  - support earlier versions
         //  - verify no newer record versions than known here (size no larger
@@ -1098,7 +1098,7 @@ HRESULT ValidateDxilContainerParts(llvm::Module *pModule,
   }
 
   // Verify required parts found
-  if (ValCtx.isLibProfile) {
+  if (ValCtx.IsLibProfile) {
     if (FourCCFound.find(DFCC_RuntimeData) == FourCCFound.end()) {
       ValCtx.EmitFormatError(ValidationRule::ContainerPartMissing,
                              {"Runtime Data (RDAT)"});

@@ -53,94 +53,94 @@ class DxilSignatureElement;
 
 // Save status like output write for entries.
 struct EntryStatus {
-  bool hasOutputPosition[DXIL::kNumOutputStreams];
+  bool HasOutputPosition[DXIL::kNumOutputStreams];
   unsigned OutputPositionMask[DXIL::kNumOutputStreams];
-  std::vector<unsigned> outputCols;
-  std::vector<unsigned> patchConstOrPrimCols;
+  std::vector<unsigned> OutputCols;
+  std::vector<unsigned> PatchConstOrPrimCols;
   bool m_bCoverageIn, m_bInnerCoverageIn;
-  bool hasViewID;
-  unsigned domainLocSize;
-  EntryStatus(DxilEntryProps &entryProps);
+  bool HasViewID;
+  unsigned DomainLocSize;
+  EntryStatus(DxilEntryProps &EntryProps);
 };
 
 struct ValidationContext {
   bool Failed = false;
   Module &M;
-  Module *pDebugModule;
+  Module *DebugModule;
   DxilModule &DxilMod;
   const Type *HandleTy;
   const DataLayout &DL;
   DebugLoc LastDebugLocEmit;
   ValidationRule LastRuleEmit;
-  std::unordered_set<Function *> entryFuncCallSet;
-  std::unordered_set<Function *> patchConstFuncCallSet;
+  std::unordered_set<Function *> EntryFuncCallSet;
+  std::unordered_set<Function *> PatchConstFuncCallSet;
   std::unordered_map<unsigned, bool> UavCounterIncMap;
   std::unordered_map<Value *, unsigned> HandleResIndexMap;
   // TODO: save resource map for each createHandle/createHandleForLib.
   std::unordered_map<Value *, DxilResourceProperties> ResPropMap;
   std::unordered_map<Function *, std::vector<Function *>> PatchConstantFuncMap;
-  std::unordered_map<Function *, std::unique_ptr<EntryStatus>> entryStatusMap;
-  bool isLibProfile;
+  std::unordered_map<Function *, std::unique_ptr<EntryStatus>> EntryStatusMap;
+  bool IsLibProfile;
   const unsigned kDxilControlFlowHintMDKind;
   const unsigned kDxilPreciseMDKind;
   const unsigned kDxilNonUniformMDKind;
   const unsigned kLLVMLoopMDKind;
   unsigned m_DxilMajor, m_DxilMinor;
-  ModuleSlotTracker slotTracker;
-  std::unique_ptr<CallGraph> pCallGraph;
+  ModuleSlotTracker SlotTracker;
+  std::unique_ptr<CallGraph> CG;
 
-  ValidationContext(Module &llvmModule, Module *DebugModule,
-                    DxilModule &dxilModule);
+  ValidationContext(Module &LLVMModule, Module *DebugModule,
+                    DxilModule &DxilModule);
 
   void PropagateResMap(Value *V, DxilResourceBase *Res);
   void BuildResMap();
   bool HasEntryStatus(Function *F);
   EntryStatus &GetEntryStatus(Function *F);
   CallGraph &GetCallGraph();
-  DxilResourceProperties GetResourceFromVal(Value *resVal);
+  DxilResourceProperties GetResourceFromVal(Value *ResVal);
 
-  void EmitGlobalVariableFormatError(GlobalVariable *GV, ValidationRule rule,
-                                     ArrayRef<StringRef> args);
+  void EmitGlobalVariableFormatError(GlobalVariable *GV, ValidationRule Rule,
+                                     ArrayRef<StringRef> Args);
   // This is the least desirable mechanism, as it has no context.
-  void EmitError(ValidationRule rule);
+  void EmitError(ValidationRule Rule);
 
-  void FormatRuleText(std::string &ruleText, ArrayRef<StringRef> args);
-  void EmitFormatError(ValidationRule rule, ArrayRef<StringRef> args);
+  void FormatRuleText(std::string &RuleText, ArrayRef<StringRef> Args);
+  void EmitFormatError(ValidationRule Rule, ArrayRef<StringRef> Args);
 
-  void EmitMetaError(Metadata *Meta, ValidationRule rule);
+  void EmitMetaError(Metadata *Meta, ValidationRule Rule);
 
   // Use this instead of DxilResourceBase::GetGlobalName
   std::string GetResourceName(const hlsl::DxilResourceBase *Res);
 
   void EmitResourceError(const hlsl::DxilResourceBase *Res,
-                         ValidationRule rule);
+                         ValidationRule Rule);
 
   void EmitResourceFormatError(const hlsl::DxilResourceBase *Res,
-                               ValidationRule rule, ArrayRef<StringRef> args);
+                               ValidationRule Rule, ArrayRef<StringRef> Args);
 
   bool IsDebugFunctionCall(Instruction *I);
 
   Instruction *GetDebugInstr(Instruction *I);
 
   // Emit Error or note on instruction `I` with `Msg`.
-  // If `isError` is true, `Rule` may omit repeated errors
+  // If `IsError` is true, `Rule` may omit repeated errors
   void EmitInstrDiagMsg(Instruction *I, ValidationRule Rule, std::string Msg,
-                        bool isError = true);
-  void EmitInstrError(Instruction *I, ValidationRule rule);
+                        bool IsError = true);
+  void EmitInstrError(Instruction *I, ValidationRule Rule);
 
   void EmitInstrNote(Instruction *I, std::string Msg);
 
-  void EmitInstrFormatError(Instruction *I, ValidationRule rule,
-                            ArrayRef<StringRef> args);
+  void EmitInstrFormatError(Instruction *I, ValidationRule Rule,
+                            ArrayRef<StringRef> Args);
 
-  void EmitSignatureError(DxilSignatureElement *SE, ValidationRule rule);
+  void EmitSignatureError(DxilSignatureElement *SE, ValidationRule Rule);
 
-  void EmitTypeError(Type *Ty, ValidationRule rule);
+  void EmitTypeError(Type *Ty, ValidationRule Rule);
 
-  void EmitFnError(Function *F, ValidationRule rule);
+  void EmitFnError(Function *F, ValidationRule Rule);
 
-  void EmitFnFormatError(Function *F, ValidationRule rule,
-                         ArrayRef<StringRef> args);
+  void EmitFnFormatError(Function *F, ValidationRule Rule,
+                         ArrayRef<StringRef> Args);
 
   void EmitFnAttributeError(Function *F, StringRef Kind, StringRef Value);
 };

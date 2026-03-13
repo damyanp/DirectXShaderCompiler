@@ -124,9 +124,9 @@ static unsigned ValidateSignatureRowCol(Instruction *I,
                                 {"Col", Range, std::to_string(Col)});
   } else {
     if (SE.IsOutput())
-      Status.outputCols[SE.GetID()] |= 1 << Col;
+      Status.OutputCols[SE.GetID()] |= 1 << Col;
     if (SE.IsPatchConstOrPrim())
-      Status.patchConstOrPrimCols[SE.GetID()] |= 1 << Col;
+      Status.PatchConstOrPrimCols[SE.GetID()] |= 1 << Col;
   }
 
   return Col;
@@ -732,7 +732,7 @@ static void ValidateSignatureDxilOp(CallInst *CI, DXIL::OpCode Opcode,
                                   {"Col", "DomainLocation"});
     } else {
       unsigned Col = cast<ConstantInt>(ColValue)->getLimitedValue();
-      if (Col >= Status.domainLocSize) {
+      if (Col >= Status.DomainLocSize) {
         ValCtx.EmitInstrError(CI, ValidationRule::SmDomainLocationIdxOOB);
       }
     }
@@ -761,7 +761,7 @@ static void ValidateSignatureDxilOp(CallInst *CI, DXIL::OpCode Opcode,
   case DXIL::OpCode::LoadOutputControlPoint: {
     // Only used in patch constant function.
     Function *Func = CI->getParent()->getParent();
-    if (ValCtx.entryFuncCallSet.count(Func) > 0) {
+    if (ValCtx.EntryFuncCallSet.count(Func) > 0) {
       ValCtx.EmitInstrFormatError(
           CI, ValidationRule::SmOpcodeInInvalidFunction,
           {"LoadOutputControlPoint", "PatchConstant function"});
@@ -805,7 +805,7 @@ static void ValidateSignatureDxilOp(CallInst *CI, DXIL::OpCode Opcode,
     Status.m_bInnerCoverageIn = true;
     break;
   case DXIL::OpCode::ViewID:
-    Status.hasViewID = true;
+    Status.HasViewID = true;
     break;
   case DXIL::OpCode::EvalCentroid:
   case DXIL::OpCode::EvalSampleIndex:
@@ -2126,7 +2126,7 @@ static void ValidateDxilOperationCallInProfile(CallInst *CI,
     Value *Inc = UpdateCounter.get_inc();
     if (ConstantInt *cInc = dyn_cast<ConstantInt>(Inc)) {
       bool IsInc = cInc->getLimitedValue() == 1;
-      if (!ValCtx.isLibProfile) {
+      if (!ValCtx.IsLibProfile) {
         auto It = ValCtx.HandleResIndexMap.find(Handle);
         if (It != ValCtx.HandleResIndexMap.end()) {
           unsigned ResIndex = It->second;
@@ -2218,7 +2218,7 @@ static void ValidateDxilOperationCallInProfile(CallInst *CI,
     }
   } break;
   case DXIL::OpCode::CreateHandleForLib:
-    if (!ValCtx.isLibProfile) {
+    if (!ValCtx.IsLibProfile) {
       ValCtx.EmitInstrFormatError(CI, ValidationRule::SmOpcodeInInvalidFunction,
                                   {"CreateHandleForLib", "Library"});
     }
@@ -2385,7 +2385,7 @@ static void ValidateDxilOperationCallInProfile(CallInst *CI,
       ValCtx.EmitInstrError(CI, ValidationRule::InstrAtomicIntrinNonUAV);
   } break;
   case DXIL::OpCode::CreateHandle:
-    if (ValCtx.isLibProfile) {
+    if (ValCtx.IsLibProfile) {
       ValCtx.EmitInstrFormatError(CI, ValidationRule::SmOpcodeInInvalidFunction,
                                   {"CreateHandle", "non-library targets"});
     }
@@ -2505,7 +2505,7 @@ static void ValidateExternalFunction(Function *F, ValidationContext &ValCtx) {
     return;
   }
 
-  if (!IsDxilFunction(F) && !ValCtx.isLibProfile) {
+  if (!IsDxilFunction(F) && !ValCtx.IsLibProfile) {
     ValCtx.EmitFnFormatError(F, ValidationRule::DeclDxilFnExtern,
                              {F->getName()});
     return;
@@ -2585,7 +2585,7 @@ static void ValidateExternalFunction(Function *F, ValidationContext &ValCtx) {
 
     unsigned major = pSM->GetMajor();
     unsigned minor = pSM->GetMinor();
-    if (ValCtx.isLibProfile) {
+    if (ValCtx.IsLibProfile) {
       Function *CallingFunction = CI->getParent()->getParent();
       DXIL::ShaderKind SK = DXIL::ShaderKind::Library;
       if (ValCtx.DxilMod.HasDxilFunctionProps(CallingFunction))
@@ -2738,7 +2738,7 @@ static bool ValidateType(Type *Ty, ValidationContext &ValCtx,
   }
   // Lib profile allow all types except those hit
   // ValidationRule::InstrDxilStructUser.
-  if (ValCtx.isLibProfile)
+  if (ValCtx.IsLibProfile)
     return true;
 
   if (Ty->isVectorTy()) {
@@ -3107,7 +3107,7 @@ static void ValidateLoopMetadata(MDNode *Node, ValidationContext &ValCtx) {
 
 static void ValidateNonUniformMetadata(Instruction &I, MDNode *pMD,
                                        ValidationContext &ValCtx) {
-  if (!ValCtx.isLibProfile) {
+  if (!ValCtx.IsLibProfile) {
     ValCtx.EmitMetaError(pMD, ValidationRule::MetaUsed);
   }
   if (!isa<GetElementPtrInst>(I)) {
@@ -3197,7 +3197,7 @@ static void ValidateFunctionMetadata(Function *F, ValidationContext &ValCtx) {
 
 static bool IsLLVMInstructionAllowedForLib(Instruction &I,
                                            ValidationContext &ValCtx) {
-  if (!(ValCtx.isLibProfile || ValCtx.DxilMod.GetShaderModel()->IsMS() ||
+  if (!(ValCtx.IsLibProfile || ValCtx.DxilMod.GetShaderModel()->IsMS() ||
         ValCtx.DxilMod.GetShaderModel()->IsAS()))
     return false;
   switch (I.getOpcode()) {
@@ -3549,7 +3549,7 @@ static void ValidateFunctionBody(Function *F, ValidationContext &ValCtx) {
           }
         }
         if ((isa<StructType>(FromTy) || isa<StructType>(ToTy)) &&
-            !ValCtx.isLibProfile) {
+            !ValCtx.IsLibProfile) {
           ValCtx.EmitInstrError(Cast, ValidationRule::InstrStructBitCast);
           continue;
         }
@@ -3760,7 +3760,7 @@ static void ValidateFunction(Function &F, ValidationContext &ValCtx) {
         ArgTy = ArgTy->getArrayElementType();
       }
 
-      if (ArgTy->isStructTy() && !ValCtx.isLibProfile) {
+      if (ArgTy->isStructTy() && !ValCtx.IsLibProfile) {
         ArgFormatError(F, Arg, ValidationRule::DeclFnFlattenParam);
         break;
       }
@@ -3800,7 +3800,7 @@ static void ValidateFunction(Function &F, ValidationContext &ValCtx) {
   }
 
   // TODO: Remove attribute for lib?
-  if (!ValCtx.isLibProfile)
+  if (!ValCtx.IsLibProfile)
     ValidateFunctionAttribute(&F, ValCtx);
 
   if (F.hasMetadata()) {
@@ -3813,7 +3813,7 @@ static void ValidateGlobalVariable(GlobalVariable &GV,
   bool IsInternalGv =
       dxilutil::IsStaticGlobal(&GV) || dxilutil::IsSharedMemoryGlobal(&GV);
 
-  if (ValCtx.isLibProfile) {
+  if (ValCtx.IsLibProfile) {
     auto IsCBufferGlobal =
         [&](const std::vector<std::unique_ptr<DxilCBuffer>> &ResTab) -> bool {
       for (auto &Res : ResTab)
@@ -4354,7 +4354,7 @@ static void ValidateResourceOverlap(
     SpacesAllocator<unsigned, DxilResourceBase> &SpaceAllocator,
     ValidationContext &ValCtx) {
   unsigned Base = Res.GetLowerBound();
-  if (ValCtx.isLibProfile && !Res.IsAllocated()) {
+  if (ValCtx.IsLibProfile && !Res.IsAllocated()) {
     // Skip unallocated resource for library.
     return;
   }
@@ -4594,7 +4594,7 @@ static void ValidateResources(ValidationContext &ValCtx) {
 
   for (auto &Uav : Uavs) {
     if (Uav->IsROV()) {
-      if (!ValCtx.DxilMod.GetShaderModel()->IsPS() && !ValCtx.isLibProfile) {
+      if (!ValCtx.DxilMod.GetShaderModel()->IsPS() && !ValCtx.IsLibProfile) {
         ValCtx.EmitResourceError(Uav.get(), ValidationRule::SmROVOnlyInPS);
       }
     }
@@ -5243,11 +5243,11 @@ static void ValidateSignature(ValidationContext &ValCtx, const DxilSignature &S,
     ValidateSignatureOverlap(*E.get(), MaxScalars, Allocator[StreamId], ValCtx);
 
     if (IsOutput && SemanticKind == DXIL::SemanticKind::Position) {
-      Status.hasOutputPosition[E->GetOutputStream()] = true;
+      Status.HasOutputPosition[E->GetOutputStream()] = true;
     }
   }
 
-  if (Status.hasViewID && S.IsInput() &&
+  if (Status.HasViewID && S.IsInput() &&
       ValCtx.DxilMod.GetShaderModel()->GetKind() == DXIL::ShaderKind::Pixel) {
     // Ensure sufficient space for ViewId:
     DxilSignatureAllocator::DummyElement ViewId;
@@ -5533,7 +5533,7 @@ static void ValidateEntrySignatures(ValidationContext &ValCtx,
 
 static void ValidateEntrySignatures(ValidationContext &ValCtx) {
   DxilModule &DM = ValCtx.DxilMod;
-  if (ValCtx.isLibProfile) {
+  if (ValCtx.IsLibProfile) {
     for (Function &F : DM.GetModule()->functions()) {
       if (DM.HasDxilEntryProps(&F)) {
         DxilEntryProps &EntryProps = DM.GetDxilEntryProps(&F);
@@ -5795,26 +5795,26 @@ static void CheckPatchConstantSemantic(ValidationContext &ValCtx,
   DXIL::SemanticKind kInsideSemantic = DXIL::SemanticKind::InsideTessFactor;
   unsigned InsideSize = 0;
 
-  Status.domainLocSize = 0;
+  Status.DomainLocSize = 0;
 
   switch (Domain) {
   case DXIL::TessellatorDomain::IsoLine:
     DomainName = "IsoLine";
     EdgeSize = KIsolineEdgeSize;
     InsideSize = KIsolineInsideSize;
-    Status.domainLocSize = KIsolineDomainLocSize;
+    Status.DomainLocSize = KIsolineDomainLocSize;
     break;
   case DXIL::TessellatorDomain::Tri:
     DomainName = "Tri";
     EdgeSize = KTriEdgeSize;
     InsideSize = KTriInsideSize;
-    Status.domainLocSize = KTriDomainLocSize;
+    Status.DomainLocSize = KTriDomainLocSize;
     break;
   case DXIL::TessellatorDomain::Quad:
     DomainName = "Quad";
     EdgeSize = KQuadEdgeSize;
     InsideSize = KQuadInsideSize;
-    Status.domainLocSize = KQuadDomainLocSize;
+    Status.DomainLocSize = KQuadDomainLocSize;
     break;
   default:
     // Don't bother with other tests if domain is invalid
@@ -6228,7 +6228,7 @@ static void ValidateEntryProps(ValidationContext &ValCtx,
 
 static void ValidateShaderState(ValidationContext &ValCtx) {
   DxilModule &DM = ValCtx.DxilMod;
-  if (ValCtx.isLibProfile) {
+  if (ValCtx.IsLibProfile) {
     for (Function &F : DM.GetModule()->functions()) {
       if (DM.HasDxilEntryProps(&F)) {
         DxilEntryProps &EntryProps = DM.GetDxilEntryProps(&F);
@@ -6286,7 +6286,7 @@ static void ValidateCallGraph(ValidationContext &ValCtx) {
   CallGraphNode *EntryNode = CG[ValCtx.DxilMod.GetEntryFunction()];
   DepthMap[EntryNode] = 0;
   if (CallGraphNode *N = CalculateCallDepth(EntryNode, DepthMap, CallStack,
-                                            ValCtx.entryFuncCallSet))
+                                            ValCtx.EntryFuncCallSet))
     ValCtx.EmitFnError(N->getFunction(), ValidationRule::FlowNoRecursion);
   if (ValCtx.DxilMod.GetShaderModel()->IsHS()) {
     CallGraphNode *PatchConstantNode =
@@ -6295,7 +6295,7 @@ static void ValidateCallGraph(ValidationContext &ValCtx) {
     CallStack.clear();
     if (CallGraphNode *N =
             CalculateCallDepth(PatchConstantNode, DepthMap, CallStack,
-                               ValCtx.patchConstFuncCallSet))
+                               ValCtx.PatchConstFuncCallSet))
       ValCtx.EmitFnError(N->getFunction(), ValidationRule::FlowNoRecursion);
   }
 }
@@ -6433,7 +6433,7 @@ static void ValidateUninitializedOutput(ValidationContext &ValCtx,
   const DxilFunctionProps &Props = EntryProps.props;
   // For HS only need to check Tessfactor which is in patch constant sig.
   if (Props.IsHS()) {
-    std::vector<unsigned> &PatchConstOrPrimCols = Status.patchConstOrPrimCols;
+    std::vector<unsigned> &PatchConstOrPrimCols = Status.PatchConstOrPrimCols;
     const DxilSignature &PatchConstSig =
         EntryProps.sig.PatchConstOrPrimSignature;
     for (auto &E : PatchConstSig.GetElements()) {
@@ -6448,7 +6448,7 @@ static void ValidateUninitializedOutput(ValidationContext &ValCtx,
     return;
   }
   const DxilSignature &OutSig = EntryProps.sig.OutputSignature;
-  std::vector<unsigned> &OutputCols = Status.outputCols;
+  std::vector<unsigned> &OutputCols = Status.OutputCols;
   for (auto &E : OutSig.GetElements()) {
     unsigned Mask = OutputCols[E->GetID()];
     unsigned RequireMask = (1 << E->GetCols()) - 1;
@@ -6462,7 +6462,7 @@ static void ValidateUninitializedOutput(ValidationContext &ValCtx,
 
   if (!Props.IsGS()) {
     unsigned PosMask = Status.OutputPositionMask[0];
-    if (PosMask != 0xf && Status.hasOutputPosition[0]) {
+    if (PosMask != 0xf && Status.HasOutputPosition[0]) {
       ValCtx.EmitFnError(F, ValidationRule::SmCompletePosition);
     }
   } else {
@@ -6478,7 +6478,7 @@ static void ValidateUninitializedOutput(ValidationContext &ValCtx,
     for (unsigned I = 0; I < DXIL::kNumOutputStreams; I++) {
       if (StreamMask & (1 << I)) {
         unsigned PosMask = Status.OutputPositionMask[I];
-        if (PosMask != 0xf && Status.hasOutputPosition[I]) {
+        if (PosMask != 0xf && Status.HasOutputPosition[I]) {
           ValCtx.EmitFnError(F, ValidationRule::SmCompletePosition);
         }
       }
@@ -6488,7 +6488,7 @@ static void ValidateUninitializedOutput(ValidationContext &ValCtx,
 
 static void ValidateUninitializedOutput(ValidationContext &ValCtx) {
   DxilModule &DM = ValCtx.DxilMod;
-  if (ValCtx.isLibProfile) {
+  if (ValCtx.IsLibProfile) {
     for (Function &F : DM.GetModule()->functions()) {
       if (DM.HasDxilEntryProps(&F)) {
         ValidateUninitializedOutput(ValCtx, &F);
