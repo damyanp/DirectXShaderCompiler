@@ -373,6 +373,26 @@ public:
   TEST_METHOD(AccumToDescriptor_Wave_F32);
   TEST_METHOD(QueryAccumLayout);
 
+  // --- Expanded coverage: layout, scope, and dimension variants ---
+
+  // ColMajor layout
+  TEST_METHOD(LoadStoreRoundtrip_Wave_F32_ColMajor);
+  TEST_METHOD(LoadStoreRoundtrip_Wave_I32_ColMajor);
+
+  // ThreadGroup scope
+  TEST_METHOD(LoadStoreRoundtrip_ThreadGroup_F32);
+  TEST_METHOD(SplatStore_ThreadGroup_F32);
+  TEST_METHOD(MatMul_ThreadGroup_F32);
+  TEST_METHOD(MatAccumulate_ThreadGroup_F32);
+  TEST_METHOD(AccumToDescriptor_ThreadGroup_F32);
+
+  // Rectangular dimensions
+  TEST_METHOD(LoadStoreRoundtrip_Wave_F32_4x8);
+  TEST_METHOD(MatMul_Wave_F32_4x8x4);
+
+  // Additional scope for element access
+  TEST_METHOD(ElementAccess_Wave_F32);
+
 private:
   CComPtr<ID3D12Device> D3DDevice;
   dxc::SpecificDllLoader DxcSupport;
@@ -1859,6 +1879,139 @@ static void runQueryAccumLayout(ID3D12Device *Device,
 
 void DxilConf_SM610_LinAlg::QueryAccumLayout() {
   runQueryAccumLayout(D3DDevice, DxcSupport, VerboseLogging);
+}
+
+// ===========================================================================
+// Expanded coverage: layout, scope, and dimension variants
+// ===========================================================================
+
+// --- ColMajor layout ---
+
+void DxilConf_SM610_LinAlg::LoadStoreRoundtrip_Wave_F32_ColMajor() {
+  MatrixParams Params = {};
+  Params.CompType = CT_F32;
+  Params.M = 8;
+  Params.N = 8;
+  Params.Use = MU_A;
+  Params.Scope = MS_Wave;
+  Params.Layout = ML_ColMajor;
+  Params.NumThreads = 64;
+  runLoadStoreRoundtrip(D3DDevice, DxcSupport, Params, VerboseLogging);
+}
+
+void DxilConf_SM610_LinAlg::LoadStoreRoundtrip_Wave_I32_ColMajor() {
+  MatrixParams Params = {};
+  Params.CompType = CT_I32;
+  Params.M = 8;
+  Params.N = 8;
+  Params.Use = MU_A;
+  Params.Scope = MS_Wave;
+  Params.Layout = ML_ColMajor;
+  Params.NumThreads = 64;
+  runLoadStoreRoundtrip(D3DDevice, DxcSupport, Params, VerboseLogging);
+}
+
+// --- ThreadGroup scope ---
+
+void DxilConf_SM610_LinAlg::LoadStoreRoundtrip_ThreadGroup_F32() {
+  MatrixParams Params = {};
+  Params.CompType = CT_F32;
+  Params.M = 8;
+  Params.N = 8;
+  Params.Use = MU_A;
+  Params.Scope = MS_ThreadGroup;
+  Params.Layout = ML_RowMajor;
+  Params.NumThreads = 64;
+  runLoadStoreRoundtrip(D3DDevice, DxcSupport, Params, VerboseLogging);
+}
+
+void DxilConf_SM610_LinAlg::SplatStore_ThreadGroup_F32() {
+  MatrixParams Params = {};
+  Params.CompType = CT_F32;
+  Params.M = 8;
+  Params.N = 8;
+  Params.Use = MU_Accumulator;
+  Params.Scope = MS_ThreadGroup;
+  Params.Layout = ML_RowMajor;
+  Params.NumThreads = 64;
+  runSplatStore(D3DDevice, DxcSupport, Params, 42.0f, VerboseLogging);
+}
+
+void DxilConf_SM610_LinAlg::MatMul_ThreadGroup_F32() {
+  MatrixParams Params = {};
+  Params.CompType = CT_F32;
+  Params.M = 4;
+  Params.N = 4;
+  Params.Use = MU_Accumulator;
+  Params.Scope = MS_ThreadGroup;
+  Params.Layout = ML_RowMajor;
+  Params.NumThreads = 64;
+  runMatMul(D3DDevice, DxcSupport, Params, 4, 2.0f, 3.0f, VerboseLogging);
+}
+
+void DxilConf_SM610_LinAlg::MatAccumulate_ThreadGroup_F32() {
+  MatrixParams Params = {};
+  Params.CompType = CT_F32;
+  Params.M = 4;
+  Params.N = 4;
+  Params.Use = MU_Accumulator;
+  Params.Scope = MS_ThreadGroup;
+  Params.Layout = ML_RowMajor;
+  Params.NumThreads = 64;
+  runAccumulate(D3DDevice, DxcSupport, Params, 5.0f, 3.0f, VerboseLogging);
+}
+
+void DxilConf_SM610_LinAlg::AccumToDescriptor_ThreadGroup_F32() {
+  MatrixParams Params = {};
+  Params.CompType = CT_F32;
+  Params.M = 4;
+  Params.N = 4;
+  Params.Use = MU_Accumulator;
+  Params.Scope = MS_ThreadGroup;
+  Params.Layout = ML_RowMajor;
+  Params.NumThreads = 64;
+  runAccumToDescriptor(D3DDevice, DxcSupport, Params, 7.0f, VerboseLogging);
+}
+
+// --- Rectangular dimensions ---
+
+void DxilConf_SM610_LinAlg::LoadStoreRoundtrip_Wave_F32_4x8() {
+  MatrixParams Params = {};
+  Params.CompType = CT_F32;
+  Params.M = 4;
+  Params.N = 8;
+  Params.Use = MU_A;
+  Params.Scope = MS_Wave;
+  Params.Layout = ML_RowMajor;
+  Params.NumThreads = 64;
+  runLoadStoreRoundtrip(D3DDevice, DxcSupport, Params, VerboseLogging);
+}
+
+void DxilConf_SM610_LinAlg::MatMul_Wave_F32_4x8x4() {
+  // A(4×8) × B(8×4) → C(4×4)
+  MatrixParams Params = {};
+  Params.CompType = CT_F32;
+  Params.M = 4;
+  Params.N = 4;
+  Params.Use = MU_Accumulator;
+  Params.Scope = MS_Wave;
+  Params.Layout = ML_RowMajor;
+  Params.NumThreads = 64;
+  runMatMul(D3DDevice, DxcSupport, Params, 8, 2.0f, 3.0f, VerboseLogging);
+}
+
+// --- Additional scope for element access ---
+
+void DxilConf_SM610_LinAlg::ElementAccess_Wave_F32() {
+  MatrixParams Params = {};
+  Params.CompType = CT_F32;
+  Params.M = 4;
+  Params.N = 4;
+  Params.Use = MU_Accumulator;
+  Params.Scope = MS_Wave;
+  Params.Layout = ML_RowMajor;
+  Params.NumThreads = 64;
+  runElementAccess(D3DDevice, DxcSupport, Params, VerboseLogging);
 }
 
 } // namespace LinAlg
