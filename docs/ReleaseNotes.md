@@ -24,8 +24,7 @@ line upon naming the release. Refer to previous for appropriate section names.
 
 #### Experimental Shader Model 6.10
 
-- Moved Linear Algebra (Cooperative Vector) DXIL Opcodes to experimental Shader Model 6.10
-- The Cooperative Vectors API was moved to `coopvec.h` header and under the `dx::coopvec` namespace.
+- Removed experimental Cooperative Vector, this has been replaced by LinAlg matrix.
 - Implement GetGroupWaveIndex and GetGroupWaveCount in experimental Shader Model 6.10.
   - [proposal](https://github.com/microsoft/hlsl-specs/blob/main/proposals/0048-group-wave-index.md)
   - GetGroupWaveIndex: New intrinsic for Compute, Mesh, Amplification and Node shaders which returns the index of the wave within the thread group that the the thread is executing.
@@ -39,10 +38,16 @@ line upon naming the release. Refer to previous for appropriate section names.
 
 #### Bug Fixes
 
-- Fixed non-deterministic DXIL/PDB output when compiling shaders with resource arrays, debug info, and SM 6.6+. [#8171](https://github.com/microsoft/DirectXShaderCompiler/issues/8171)
+- Fixed non-deterministic DXIL/PDB output when compiling shaders with resource
+  arrays, debug info, and SM 6.6+.
+  [#8171](https://github.com/microsoft/DirectXShaderCompiler/issues/8171)
 - Fixed mesh shader semantics that were incorrectly case sensitive.
+- User-defined conversion operators (e.g., `operator float4()`) now produce an
+  error instead of being silently ignored.
+  [#5103](https://github.com/microsoft/DirectXShaderCompiler/pull/8206)
 - DXIL validation: added validation for `CreateHandleFromBinding`.
-- DXIL validation now rejects non-standard integer bit widths (e.g. `i25`) in instructions.
+- DXIL validation now rejects non-standard integer bit widths (e.g. `i25`) in
+  instructions.
 
 #### Other Changes
 
