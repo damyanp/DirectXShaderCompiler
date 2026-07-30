@@ -2590,6 +2590,13 @@ Value *ExpandDot(Value *arg0, Value *arg1, unsigned vecSize, hlsl::OP *hlslOP,
 
 Value *TranslateFDot(Value *arg0, Value *arg1, unsigned vecSize,
                      hlsl::OP *hlslOP, IRBuilder<> &Builder) {
+  // Dot2/3/4 DXIL operations only support half and float, not double.
+  // For double vectors, expand the dot product using FMul and FMad.
+  if (arg0->getType()->getScalarType()->isDoubleTy()) {
+    return ExpandDot(arg0, arg1, vecSize, hlslOP, Builder,
+                     DXIL::OpCode::FMad);
+  }
+
   switch (vecSize) {
   case 2:
     return TrivialDotOperation(OP::OpCode::Dot2, arg0, arg1, hlslOP, Builder);
