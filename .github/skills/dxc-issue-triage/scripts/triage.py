@@ -24,13 +24,16 @@ closes an issue.
 """
 
 import argparse
+import contextlib
 import json
 import os
 import re
 import shlex
+import shutil
 import sqlite3
 import subprocess
 import sys
+import time
 import zipfile
 from datetime import datetime, timezone
 
@@ -152,8 +155,14 @@ _READY = False
 def con():
     global _READY
     os.makedirs(os.path.dirname(DB), exist_ok=True)
-    c = sqlite3.connect(DB)
+    c = sqlite3.connect(DB, timeout=60)
     c.row_factory = sqlite3.Row
+    # Parallel per-issue sessions all write here. WAL lets readers proceed
+    # while a writer commits, and the long busy timeout turns contention into
+    # a short wait rather than a `database is locked` failure part-way through
+    # an expensive bisection.
+    c.execute("PRAGMA journal_mode=WAL")
+    c.execute("PRAGMA busy_timeout=60000")
     if not _READY:
         # Applied once per process, and idempotent: CREATE TABLE IF NOT EXISTS
         # picks up tables added since the workspace was created, the ALTERs
@@ -382,6 +391,47 @@ def find_dxc(root):
     return best
 
 
+@contextlib.contextmanager
+def cache_lock(name, timeout=1800):
+    """Serialise one release's download/extract across processes.
+
+    Issues are triaged in parallel, and `bisect` probes both endpoints before
+    anything else, so every worker asks for the oldest and newest releases at
+    almost the same moment. On a cold cache that is a guaranteed race, not a
+    theoretical one.
+
+    os.mkdir is atomic on both Windows and POSIX, which is all the mutual
+    exclusion this needs. The timeout is generous because the thing being
+    guarded is a multi-hundred-megabyte download.
+    """
+    os.makedirs(CACHE, exist_ok=True)
+    path = os.path.join(CACHE, f".lock-{name}")
+    deadline = time.time() + timeout
+    while True:
+        try:
+            os.mkdir(path)
+            break
+        except FileExistsError:
+            # A crashed worker leaves its lock behind; without this the next
+            # run blocks for the full timeout on a cache that is merely dirty.
+            try:
+                if time.time() - os.path.getmtime(path) > timeout:
+                    os.rmdir(path)
+                    continue
+            except OSError:
+                pass
+            if time.time() > deadline:
+                sys.exit(f"timed out waiting for {path}; remove it if stale")
+            time.sleep(2)
+    try:
+        yield
+    finally:
+        try:
+            os.rmdir(path)
+        except OSError:
+            pass
+
+
 def ensure_release(tag):
     c = con()
     row = c.execute("SELECT * FROM releases WHERE tag = ?", (tag,)).fetchone()
@@ -393,20 +443,41 @@ def ensure_release(tag):
         sys.exit(f"{tag} ships no dxc binary; not usable for bisection")
 
     dest = os.path.join(CACHE, tag)
-    os.makedirs(dest, exist_ok=True)
     zip_path = os.path.join(dest, row["asset_name"])
-    if not os.path.exists(zip_path):
-        print(f"downloading {tag} ({row['asset_name']}) ...", file=sys.stderr)
-        gh("release", "download", tag, "--repo", REPO,
-           "--pattern", row["asset_name"], "--dir", dest, "--clobber")
-    with zipfile.ZipFile(zip_path) as z:
-        z.extractall(dest)
-    exe = find_dxc(dest)
-    if not exe:
-        sys.exit(f"no {EXE} found in extracted {tag}")
-    c.execute("UPDATE releases SET cached_path = ? WHERE tag = ?", (exe, tag))
-    c.commit()
-    return exe
+    done = os.path.join(dest, ".extracted")
+
+    with cache_lock(tag):
+        # Re-check inside the lock: the worker we queued behind has very
+        # likely just done this work for us.
+        row = c.execute("SELECT * FROM releases WHERE tag = ?", (tag,)).fetchone()
+        if row["cached_path"] and os.path.exists(row["cached_path"]):
+            return row["cached_path"]
+
+        os.makedirs(dest, exist_ok=True)
+        if not os.path.exists(done):
+            if not os.path.exists(zip_path):
+                # Download into a scratch directory and move the finished file
+                # into place. os.path.exists(zip_path) goes true the moment a
+                # download *starts*, so without this a second worker would
+                # happily extract a half-written archive.
+                print(f"downloading {tag} ({row['asset_name']}) ...", file=sys.stderr)
+                tmp = os.path.join(dest, ".part")
+                shutil.rmtree(tmp, ignore_errors=True)
+                os.makedirs(tmp, exist_ok=True)
+                gh("release", "download", tag, "--repo", REPO,
+                   "--pattern", row["asset_name"], "--dir", tmp, "--clobber")
+                os.replace(os.path.join(tmp, row["asset_name"]), zip_path)
+                shutil.rmtree(tmp, ignore_errors=True)
+            with zipfile.ZipFile(zip_path) as z:
+                z.extractall(dest)
+            open(done, "w").close()
+
+        exe = find_dxc(dest)
+        if not exe:
+            sys.exit(f"no {EXE} found in extracted {tag}")
+        c.execute("UPDATE releases SET cached_path = ? WHERE tag = ?", (exe, tag))
+        c.commit()
+        return exe
 
 
 def resolve_compiler(name):
@@ -689,7 +760,7 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
         timed_out = timed_out or to
         if rc not in (0, None) and worst_rc == 0:
             worst_rc = rc
-        chunks.append(f"$ dxc {line}\n[exe] {exe}\n"
+        chunks.append(f"$ dxc {line}\n[exe] {display_exe(exe)}\n"
                       f"[exit] {'TIMEOUT' if to else rc}\n"
                       f"--- stdout ---\n{out}\n--- stderr ---\n{err}\n")
 

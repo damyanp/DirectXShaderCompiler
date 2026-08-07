@@ -8,7 +8,7 @@
 # verdict: invalid-probe
 
 $ dxc -T cs_6_0 -E main -spirv repro.hlsl
-[exe] C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
 [exit] 1
 --- stdout ---
 

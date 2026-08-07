@@ -10,7 +10,7 @@
 # expect: match
 
 $ dxc -T ps_6_0 -E main control-colmajor.hlsl
-[exe] C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+[exe] <repo>/build/Debug/bin/dxc.exe
 [exit] 0
 --- stdout ---
 ;

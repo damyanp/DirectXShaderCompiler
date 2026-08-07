@@ -10,7 +10,7 @@
 # expect: no-match
 
 $ dxc -T lib_6_5 control-separate-raydesc.hlsl
-[exe] C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+[exe] <repo>/build/Debug/bin/dxc.exe
 [exit] 0
 --- stdout ---
 ;

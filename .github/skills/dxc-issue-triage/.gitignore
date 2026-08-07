@@ -13,3 +13,9 @@
 # Note that `git clean -xdf` will delete the compiler cache. Nothing is lost
 # but download time.
 .cache/
+
+# Output written by repros that are run by hand rather than through
+# `triage.py run` -- #2427's argv-splitting cases emit a .pdb into dbgdir/.
+# The repro creates the directory itself, because git cannot track an empty
+# one and its absence changes the result.
+data/issues/*/dbgdir/

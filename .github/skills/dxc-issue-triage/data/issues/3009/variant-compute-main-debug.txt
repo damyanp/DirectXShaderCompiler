@@ -10,7 +10,7 @@
 # expect: match
 
 $ dxc -T cs_6_2 -E main repro-cs.hlsl
-[exe] C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+[exe] <repo>/build/Debug/bin/dxc.exe
 [exit] 0
 --- stdout ---
 ;

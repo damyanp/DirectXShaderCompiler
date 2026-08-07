@@ -8,7 +8,7 @@
 # verdict: no-repro
 
 $ dxc -T cs_6_0 -E main -spirv repro.hlsl
-[exe] C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
 [exit] 0
 --- stdout ---
 ; SPIR-V

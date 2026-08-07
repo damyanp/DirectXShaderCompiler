@@ -45,16 +45,32 @@ hypothetical, it happened during batch 003.
 | **per issue** | steps 1–9 and 11 for exactly one issue. Parallel. Touches only that issue's directory |
 | **collate** | `reindex`, cross-issue patterns, duplicates, step 10's review, the batch report, and promoting method lessons into `SKILL.md` / `triage.py` |
 
+**Collation is itself a fresh session, briefed only by what is on disk.** It is given the batch
+number and the artifact directory, and nothing else — not the workers' summaries, not the
+orchestrator's recollection. This costs a re-read of every issue, and buys the one check
+nothing else performs: if a finding cannot be reconstructed from `data/issues/<nnnn>/`, it is
+not yet evidence, and collation will simply fail to find it. A batch where collation cannot
+rebuild the report is a batch whose artifacts are incomplete, which is exactly the defect that
+`#3038`'s uncaptured control and `#3150`'s unwritten measurements both were.
+
 Two rules make the parallelism safe:
 
 - **A per-issue session never writes shared state.** It does not edit `SKILL.md` or
   `triage.py`, because a predicate change mid-batch would invalidate verdicts other sessions
   have already written, and concurrent edits collide. Method observations go in
-  `issues/<nnnn>/method-notes.md`; collation promotes them. Single writer.
+  `issues/<nnnn>/method-notes.md`; collation promotes them. Single writer. Verify it held —
+  `git status` on `scripts/` and `SKILL.md` after the parallel phase should be empty.
 - **Collation runs `reindex` before writing anything.** Because probes are re-scored rather
   than restored, any lesson promoted during collation is applied retroactively to every issue
   in the batch — including the ones triaged before it was learned. That is what buys back the
   lesson-propagation a parallel batch would otherwise lose.
+
+The shared *cache* is different from shared state, and is safe to contend on: `ensure_release`
+takes a per-tag lock, downloads to a scratch directory and moves the finished archive into
+place, so concurrent workers cannot see a half-written zip. This matters more than it sounds —
+`bisect` probes both endpoints first, so on a cold cache every worker in the batch asks for the
+oldest and newest releases within seconds of each other. The database runs in WAL mode with a
+60-second busy timeout for the same reason.
 
 The rule that makes any of this work is that **the conversation is never where a fact lives.**
 Two kinds of context, two destinations:
@@ -65,6 +81,32 @@ Two kinds of context, two destinations:
 | about a **verdict** | that issue's artifacts | why this repro, why this predicate, what the control proves |
 
 Anything that exists only in the conversation is a defect, whether or not it is correct.
+
+### Briefing a per-issue worker
+
+Whether the worker is a separate session or a subagent, the brief is what makes or breaks the
+isolation — it is the one place cross-issue context can leak back in. Give it:
+
+- **its issue number and nothing about the others.** No "like #3873", no "the previous issue
+  showed", no list of what else is in the batch. If a trap is worth warning about, it belongs
+  in this file, where every future batch gets it too;
+- the path to this skill, and the instruction to follow it;
+- the ground-truth compiler id, and the reminder to verify `dxc --version`;
+- the boundary: it writes only `data/issues/<nnnn>/`, and records method observations in
+  `method-notes.md` rather than editing `SKILL.md` or `triage.py`;
+- the stop condition: verdict recorded and draft written, or a clear statement of what blocked
+  it. `inconclusive` is a real outcome; a forced verdict is not.
+
+A subagent is weaker isolation than a real session: it shares the working directory, and it
+returns its findings into the orchestrator's context rather than only to disk. The first is
+handled by the locking above. The second is acceptable, because the orchestrator *is*
+collation. What is not acceptable is the orchestrator answering from memory what the worker
+should have answered from evidence — if a fact is not in `data/issues/<nnnn>/`, it did not
+happen.
+
+When collation is a fresh session, that hazard disappears by construction: a worker's summary
+that never reached disk is unavailable to anyone. Prefer that arrangement. It converts the
+single-writer rule from a discipline into a property of the setup.
 
 ### What `reindex` guarantees, and what it does not
 
@@ -230,6 +272,15 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 > legalization runs.
 >
 > Keep the original as `cmd-as-filed.txt` and note in `cmd.txt` why it differs.
+
+> **A committed repro must be runnable from the repo alone.** Two things break this silently,
+> and both were found by re-running #2427's hand-driven `run-2427.cmd` months after it was
+> written. It hardcoded an absolute path to one contributor's `dxc.exe`; and it depended on an
+> output directory that git cannot track, because **git does not store empty directories**.
+> With `dbgdir/` missing, every case failed with `cannot find the path specified` — the same
+> exit status as the real bug, for an entirely unrelated reason, which is precisely the
+> `invalid-probe` trap in a manual costume. Take the compiler path from a variable, create any
+> directory the repro needs from inside the repro, and gitignore what it emits.
 
 ### 4. Define the symptom predicate
 
