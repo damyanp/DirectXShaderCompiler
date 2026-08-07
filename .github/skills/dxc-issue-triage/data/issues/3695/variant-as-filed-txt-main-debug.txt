@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T17:38:50+00:00
+# cmd: -T cs_6_0 -E main attachment-shader.txt
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: as-filed-txt (attachment-shader.txt)
+# expect: match
+
+$ dxc -T cs_6_0 -E main attachment-shader.txt
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

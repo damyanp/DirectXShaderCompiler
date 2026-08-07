@@ -1,0 +1,36 @@
+==========================================================================
+HAZARD 1 -- an unquoted -flag=value.N token is split at the dot
+==========================================================================
+
+PowerShell's native-argument parser splits a token that starts with '-',
+contains '=', and then contains '.'. dxc then reports an unknown target
+environment, which reads exactly like a real DXC limitation.
+
+  unquoted           -fspv-target-env=universal1.5      -> ['-fspv-target-env=universal1', '.5']
+  single-quoted      '-fspv-target-env=universal1.5'    -> ['-fspv-target-env=universal1.5']
+  unquoted -D        -Dfoo=1.5                          -> ['-Dfoo=1', '.5']
+  no leading dash    plain1.5                           -> ['plain1.5']
+
+  and what dxc says when it receives the split form:
+    unquoted     : error: unknown SPIR-V target environment 'universal1'
+    single-quoted: OpDecorate %foo LinkageAttributes "foo" Export
+
+==========================================================================
+HAZARD 2 -- $LASTEXITCODE is STALE after '| Select-Object -First N'
+==========================================================================
+
+Select-Object -First N stops the upstream pipeline early, so PowerShell
+never reaps the native process and $LASTEXITCODE is left holding a value
+that has nothing to do with the compile. The value observed varies (-1
+here; 0 in an interactive session where the previous statement was not a
+native command). Either way it is not dxc's exit code, and the 0 case
+means a failing compile silently reports success.
+
+  fresh shell, piped through Select-Object -First 2    exit=-1
+  fresh shell, no early termination                    exit=-2147467259
+  fresh shell, no pipeline at all                      exit=-2147467259
+
+  0x80004005 = 2147500037 unsigned = -2147467259 signed. Python's
+  returncode reports the unsigned form, PowerShell the signed form;
+  they are the same E_FAIL, which is an ordinary diagnosed error and
+  NOT a crash.

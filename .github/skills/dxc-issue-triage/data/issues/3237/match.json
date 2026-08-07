@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)"
+    },
+    {
+      "kind": "contains",
+      "value": "ID3D12FunctionParameterReflection::GetDesc(param 0) -> 0x80004005 (E_FAIL)"
+    }
+  ],
+  "note": "The symptom is an API HRESULT, not a process exit code, and the two share a number. dxc.exe returns E_FAIL (0x80004005) for any ordinary diagnosed error -- a syntax error, a bad profile, a validation failure -- so a `nonzero_exit` predicate over dxc.exe would score essentially every failing compile as this bug. What is being tested here is the value returned by ID3D12FunctionParameterReflection::GetDesc inside dxcompiler.dll, which is why the compiler for this issue is run-refl3237.cmd rather than dxc.exe, and why the harness deliberately exits 0 on a completed walk regardless of that HRESULT. Both clauses are positive `contains`, so there is no absence clause to be satisfied for free by a compile that never started. The first clause is the anchor: it can only appear if the container loaded, exposed ID3D12LibraryReflection, reported at least one function, and answered ID3D12FunctionReflection::GetDesc -- i.e. only if the walk actually reached the reported call. The harness prints nothing after a WALK-INCOMPLETE marker, so a release that cannot run the repro cannot match. Controls: variant-as-filed and variant-compute both expect no-match (the walk stops early, for two different reasons); variant-noparams, variant-two-params and variant-with-resource all expect match, because the E_FAIL is index- and arity-independent and that sameness is the finding -- see #1803's identity control."
+}

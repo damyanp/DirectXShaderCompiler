@@ -1,0 +1,120 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T17:34:12+00:00
+# cmd: -E main -T cs_6_0 control-groupshared.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-groupshared (control-groupshared.hlsl)
+# expect: no-match
+
+$ dxc -E main -T cs_6_0 control-groupshared.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: ee6651af70e1e36b186ceed8bb749ed7
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,1,1)
+; NumBytesGroupSharedMemory: 28
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+@"\01?thingies@@3PAMA" = external addrspace(3) global [6 x float], align 4
+@"\01?thingCounter@@3IA" = external addrspace(3) global i32, align 4
+
+define void @main() {
+  %1 = load i32, i32 addrspace(3)* @"\01?thingCounter@@3IA", align 4, !tbaa !7
+  %2 = getelementptr [6 x float], [6 x float] addrspace(3)* @"\01?thingies@@3PAMA", i32 0, i32 %1
+  %3 = load float, float addrspace(3)* %2, align 4, !tbaa !11
+  %4 = fcmp fast ult float %3, 0.000000e+00
+  br i1 %4, label %16, label %5
+
+; <label>:5                                       ; preds = %0
+  %6 = icmp sgt i32 %1, -1
+  br i1 %6, label %7, label %14
+
+; <label>:7                                       ; preds = %5
+  br label %8
+
+; <label>:8                                       ; preds = %8, %7
+  %9 = phi i32 [ %11, %8 ], [ %1, %7 ]
+  %10 = getelementptr [6 x float], [6 x float] addrspace(3)* @"\01?thingies@@3PAMA", i32 0, i32 %9
+  store float 4.000000e+00, float addrspace(3)* %10, align 4, !tbaa !11
+  %11 = add nsw i32 %9, -1
+  %12 = icmp sgt i32 %9, 0
+  br i1 %12, label %8, label %13
+
+; <label>:13                                      ; preds = %8
+  br label %14
+
+; <label>:14                                      ; preds = %13, %5
+  %15 = add i32 %1, 1
+  store i32 %15, i32 addrspace(3)* @"\01?thingCounter@@3IA", align 4, !tbaa !7
+  br label %16
+
+; <label>:16                                      ; preds = %14, %0
+  ret void
+}
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.entryPoints = !{!4}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 10}
+!3 = !{!"cs", i32 6, i32 0}
+!4 = !{void ()* @main, !"main", null, null, !5}
+!5 = !{i32 4, !6}
+!6 = !{i32 8, i32 1, i32 1}
+!7 = !{!8, !8, i64 0}
+!8 = !{!"int", !9, i64 0}
+!9 = !{!"omnipotent char", !10, i64 0}
+!10 = !{!"Simple C/C++ TBAA"}
+!11 = !{!12, !12, i64 0}
+!12 = !{!"float", !9, i64 0}
+
+
+--- stderr ---
+

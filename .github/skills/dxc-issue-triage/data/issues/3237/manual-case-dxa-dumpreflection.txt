@@ -1,0 +1,74 @@
+#3237 -- independent witness: DXC's own dxa -dumpreflection agrees
+
+The primary measurement in this directory is refl3237.exe, a harness written
+for this issue that walks the reflection COM vtables by hand. A reader is
+entitled to ask whether the harness's vtable layout is simply wrong, in which
+case every number it prints would be meaningless.
+
+This file removes that doubt. dxa -dumpreflection is built from the DXC tree
+(tools/clang/tools/dxa/dxa.cpp -> lib/DxilContainer/D3DReflectionDumper.cpp),
+shares none of the harness's code, and drives ID3D12LibraryReflection through
+the compiler's own headers. It reports the same thing.
+
+The shader is control-two-params.hlsl: an exported function with TWO
+parameters and a float3 return value.
+
+    export float3 Apply(float3 input, float scale) { return input * scale; }
+
+Note that dxa -dumpreflection can corroborate FunctionParameterCount but
+CANNOT show the reported E_FAIL: D3DReflectionDumper never calls
+GetFunctionParameter at all (git grep GetFunctionParameter finds only the two
+implementation stubs in lib/HLSL/DxilContainerReflection.cpp -- no caller
+anywhere in the repository, tests included). Reaching the E_FAIL still
+requires the harness.
+
+Paths below use the same <repo>/<triage>/<cache> placeholders as every other
+artifact here; dxa.exe and dxc.exe are the ground-truth Debug build at
+<repo>/build/Debug/bin. Intermediates are written to bin/, which is gitignored.
+Re-run with:
+
+    <repo>/build/Debug/bin/dxc.exe -T lib_6_3 control-two-params.hlsl -Fo bin/two-params.dxil
+    <repo>/build/Debug/bin/dxa.exe -dumpreflection bin/two-params.dxil
+
+$ <repo>/build/Debug/bin/dxc.exe -T lib_6_3 control-two-params.hlsl -Fo bin/two-params.dxil
+[exit] 0
+
+$ <repo>/build/Debug/bin/dxa.exe -dumpreflection bin/two-params.dxil
+DxilRuntimeData (size = 136 bytes):
+  StringBuffer (size = 44 bytes)
+  IndexTable (size = 0 bytes)
+  RawBytes (size = 0 bytes)
+  RecordTable (stride = 52 bytes) FunctionTable[1] = {
+    <0:RuntimeDataFunctionInfo2> = {
+      Name: "\01?Apply@@YA?AV?$vector@M$02@@V1@M@Z"
+      UnmangledName: "Apply"
+      Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+      FunctionDependencies: <string[0]> = {}
+      ShaderKind: Library
+      PayloadSizeInBytes: 0
+      AttributeSizeInBytes: 0
+      FeatureInfo1: 0
+      FeatureInfo2: 0
+      ShaderStageFlag: (Pixel | Vertex | Geometry | Hull | Domain | Compute | Library | RayGeneration | Intersection | AnyHit | ClosestHit | Miss | Callable | Mesh | Amplification | Node)
+      MinShaderTarget: 0x60060
+      MinimumExpectedWaveLaneCount: 0
+      MaximumExpectedWaveLaneCount: 0
+      ShaderFlags: 0 (None)
+    }
+  }
+ID3D12LibraryReflection:
+  D3D12_LIBRARY_DESC:
+    Creator: <nullptr>
+    Flags: 0
+    FunctionCount: 1
+  ID3D12FunctionReflection:
+    D3D12_FUNCTION_DESC: Name: \01?Apply@@YA?AV?$vector@M$02@@V1@M@Z
+      Shader Version: Library 6.3
+      Creator: <nullptr>
+      Flags: 0
+      RequiredFeatureFlags: 0
+      ConstantBuffers: 0
+      BoundResources: 0
+      FunctionParameterCount: 0
+      HasReturn: FALSE
+[exit] 0

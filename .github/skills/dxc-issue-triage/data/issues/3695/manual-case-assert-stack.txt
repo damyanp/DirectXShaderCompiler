@@ -1,0 +1,102 @@
+==========================================================================
+assert stack (C++-exception form, exit 0xE0000001): break on the exception itself and dump frames
+==========================================================================
+$ "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe" -c "sxe -c \"kn 30; gh\" e0000001; g; q" <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main repro.hlsl
+
+CommandLine: <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main repro.hlsl
+0:000> cdb: Reading initial command 'sxe -c "kn 30; gh" e0000001; g; q'
+Error: assert(Val && "isa<> used on a null pointer")
+File:
+<repo>/include/llvm/Support/Casting.h(96)
+Func:	llvm::isa_impl_cl<class llvm::CallInst,class llvm::Instruction const *>::doit
+(2f20.518c): Unknown exception - code e0000001 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 00000066`05d855f0 00007ff8`5e311731     KERNELBASE!RaiseException+0x8a
+01 00000066`05d856f0 00007ff8`5daff94e     dxcompiler!llvm_assert+0x51
+02 00000066`05d85730 00007ff8`5daffb67     dxcompiler!llvm::isa_impl_cl<llvm::CallInst,llvm::Instruction const *>::doit+0x3e
+03 00000066`05d85760 00007ff8`5daffb93     dxcompiler!llvm::isa_impl_wrap<llvm::CallInst,llvm::Instruction const *,llvm::Instruction const *>::doit+0x17
+04 00000066`05d85790 00007ff8`5daf8804     dxcompiler!llvm::isa_impl_wrap<llvm::CallInst,llvm::Instruction const * const,llvm::Instruction const *>::doit+0x23
+05 00000066`05d857d0 00007ff8`5daf80b4     dxcompiler!llvm::isa<llvm::CallInst,llvm::Instruction const *>+0x14
+06 00000066`05d85800 00007ff8`5dd0cb64     dxcompiler!llvm::dyn_cast<llvm::CallInst,llvm::Instruction const >+0x14
+07 00000066`05d85840 00007ff8`5dd0cbb8     dxcompiler!hlsl::OP::IsDxilOpFuncCallInst+0x14
+08 00000066`05d85880 00007ff8`5dec84dc     dxcompiler!hlsl::OP::IsDxilOpFuncCallInst+0x18
+09 00000066`05d858c0 00007ff8`5dea16d7     dxcompiler!hlsl::DxilInst_CreateHandleForLib::operator bool+0x1c
+0a 00000066`05d858f0 00007ff8`5dea2690     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::ReplaceResourceUserWithHandle+0xd7
+0b 00000066`05d85c10 00007ff8`5dea307e     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::TranslateDxilResourceUses+0xa00
+0c 00000066`05d864e0 00007ff8`5dea0f7d     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::GenerateDxilResourceHandles+0x1ce
+0d 00000066`05d86570 00007ff8`607974e8     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::runOnModule+0x50d
+0e 00000066`05d86680 00007ff8`60798325     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+0f 00000066`05d86a30 00007ff8`6078ec6c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+10 00000066`05d86ae0 00007ff8`5e4a4a16     dxcompiler!llvm::legacy::PassManager::run+0x2c
+11 00000066`05d86b20 00007ff8`5e4a1fa8     dxcompiler!`anonymous namespace'::EmitAssemblyHelper::EmitAssembly+0x616
+12 00000066`05d86d00 00007ff8`5e47a201     dxcompiler!clang::EmitBackendOutput+0x158
+13 00000066`05d87150 00007ff8`5fd0d808     dxcompiler!clang::BackendConsumer::HandleTranslationUnit+0x521
+14 00000066`05d87370 00007ff8`5e839e3e     dxcompiler!clang::ParseAST+0x608
+15 00000066`05d87640 00007ff8`5e473c55     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+16 00000066`05d876a0 00007ff8`5e8398a8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+17 00000066`05d87bf0 00007ff8`5da5b7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+18 00000066`05d87c60 00007ff8`5da3bb80     dxcompiler!DxcCompiler::Compile+0x41a2
+19 00000066`05d8c4a0 00007ff8`5da3d3d8     dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+1a 00000066`05d8dbb0 00007ff8`5da5ec2e     dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+1b 00000066`05d8dc30 00007ff7`f1fcf65d     dxcompiler!hlsl::DxcCompilerAdapter::Compile+0xce
+1c 00000066`05d8dcc0 00007ff7`f1fca06e     dxc!DxcContext::Compile+0xe2d
+1d 00000066`05d8e890 00007ff7`f1fc8ebc     dxc!dxc::main+0xa1e
+1e 00000066`05d8f960 00007ff7`f22d8ec9     dxc!wmain+0x1c
+1f 00000066`05d8f990 00007ff7`f22d8de2     dxc!invoke_main+0x39
+20 00000066`05d8f9e0 00007ff7`f22d8c9e     dxc!__scrt_common_main_seh+0x132
+21 00000066`05d8fa50 00007ff7`f22d8f3e     dxc!__scrt_common_main+0xe
+22 00000066`05d8fa80 00007ff9`06e9e957     dxc!wmainCRTStartup+0xe
+23 00000066`05d8fab0 00007ff9`0860ad6c     KERNEL32!BaseThreadInitThunk+0x17
+24 00000066`05d8fae0 00000000`00000000     ntdll!RtlUserThreadStart+0x2c
+(2f20.518c): Access violation - code c0000005 (first chance)
+[cdb exit] 0
+
+==========================================================================
+NDEBUG emulation: `gh` continues PAST the assert, running the code a Release build (asserts compiled out) would have run
+==========================================================================
+$ "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe" -c "sxe -c \"gh\" e0000001; g; .lastevent; kn 20; q" <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main repro.hlsl
+
+CommandLine: <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main repro.hlsl
+0:000> cdb: Reading initial command 'sxe -c "gh" e0000001; g; .lastevent; kn 20; q'
+Error: assert(Val && "isa<> used on a null pointer")
+File:
+<repo>/include/llvm/Support/Casting.h(96)
+Func:	llvm::isa_impl_cl<class llvm::CallInst,class llvm::Instruction const *>::doit
+(84d0.2ea4): Unknown exception - code e0000001 (first chance)
+(84d0.2ea4): Access violation - code c0000005 (first chance)
+Last event: 84d0.2ea4: Access violation - code c0000005 (first chance)
+  debugger time: Fri Aug  7 11:03:01.202 2026 (UTC - 7:00)
+ # Child-SP          RetAddr               Call Site
+00 00000077`6ab85b10 00007ff8`5da8d124     dxcompiler!llvm::Value::getValueID+0xb
+01 00000077`6ab85b20 00007ff8`5da8b124     dxcompiler!llvm::Instruction::getOpcode+0x14
+02 00000077`6ab85b50 00007ff8`5dadc3b4     dxcompiler!llvm::CallInst::classof+0x14
+03 00000077`6ab85b90 00007ff8`5daff95a     dxcompiler!llvm::isa_impl<llvm::CallInst,llvm::Instruction,void>::doit+0x14
+04 00000077`6ab85bc0 00007ff8`5daffb67     dxcompiler!llvm::isa_impl_cl<llvm::CallInst,llvm::Instruction const *>::doit+0x4a
+05 00000077`6ab85bf0 00007ff8`5daffb93     dxcompiler!llvm::isa_impl_wrap<llvm::CallInst,llvm::Instruction const *,llvm::Instruction const *>::doit+0x17
+06 00000077`6ab85c20 00007ff8`5daf8804     dxcompiler!llvm::isa_impl_wrap<llvm::CallInst,llvm::Instruction const * const,llvm::Instruction const *>::doit+0x23
+07 00000077`6ab85c60 00007ff8`5daf80b4     dxcompiler!llvm::isa<llvm::CallInst,llvm::Instruction const *>+0x14
+08 00000077`6ab85c90 00007ff8`5dd0cb64     dxcompiler!llvm::dyn_cast<llvm::CallInst,llvm::Instruction const >+0x14
+09 00000077`6ab85cd0 00007ff8`5dd0cbb8     dxcompiler!hlsl::OP::IsDxilOpFuncCallInst+0x14
+0a 00000077`6ab85d10 00007ff8`5dec84dc     dxcompiler!hlsl::OP::IsDxilOpFuncCallInst+0x18
+0b 00000077`6ab85d50 00007ff8`5dea16d7     dxcompiler!hlsl::DxilInst_CreateHandleForLib::operator bool+0x1c
+0c 00000077`6ab85d80 00007ff8`5dea2690     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::ReplaceResourceUserWithHandle+0xd7
+0d 00000077`6ab860a0 00007ff8`5dea307e     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::TranslateDxilResourceUses+0xa00
+0e 00000077`6ab86970 00007ff8`5dea0f7d     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::GenerateDxilResourceHandles+0x1ce
+0f 00000077`6ab86a00 00007ff8`607974e8     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::runOnModule+0x50d
+10 00000077`6ab86b10 00007ff8`60798325     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+11 00000077`6ab86ec0 00007ff8`6078ec6c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+12 00000077`6ab86f70 00007ff8`5e4a4a16     dxcompiler!llvm::legacy::PassManager::run+0x2c
+13 00000077`6ab86fb0 00007ff8`5e4a1fa8     dxcompiler!`anonymous namespace'::EmitAssemblyHelper::EmitAssembly+0x616
+14 00000077`6ab87190 00007ff8`5e47a201     dxcompiler!clang::EmitBackendOutput+0x158
+15 00000077`6ab875e0 00007ff8`5fd0d808     dxcompiler!clang::BackendConsumer::HandleTranslationUnit+0x521
+16 00000077`6ab87800 00007ff8`5e839e3e     dxcompiler!clang::ParseAST+0x608
+17 00000077`6ab87ad0 00007ff8`5e473c55     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+18 00000077`6ab87b30 00007ff8`5e8398a8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+19 00000077`6ab88080 00007ff8`5da5b7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+1a 00000077`6ab880f0 00007ff8`5da3bb80     dxcompiler!DxcCompiler::Compile+0x41a2
+1b 00000077`6ab8c930 00007ff8`5da3d3d8     dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+1c 00000077`6ab8e040 00007ff8`5da5ec2e     dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+1d 00000077`6ab8e0c0 00007ff7`f1fcf65d     dxcompiler!hlsl::DxcCompilerAdapter::Compile+0xce
+1e 00000077`6ab8e150 00007ff7`f1fca06e     dxc!DxcContext::Compile+0xe2d
+1f 00000077`6ab8ed20 00007ff7`f1fc8ebc     dxc!dxc::main+0xa1e
+[cdb exit] 0

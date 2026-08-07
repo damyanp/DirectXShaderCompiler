@@ -1,0 +1,63 @@
+# issue: 3429
+# what: characterising the agent `grep` tool's false-zero behaviour under `.github/`.
+# why:  this is a tooling defect that silently confirms whatever the worker hoped to confirm.
+#       Raised by the batch-009 orchestrator, who measured `grep` finding ZERO files
+#       containing `dxc-issue-triage` under `.github/` where `Select-String` finds 15.
+#       I had recorded a narrower (and wrong) diagnosis: "it only fails on single-file paths".
+#       Neither framing is right. Measured below.
+#
+# All queries below are rooted at:
+#   <triage>/data/issues/3429
+# `.github` is a hidden directory; ripgrep skips hidden paths unless told otherwise.
+
+==============================================================================
+GROUND TRUTH (PowerShell Select-String, which does not skip hidden paths)
+
+  Select-String -Path *.* -Pattern 'TGSM'  -List   ->  61 files
+  Select-String -Path *.* -Pattern 'audit' -List   ->   1 file  (method-notes.md)
+
+==============================================================================
+GREP WITHOUT A `glob` FILTER  --  ALL FALSE ZEROS
+
+  grep 'audit'            paths=<dir>            ->  No matches found     WRONG (truth: 1)
+  grep 'TGSM'             paths=<dir>            ->  No matches found     WRONG (truth: 61)
+  grep 'audit'            paths=<method-notes.md> ->  No matches found    WRONG (truth: 1)
+  grep 'ever compiled|no shipped release'
+                          paths=<dir>            ->  No matches found     WRONG (was in 2 files)
+
+  3 of these were directory queries and 1 was a single-file query, so the defect is NOT
+  specific to single-file paths -- my earlier note said it was, and that was wrong.
+
+==============================================================================
+GREP WITH A `glob` FILTER  --  ACCURATE IN EVERY CASE
+
+  grep 'audit'                 glob=*.md   ->  1 file: method-notes.md
+                                               matches Select-String exactly (1)
+
+  grep '^## |audit|self-check' glob=*.md   ->  24 matches across 3 files
+                                               (this is the one query of mine that worked,
+                                                and it is the one that carried a glob)
+
+  grep 'TGSM'                  glob=*.txt  ->  105 matches across 49 files
+                                               Select-String reports 61 files across ALL
+                                               extensions, of which the .txt subset is 49.
+                                               Consistent.
+
+==============================================================================
+# CONCLUSION
+#
+# The trigger is the ABSENCE of a `glob` filter, not the path shape:
+#
+#   grep under .github/ WITHOUT glob  ->  false zero            (4 of 4 observations)
+#   grep under .github/ WITH    glob  ->  correct results       (3 of 3 observations)
+#
+# This is more precise than "do not use grep under .github/": grep is usable there, but ONLY
+# with a glob. It is also more dangerous than a plain outage, because the failure mode is a
+# clean "No matches found" with no error -- indistinguishable from a true negative.
+#
+# Rule adopted: whenever a ZERO result is the meaningful answer (e.g. "have I removed that
+# claim from my write-up?"), verify with Select-String, which has no hidden-path behaviour:
+#
+#   Select-String -Path data\issues\<n>\*.md -Pattern 'claim text'
+#
+# `glob` (the separate tool) is unaffected -- it lists files under .github/ correctly.

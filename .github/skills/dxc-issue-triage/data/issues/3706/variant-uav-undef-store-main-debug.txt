@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T17:36:19+00:00
+# cmd: -T cs_6_2 -E main control-uav-undef-store.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: uav-undef-store (control-uav-undef-store.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_2 -E main control-uav-undef-store.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+control-uav-undef-store.hlsl:16:11: error: Assignment of undefined values to UAV.
+note: at 'call void @dx.op.rawBufferStore.f32(i32 140, %dx.types.Handle %1, i32 0, i32 0, float undef, float undef, float undef, float undef, i8 1, i32 4)' in block '#0' of function 'main'.
+Validation failed.
+
+
+

@@ -1,0 +1,354 @@
+# Compiler Explorer panes for #3706, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: fxc_10_0_26100
+# args:     /T vs_5_0 /E main
+# exit:     1
+
+Microsoft (R) Direct3D Shader Compiler 10.1
+Copyright (C) 2013 Microsoft. All rights reserved.
+
+<source>(48,13-20): error X4000: variable 'j' used without having been completely initialized
+
+compilation failed; no code produced
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T vs_6_2 -E main
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; OUT                      0   x           0     NONE    uint   x   
+;
+; shader debug name: 82ac26e10177eb57fae0ffb95a649668.pdb
+; shader hash: 82ac26e10177eb57fae0ffb95a649668
+;
+; Pipeline Runtime Information: 
+;
+; Vertex Shader
+; OutputPositionPresent=0
+;
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; OUT                      0        nointerpolation       
+;
+; Buffer Definitions:
+;
+; Resource bind info for stbuf
+; {
+;
+;   struct struct.S
+;   {
+;
+;       uint v;                                       ; Offset:    0
+;   
+;   } $Element;                                       ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; stbuf                             texture  struct         r/o      T0             t0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 0, outputs: 1
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%"class.StructuredBuffer<S>" = type { %struct.S }
+%struct.S = type { i32 }
+
+define void @main() {
+  %stbuf_texture_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !46 ; line:48 col:13  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %RawBufferLoad = call %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32 139, %dx.types.Handle %stbuf_texture_structbuf, i32 undef, i32 0, i8 1, i32 4), !dbg !47 ; line:48 col:22  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %1 = extractvalue %dx.types.ResRet.i32 %RawBufferLoad, 0, !dbg !47 ; line:48 col:22
+  call void @dx.op.storeOutput.i32(i32 5, i32 0, i32 0, i8 0, i32 %1), !dbg !48 ; line:48 col:6  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !48 ; line:48 col:6
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32, %dx.types.Handle, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!17, !18}
+!llvm.ident = !{!19}
+!dx.source.contents = !{!20}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!21}
+!dx.source.args = !{!22}
+!dx.version = !{!23}
+!dx.valver = !{!24}
+!dx.shaderModel = !{!25}
+!dx.resources = !{!26}
+!dx.typeAnnotations = !{!30, !35}
+!dx.viewIdState = !{!38}
+!dx.entryPoints = !{!39}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !9)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 45, type: !5, isLocal: false, isDefinition: true, scopeLine: 46, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, baseType: !8)
+!8 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!9 = !{!10}
+!10 = !DIGlobalVariable(name: "stbuf", linkageName: "\01?stbuf@@3V?$StructuredBuffer@US@@@@A", scope: !0, file: !1, line: 43, type: !11, isLocal: false, isDefinition: true)
+!11 = !DICompositeType(tag: DW_TAG_class_type, name: "StructuredBuffer<S>", file: !1, line: 43, size: 32, align: 32, elements: !2, templateParams: !12)
+!12 = !{!13}
+!13 = !DITemplateTypeParameter(name: "element", type: !14)
+!14 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", file: !1, line: 39, size: 32, align: 32, elements: !15)
+!15 = !{!16}
+!16 = !DIDerivedType(tag: DW_TAG_member, name: "v", scope: !14, file: !1, line: 40, baseType: !7, size: 32, align: 32)
+!17 = !{i32 2, !"Dwarf Version", i32 4}
+!18 = !{i32 2, !"Debug Info Version", i32 3}
+!19 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!20 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for (DXC issue 3706)\0A//\0A// `j` is declared and never written, then used as the element index of a\0A// StructuredBuffer. DXC accepts this with no diagnostic at all and exits 0.\0A//\0A// In the DXC panes, find the RawBufferLoad call in @main. Its operands are\0A//     (opcode, handle, index, elementOffset, mask, alignment)\0A// and the INDEX operand -- the one straight after the handle -- is the\0A// compiler's placeholder-for-undefined value. That is the whole report.\0A//\0A// Read the INDEX slot specifically, not just \22is there a placeholder somewhere\0A// in the line\22. One in the *elementOffset* slot is required, not a defect: for a\0A// ByteAddressBuffer the DXIL validator rejects anything else there\0A// (Instr.CoordinateCountForRawTypedBuf). Checking the wrong slot makes correct\0A// shaders look broken -- that mistake was made once already, on DXC issue 3009.\0A//\0A// Also worth noting:\0A//\0A//   * On a local build the module passes DXIL validation and is signed. The\0A//     validator does police this placeholder value, but only as a value STORED\0A//     to a UAV (Instr.UndefinedValueForUAVStore), never as a load index.\0A//     Compiler Explorer cannot show that half: its DXC panes report\0A//     \22DXIL.dll not found\22, so validation is skipped there.\0A//\0A//   * DXC already has the front-end check. Add -Wall or -Wuninitialized to\0A//     either DXC pane and it reports the read of `j` and points at the\0A//     declaration. It is simply not in the default warning set.\0A//\0A//   * FXC pane: the predecessor compiler rejects this source outright.\0A//\0A//   * Clang pane runs -fsyntax-only, because its DXIL backend cannot lower a\0A//     vertex stage and the errors it produces are about that, not about this\0A//     issue. It still diagnoses the return statement itself (sign conversion),\0A//     so the front end is reaching that expression -- it just has nothing to\0A//     say about `j` being read before it is written.\0A//==========================================================================//\0A\0Astruct S {\0A     uint v;\0A};\0A\0AStructuredBuffer<S> stbuf;\0A\0Auint main() : OUT\0A{\0A     int j;\0A     return stbuf[j].v;\0A}\0A"}
+!21 = !{!"/app/example.hlsl"}
+!22 = !{!"-E", !"main", !"-T", !"vs_6_2", !"-Zi", !"-Qembed_debug"}
+!23 = !{i32 1, i32 2}
+!24 = !{i32 1, i32 6}
+!25 = !{!"vs", i32 6, i32 2}
+!26 = !{!27, null, null, null}
+!27 = !{!28}
+!28 = !{i32 0, %"class.StructuredBuffer<S>"* undef, !"stbuf", i32 0, i32 0, i32 1, i32 12, i32 0, !29}
+!29 = !{i32 1, i32 4}
+!30 = !{i32 0, %"class.StructuredBuffer<S>" undef, !31, %struct.S undef, !33}
+!31 = !{i32 4, !32}
+!32 = !{i32 6, !"h", i32 3, i32 0}
+!33 = !{i32 4, !34}
+!34 = !{i32 6, !"v", i32 3, i32 0, i32 7, i32 5}
+!35 = !{i32 1, void ()* @main, !36}
+!36 = !{!37}
+!37 = !{i32 0, !2, !2}
+!38 = !{[2 x i32] [i32 0, i32 1]}
+!39 = !{void ()* @main, !"main", !40, !26, !45}
+!40 = !{null, !41, null}
+!41 = !{!42}
+!42 = !{i32 0, !"OUT", i8 5, i8 0, !43, i8 1, i32 1, i8 1, i32 0, i8 0, !44}
+!43 = !{i32 0}
+!44 = !{i32 3, i32 1}
+!45 = !{i32 0, i64 16}
+!46 = !DILocation(line: 48, column: 13, scope: !4)
+!47 = !DILocation(line: 48, column: 22, scope: !4)
+!48 = !DILocation(line: 48, column: 6, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T vs_6_2 -E main
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; OUT                      0   x           0     NONE    uint   x   
+;
+; shader debug name: d98b2821afe28ce140dee033a52cbe69.pdb
+; shader hash: d98b2821afe28ce140dee033a52cbe69
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Vertex Shader
+; OutputPositionPresent=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 1
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 1
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; OUT                      0        nointerpolation       
+;
+; Buffer Definitions:
+;
+; Resource bind info for stbuf
+; {
+;
+;   struct struct.S
+;   {
+;
+;       uint v;                                       ; Offset:    0
+;   
+;   } $Element;                                       ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; stbuf                             texture  struct         r/o      T0             t0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 0, outputs: 1
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%"class.StructuredBuffer<S>" = type { %struct.S }
+%struct.S = type { i32 }
+
+define void @main() {
+  %stbuf_texture_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !46 ; line:48 col:13  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %RawBufferLoad = call %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32 139, %dx.types.Handle %stbuf_texture_structbuf, i32 undef, i32 0, i8 1, i32 4), !dbg !47 ; line:48 col:22  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %1 = extractvalue %dx.types.ResRet.i32 %RawBufferLoad, 0, !dbg !47 ; line:48 col:22
+  call void @dx.op.storeOutput.i32(i32 5, i32 0, i32 0, i8 0, i32 %1), !dbg !48 ; line:48 col:6  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !48 ; line:48 col:6
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32, %dx.types.Handle, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!17, !18}
+!llvm.ident = !{!19}
+!dx.source.contents = !{!20}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!21}
+!dx.source.args = !{!22}
+!dx.version = !{!23}
+!dx.valver = !{!24}
+!dx.shaderModel = !{!25}
+!dx.resources = !{!26}
+!dx.typeAnnotations = !{!30, !35}
+!dx.viewIdState = !{!38}
+!dx.entryPoints = !{!39}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 13730886)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !9)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 45, type: !5, isLocal: false, isDefinition: true, scopeLine: 46, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, baseType: !8)
+!8 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!9 = !{!10}
+!10 = !DIGlobalVariable(name: "stbuf", linkageName: "\01?stbuf@@3V?$StructuredBuffer@US@@@@A", scope: !0, file: !1, line: 43, type: !11, isLocal: false, isDefinition: true)
+!11 = !DICompositeType(tag: DW_TAG_class_type, name: "StructuredBuffer<S>", file: !1, line: 43, size: 32, align: 32, elements: !2, templateParams: !12)
+!12 = !{!13}
+!13 = !DITemplateTypeParameter(name: "element", type: !14)
+!14 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", file: !1, line: 39, size: 32, align: 32, elements: !15)
+!15 = !{!16}
+!16 = !DIDerivedType(tag: DW_TAG_member, name: "v", scope: !14, file: !1, line: 40, baseType: !7, size: 32, align: 32)
+!17 = !{i32 2, !"Dwarf Version", i32 4}
+!18 = !{i32 2, !"Debug Info Version", i32 3}
+!19 = !{!"dxc(private) 1.9.0.10001 (main, 13730886)"}
+!20 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for (DXC issue 3706)\0A//\0A// `j` is declared and never written, then used as the element index of a\0A// StructuredBuffer. DXC accepts this with no diagnostic at all and exits 0.\0A//\0A// In the DXC panes, find the RawBufferLoad call in @main. Its operands are\0A//     (opcode, handle, index, elementOffset, mask, alignment)\0A// and the INDEX operand -- the one straight after the handle -- is the\0A// compiler's placeholder-for-undefined value. That is the whole report.\0A//\0A// Read the INDEX slot specifically, not just \22is there a placeholder somewhere\0A// in the line\22. One in the *elementOffset* slot is required, not a defect: for a\0A// ByteAddressBuffer the DXIL validator rejects anything else there\0A// (Instr.CoordinateCountForRawTypedBuf). Checking the wrong slot makes correct\0A// shaders look broken -- that mistake was made once already, on DXC issue 3009.\0A//\0A// Also worth noting:\0A//\0A//   * On a local build the module passes DXIL validation and is signed. The\0A//     validator does police this placeholder value, but only as a value STORED\0A//     to a UAV (Instr.UndefinedValueForUAVStore), never as a load index.\0A//     Compiler Explorer cannot show that half: its DXC panes report\0A//     \22DXIL.dll not found\22, so validation is skipped there.\0A//\0A//   * DXC already has the front-end check. Add -Wall or -Wuninitialized to\0A//     either DXC pane and it reports the read of `j` and points at the\0A//     declaration. It is simply not in the default warning set.\0A//\0A//   * FXC pane: the predecessor compiler rejects this source outright.\0A//\0A//   * Clang pane runs -fsyntax-only, because its DXIL backend cannot lower a\0A//     vertex stage and the errors it produces are about that, not about this\0A//     issue. It still diagnoses the return statement itself (sign conversion),\0A//     so the front end is reaching that expression -- it just has nothing to\0A//     say about `j` being read before it is written.\0A//==========================================================================//\0A\0Astruct S {\0A     uint v;\0A};\0A\0AStructuredBuffer<S> stbuf;\0A\0Auint main() : OUT\0A{\0A     int j;\0A     return stbuf[j].v;\0A}\0A"}
+!21 = !{!"/app/example.hlsl"}
+!22 = !{!"-E", !"main", !"-T", !"vs_6_2", !"-Zi", !"-Qembed_debug"}
+!23 = !{i32 1, i32 2}
+!24 = !{i32 1, i32 10}
+!25 = !{!"vs", i32 6, i32 2}
+!26 = !{!27, null, null, null}
+!27 = !{!28}
+!28 = !{i32 0, %"class.StructuredBuffer<S>"* undef, !"stbuf", i32 0, i32 0, i32 1, i32 12, i32 0, !29}
+!29 = !{i32 1, i32 4}
+!30 = !{i32 0, %"class.StructuredBuffer<S>" undef, !31, %struct.S undef, !33}
+!31 = !{i32 4, !32}
+!32 = !{i32 6, !"h", i32 3, i32 0}
+!33 = !{i32 4, !34}
+!34 = !{i32 6, !"v", i32 3, i32 0, i32 7, i32 5}
+!35 = !{i32 1, void ()* @main, !36}
+!36 = !{!37}
+!37 = !{i32 0, !2, !2}
+!38 = !{[2 x i32] [i32 0, i32 1]}
+!39 = !{void ()* @main, !"main", !40, !26, !45}
+!40 = !{null, !41, null}
+!41 = !{!42}
+!42 = !{i32 0, !"OUT", i8 5, i8 0, !43, i8 1, i32 1, i8 1, i32 0, i8 0, !44}
+!43 = !{i32 0}
+!44 = !{i32 3, i32 1}
+!45 = !{i32 0, i64 16}
+!46 = !DILocation(line: 48, column: 13, scope: !4)
+!47 = !DILocation(line: 48, column: 22, scope: !4)
+!48 = !DILocation(line: 48, column: 6, scope: !4)
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T vs_6_2 -E main -fsyntax-only
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:48:19: [0m[0;1;35mwarning: [0m[1mimplicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion][0m
+   48 |      [0;34mreturn[0m stbuf[j].v;[0m
+      | [0;1;32m            ~~~~~ ^
+[0m1 warning generated.
+<No output file>

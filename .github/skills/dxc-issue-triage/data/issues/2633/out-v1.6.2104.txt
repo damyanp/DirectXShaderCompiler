@@ -1,0 +1,33 @@
+# compiler: v1.6.2104
+# exe: <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+# ran: 2026-08-07T17:43:38+00:00
+# cmd: -T lib_6_3 -spirv repro.hlsl ; -T lib_6_3 -spirv lib-export.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T lib_6_3 -spirv repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:27:21: error: found undefined function
+  output.position = foo(input.position);
+                    ^
+
+
+
+$ dxc -T lib_6_3 -spirv lib-export.hlsl
+[exe] <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+fatal error: generated SPIR-V is invalid: Capability Linkage is not allowed by Vulkan 1.0 specification (or requires extension)
+  OpCapability Linkage
+
+note: please file a bug report on https://github.com/Microsoft/DirectXShaderCompiler/issues with source code if possible
+
+

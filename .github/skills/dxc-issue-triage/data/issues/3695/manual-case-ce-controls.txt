@@ -1,0 +1,662 @@
+# #3695 Compiler Explorer controls, full pane output.
+# Written by ce-controls.py; rerun it to re-derive.
+# CE runs Linux RELEASE builds: a Debug-only assert cannot show
+# here, so a crash appears as SIGSEGV (exit 139).
+# ANSI SGR escapes below are what CE returned; they are not edited out.
+
+==========================================================================
+# shader:   control-valid.hlsl
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main
+# why:      CONTROL attempt 1: known-good input on the Clang pane at the repro's own flags. Expected to compile; it does NOT -- Clang's DXIL backend cannot lower a texture store yet. So this control cannot validate a Clang *backend* result, and the -fsyntax-only pair below is used instead.
+# exit:     1  CRASH
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:33:21: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'float2' (aka 'vector<float, 2>') to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   33 |         float4 Color = tex[uv];[0m
+      | [0;1;32m                       ~~~ ^~
+[0m[1m<source>:42:22: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'vector<float, 2>' (vector of 2 'float' values) to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   42 |                         Color.r += tex[uv + angles * Radius * i].r;[0m
+      | [0;1;32m                                   ~~~ ~~~^~~~~~~~~~~~~~~~~~~~~
+[0m[1m<source>:53:6: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'float2' (aka 'vector<float, 2>') to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   53 |         tex[uv] = Color;[0m
+      | [0;1;32m        ~~~ ^~
+[0m[1m<source>:64:20: [0m[0;1;35mwarning: [0m[1mimplicit conversion from 'vector<uint, 2>' (vector of 2 'uint' values) to 'vector<float, 2>' (vector of 2 'float' values) may lose precision [-Wimplicit-int-float-conversion][0m
+   64 |         blur(_blurResult, id.xy, float2(x, y));[0m
+      | [0;1;32m        ~~~~              ^~~~~
+[0m[1m<source>:66:27: [0m[0;1;35mwarning: [0m[1m'lerp<float, 4U>' is deprecated: In 202x mismatched vector/scalar lowering for lerp is deprecated. Explicitly cast parameters. [-Wdeprecated-declarations][0m
+   66 |         _previousResult[id.xy] = lerp(_previousResult[id.xy], _previousTarget[id.xy], _blendFactor);[0m
+      | [0;1;32m                                 ^
+[0m[1m/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_compat_overloads.h:408:1: [0m[0;1;36mnote: [0m'lerp<float, 4U>' has been explicitly marked deprecated here[0m
+  408 | _DXC_DEPRECATED_VEC_SCALAR_FN(lerp)[0m
+      | [0;1;32m^
+[0m[1m/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_compat_overloads.h:28:5: [0m[0;1;36mnote: [0mexpanded from macro '_DXC_DEPRECATED_VEC_SCALAR_FN'[0m
+   28 |   [[deprecated([0;32m"In 202x mismatched vector/scalar lowering for "[0m #fn [0;32m" is "[0m     \[0m
+      | [0;1;32m    ^
+[0m[0;1;31mfatal error: [0m[1merror in backend: DXIL Store not implemented for texture resources[0m
+PLEASE submit a bug report to https://github.com/llvm/llvm-project/issues/ and include the crash backtrace and dumped files.
+Stack dump:
+0.	Program arguments: /opt/compiler-explorer/clang-trunk/bin/clang --driver-mode=dxc -Zi -Qembed_debug -Fc /app/output.s -fcolor-diagnostics -fno-crash-diagnostics -T cs_6_0 -E main <source>
+1.	<eof> parser at end of file
+2.	Code generation
+3.	Running pass 'Function Pass Manager' on module '<source>'.
+4.	Running pass 'DXIL Resource Access' on function '@main'
+ #0 0x0000000003cdf608 llvm::sys::PrintStackTrace(llvm::raw_ostream&, int) (/opt/compiler-explorer/clang-trunk/bin/clang+0x3cdf608)
+ #1 0x0000000003cdcf4c llvm::sys::CleanupOnSignal(unsigned long) (/opt/compiler-explorer/clang-trunk/bin/clang+0x3cdcf4c)
+ #2 0x0000000003c211d3 llvm::CrashRecoveryContext::HandleExit(int) (/opt/compiler-explorer/clang-trunk/bin/clang+0x3c211d3)
+ #3 0x0000000003cd489e llvm::sys::Process::Exit(int, bool) (/opt/compiler-explorer/clang-trunk/bin/clang+0x3cd489e)
+ #4 0x0000000000dea3fb LLVMErrorHandler(void*, char const*, bool) cc1_main.cpp:0:0
+ #5 0x0000000003c298f3 llvm::report_fatal_error(llvm::Twine const&, bool) (/opt/compiler-explorer/clang-trunk/bin/clang+0x3c298f3)
+ #6 0x0000000003c29af6 (/opt/compiler-explorer/clang-trunk/bin/clang+0x3c29af6)
+ #7 0x0000000002c4b10b replaceAccess(llvm::IntrinsicInst*, llvm::dxil::ResourceTypeInfo&) DXILResourceAccess.cpp:0:0
+ #8 0x0000000002c4b718 transformResourcePointers(llvm::Function&, llvm::DXILResourceTypeMap&) DXILResourceAccess.cpp:0:0
+ #9 0x0000000002c4d4e7 (anonymous namespace)::DXILResourceAccessLegacy::runOnFunction(llvm::Function&) DXILResourceAccess.cpp:0:0
+#10 0x0000000003637862 llvm::FPPassManager::runOnFunction(llvm::Function&) (/opt/compiler-explorer/clang-trunk/bin/clang+0x3637862)
+#11 0x0000000003637c71 llvm::FPPassManager::runOnModule(llvm::Module&) (/opt/compiler-explorer/clang-trunk/bin/clang+0x3637c71)
+#12 0x000000000363874a llvm::legacy::PassManagerImpl::run(llvm::Module&) (/opt/compiler-explorer/clang-trunk/bin/clang+0x363874a)
+#13 0x000000000405ec5f (anonymous namespace)::EmitAssemblyHelper::TimeCodegenPasses(llvm::function_ref<void ()>) (.isra.0) BackendUtil.cpp:0:0
+#14 0x0000000004070e9a clang::emitBackendOutput(clang::CompilerInstance&, clang::CodeGenOptions&, llvm::StringRef, llvm::Module*, clang::BackendAction, llvm::IntrusiveRefCntPtr<llvm::vfs::FileSystem>, std::unique_ptr<llvm::raw_pwrite_stream, std::default_delete<llvm::raw_pwrite_stream>>, clang::BackendConsumer*) (/opt/compiler-explorer/clang-trunk/bin/clang+0x4070e9a)
+#15 0x00000000046b5072 clang::BackendConsumer::HandleTranslationUnit(clang::ASTContext&) (/opt/compiler-explorer/clang-trunk/bin/clang+0x46b5072)
+#16 0x000000000631491c clang::ParseAST(clang::Sema&, bool, bool) (/opt/compiler-explorer/clang-trunk/bin/clang+0x631491c)
+#17 0x00000000046b5aa5 clang::CodeGenAction::ExecuteAction() (/opt/compiler-explorer/clang-trunk/bin/clang+0x46b5aa5)
+#18 0x0000000004a07e8a clang::HLSLFrontendAction::ExecuteAction() (/opt/compiler-explorer/clang-trunk/bin/clang+0x4a07e8a)
+#19 0x00000000049eac51 clang::FrontendAction::Execute() (/opt/compiler-explorer/clang-trunk/bin/clang+0x49eac51)
+#20 0x000000000497ba85 clang::CompilerInstance::ExecuteAction(clang::FrontendAction&) (/opt/compiler-explorer/clang-trunk/bin/clang+0x497ba85)
+#21 0x0000000004abdc9b clang::ExecuteCompilerInvocation(clang::CompilerInstance*) (/opt/compiler-explorer/clang-trunk/bin/clang+0x4abdc9b)
+#22 0x0000000000dec498 cc1_main(llvm::ArrayRef<char const*>, char const*, void*) (/opt/compiler-explorer/clang-trunk/bin/clang+0xdec498)
+#23 0x0000000000de430b ExecuteCC1Tool(llvm::SmallVectorImpl<char const*>&, llvm::ToolContext const&, llvm::IntrusiveRefCntPtr<llvm::vfs::FileSystem>) driver.cpp:0:0
+#24 0x0000000000de43ad int llvm::function_ref<int (llvm::SmallVectorImpl<char const*>&)>::callback_fn<clang_main(int, char**, llvm::ToolContext const&)::'lambda'(llvm::SmallVectorImpl<char const*>&)>(long, llvm::SmallVectorImpl<char const*>&) driver.cpp:0:0
+#25 0x0000000004731589 void llvm::function_ref<void ()>::callback_fn<clang::driver::CC1Command::Execute(llvm::ArrayRef<std::optional<llvm::StringRef>>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*, bool*) const::'lambda'()>(long) Job.cpp:0:0
+#26 0x0000000003c210d3 llvm::CrashRecoveryContext::RunSafely(llvm::function_ref<void ()>) (/opt/compiler-explorer/clang-trunk/bin/clang+0x3c210d3)
+#27 0x0000000004731fcd clang::driver::CC1Command::Execute(llvm::ArrayRef<std::optional<llvm::StringRef>>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*, bool*) const (.part.0) Job.cpp:0:0
+#28 0x00000000046ec6e2 clang::driver::Compilation::ExecuteCommand(clang::driver::Command const&, clang::driver::Command const*&, bool) const (/opt/compiler-explorer/clang-trunk/bin/clang+0x46ec6e2)
+#29 0x00000000046f0a45 clang::driver::Compilation::ExecuteJobs(clang::driver::JobList const&, llvm::SmallVectorImpl<std::pair<int, clang::driver::Command const*>>&, bool) const (/opt/compiler-explorer/clang-trunk/bin/clang+0x46f0a45)
+#30 0x00000000046fbaec clang::driver::Driver::ExecuteCompilation(clang::driver::Compilation&, llvm::SmallVectorImpl<std::pair<int, clang::driver::Command const*>>&) (/opt/compiler-explorer/clang-trunk/bin/clang+0x46fbaec)
+#31 0x0000000000de8e41 clang_main(int, char**, llvm::ToolContext const&) (/opt/compiler-explorer/clang-trunk/bin/clang+0xde8e41)
+#32 0x0000000000d0d14a main (/opt/compiler-explorer/clang-trunk/bin/clang+0xd0d14a)
+#33 0x000072438262a1ca (/lib/x86_64-linux-gnu/libc.so.6+0x2a1ca)
+#34 0x000072438262a28b __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28b)
+#35 0x0000000000de3db5 _start (/opt/compiler-explorer/clang-trunk/bin/clang+0xde3db5)
+<Compilation failed>
+
+==========================================================================
+# shader:   control-valid.hlsl
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main -fsyntax-only
+# why:      CONTROL attempt 2: same input, front end only. This is the control that counts: if it is clean, a Sema error on the repro is about the repro.
+# exit:     0  
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:33:21: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'float2' (aka 'vector<float, 2>') to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   33 |         float4 Color = tex[uv];[0m
+      | [0;1;32m                       ~~~ ^~
+[0m[1m<source>:42:22: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'vector<float, 2>' (vector of 2 'float' values) to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   42 |                         Color.r += tex[uv + angles * Radius * i].r;[0m
+      | [0;1;32m                                   ~~~ ~~~^~~~~~~~~~~~~~~~~~~~~
+[0m[1m<source>:53:6: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'float2' (aka 'vector<float, 2>') to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   53 |         tex[uv] = Color;[0m
+      | [0;1;32m        ~~~ ^~
+[0m[1m<source>:64:20: [0m[0;1;35mwarning: [0m[1mimplicit conversion from 'vector<uint, 2>' (vector of 2 'uint' values) to 'vector<float, 2>' (vector of 2 'float' values) may lose precision [-Wimplicit-int-float-conversion][0m
+   64 |         blur(_blurResult, id.xy, float2(x, y));[0m
+      | [0;1;32m        ~~~~              ^~~~~
+[0m[1m<source>:66:27: [0m[0;1;35mwarning: [0m[1m'lerp<float, 4U>' is deprecated: In 202x mismatched vector/scalar lowering for lerp is deprecated. Explicitly cast parameters. [-Wdeprecated-declarations][0m
+   66 |         _previousResult[id.xy] = lerp(_previousResult[id.xy], _previousTarget[id.xy], _blendFactor);[0m
+      | [0;1;32m                                 ^
+[0m[1m/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_compat_overloads.h:408:1: [0m[0;1;36mnote: [0m'lerp<float, 4U>' has been explicitly marked deprecated here[0m
+  408 | _DXC_DEPRECATED_VEC_SCALAR_FN(lerp)[0m
+      | [0;1;32m^
+[0m[1m/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_compat_overloads.h:28:5: [0m[0;1;36mnote: [0mexpanded from macro '_DXC_DEPRECATED_VEC_SCALAR_FN'[0m
+   28 |   [[deprecated([0;32m"In 202x mismatched vector/scalar lowering for "[0m #fn [0;32m" is "[0m     \[0m
+      | [0;1;32m    ^
+[0m5 warnings generated.
+<No output file>
+
+==========================================================================
+# shader:   repro.hlsl
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main -fsyntax-only
+# why:      The repro, front end only -- shows the Clang diagnostic comes from Sema and is not an artefact of the incomplete DXIL backend.
+# exit:     1  
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:24:21: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'float2' (aka 'vector<float, 2>') to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   24 |         float4 Color = tex[uv];[0m
+      | [0;1;32m                       ~~~ ^~
+[0m[1m<source>:33:22: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'vector<float, 2>' (vector of 2 'float' values) to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   33 |                         Color.r += tex[uv + angles * Radius * i].r;[0m
+      | [0;1;32m                                   ~~~ ~~~^~~~~~~~~~~~~~~~~~~~~
+[0m[1m<source>:44:6: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'float2' (aka 'vector<float, 2>') to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   44 |         tex[uv] = Color;[0m
+      | [0;1;32m        ~~~ ^~
+[0m[1m<source>:56:52: [0m[0;1;35mwarning: [0m[1mimplicit conversion from 'vector<uint, 2>' (vector of 2 'uint' values) to 'vector<float, 2>' (vector of 2 'float' values) may lose precision [-Wimplicit-int-float-conversion][0m
+   56 |         RWTexture2D<float4> filterFog = blur(_blurResult, id.xy, float2(x, y));[0m
+      | [0;1;32m                                        ~~~~              ^~~~~
+[0m[1m<source>:58:27: [0m[0;1;35mwarning: [0m[1m'lerp<float, 4U>' is deprecated: In 202x mismatched vector/scalar lowering for lerp is deprecated. Explicitly cast parameters. [-Wdeprecated-declarations][0m
+   58 |         _previousResult[id.xy] = lerp(_previousResult[id.xy], _previousTarget[id.xy], _blendFactor);[0m
+      | [0;1;32m                                 ^
+[0m[1m/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_compat_overloads.h:408:1: [0m[0;1;36mnote: [0m'lerp<float, 4U>' has been explicitly marked deprecated here[0m
+  408 | _DXC_DEPRECATED_VEC_SCALAR_FN(lerp)[0m
+      | [0;1;32m^
+[0m[1m/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_compat_overloads.h:28:5: [0m[0;1;36mnote: [0mexpanded from macro '_DXC_DEPRECATED_VEC_SCALAR_FN'[0m
+   28 |   [[deprecated([0;32m"In 202x mismatched vector/scalar lowering for "[0m #fn [0;32m" is "[0m     \[0m
+      | [0;1;32m    ^
+[0m[1m<source>:59:14: [0m[0;1;31merror: [0m[1massignment to global resource variable '_blurResult' is not allowed[0m
+   59 |         _blurResult = filterFog;[0m
+      | [0;1;32m                    ^
+[0m[1m<source>:10:21: [0m[0;1;36mnote: [0mvariable '_blurResult' is declared here[0m
+   10 | RWTexture2D<float4> _blurResult;[0m
+      | [0;1;32m                    ^
+[0m5 warnings and 1 error generated.
+<Compilation failed>
+
+==========================================================================
+# shader:   control-valid.hlsl
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main
+# why:      CONTROL: known-good input on the DXC pane. Must compile.
+# exit:     0  
+
+;
+; Note: shader requires additional functionality:
+;       Typed UAV Load Additional Formats
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 5057f7c854841ead3ca5adeecf41cd49.pdb
+; shader hash: 5057f7c854841ead3ca5adeecf41cd49
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,8,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+; cbuffer $Globals
+; {
+;
+;   struct $Globals
+;   {
+;
+;       float _blendFactor;                           ; Offset:    0
+;       float _blurSize;                              ; Offset:    4
+;       float _blurDirections;                        ; Offset:    8
+;       float _blurQuality;                           ; Offset:   12
+;   
+;   } $Globals;                                       ; Offset:    0 Size:    16
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; $Globals                          cbuffer      NA          NA     CB0            cb0     1
+; _blurResult                           UAV     f32          2d      U0             u0     1
+; _previousResult                       UAV     f32          2d      U1             u1     1
+; _previousTarget                       UAV     f32          2d      U2             u2     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.Dimensions = type { i32, i32, i32, i32 }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+%dx.types.ResRet.f32 = type { float, float, float, float, i32 }
+%"class.RWTexture2D<vector<float, 4> >" = type { <4 x float> }
+%"$Globals" = type { float, float, float, float }
+
+define void @main() {
+.lr.ph2:
+  %_previousTarget_UAV_2d = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 2, i32 2, i1 false), !dbg !81 ; line:66 col:56  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %_previousResult_UAV_2d = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 1, i32 1, i1 false), !dbg !81 ; line:66 col:56  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %_blurResult_UAV_2d = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !81 ; line:66 col:56  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %"$Globals_cbuffer" = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 0, i32 0, i1 false), !dbg !81 ; line:66 col:56  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %0 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %1 = call i32 @dx.op.threadId.i32(i32 93, i32 1)  ; ThreadId(component)
+  call void @llvm.dbg.value(metadata i32 %0, i64 0, metadata !82, metadata !83), !dbg !84 ; var:"id" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !82, metadata !85), !dbg !84 ; var:"id" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  %2 = call %dx.types.Dimensions @dx.op.getDimensions(i32 72, %dx.types.Handle %_blurResult_UAV_2d, i32 0), !dbg !86 ; line:63 col:2  ; GetDimensions(handle,mipLevel)
+  %3 = extractvalue %dx.types.Dimensions %2, 0, !dbg !86 ; line:63 col:2
+  %4 = sitofp i32 %3 to float, !dbg !86 ; line:63 col:2
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !87, metadata !88), !dbg !89 ; var:"x" !DIExpression() func:"main"
+  %5 = extractvalue %dx.types.Dimensions %2, 1, !dbg !86 ; line:63 col:2
+  %6 = sitofp i32 %5 to float, !dbg !86 ; line:63 col:2
+  call void @llvm.dbg.value(metadata float %6, i64 0, metadata !90, metadata !88), !dbg !91 ; var:"y" !DIExpression() func:"main"
+  %.i0 = uitofp i32 %0 to float, !dbg !92 ; line:64 col:20
+  %.i1 = uitofp i32 %1 to float, !dbg !92 ; line:64 col:20
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !93, metadata !83), !dbg !94 ; var:"stride" !DIExpression(DW_OP_bit_piece, 0, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %6, i64 0, metadata !93, metadata !85), !dbg !94 ; var:"stride" !DIExpression(DW_OP_bit_piece, 32, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %.i0, i64 0, metadata !96, metadata !83), !dbg !97 ; var:"uv" !DIExpression(DW_OP_bit_piece, 0, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %.i1, i64 0, metadata !96, metadata !85), !dbg !97 ; var:"uv" !DIExpression(DW_OP_bit_piece, 32, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float 0x401921FB60000000, i64 0, metadata !98, metadata !88), !dbg !99 ; var:"Pi" !DIExpression() func:"blur"
+  %7 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %"$Globals_cbuffer", i32 0), !dbg !100 ; line:31 col:18  ; CBufferLoadLegacy(handle,regIndex)
+  %8 = extractvalue %dx.types.CBufRet.f32 %7, 1, !dbg !100 ; line:31 col:18
+  %.i07 = fdiv fast float %8, %4, !dbg !101 ; line:31 col:28
+  %.i18 = fdiv fast float %8, %6, !dbg !101 ; line:31 col:28
+  call void @llvm.dbg.value(metadata float %.i07, i64 0, metadata !102, metadata !83), !dbg !103 ; var:"Radius" !DIExpression(DW_OP_bit_piece, 0, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %.i18, i64 0, metadata !102, metadata !85), !dbg !103 ; var:"Radius" !DIExpression(DW_OP_bit_piece, 32, 32) func:"blur"
+  %.i09 = fptoui float %.i0 to i32, !dbg !104 ; line:33 col:21
+  %.i110 = fptoui float %.i1 to i32, !dbg !104 ; line:33 col:21
+  %TextureLoad3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle %_blurResult_UAV_2d, i32 undef, i32 %.i09, i32 %.i110, i32 undef, i32 undef, i32 undef, i32 undef), !dbg !105 ; line:33 col:17  ; TextureLoad(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)
+  %9 = extractvalue %dx.types.ResRet.f32 %TextureLoad3, 0, !dbg !105 ; line:33 col:17
+  %10 = extractvalue %dx.types.ResRet.f32 %TextureLoad3, 2, !dbg !105 ; line:33 col:17
+  call void @llvm.dbg.value(metadata float %9, i64 0, metadata !106, metadata !83), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 0, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %28, i64 0, metadata !106, metadata !85), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 32, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %10, i64 0, metadata !106, metadata !108), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 64, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %29, i64 0, metadata !106, metadata !109), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 96, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float 0.000000e+00, i64 0, metadata !110, metadata !88), !dbg !112 ; var:"d" !DIExpression() func:"blur"
+  br label %11, !dbg !113 ; line:36 col:2
+
+; <label>:11                                      ; preds = %.lr.ph2, %._crit_edge
+  %Color.i.0.i0 = phi float [ %9, %.lr.ph2 ], [ %Color.i.2.i0, %._crit_edge ]
+  %d.i.0 = phi float [ 0.000000e+00, %.lr.ph2 ], [ %26, %._crit_edge ]
+  call void @llvm.dbg.value(metadata float %d.i.0, i64 0, metadata !110, metadata !88), !dbg !112 ; var:"d" !DIExpression() func:"blur"
+  call void @llvm.dbg.value(metadata float %Color.i.0.i0, i64 0, metadata !106, metadata !83), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 0, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %28, i64 0, metadata !106, metadata !85), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 32, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %10, i64 0, metadata !106, metadata !108), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 64, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %29, i64 0, metadata !106, metadata !109), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 96, 32) func:"blur"
+  %Cos = call float @dx.op.unary.f32(i32 12, float %d.i.0), !dbg !114 ; line:38 col:26  ; Cos(value)
+  %Sin = call float @dx.op.unary.f32(i32 13, float %d.i.0), !dbg !117 ; line:38 col:34  ; Sin(value)
+  call void @llvm.dbg.value(metadata float %Cos, i64 0, metadata !118, metadata !83), !dbg !119 ; var:"angles" !DIExpression(DW_OP_bit_piece, 0, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %Sin, i64 0, metadata !118, metadata !85), !dbg !119 ; var:"angles" !DIExpression(DW_OP_bit_piece, 32, 32) func:"blur"
+  %12 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %"$Globals_cbuffer", i32 0), !dbg !120 ; line:40 col:24  ; CBufferLoadLegacy(handle,regIndex)
+  %13 = extractvalue %dx.types.CBufRet.f32 %12, 3, !dbg !120 ; line:40 col:24
+  %14 = fdiv fast float 1.000000e+00, %13, !dbg !122 ; line:40 col:22
+  call void @llvm.dbg.value(metadata float %14, i64 0, metadata !123, metadata !88), !dbg !124 ; var:"i" !DIExpression() func:"blur"
+  %15 = fcmp fast ugt float %14, 1.000000e+00, !dbg !125 ; line:40 col:40
+  br i1 %15, label %._crit_edge, label %.lr.ph.preheader, !dbg !127 ; line:40 col:3
+
+.lr.ph.preheader:                                 ; preds = %11
+  br label %.lr.ph, !dbg !107 ; line:33 col:9
+
+.lr.ph:                                           ; preds = %.lr.ph.preheader, %.lr.ph
+  %Color.i.1.i0 = phi float [ %17, %.lr.ph ], [ %Color.i.0.i0, %.lr.ph.preheader ]
+  %i.i.0 = phi float [ %21, %.lr.ph ], [ %14, %.lr.ph.preheader ]
+  call void @llvm.dbg.value(metadata float %Color.i.1.i0, i64 0, metadata !106, metadata !83), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 0, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %28, i64 0, metadata !106, metadata !85), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 32, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %10, i64 0, metadata !106, metadata !108), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 64, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %29, i64 0, metadata !106, metadata !109), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 96, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %i.i.0, i64 0, metadata !123, metadata !88), !dbg !124 ; var:"i" !DIExpression() func:"blur"
+  %.i014 = fmul fast float %Cos, %.i07, !dbg !128 ; line:42 col:31
+  %.i115 = fmul fast float %Sin, %.i18, !dbg !128 ; line:42 col:31
+  %.i016 = fmul fast float %.i014, %i.i.0, !dbg !130 ; line:42 col:40
+  %.i117 = fmul fast float %.i115, %i.i.0, !dbg !130 ; line:42 col:40
+  %.i018 = fadd fast float %.i016, %.i0, !dbg !131 ; line:42 col:22
+  %.i119 = fadd fast float %.i117, %.i1, !dbg !131 ; line:42 col:22
+  %.i020 = fptoui float %.i018 to i32, !dbg !132 ; line:42 col:19
+  %.i121 = fptoui float %.i119 to i32, !dbg !132 ; line:42 col:19
+  %TextureLoad = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle %_blurResult_UAV_2d, i32 undef, i32 %.i020, i32 %.i121, i32 undef, i32 undef, i32 undef, i32 undef), !dbg !133 ; line:42 col:15  ; TextureLoad(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)
+  %16 = extractvalue %dx.types.ResRet.f32 %TextureLoad, 0, !dbg !133 ; line:42 col:15
+  %17 = fadd fast float %16, %Color.i.1.i0, !dbg !134 ; line:42 col:12
+  call void @llvm.dbg.value(metadata float %17, i64 0, metadata !106, metadata !83), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 0, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %28, i64 0, metadata !106, metadata !85), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 32, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %10, i64 0, metadata !106, metadata !108), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 64, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %29, i64 0, metadata !106, metadata !109), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 96, 32) func:"blur"
+  %18 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %"$Globals_cbuffer", i32 0), !dbg !135 ; line:40 col:59  ; CBufferLoadLegacy(handle,regIndex)
+  %19 = extractvalue %dx.types.CBufRet.f32 %18, 3, !dbg !135 ; line:40 col:59
+  %20 = fdiv fast float 1.000000e+00, %19, !dbg !136 ; line:40 col:57
+  %21 = fadd fast float %20, %i.i.0, !dbg !137 ; line:40 col:50
+  call void @llvm.dbg.value(metadata float %21, i64 0, metadata !123, metadata !88), !dbg !124 ; var:"i" !DIExpression() func:"blur"
+  %22 = fcmp fast ugt float %21, 1.000000e+00, !dbg !125 ; line:40 col:40
+  br i1 %22, label %._crit_edge.loopexit, label %.lr.ph, !dbg !127 ; line:40 col:3
+
+._crit_edge.loopexit:                             ; preds = %.lr.ph
+  br label %._crit_edge, !dbg !107 ; line:33 col:9
+
+._crit_edge:                                      ; preds = %._crit_edge.loopexit, %11
+  %Color.i.2.i0 = phi float [ %Color.i.0.i0, %11 ], [ %17, %._crit_edge.loopexit ]
+  call void @llvm.dbg.value(metadata float %Color.i.2.i0, i64 0, metadata !106, metadata !83), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 0, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %28, i64 0, metadata !106, metadata !85), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 32, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %10, i64 0, metadata !106, metadata !108), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 64, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %29, i64 0, metadata !106, metadata !109), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 96, 32) func:"blur"
+  %23 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %"$Globals_cbuffer", i32 0), !dbg !138 ; line:36 col:40  ; CBufferLoadLegacy(handle,regIndex)
+  %24 = extractvalue %dx.types.CBufRet.f32 %23, 2, !dbg !138 ; line:36 col:40
+  %25 = fdiv fast float 0x401921FB60000000, %24, !dbg !139 ; line:36 col:38
+  %26 = fadd fast float %25, %d.i.0, !dbg !140 ; line:36 col:32
+  call void @llvm.dbg.value(metadata float %26, i64 0, metadata !110, metadata !88), !dbg !112 ; var:"d" !DIExpression() func:"blur"
+  %27 = fcmp fast olt float %26, 0x401921FB60000000, !dbg !141 ; line:36 col:24
+  br i1 %27, label %11, label %"\01?blur@@YA?AV?$vector@M$03@@V?$RWTexture2D@V?$vector@M$03@@@@V?$vector@M$01@@1@Z.exit", !dbg !113 ; line:36 col:2
+
+"\01?blur@@YA?AV?$vector@M$03@@V?$RWTexture2D@V?$vector@M$03@@@@V?$vector@M$01@@1@Z.exit": ; preds = %._crit_edge
+  %28 = extractvalue %dx.types.ResRet.f32 %TextureLoad3, 1, !dbg !105 ; line:33 col:17
+  %29 = extractvalue %dx.types.ResRet.f32 %TextureLoad3, 3, !dbg !105 ; line:33 col:17
+  call void @llvm.dbg.value(metadata float %Color.i.2.i0, i64 0, metadata !106, metadata !83), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 0, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %28, i64 0, metadata !106, metadata !85), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 32, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %10, i64 0, metadata !106, metadata !108), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 64, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %29, i64 0, metadata !106, metadata !109), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 96, 32) func:"blur"
+  %30 = extractvalue %dx.types.CBufRet.f32 %23, 3, !dbg !142 ; line:46 col:18
+  %31 = fmul fast float %24, %30, !dbg !143 ; line:46 col:31
+  %32 = fadd fast float %31, -1.500000e+01, !dbg !144 ; line:46 col:49
+  call void @llvm.dbg.value(metadata float %32, i64 0, metadata !145, metadata !88), !dbg !146 ; var:"divisor" !DIExpression() func:"blur"
+  %33 = fcmp fast oeq float %32, 0.000000e+00, !dbg !147 ; line:47 col:14
+  %..i = select i1 %33, float 0x3F1A36E2E0000000, float %32, !dbg !149 ; line:47 col:6
+  call void @llvm.dbg.value(metadata float %..i, i64 0, metadata !145, metadata !88), !dbg !146 ; var:"divisor" !DIExpression() func:"blur"
+  %34 = fdiv fast float %Color.i.2.i0, %..i, !dbg !150 ; line:51 col:10
+  call void @llvm.dbg.value(metadata float %34, i64 0, metadata !106, metadata !83), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 0, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %28, i64 0, metadata !106, metadata !85), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 32, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %10, i64 0, metadata !106, metadata !108), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 64, 32) func:"blur"
+  call void @llvm.dbg.value(metadata float %29, i64 0, metadata !106, metadata !109), !dbg !107 ; var:"Color" !DIExpression(DW_OP_bit_piece, 96, 32) func:"blur"
+  call void @dx.op.textureStore.f32(i32 67, %dx.types.Handle %_blurResult_UAV_2d, i32 %.i09, i32 %.i110, i32 undef, float %34, float %28, float %10, float %29, i8 15), !dbg !151 ; line:53 col:10  ; TextureStore(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask)
+  %35 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %"$Globals_cbuffer", i32 0), !dbg !152 ; line:66 col:80  ; CBufferLoadLegacy(handle,regIndex)
+  %36 = extractvalue %dx.types.CBufRet.f32 %35, 0, !dbg !152 ; line:66 col:80
+  %TextureLoad4 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle %_previousTarget_UAV_2d, i32 undef, i32 %0, i32 %1, i32 undef, i32 undef, i32 undef, i32 undef), !dbg !81 ; line:66 col:56  ; TextureLoad(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)
+  %37 = extractvalue %dx.types.ResRet.f32 %TextureLoad4, 0, !dbg !81 ; line:66 col:56
+  %38 = extractvalue %dx.types.ResRet.f32 %TextureLoad4, 1, !dbg !81 ; line:66 col:56
+  %39 = extractvalue %dx.types.ResRet.f32 %TextureLoad4, 2, !dbg !81 ; line:66 col:56
+  %40 = extractvalue %dx.types.ResRet.f32 %TextureLoad4, 3, !dbg !81 ; line:66 col:56
+  %TextureLoad5 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle %_previousResult_UAV_2d, i32 undef, i32 %0, i32 %1, i32 undef, i32 undef, i32 undef, i32 undef), !dbg !153 ; line:66 col:32  ; TextureLoad(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)
+  %41 = extractvalue %dx.types.ResRet.f32 %TextureLoad5, 0, !dbg !153 ; line:66 col:32
+  %42 = extractvalue %dx.types.ResRet.f32 %TextureLoad5, 1, !dbg !153 ; line:66 col:32
+  %43 = extractvalue %dx.types.ResRet.f32 %TextureLoad5, 2, !dbg !153 ; line:66 col:32
+  %44 = extractvalue %dx.types.ResRet.f32 %TextureLoad5, 3, !dbg !153 ; line:66 col:32
+  %.i028 = fsub fast float %37, %41, !dbg !154 ; line:66 col:27
+  %.i129 = fsub fast float %38, %42, !dbg !154 ; line:66 col:27
+  %.i2 = fsub fast float %39, %43, !dbg !154 ; line:66 col:27
+  %.i3 = fsub fast float %40, %44, !dbg !154 ; line:66 col:27
+  %.i030 = fmul fast float %.i028, %36, !dbg !154 ; line:66 col:27
+  %.i131 = fmul fast float %.i129, %36, !dbg !154 ; line:66 col:27
+  %.i232 = fmul fast float %.i2, %36, !dbg !154 ; line:66 col:27
+  %.i333 = fmul fast float %.i3, %36, !dbg !154 ; line:66 col:27
+  %.i034 = fadd fast float %.i030, %41, !dbg !154 ; line:66 col:27
+  %.i135 = fadd fast float %.i131, %42, !dbg !154 ; line:66 col:27
+  %.i236 = fadd fast float %.i232, %43, !dbg !154 ; line:66 col:27
+  %.i337 = fadd fast float %.i333, %44, !dbg !154 ; line:66 col:27
+  call void @dx.op.textureStore.f32(i32 67, %dx.types.Handle %_previousResult_UAV_2d, i32 %0, i32 %1, i32 undef, float %.i034, float %.i135, float %.i236, float %.i337, i8 15), !dbg !155 ; line:66 col:25  ; TextureStore(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask)
+  ret void, !dbg !156 ; line:67 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Dimensions @dx.op.getDimensions(i32, %dx.types.Handle, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.textureStore.f32(i32, %dx.types.Handle, i32, i32, i32, float, float, float, float, i8) #2
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.unary.f32(i32, float) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!52, !53}
+!llvm.ident = !{!54}
+!dx.source.contents = !{!55}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!56}
+!dx.source.args = !{!57}
+!dx.version = !{!58}
+!dx.valver = !{!59}
+!dx.shaderModel = !{!60}
+!dx.resources = !{!61}
+!dx.typeAnnotations = !{!69, !75}
+!dx.entryPoints = !{!78}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 13730886)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !14, globals: !43)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, line: 64, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, line: 64, size: 64, align: 32, elements: !6, templateParams: !10)
+!6 = !{!7, !9}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 64, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 64, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !{!11, !12}
+!11 = !DITemplateTypeParameter(name: "element", type: !8)
+!12 = !DITemplateValueParameter(name: "element_count", type: !13, value: i32 2)
+!13 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!14 = !{!15, !28}
+!15 = !DISubprogram(name: "main", scope: !1, file: !1, line: 60, type: !16, isLocal: false, isDefinition: true, scopeLine: 61, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!16 = !DISubroutineType(types: !17)
+!17 = !{null, !18}
+!18 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, line: 25, baseType: !19)
+!19 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, line: 25, size: 96, align: 32, elements: !20, templateParams: !25)
+!20 = !{!21, !23, !24}
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !19, file: !1, line: 25, baseType: !22, size: 32, align: 32, flags: DIFlagPublic)
+!22 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !19, file: !1, line: 25, baseType: !22, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!24 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !19, file: !1, line: 25, baseType: !22, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!25 = !{!26, !27}
+!26 = !DITemplateTypeParameter(name: "element", type: !22)
+!27 = !DITemplateValueParameter(name: "element_count", type: !13, value: i32 3)
+!28 = !DISubprogram(name: "blur", linkageName: "\01?blur@@YA?AV?$vector@M$03@@V?$RWTexture2D@V?$vector@M$03@@@@V?$vector@M$01@@1@Z", scope: !1, file: !1, line: 27, type: !29, isLocal: false, isDefinition: true, scopeLine: 28, flags: DIFlagPrototyped, isOptimized: false)
+!29 = !DISubroutineType(types: !30)
+!30 = !{!31, !40, !4, !4}
+!31 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, line: 23, baseType: !32)
+!32 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, line: 19, size: 128, align: 32, elements: !33, templateParams: !38)
+!33 = !{!34, !35, !36, !37}
+!34 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !32, file: !1, line: 19, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!35 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !32, file: !1, line: 19, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!36 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !32, file: !1, line: 19, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!37 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !32, file: !1, line: 19, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!38 = !{!11, !39}
+!39 = !DITemplateValueParameter(name: "element_count", type: !13, value: i32 4)
+!40 = !DICompositeType(tag: DW_TAG_class_type, name: "RWTexture2D<vector<float, 4> >", file: !1, line: 19, size: 128, align: 32, elements: !2, templateParams: !41)
+!41 = !{!42}
+!42 = !DITemplateTypeParameter(name: "element", type: !32)
+!43 = !{!44, !44, !46, !46, !47, !47, !48, !48, !49, !50, !51}
+!44 = !DIGlobalVariable(name: "_blendFactor", linkageName: "\01?_blendFactor@@3MB", scope: !0, file: !1, line: 25, type: !45, isLocal: false, isDefinition: true)
+!45 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !8)
+!46 = !DIGlobalVariable(name: "_blurSize", linkageName: "\01?_blurSize@@3MB", scope: !0, file: !1, line: 25, type: !45, isLocal: false, isDefinition: true)
+!47 = !DIGlobalVariable(name: "_blurDirections", linkageName: "\01?_blurDirections@@3MB", scope: !0, file: !1, line: 25, type: !45, isLocal: false, isDefinition: true)
+!48 = !DIGlobalVariable(name: "_blurQuality", linkageName: "\01?_blurQuality@@3MB", scope: !0, file: !1, line: 25, type: !45, isLocal: false, isDefinition: true)
+!49 = !DIGlobalVariable(name: "_blurResult", linkageName: "\01?_blurResult@@3V?$RWTexture2D@V?$vector@M$03@@@@A", scope: !0, file: !1, line: 19, type: !40, isLocal: false, isDefinition: true)
+!50 = !DIGlobalVariable(name: "_previousResult", linkageName: "\01?_previousResult@@3V?$RWTexture2D@V?$vector@M$03@@@@A", scope: !0, file: !1, line: 21, type: !40, isLocal: false, isDefinition: true)
+!51 = !DIGlobalVariable(name: "_previousTarget", linkageName: "\01?_previousTarget@@3V?$RWTexture2D@V?$vector@M$03@@@@A", scope: !0, file: !1, line: 23, type: !40, isLocal: false, isDefinition: true)
+!52 = !{i32 2, !"Dwarf Version", i32 4}
+!53 = !{i32 2, !"Debug Info Version", i32 3}
+!54 = !{!"dxc(private) 1.9.0.10001 (main, 13730886)"}
+!55 = !{!"/app/example.hlsl", !"// Negative control for #3695.\0A//\0A// Identical to repro.hlsl except that the three invalid resource constructs the\0A// issue fingers are removed:\0A//   * blur() returns float4 instead of RWTexture2D<float4>  (no `return tex;`)\0A//   * main has no local RWTexture2D<float4> initialised from a call\0A//   * main does not assign to the global _blurResult\0A// Everything else -- the root signature, the four globals, the resource\0A// parameter, the two loops, GetDimensions -- is unchanged, so a crash here\0A// would mean the predicate is firing on something other than the reported\0A// trigger.\0A//\0A// Expected: compiles clean, exit 0, predicate must NOT match.\0A\0A#define MY_RS    \22RootFlags(0),\22  \5C\0A    \22CBV(b0), \22 \5C\0A    \22DescriptorTable(UAV(u0, numDescriptors = 3)) \22\0A\0ARWTexture2D<float4> _blurResult;\0A\0ARWTexture2D<float4> _previousResult;\0A\0ARWTexture2D<float4> _previousTarget;\0A\0Afloat _blendFactor,_blurSize, _blurDirections, _blurQuality;\0A\0Afloat4 blur(RWTexture2D<float4> tex, float2 uv, float2 stride)\0A{\0A\09float Pi = 6.28318530718; // Pi*2\0A\0A\09float2 Radius = _blurSize / stride;\0A\0A\09float4 Color = tex[uv];\0A\0A\09// Blur calculations\0A\09for (float d = 0.0; d < Pi; d += Pi / _blurDirections)\0A\09{\0A\09\09float2 angles = float2(cos(d), sin(d));\0A\0A\09\09for (float i = 1.0 / _blurQuality; i <= 1.0; i += 1.0 / _blurQuality)\0A\09\09{\0A\09\09\09Color.r += tex[uv + angles * Radius * i].r;\0A\09\09}\0A\09}\0A\0A\09float divisor = _blurQuality * _blurDirections - 15.0;\0A\09if (divisor == 0)\0A\09{\0A\09\09divisor = 0.0001;\0A\09}\0A\09Color.r /= divisor;\0A\0A\09tex[uv] = Color;\0A\0A\09return Color;\0A}\0A\0A[RootSignature(MY_RS)]\0A[numthreads(8,8,1)]\0Avoid main(uint3 id : SV_DispatchThreadID)\0A{\0A\09float x, y;\0A\09_blurResult.GetDimensions(x, y);\0A\09blur(_blurResult, id.xy, float2(x, y));\0A\0A\09_previousResult[id.xy] = lerp(_previousResult[id.xy], _previousTarget[id.xy], _blendFactor);\0A}\0A"}
+!56 = !{!"/app/example.hlsl"}
+!57 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug"}
+!58 = !{i32 1, i32 0}
+!59 = !{i32 1, i32 10}
+!60 = !{!"cs", i32 6, i32 0}
+!61 = !{null, !62, !67, null}
+!62 = !{!63, !65, !66}
+!63 = !{i32 0, %"class.RWTexture2D<vector<float, 4> >"* undef, !"_blurResult", i32 0, i32 0, i32 1, i32 2, i1 false, i1 false, i1 false, !64}
+!64 = !{i32 0, i32 9}
+!65 = !{i32 1, %"class.RWTexture2D<vector<float, 4> >"* undef, !"_previousResult", i32 0, i32 1, i32 1, i32 2, i1 false, i1 false, i1 false, !64}
+!66 = !{i32 2, %"class.RWTexture2D<vector<float, 4> >"* undef, !"_previousTarget", i32 0, i32 2, i32 1, i32 2, i1 false, i1 false, i1 false, !64}
+!67 = !{!68}
+!68 = !{i32 0, %"$Globals"* undef, !"$Globals", i32 0, i32 0, i32 1, i32 16, null}
+!69 = !{i32 0, %"$Globals" undef, !70}
+!70 = !{i32 16, !71, !72, !73, !74}
+!71 = !{i32 6, !"_blendFactor", i32 3, i32 0, i32 7, i32 9}
+!72 = !{i32 6, !"_blurSize", i32 3, i32 4, i32 7, i32 9}
+!73 = !{i32 6, !"_blurDirections", i32 3, i32 8, i32 7, i32 9}
+!74 = !{i32 6, !"_blurQuality", i32 3, i32 12, i32 7, i32 9}
+!75 = !{i32 1, void ()* @main, !76}
+!76 = !{!77}
+!77 = !{i32 0, !2, !2}
+!78 = !{void ()* @main, !"main", null, !61, !79}
+!79 = !{i32 0, i64 8192, i32 4, !80}
+!80 = !{i32 8, i32 8, i32 1}
+!81 = !DILocation(line: 66, column: 56, scope: !15)
+!82 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "id", arg: 1, scope: !15, file: !1, line: 60, type: !18)
+!83 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!84 = !DILocation(line: 60, column: 17, scope: !15)
+!85 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!86 = !DILocation(line: 63, column: 2, scope: !15)
+!87 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "x", scope: !15, file: !1, line: 62, type: !8)
+!88 = !DIExpression()
+!89 = !DILocation(line: 62, column: 8, scope: !15)
+!90 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "y", scope: !15, file: !1, line: 62, type: !8)
+!91 = !DILocation(line: 62, column: 11, scope: !15)
+!92 = !DILocation(line: 64, column: 20, scope: !15)
+!93 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "stride", arg: 3, scope: !28, file: !1, line: 27, type: !4)
+!94 = !DILocation(line: 27, column: 56, scope: !28, inlinedAt: !95)
+!95 = distinct !DILocation(line: 64, column: 2, scope: !15)
+!96 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "uv", arg: 2, scope: !28, file: !1, line: 27, type: !4)
+!97 = !DILocation(line: 27, column: 45, scope: !28, inlinedAt: !95)
+!98 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "Pi", scope: !28, file: !1, line: 29, type: !8)
+!99 = !DILocation(line: 29, column: 8, scope: !28, inlinedAt: !95)
+!100 = !DILocation(line: 31, column: 18, scope: !28, inlinedAt: !95)
+!101 = !DILocation(line: 31, column: 28, scope: !28, inlinedAt: !95)
+!102 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "Radius", scope: !28, file: !1, line: 31, type: !4)
+!103 = !DILocation(line: 31, column: 9, scope: !28, inlinedAt: !95)
+!104 = !DILocation(line: 33, column: 21, scope: !28, inlinedAt: !95)
+!105 = !DILocation(line: 33, column: 17, scope: !28, inlinedAt: !95)
+!106 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "Color", scope: !28, file: !1, line: 33, type: !31)
+!107 = !DILocation(line: 33, column: 9, scope: !28, inlinedAt: !95)
+!108 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!109 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!110 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "d", scope: !111, file: !1, line: 36, type: !8)
+!111 = distinct !DILexicalBlock(scope: !28, file: !1, line: 36, column: 2)
+!112 = !DILocation(line: 36, column: 13, scope: !111, inlinedAt: !95)
+!113 = !DILocation(line: 36, column: 2, scope: !111, inlinedAt: !95)
+!114 = !DILocation(line: 38, column: 26, scope: !115, inlinedAt: !95)
+!115 = distinct !DILexicalBlock(scope: !116, file: !1, line: 37, column: 2)
+!116 = distinct !DILexicalBlock(scope: !111, file: !1, line: 36, column: 2)
+!117 = !DILocation(line: 38, column: 34, scope: !115, inlinedAt: !95)
+!118 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "angles", scope: !115, file: !1, line: 38, type: !4)
+!119 = !DILocation(line: 38, column: 10, scope: !115, inlinedAt: !95)
+!120 = !DILocation(line: 40, column: 24, scope: !121, inlinedAt: !95)
+!121 = distinct !DILexicalBlock(scope: !115, file: !1, line: 40, column: 3)
+!122 = !DILocation(line: 40, column: 22, scope: !121, inlinedAt: !95)
+!123 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "i", scope: !121, file: !1, line: 40, type: !8)
+!124 = !DILocation(line: 40, column: 14, scope: !121, inlinedAt: !95)
+!125 = !DILocation(line: 40, column: 40, scope: !126, inlinedAt: !95)
+!126 = distinct !DILexicalBlock(scope: !121, file: !1, line: 40, column: 3)
+!127 = !DILocation(line: 40, column: 3, scope: !121, inlinedAt: !95)
+!128 = !DILocation(line: 42, column: 31, scope: !129, inlinedAt: !95)
+!129 = distinct !DILexicalBlock(scope: !126, file: !1, line: 41, column: 3)
+!130 = !DILocation(line: 42, column: 40, scope: !129, inlinedAt: !95)
+!131 = !DILocation(line: 42, column: 22, scope: !129, inlinedAt: !95)
+!132 = !DILocation(line: 42, column: 19, scope: !129, inlinedAt: !95)
+!133 = !DILocation(line: 42, column: 15, scope: !129, inlinedAt: !95)
+!134 = !DILocation(line: 42, column: 12, scope: !129, inlinedAt: !95)
+!135 = !DILocation(line: 40, column: 59, scope: !126, inlinedAt: !95)
+!136 = !DILocation(line: 40, column: 57, scope: !126, inlinedAt: !95)
+!137 = !DILocation(line: 40, column: 50, scope: !126, inlinedAt: !95)
+!138 = !DILocation(line: 36, column: 40, scope: !116, inlinedAt: !95)
+!139 = !DILocation(line: 36, column: 38, scope: !116, inlinedAt: !95)
+!140 = !DILocation(line: 36, column: 32, scope: !116, inlinedAt: !95)
+!141 = !DILocation(line: 36, column: 24, scope: !116, inlinedAt: !95)
+!142 = !DILocation(line: 46, column: 18, scope: !28, inlinedAt: !95)
+!143 = !DILocation(line: 46, column: 31, scope: !28, inlinedAt: !95)
+!144 = !DILocation(line: 46, column: 49, scope: !28, inlinedAt: !95)
+!145 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "divisor", scope: !28, file: !1, line: 46, type: !8)
+!146 = !DILocation(line: 46, column: 8, scope: !28, inlinedAt: !95)
+!147 = !DILocation(line: 47, column: 14, scope: !148, inlinedAt: !95)
+!148 = distinct !DILexicalBlock(scope: !28, file: !1, line: 47, column: 6)
+!149 = !DILocation(line: 47, column: 6, scope: !28, inlinedAt: !95)
+!150 = !DILocation(line: 51, column: 10, scope: !28, inlinedAt: !95)
+!151 = !DILocation(line: 53, column: 10, scope: !28, inlinedAt: !95)
+!152 = !DILocation(line: 66, column: 80, scope: !15)
+!153 = !DILocation(line: 66, column: 32, scope: !15)
+!154 = !DILocation(line: 66, column: 27, scope: !15)
+!155 = !DILocation(line: 66, column: 25, scope: !15)
+!156 = !DILocation(line: 67, column: 1, scope: !15)
+
+==========================================================================
+# shader:   minimal-crash.hlsl
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main
+# why:      Does the local minimisation crash CE's Linux Release build too?
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# shader:   minimal-crash.hlsl
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E main
+# why:      Same, on CE's oldest DXC.
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# shader:   minimal-crash.hlsl
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main
+# why:      Does Clang diagnose the minimised form?
+# exit:     1  
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:22:5: [0m[0;1;31merror: [0m[1massignment to global resource variable 'A' is not allowed[0m
+   22 |   A = local;[0m
+      | [0;1;32m    ^
+[0m[1m<source>:12:21: [0m[0;1;36mnote: [0mvariable 'A' is declared here[0m
+   12 | RWTexture2D<float4> A;[0m
+      | [0;1;32m                    ^
+[0m1 error generated.
+<Compilation failed>
+
+==========================================================================
+# shader:   minimal-assign.hlsl
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main
+# why:      Plain global-to-global assignment: diagnosed locally, not a crash.
+# exit:     5  
+
+<source>:15:7: error: local resource not guaranteed to map to unique global resource.
+  A = B;
+      ^
+
+<Compilation failed>
+
+==========================================================================
+# shader:   minimal-assign.hlsl
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main
+# why:      Same on Clang.
+# exit:     1  
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:15:5: [0m[0;1;31merror: [0m[1massignment to global resource variable 'A' is not allowed[0m
+   15 |   A = B;[0m
+      | [0;1;32m    ^
+[0m[1m<source>:10:21: [0m[0;1;36mnote: [0mvariable 'A' is declared here[0m
+   10 | RWTexture2D<float4> A;[0m
+      | [0;1;32m                    ^
+[0m1 error generated.
+<Compilation failed>

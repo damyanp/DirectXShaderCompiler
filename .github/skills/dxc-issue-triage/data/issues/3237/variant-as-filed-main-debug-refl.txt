@@ -1,0 +1,28 @@
+# compiler: main-debug-refl
+# exe: <triage>/issues/3237/run-refl3237.cmd
+# ran: 2026-08-07T18:13:44+00:00
+# cmd: -T lib_6_3 repro-as-filed.hlsl
+# exit: 2
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: as-filed (repro-as-filed.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 repro-as-filed.hlsl
+[exe] <triage>/issues/3237/run-refl3237.cmd
+[exit] 2
+--- stdout ---
+# refl3237: #3237 library-reflection parameter probe
+dll: <repo>/build/Debug/bin/dxcompiler.dll
+source: repro-as-filed.hlsl
+IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+IDxcContainerReflection::GetPartReflection(ID3D12LibraryReflection) -> 0x00000000 (S_OK)
+ID3D12LibraryReflection::GetDesc -> 0x00000000 (S_OK)
+  D3D12_LIBRARY_DESC.FunctionCount=0
+refl3237: WALK-INCOMPLETE: the library reflects zero functions
+
+--- stderr ---
+

@@ -1,0 +1,56 @@
+# Compiler Explorer panes for #3695, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E main
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:49:21: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'float2' (aka 'vector<float, 2>') to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   49 |         float4 Color = tex[uv];[0m
+      | [0;1;32m                       ~~~ ^~
+[0m[1m<source>:58:22: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'vector<float, 2>' (vector of 2 'float' values) to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   58 |                         Color.r += tex[uv + angles * Radius * i].r;[0m
+      | [0;1;32m                                   ~~~ ~~~^~~~~~~~~~~~~~~~~~~~~
+[0m[1m<source>:69:6: [0m[0;1;35mwarning: [0m[1mimplicit conversion turns floating-point number into integer: 'float2' (aka 'vector<float, 2>') to 'vector<unsigned int, 2>' (vector of 2 'unsigned int' values) [-Wfloat-conversion][0m
+   69 |         tex[uv] = Color;[0m
+      | [0;1;32m        ~~~ ^~
+[0m[1m<source>:81:52: [0m[0;1;35mwarning: [0m[1mimplicit conversion from 'vector<uint, 2>' (vector of 2 'uint' values) to 'vector<float, 2>' (vector of 2 'float' values) may lose precision [-Wimplicit-int-float-conversion][0m
+   81 |         RWTexture2D<float4> filterFog = blur(_blurResult, id.xy, float2(x, y));[0m
+      | [0;1;32m                                        ~~~~              ^~~~~
+[0m[1m<source>:83:27: [0m[0;1;35mwarning: [0m[1m'lerp<float, 4U>' is deprecated: In 202x mismatched vector/scalar lowering for lerp is deprecated. Explicitly cast parameters. [-Wdeprecated-declarations][0m
+   83 |         _previousResult[id.xy] = lerp(_previousResult[id.xy], _previousTarget[id.xy], _blendFactor);[0m
+      | [0;1;32m                                 ^
+[0m[1m/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_compat_overloads.h:408:1: [0m[0;1;36mnote: [0m'lerp<float, 4U>' has been explicitly marked deprecated here[0m
+  408 | _DXC_DEPRECATED_VEC_SCALAR_FN(lerp)[0m
+      | [0;1;32m^
+[0m[1m/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_compat_overloads.h:28:5: [0m[0;1;36mnote: [0mexpanded from macro '_DXC_DEPRECATED_VEC_SCALAR_FN'[0m
+   28 |   [[deprecated([0;32m"In 202x mismatched vector/scalar lowering for "[0m #fn [0;32m" is "[0m     \[0m
+      | [0;1;32m    ^
+[0m[1m<source>:84:14: [0m[0;1;31merror: [0m[1massignment to global resource variable '_blurResult' is not allowed[0m
+   84 |         _blurResult = filterFog;[0m
+      | [0;1;32m                    ^
+[0m[1m<source>:35:21: [0m[0;1;36mnote: [0mvariable '_blurResult' is declared here[0m
+   35 | RWTexture2D<float4> _blurResult;[0m
+      | [0;1;32m                    ^
+[0m5 warnings and 1 error generated.
+<Compilation failed>

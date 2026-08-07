@@ -1,0 +1,219 @@
+# #3695 minimisation ladder
+# dxc: <repo>/build/Debug/bin/dxc.exe
+# each candidate is written to scratch-minimise.hlsl and compiled
+# 0xE0000001 = assert (crash), 0x80004005 = E_FAIL, an ordinary
+# diagnosed error -- NOT a crash
+
+==========================================================================
+C1 global-to-global assignment only
+==========================================================================
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main scratch-minimise.hlsl
+--- source ---
+RWTexture2D<float4> A;
+RWTexture2D<float4> B;
+
+[numthreads(8,8,1)]
+void main(uint3 id : SV_DispatchThreadID) {
+  A = B;
+  A[id.xy] = 1.0;
+}
+--- exit ---
+0x80004005  not a crash
+--- stdout (first 5 lines) ---
+
+--- stderr ---
+scratch-minimise.hlsl:6:7: error: local resource not guaranteed to map to unique global resource.
+  A = B;
+      ^
+
+==========================================================================
+C2 function returns a resource; local; assign to other global
+==========================================================================
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main scratch-minimise.hlsl
+--- source ---
+RWTexture2D<float4> A;
+RWTexture2D<float4> B;
+
+RWTexture2D<float4> pick(RWTexture2D<float4> tex) {
+  tex[uint2(0,0)] = 1.0;
+  return tex;
+}
+[numthreads(8,8,1)]
+void main(uint3 id : SV_DispatchThreadID) {
+  RWTexture2D<float4> local = pick(B);
+  A = local;
+}
+--- exit ---
+0x80004005  not a crash
+--- stdout (first 5 lines) ---
+
+--- stderr ---
+scratch-minimise.hlsl:11:7: error: local resource not guaranteed to map to unique global resource.
+  A = local;
+      ^
+
+==========================================================================
+C3 as C2 but the argument is the SAME global that is assigned
+==========================================================================
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main scratch-minimise.hlsl
+--- source ---
+RWTexture2D<float4> A;
+RWTexture2D<float4> B;
+
+RWTexture2D<float4> pick(RWTexture2D<float4> tex) {
+  tex[uint2(0,0)] = 1.0;
+  return tex;
+}
+[numthreads(8,8,1)]
+void main(uint3 id : SV_DispatchThreadID) {
+  RWTexture2D<float4> local = pick(A);
+  A = local;
+}
+--- exit ---
+0xE0000001  CRASH
+--- stdout (first 5 lines) ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+
+==========================================================================
+C4 as C3 plus a use of A before the call (GetDimensions)
+==========================================================================
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main scratch-minimise.hlsl
+--- source ---
+RWTexture2D<float4> A;
+RWTexture2D<float4> B;
+
+RWTexture2D<float4> pick(RWTexture2D<float4> tex) {
+  tex[uint2(0,0)] = 1.0;
+  return tex;
+}
+[numthreads(8,8,1)]
+void main(uint3 id : SV_DispatchThreadID) {
+  float x, y;
+  A.GetDimensions(x, y);
+  RWTexture2D<float4> local = pick(A);
+  A = local;
+}
+--- exit ---
+0xE0000001  CRASH
+--- stdout (first 5 lines) ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+
+==========================================================================
+C5 as C3 plus a store through the OTHER global after the call
+==========================================================================
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main scratch-minimise.hlsl
+--- source ---
+RWTexture2D<float4> A;
+RWTexture2D<float4> B;
+
+RWTexture2D<float4> pick(RWTexture2D<float4> tex) {
+  tex[uint2(0,0)] = 1.0;
+  return tex;
+}
+[numthreads(8,8,1)]
+void main(uint3 id : SV_DispatchThreadID) {
+  RWTexture2D<float4> local = pick(A);
+  B[id.xy] = 1.0;
+  A = local;
+}
+--- exit ---
+0xE0000001  CRASH
+--- stdout (first 5 lines) ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+
+==========================================================================
+C6 as C3 but the callee also READS through the parameter
+==========================================================================
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main scratch-minimise.hlsl
+--- source ---
+RWTexture2D<float4> A;
+RWTexture2D<float4> B;
+
+RWTexture2D<float4> pick(RWTexture2D<float4> tex, uint2 uv) {
+  float4 c = tex[uv];
+  tex[uv] = c + 1.0;
+  return tex;
+}
+[numthreads(8,8,1)]
+void main(uint3 id : SV_DispatchThreadID) {
+  RWTexture2D<float4> local = pick(A, id.xy);
+  A = local;
+}
+--- exit ---
+0xE0000001  CRASH
+--- stdout (first 5 lines) ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+
+==========================================================================
+C7 as C6 plus a store through the OTHER global after the call
+==========================================================================
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main scratch-minimise.hlsl
+--- source ---
+RWTexture2D<float4> A;
+RWTexture2D<float4> B;
+
+RWTexture2D<float4> pick(RWTexture2D<float4> tex, uint2 uv) {
+  float4 c = tex[uv];
+  tex[uv] = c + 1.0;
+  return tex;
+}
+[numthreads(8,8,1)]
+void main(uint3 id : SV_DispatchThreadID) {
+  RWTexture2D<float4> local = pick(A, id.xy);
+  B[id.xy] = 1.0;
+  A = local;
+}
+--- exit ---
+0xE0000001  CRASH
+--- stdout (first 5 lines) ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+
+==========================================================================
+C8 C3 with a loop in the callee, as in the original
+==========================================================================
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main scratch-minimise.hlsl
+--- source ---
+RWTexture2D<float4> A;
+RWTexture2D<float4> B;
+
+float k;
+RWTexture2D<float4> pick(RWTexture2D<float4> tex, uint2 uv) {
+  float4 c = tex[uv];
+  for (float i = 0; i < 6.28; i += k)
+    c.r += tex[uv + uint2(i, i)].r;
+  tex[uv] = c;
+  return tex;
+}
+[numthreads(8,8,1)]
+void main(uint3 id : SV_DispatchThreadID) {
+  RWTexture2D<float4> local = pick(A, id.xy);
+  A = local;
+}
+--- exit ---
+0xE0000001  CRASH
+--- stdout (first 5 lines) ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+
+==========================================================================
+SUMMARY
+==========================================================================
+C1       0x80004005  diagnosed/ok
+C2       0x80004005  diagnosed/ok
+C3       0xE0000001  CRASH
+C4       0xE0000001  CRASH
+C5       0xE0000001  CRASH
+C6       0xE0000001  CRASH
+C7       0xE0000001  CRASH
+C8       0xE0000001  CRASH

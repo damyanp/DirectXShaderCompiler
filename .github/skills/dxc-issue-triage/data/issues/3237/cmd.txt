@@ -1,0 +1,9 @@
+# The "compiler" here is run-refl3237.cmd, not dxc.exe: the reported defect is
+# a return value from ID3D12FunctionParameterReflection::GetDesc, an interface
+# dxc.exe never calls. The harness compiles this source with the DXC under test
+# and then walks the reflection interfaces exactly as the issue body does.
+#
+# lib_6_3 is the oldest library profile the release sequence supports, per
+# SKILL.md's "target the repro at the oldest profile that still shows the
+# symptom". No other flags: the issue reports none.
+-T lib_6_3 repro.hlsl

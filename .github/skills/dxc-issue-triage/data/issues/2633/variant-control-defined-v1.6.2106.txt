@@ -1,0 +1,86 @@
+# compiler: v1.6.2106
+# exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+# ran: 2026-08-07T17:42:50+00:00
+# cmd: -T lib_6_3 -spirv control-defined.hlsl ; -T lib_6_3 -spirv control-defined.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-defined (control-defined.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 -spirv control-defined.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 14
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Vertex %vertexShader "vertexShader" %in_var_POSITION %gl_Position
+               OpSource HLSL 630
+               OpName %in_var_POSITION "in.var.POSITION"
+               OpName %vertexShader "vertexShader"
+               OpDecorate %gl_Position BuiltIn Position
+               OpDecorate %in_var_POSITION Location 0
+      %float = OpTypeFloat 32
+  %float_0_5 = OpConstant %float 0.5
+    %v4float = OpTypeVector %float 4
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %10 = OpTypeFunction %void
+%in_var_POSITION = OpVariable %_ptr_Input_v4float Input
+%gl_Position = OpVariable %_ptr_Output_v4float Output
+%vertexShader = OpFunction %void None %10
+         %11 = OpLabel
+         %12 = OpLoad %v4float %in_var_POSITION
+         %13 = OpVectorTimesScalar %v4float %12 %float_0_5
+               OpStore %gl_Position %13
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+
+
+$ dxc -T lib_6_3 -spirv control-defined.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 14
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Vertex %vertexShader "vertexShader" %in_var_POSITION %gl_Position
+               OpSource HLSL 630
+               OpName %in_var_POSITION "in.var.POSITION"
+               OpName %vertexShader "vertexShader"
+               OpDecorate %gl_Position BuiltIn Position
+               OpDecorate %in_var_POSITION Location 0
+      %float = OpTypeFloat 32
+  %float_0_5 = OpConstant %float 0.5
+    %v4float = OpTypeVector %float 4
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %10 = OpTypeFunction %void
+%in_var_POSITION = OpVariable %_ptr_Input_v4float Input
+%gl_Position = OpVariable %_ptr_Output_v4float Output
+%vertexShader = OpFunction %void None %10
+         %11 = OpLabel
+         %12 = OpLoad %v4float %in_var_POSITION
+         %13 = OpVectorTimesScalar %v4float %12 %float_0_5
+               OpStore %gl_Position %13
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

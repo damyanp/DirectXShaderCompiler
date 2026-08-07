@@ -1,0 +1,17 @@
+# #2633 asks about a PAIR of modules -- "compile a module with the lib_6_3
+# target profile that exports some functions, and import those in a separate
+# file" -- so the repro is a pair, and every release is asked both halves.
+#
+# line 1: the IMPORT half (@s-perron's own case, retargeted to lib_6_3).
+# line 2: the EXPORT half.
+#
+# Neither line carries -fspv-target-env=universal1.5, deliberately. That flag
+# is the one under which an export module is actually valid, but it was added
+# by the very PR that added export linkage (#3234), so putting it in cmd.txt
+# would make every older release fail on the FLAG rather than answer whether it
+# can emit linkage at all. At the default (Vulkan) target env a release that
+# generates linkage says so anyway: its own validator rejects
+# `OpCapability Linkage` and echoes the instruction. The universal1.5 form is
+# captured separately as variant-export-universal15-*.
+-T lib_6_3 -spirv repro.hlsl
+-T lib_6_3 -spirv lib-export.hlsl

@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "@dx\\.op\\.(?:rawB|b)ufferLoad\\.\\w+\\(i32 \\d+, %dx\\.types\\.Handle %\\w+, i32 undef,"
+    },
+    {
+      "kind": "not_regex",
+      "value": "(?i)(?:warning|error)[^\\n]*uninitialized"
+    }
+  ],
+  "note": "The reported symptom is 'silently emits undef as the structured-buffer INDEX'. Clause 1 is the anchor: it requires the operand IMMEDIATELY AFTER the handle -- the index -- to be literally `undef`, in either dx.op.rawBufferLoad (SM 6.2+, the op the issue names) or dx.op.bufferLoad (SM 6.0/6.1, the same defect in the older op). Clause 2 records the 'silently' half: no diagnostic naming an uninitialized read. NOT ANCHORED ON `undef` GENERALLY -- that is exactly the #3009 trap, and it is live in THIS op. For a ByteAddressBuffer the *elementOffset* operand of rawBufferLoad MUST be undef: lib/DxilValidation/DxilValidation.cpp emits InstrCoordinateCountForRawTypedBuf if it is anything else. control-byteaddress.hlsl is fully correct code whose rawBufferLoad reads `i32 %3, i32 undef` and it is the negative control that a naive predicate fails; control-initialized.hlsl (same repro with `int j = 0`) is the second negative control and emits `i32 0` in the index slot. Clause 2 is an absence clause and is anchored by clause 1, which a compile that emitted no DXIL cannot satisfy -- so a release that merely rejects the input cannot score as a reproduction. The inverse hazard is real but narrow: if some build emitted an unrelated diagnostic containing the word 'uninitialized' the probe would score clean and fake a fix, so every capture was additionally grepped for warning/error text and the result recorded in notes.md. Exit code is deliberately NOT part of the predicate: dxc exits 0 here, and E_FAIL is an ordinary diagnosed error, not a crash."
+}

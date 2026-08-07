@@ -1,0 +1,23 @@
+{
+  "batch": "batch-009",
+  "confidence": "high",
+  "created_at": "2020-11-03T11:23:27Z",
+  "expected_symptom": "ID3D12FunctionParameterReflection::GetDesc(0) on a function obtained from ID3D12LibraryReflection::GetFunctionByIndex returns E_FAIL (0x80004005) instead of filling D3D12_PARAMETER_DESC. This is an API HRESULT, NOT dxc.exe process exit code, which is 0x80004005 for ordinary diagnosed errors too. Secondary: D3D12_FUNCTION_DESC.FunctionParameterCount reads 0 and HasReturn FALSE for a function that has both.",
+  "godbolt_skip": "Compiler Explorer runs dxc.exe only. The reported defect is the HRESULT returned by ID3D12FunctionParameterReflection::GetDesc, an API dxc.exe never calls, and CE cannot load dxcompiler.dll and drive IDxcContainerReflection. No dxc switch prints per-parameter reflection (-Fre writes the blob, -dumpbin dumps the container; neither calls GetFunctionParameter), so no CE pane could show the symptom. Measured instead with the committed refl3237 harness against 21 released dxcompiler.dll builds; see manual-case-release-history.txt.",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (21 releases, including the non-bisectable v1.5.2003, each driven through its OWN dxcompiler.dll by refl3237.exe; see manual-case-release-history.txt) plus main-debug. PARAM0-GETDESC=0x80004005 and FunctionParameterCount=0 in every row; no invalid probes. DO NOT run triage.py bisect on this issue: it resolves each tag to that release's dxc.exe, which never calls the reflection API, so it would score every release no-repro and report a confident never-repro'd-in-releases -- the exact opposite of the truth. It was deliberately not run. v1.4.1907 is the bisection floor and reproduces, and git log -S dates the stub to c1b662784 (2018-04-11), so the defect predates every probeable release and the 2020-11-03 report.",
+  "labels": "bug,reflection",
+  "labels_add": "api, test",
+  "labels_now": "bug, reflection",
+  "notes_path": "notes.md",
+  "number": 3237,
+  "repro_quality": "partial",
+  "reviewed_by": "GPT (collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (ab5400907) and on all 21 measured releases v1.4.1907..v1.9.2607: ID3D12FunctionParameterReflection::GetDesc returns E_FAIL and D3D12_FUNCTION_DESC.FunctionParameterCount reads 0 for an exported library function. CFunctionReflection::GetFunctionParameter ignores its index and returns an always-E_FAIL singleton, the count field is marked // Unset:, and RDAT RuntimeDataFunctionInfo carries no parameter records at all, so parameter reflection was never implemented rather than regressed; the stub is unchanged since c1b662784 (2018-04-11). Measured with a committed C++ harness driving each release's own dxcompiler.dll, because dxc.exe never calls this API and triage.py bisect cannot drive it.",
+  "title": "Library Reflection : Listing parameters return E_FAIL",
+  "triaged_at": "2026-08-07T18:31:14+00:00",
+  "triaged_by": "claude-opus-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3237"
+}

@@ -1,0 +1,20 @@
+Label-precedent check for the proposed 'diagnostic' addition (read-only).
+
+Q1: which issues already carry all four of bug + crash + diagnostic + incorrect-code?
+$ gh issue list --repo microsoft/DirectXShaderCompiler --label bug --label crash --label diagnostic --label incorrect-code --state all --limit 12
+  #7582 [OPEN] semantics: SIGSEGV when handling unbounded array with a semantic
+  #6964 [OPEN] DXCompiler segfaults when it's impossible to allocate clip/cull registers
+  #6016 [OPEN] Using large vert/hull/domain IO makes DXC crash when building to DXIL
+  #5681 [OPEN] Segmentation fault/ICE when attempting a particular (invalid) code pattern
+
+Q2: is "diagnostic" used at all widely, or is it near-dead?
+$ gh issue list --repo microsoft/DirectXShaderCompiler --label diagnostic --state all --limit 1 --json number  (count via search)
+  total issues with label 'diagnostic': 56
+  ...of which open: 35
+
+Q3: label descriptions, verbatim from the API
+  bug: Bug, regression, crash
+  check-in-clang: See if this repros in clang as well
+  crash: DXC crashing or hitting an assert
+  diagnostic: Issues for diagnostics
+  incorrect-code: Issues relating to handling of incorrect code

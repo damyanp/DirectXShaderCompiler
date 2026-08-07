@@ -212,6 +212,26 @@ The lesson generalised into tooling rather than a reminder: `run --shader X --la
 makes capturing a control the easy path, because a step that depends on remembering to do it by
 hand is a step that will be skipped. **A control nobody can re-run is not a control.**
 
+> **The agent `grep` tool silently returns zero matches here. Use `Select-String`.**
+>
+> Measured, back to back, same pattern and same directory: **with** a `glob` filter it finds
+> the file; **without** one it answers `No matches found`. It does not error. A worker and I
+> hit this independently and my first diagnosis — that ripgrep was skipping `.github` because
+> it is hidden — was wrong; controlled probes located the trigger as the **missing `glob`
+> filter**. 7 of 7 glob-less queries across the triage tree false-zeroed, and 4 of 4 glob'd
+> queries were accurate. `glob` and `view` are unaffected, which makes it worse: you can list
+> a file, then fail to search it.
+>
+> This matters because the checks that carry the most weight here are **absence** checks — "no
+> issue tag in this message", "no absolute path in a committed file", "that unsupported claim
+> is gone from the draft". Each returns a confident false clean, and is then recorded as
+> having passed. An absence check run with the wrong tool is worse than no check at all.
+>
+> **Rule: whenever a *zero* result would be meaningful, use `Select-String` or `git grep`.**
+> Passing a `glob` does appear to restore accuracy, but do not rely on it for a verdict — the
+> failure is silent, so a mistake is invisible. Scans of git **commit messages** are safe:
+> they read `git log` output rather than files on disk.
+
 ## Setup
 
 Artifacts and cache live in **two separate roots**, and the split is the whole storage

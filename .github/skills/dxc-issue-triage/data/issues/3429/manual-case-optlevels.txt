@@ -1,0 +1,64 @@
+# issue: 3429
+# what: which optimization levels reject repro.hlsl, and which compile it.
+# generator: make-optlevel-case.py (committed next to its output)
+# bin: <repo>/build/Debug/bin
+#
+# The issue body says: "When disabling optimization it works, so it seems like some
+# optimization might change the generated DXIL."  Measured below.
+
+==============================================================================
+$ <repo>/build/Debug/bin/dxc.exe -E main -T cs_6_0 -Od repro.hlsl
+[exit] 0 (0x00000000)
+[TGSM rule emitted] no
+--- stderr ---
+(no TGSM diagnostic; stdout is the disassembly, omitted)
+
+==============================================================================
+$ <repo>/build/Debug/bin/dxc.exe -E main -T cs_6_0 -O0 repro.hlsl
+[exit] 0 (0x00000000)
+[TGSM rule emitted] no
+--- stderr ---
+(no TGSM diagnostic; stdout is the disassembly, omitted)
+
+==============================================================================
+$ <repo>/build/Debug/bin/dxc.exe -E main -T cs_6_0 -O1 repro.hlsl
+[exit] 2147500037 (0x80004005)
+[TGSM rule emitted] yes
+--- stderr ---
+error: validation errors
+
+repro.hlsl:9:22: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%11 = phi float addrspace(3)* [ %8, %7 ], [ %20, %17 ]' in block '#3' of function 'main'.
+repro.hlsl:15:20: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%13 = phi float addrspace(3)* [ %20, %17 ], [ %8, %7 ]' in block '#4' of function 'main'.
+Validation failed.
+
+==============================================================================
+$ <repo>/build/Debug/bin/dxc.exe -E main -T cs_6_0 -O2 repro.hlsl
+[exit] 2147500037 (0x80004005)
+[TGSM rule emitted] yes
+--- stderr ---
+error: validation errors
+
+repro.hlsl:9:22: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%11 = phi float addrspace(3)* [ %8, %7 ], [ %20, %17 ]' in block '#3' of function 'main'.
+repro.hlsl:15:20: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%13 = phi float addrspace(3)* [ %20, %17 ], [ %8, %7 ]' in block '#4' of function 'main'.
+Validation failed.
+
+==============================================================================
+$ <repo>/build/Debug/bin/dxc.exe -E main -T cs_6_0 -O3 repro.hlsl
+[exit] 2147500037 (0x80004005)
+[TGSM rule emitted] yes
+--- stderr ---
+error: validation errors
+
+repro.hlsl:9:22: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%13 = phi float addrspace(3)* [ %8, %7 ], [ %22, %11 ]' in block '#5' of function 'main'.
+repro.hlsl:15:20: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%15 = phi float addrspace(3)* [ %22, %19 ], [ %8, %10 ]' in block '#6' of function 'main'.
+Validation failed.
+
+==============================================================================
+# summary: 3 of 5 optimization levels emit the rule
+

@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T17:50:50+00:00
+# cmd: -T lib_6_3 -spirv -fspv-target-env=universal1.5 -DIMPORT_HALF=1 godbolt-source.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: ce-import-half (godbolt-source.hlsl)
+# expect: match
+
+$ dxc -T lib_6_3 -spirv -fspv-target-env=universal1.5 -DIMPORT_HALF=1 godbolt-source.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+godbolt-source.hlsl:34:21: error: found undefined function
+  output.position = foo(input.position);
+                    ^
+
+

@@ -1,0 +1,371 @@
+# Compiler Explorer panes for #3429, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -E main -T cs_6_0
+# exit:     5
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+error: validation errors
+<source>:44:22: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%13 = phi float addrspace(3)* [ %8, %7 ], [ %22, %11 ]' in block '#5' of function 'main'.
+<source>:50:20: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%15 = phi float addrspace(3)* [ %22, %19 ], [ %8, %10 ]' in block '#6' of function 'main'.
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -E main -T cs_6_0
+# exit:     5
+
+error: validation errors
+<source>:44:22: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%13 = phi float addrspace(3)* [ %8, %7 ], [ %22, %11 ]' in block '#5' of function 'main'.
+<source>:50:20: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%15 = phi float addrspace(3)* [ %22, %19 ], [ %8, %10 ]' in block '#6' of function 'main'.
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main -Vd
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: c7c02e904b0a1de37afd8ad09cc51b68.pdb
+; shader hash: c7c02e904b0a1de37afd8ad09cc51b68
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,1,1)
+; NumBytesGroupSharedMemory: 28
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+@"\01?thingies@@3PAMA" = external addrspace(3) global [6 x float], align 4
+@"\01?thingCounter@@3IA" = external addrspace(3) global i32, align 4
+
+define void @main() {
+  %1 = load i32, i32 addrspace(3)* @"\01?thingCounter@@3IA", align 4, !dbg !31, !tbaa !34 ; line:54 col:5
+  %2 = getelementptr [6 x float], [6 x float] addrspace(3)* @"\01?thingies@@3PAMA", i32 0, i32 %1, !dbg !38 ; line:41 col:6
+  %3 = load float, float addrspace(3)* %2, align 4, !dbg !38, !tbaa !39 ; line:41 col:6
+  %4 = fcmp fast ult float %3, 0.000000e+00, !dbg !41 ; line:41 col:29
+  br i1 %4, label %15, label %5, !dbg !42 ; line:41 col:6
+
+; <label>:5                                       ; preds = %0
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !43, metadata !46), !dbg !47 ; var:"ix" !DIExpression() func:"main"
+  %6 = icmp sgt i32 %1, -1, !dbg !48 ; line:42 col:35
+  br i1 %6, label %.lr.ph.preheader, label %.loopexit, !dbg !50 ; line:42 col:5
+
+.lr.ph.preheader:                                 ; preds = %5
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !43, metadata !46), !dbg !47 ; var:"ix" !DIExpression() func:"main"
+  %7 = getelementptr [6 x float], [6 x float] addrspace(3)* @"\01?thingies@@3PAMA", i32 0, i32 %1, !dbg !51 ; line:43 col:10
+  %8 = fcmp fast ugt float %3, 0.000000e+00, !dbg !54 ; line:43 col:23
+  br i1 %8, label %.lr.ph5.preheader, label %.lr.ph._crit_edge, !dbg !55 ; line:43 col:10
+
+.lr.ph5.preheader:                                ; preds = %.lr.ph.preheader
+  br label %.lr.ph5, !dbg !56 ; line:50 col:20
+
+.lr.ph._crit_edge.loopexit:                       ; preds = %..lr.ph_crit_edge
+  br label %.lr.ph._crit_edge, !dbg !57 ; line:44 col:22
+
+.lr.ph._crit_edge:                                ; preds = %.lr.ph._crit_edge.loopexit, %.lr.ph.preheader
+  %.lcssa = phi float addrspace(3)* [ %7, %.lr.ph.preheader ], [ %12, %.lr.ph._crit_edge.loopexit ]
+  store float 3.000000e+00, float addrspace(3)* %.lcssa, align 4, !dbg !57, !tbaa !39 ; line:44 col:22
+  br label %.loopexit, !dbg !59 ; line:46 col:9
+
+.lr.ph5:                                          ; preds = %..lr.ph_crit_edge, %.lr.ph5.preheader
+  %9 = phi float addrspace(3)* [ %12, %..lr.ph_crit_edge ], [ %7, %.lr.ph5.preheader ]
+  %ix.04 = phi i32 [ %10, %..lr.ph_crit_edge ], [ %1, %.lr.ph5.preheader ]
+  store float 4.000000e+00, float addrspace(3)* %9, align 4, !dbg !56, !tbaa !39 ; line:50 col:20
+  %10 = add nsw i32 %ix.04, -1, !dbg !60 ; line:42 col:41
+  call void @llvm.dbg.value(metadata i32 %10, i64 0, metadata !43, metadata !46), !dbg !47 ; var:"ix" !DIExpression() func:"main"
+  %11 = icmp sgt i32 %ix.04, 0, !dbg !48 ; line:42 col:35
+  br i1 %11, label %..lr.ph_crit_edge, label %.loopexit.loopexit, !dbg !50 ; line:42 col:5
+
+..lr.ph_crit_edge:                                ; preds = %.lr.ph5
+  %.phi.trans.insert = getelementptr [6 x float], [6 x float] addrspace(3)* @"\01?thingies@@3PAMA", i32 0, i32 %10, !dbg !51 ; line:43 col:10
+  %.pre = load float, float addrspace(3)* %.phi.trans.insert, align 4, !dbg !51, !tbaa !39 ; line:43 col:10
+  call void @llvm.dbg.value(metadata i32 %10, i64 0, metadata !43, metadata !46), !dbg !47 ; var:"ix" !DIExpression() func:"main"
+  %12 = getelementptr [6 x float], [6 x float] addrspace(3)* @"\01?thingies@@3PAMA", i32 0, i32 %10, !dbg !51 ; line:43 col:10
+  %13 = fcmp fast ugt float %.pre, 0.000000e+00, !dbg !54 ; line:43 col:23
+  br i1 %13, label %.lr.ph5, label %.lr.ph._crit_edge.loopexit, !dbg !55 ; line:43 col:10
+
+.loopexit.loopexit:                               ; preds = %.lr.ph5
+  br label %.loopexit, !dbg !31 ; line:54 col:5
+
+.loopexit:                                        ; preds = %.loopexit.loopexit, %.lr.ph._crit_edge, %5
+  %14 = add i32 %1, 1, !dbg !31 ; line:54 col:5
+  store i32 %14, i32 addrspace(3)* @"\01?thingCounter@@3IA", align 4, !dbg !31, !tbaa !34 ; line:54 col:5
+  br label %15, !dbg !61 ; line:55 col:3
+
+; <label>:15                                      ; preds = %.loopexit, %0
+  ret void, !dbg !62 ; line:56 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+attributes #0 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!16, !17}
+!llvm.ident = !{!18}
+!dx.source.contents = !{!19}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!20}
+!dx.source.args = !{!21}
+!dx.version = !{!22}
+!dx.valver = !{!23}
+!dx.shaderModel = !{!24}
+!dx.typeAnnotations = !{!25}
+!dx.entryPoints = !{!28}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 13730886)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !7)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 40, type: !5, isLocal: false, isDefinition: true, scopeLine: 40, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{!8, !13}
+!8 = !DIGlobalVariable(name: "thingies", linkageName: "\01?thingies@@3PAMA", scope: !0, file: !1, line: 36, type: !9, isLocal: false, isDefinition: true, variable: [6 x float] addrspace(3)* @"\01?thingies@@3PAMA")
+!9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 192, align: 32, elements: !11)
+!10 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!11 = !{!12}
+!12 = !DISubrange(count: 6)
+!13 = !DIGlobalVariable(name: "thingCounter", linkageName: "\01?thingCounter@@3IA", scope: !0, file: !1, line: 37, type: !14, isLocal: false, isDefinition: true, variable: i32 addrspace(3)* @"\01?thingCounter@@3IA")
+!14 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 37, baseType: !15)
+!15 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!16 = !{i32 2, !"Dwarf Version", i32 4}
+!17 = !{i32 2, !"Debug Info Version", i32 3}
+!18 = !{!"dxc(private) 1.9.0.10001 (main, 13730886)"}
+!19 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for -- microsoft/DirectXShaderCompiler issue 3429\0A//\0A// This compute shader is ordinary HLSL. It has ONE groupshared float array and\0A// indexes it in a loop. There is only one groupshared array that any pointer here\0A// could come from, so nothing about it is ambiguous.\0A//\0A//   Pane 1  dxc 1.6.2112       - fails DXIL validation.\0A//   Pane 2  dxc trunk          - still fails: same rule, same two source lines.\0A//   Pane 3  dxc trunk, -Vd     - the SAME compile with validation switched off, so\0A//                                you can see the module the optimizer built.\0A//   Pane 4  clang (HLSL) trunk - compiles the same source; see the caveat below.\0A//\0A// In pane 3, inside define void @main(), find the two merge instructions whose\0A// result type is a groupshared-address-space float pointer, then follow each of\0A// their incoming values back. Every one is an address computation rooted at the\0A// single array declared below. The merged pointer is not ambiguous: the\0A// validator's chain walk only steps through address computations and casts, so it\0A// stops at the merge instruction and rejects it.\0A//\0A// Pane 4 shows clang compiling this source and keeping the address computation\0A// inside each branch, so no merge of groupshared pointers is formed at all.\0A// Caveat: clang does not run DXC's DXIL validator, so pane 4 is evidence about\0A// what clang emits, not about what the validation rule would accept.\0A//\0A// Two things to keep in mind while reading:\0A//   * this banner is part of the compiled source, so every line number the\0A//     compilers report is shifted down from the numbers quoted in the issue;\0A//   * Compiler Explorer runs Release builds on Linux.\0A//\0A// Every shipped dxc release from v1.4.1907 (2019) through v1.9.2607 (2026)\0A// rejects this shader; none has ever compiled it. Compiling with -O0 or -Od does\0A// succeed -- that is the reporter's workaround, and it still works.\0A//==========================================================================//\0A\0Agroupshared float thingies[6];\0Agroupshared uint thingCounter;\0A \0A[numthreads(8, 1, 1)]\0Avoid main() {\0A  if(thingies[thingCounter] >= 0.0) {\0A    for(int ix = thingCounter; ix >= 0; --ix) {\0A      if(thingies[ix] <= 0.0) {\0A        thingies[ix] = 3.0;\0A\0A        break;\0A\0A      }\0A\0A      thingies[ix] = 4.0;\0A\0A    }\0A\0A    ++thingCounter;\0A  }\0A} \0A\0A// Lines 1-21 above are a byte-faithful copy of the minimised repro posted in\0A// issue 3429 (comment of 2024-04-28), blank lines and trailing spaces included,\0A// so the diagnostics reproduce the line:column pairs quoted in that thread.\0A// Do not reflow it. These trailing comment lines shift nothing above them.\0A"}
+!20 = !{!"/app/example.hlsl"}
+!21 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug", !"-Vd"}
+!22 = !{i32 1, i32 0}
+!23 = !{i32 1, i32 10}
+!24 = !{!"cs", i32 6, i32 0}
+!25 = !{i32 1, void ()* @main, !26}
+!26 = !{!27}
+!27 = !{i32 1, !2, !2}
+!28 = !{void ()* @main, !"main", null, null, !29}
+!29 = !{i32 4, !30}
+!30 = !{i32 8, i32 1, i32 1}
+!31 = !DILocation(line: 54, column: 5, scope: !32)
+!32 = distinct !DILexicalBlock(scope: !33, file: !1, line: 41, column: 37)
+!33 = distinct !DILexicalBlock(scope: !4, file: !1, line: 41, column: 6)
+!34 = !{!35, !35, i64 0}
+!35 = !{!"int", !36, i64 0}
+!36 = !{!"omnipotent char", !37, i64 0}
+!37 = !{!"Simple C/C++ TBAA"}
+!38 = !DILocation(line: 41, column: 6, scope: !33)
+!39 = !{!40, !40, i64 0}
+!40 = !{!"float", !36, i64 0}
+!41 = !DILocation(line: 41, column: 29, scope: !33)
+!42 = !DILocation(line: 41, column: 6, scope: !4)
+!43 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "ix", scope: !44, file: !1, line: 42, type: !45)
+!44 = distinct !DILexicalBlock(scope: !32, file: !1, line: 42, column: 5)
+!45 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!46 = !DIExpression()
+!47 = !DILocation(line: 42, column: 13, scope: !44)
+!48 = !DILocation(line: 42, column: 35, scope: !49)
+!49 = distinct !DILexicalBlock(scope: !44, file: !1, line: 42, column: 5)
+!50 = !DILocation(line: 42, column: 5, scope: !44)
+!51 = !DILocation(line: 43, column: 10, scope: !52)
+!52 = distinct !DILexicalBlock(scope: !53, file: !1, line: 43, column: 10)
+!53 = distinct !DILexicalBlock(scope: !49, file: !1, line: 42, column: 47)
+!54 = !DILocation(line: 43, column: 23, scope: !52)
+!55 = !DILocation(line: 43, column: 10, scope: !53)
+!56 = !DILocation(line: 50, column: 20, scope: !53)
+!57 = !DILocation(line: 44, column: 22, scope: !58)
+!58 = distinct !DILexicalBlock(scope: !52, file: !1, line: 43, column: 31)
+!59 = !DILocation(line: 46, column: 9, scope: !58)
+!60 = !DILocation(line: 42, column: 41, scope: !49)
+!61 = !DILocation(line: 55, column: 3, scope: !32)
+!62 = !DILocation(line: 56, column: 1, scope: !4)
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -E main -T cs_6_0
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:42:18: [0m[0;1;35mwarning: [0m[1mimplicit conversion changes signedness: 'uint' (aka 'unsigned int') to 'int' [-Wsign-conversion][0m
+   42 |     [0;34mfor[0m([0;34mint[0m ix = thingCounter; ix >= [0;32m0[0m; --ix) {[0m
+      | [0;1;32m            ~~   ^~~~~~~~~~~~
+[0m1 warning generated.
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+;
+; ModuleID = '/app/example.hlsl'
+source_filename = "/app/example.hlsl"
+target datalayout = "e-m:e-ve-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxilv1.0-unknown-shadermodel6.0-compute"
+
+@thingies = external hidden local_unnamed_addr addrspace(3) global [6 x float], align 4
+@thingCounter = external hidden local_unnamed_addr addrspace(3) global i32, align 4
+
+; Function Attrs: noinline nounwind memory(readwrite, argmem: none, inaccessiblemem: none, target_mem: none)
+define void @main() local_unnamed_addr #0 {
+  %1 = load i32, ptr addrspace(3) @thingCounter, align 4, !dbg !17
+  %2 = mul i32 %1, 1, !dbg !28
+  %3 = add i32 0, %2, !dbg !28
+  %4 = getelementptr inbounds nuw [6 x float], ptr addrspace(3) @thingies, i32 0, i32 %3, !dbg !28
+  %5 = load float, ptr addrspace(3) %4, align 4, !dbg !28
+  %6 = fcmp reassoc nnan ninf nsz arcp afn ult float %5, 0.000000e+00, !dbg !29
+  br i1 %6, label %22, label %7, !dbg !29
+
+7:                                                ; preds = %0
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !24, metadata !DIExpression()), !dbg !30
+  tail call void @llvm.dbg.value(metadata i32 %1, metadata !24, metadata !DIExpression()), !dbg !30
+  %8 = icmp sgt i32 %1, -1, !dbg !31
+  br i1 %8, label %9, label %20, !dbg !33
+
+9:                                                ; preds = %7, %17
+  %10 = phi i32 [ %18, %17 ], [ %1, %7 ]
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %10, i64 0, metadata !24, metadata !DIExpression()), !dbg !30
+  tail call void @llvm.dbg.value(metadata i32 %10, metadata !24, metadata !DIExpression()), !dbg !30
+  %11 = mul i32 %10, 1, !dbg !34
+  %12 = add i32 0, %11, !dbg !34
+  %13 = getelementptr inbounds nuw [6 x float], ptr addrspace(3) @thingies, i32 0, i32 %12, !dbg !34
+  %14 = load float, ptr addrspace(3) %13, align 4, !dbg !34
+  %15 = fcmp reassoc nnan ninf nsz arcp afn ugt float %14, 0.000000e+00, !dbg !37
+  br i1 %15, label %17, label %16, !dbg !37
+
+16:                                               ; preds = %9
+  store float 3.000000e+00, ptr addrspace(3) %13, align 4, !dbg !38
+  br label %20, !dbg !40
+
+17:                                               ; preds = %9
+  store float 4.000000e+00, ptr addrspace(3) %13, align 4, !dbg !41
+  %18 = add nsw i32 %10, -1, !dbg !42
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %18, i64 0, metadata !24, metadata !DIExpression()), !dbg !30
+  tail call void @llvm.dbg.value(metadata i32 %18, metadata !24, metadata !DIExpression()), !dbg !30
+  %19 = icmp sgt i32 %10, 0, !dbg !31
+  br i1 %19, label %9, label %20, !dbg !33, !llvm.loop !43
+
+20:                                               ; preds = %17, %7, %16
+  %21 = add i32 %1, 1, !dbg !44
+  store i32 %21, ptr addrspace(3) @thingCounter, align 4, !dbg !44
+  br label %22, !dbg !45
+
+22:                                               ; preds = %0, %20
+  ret void
+}
+
+; Function Attrs: nounwind memory(none)
+declare void @llvm.dbg.value(metadata, metadata, metadata) #1
+
+attributes #0 = { noinline nounwind memory(readwrite, argmem: none, inaccessiblemem: none, target_mem: none) }
+attributes #1 = { nounwind memory(none) }
+
+!llvm.dbg.cu = !{!0}
+!dx.valver = !{!2}
+!dx.source.contents = !{!3}
+!dx.source.defines = !{!4}
+!dx.source.mainFileName = !{!5}
+!dx.source.args = !{!6}
+!llvm.ident = !{!7}
+!dx.shaderModel = !{!8}
+!dx.version = !{!9}
+!dx.entryPoints = !{!10}
+!llvm.module.flags = !{!13, !14, !15, !16}
+
+; DXIL: !0: additional data: !46
+!0 = distinct !DICompileUnit(language: DW_LANG_HLSL, file: !1, producer: "clang version 24.0.0git (https://github.com/llvm/llvm-project.git 5ab9b3ebbfcf6b49f183d0b3e029e5fd53a9a7af)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{i32 1, i32 8}
+!3 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for -- microsoft/DirectXShaderCompiler issue 3429\0A//\0A// This compute shader is ordinary HLSL. It has ONE groupshared float array and\0A// indexes it in a loop. There is only one groupshared array that any pointer here\0A// could come from, so nothing about it is ambiguous.\0A//\0A//   Pane 1  dxc 1.6.2112       - fails DXIL validation.\0A//   Pane 2  dxc trunk          - still fails: same rule, same two source lines.\0A//   Pane 3  dxc trunk, -Vd     - the SAME compile with validation switched off, so\0A//                                you can see the module the optimizer built.\0A//   Pane 4  clang (HLSL) trunk - compiles the same source; see the caveat below.\0A//\0A// In pane 3, inside define void @main(), find the two merge instructions whose\0A// result type is a groupshared-address-space float pointer, then follow each of\0A// their incoming values back. Every one is an address computation rooted at the\0A// single array declared below. The merged pointer is not ambiguous: the\0A// validator's chain walk only steps through address computations and casts, so it\0A// stops at the merge instruction and rejects it.\0A//\0A// Pane 4 shows clang compiling this source and keeping the address computation\0A// inside each branch, so no merge of groupshared pointers is formed at all.\0A// Caveat: clang does not run DXC's DXIL validator, so pane 4 is evidence about\0A// what clang emits, not about what the validation rule would accept.\0A//\0A// Two things to keep in mind while reading:\0A//   * this banner is part of the compiled source, so every line number the\0A//     compilers report is shifted down from the numbers quoted in the issue;\0A//   * Compiler Explorer runs Release builds on Linux.\0A//\0A// Every shipped dxc release from v1.4.1907 (2019) through v1.9.2607 (2026)\0A// rejects this shader; none has ever compiled it. Compiling with -O0 or -Od does\0A// succeed -- that is the reporter's workaround, and it still works.\0A//==========================================================================//\0A\0Agroupshared float thingies[6];\0Agroupshared uint thingCounter;\0A \0A[numthreads(8, 1, 1)]\0Avoid main() {\0A  if(thingies[thingCounter] >= 0.0) {\0A    for(int ix = thingCounter; ix >= 0; --ix) {\0A      if(thingies[ix] <= 0.0) {\0A        thingies[ix] = 3.0;\0A\0A        break;\0A\0A      }\0A\0A      thingies[ix] = 4.0;\0A\0A    }\0A\0A    ++thingCounter;\0A  }\0A} \0A\0A// Lines 1-21 above are a byte-faithful copy of the minimised repro posted in\0A// issue 3429 (comment of 2024-04-28), blank lines and trailing spaces included,\0A// so the diagnostics reproduce the line:column pairs quoted in that thread.\0A// Do not reflow it. These trailing comment lines shift nothing above them.\0A"}
+!4 = !{}
+!5 = !{!"example.hlsl"}
+!6 = !{!"--driver-mode=dxc", !"-g", !"-Qembed_debug", !"-Fc", !"/app/output.s", !"-fcolor-diagnostics", !"-gen-reproducer=off", !"-hlsl-entry", !"main", !"-T", !"cs_6_0", !"/app/example.hlsl", !"-S", !"-O3"}
+!7 = !{!"clang version 24.0.0git (https://github.com/llvm/llvm-project.git 5ab9b3ebbfcf6b49f183d0b3e029e5fd53a9a7af)"}
+!8 = !{!"cs", i32 6, i32 0}
+!9 = !{i32 1, i32 0}
+!10 = !{ptr @main, !"main", null, null, !11}
+!11 = !{i32 4, !12}
+!12 = !{i32 8, i32 1, i32 1}
+!13 = !{i32 2, !"Dwarf Version", i32 4}
+!14 = !{i32 2, !"Debug Info Version", i32 3}
+!15 = !{i32 2, !"frame-pointer", i32 2}
+!16 = !{i32 2, !"debug-info-assignment-tracking", i1 true}
+!17 = !DILocation(line: 41, column: 15, scope: !18)
+!18 = distinct !DILexicalBlock(scope: !20, file: !19, line: 41, column: 6)
+!19 = !DIFile(filename: "example.hlsl", directory: "/app")
+; DXIL: !20: to be replaced by: !47
+!20 = distinct !DISubprogram(name: "main", linkageName: "_Z4mainv", scope: !19, file: !19, line: 40, type: !21, scopeLine: 40, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !23)
+!21 = !DISubroutineType(types: !22)
+!22 = !{null}
+!23 = !{!24}
+!24 = !DILocalVariable(name: "ix", scope: !25, file: !19, line: 42, type: !27)
+!25 = distinct !DILexicalBlock(scope: !26, file: !19, line: 42, column: 5)
+!26 = distinct !DILexicalBlock(scope: !18, file: !19, line: 41, column: 37)
+!27 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
+!28 = !DILocation(line: 41, column: 6, scope: !18)
+!29 = !DILocation(line: 41, column: 29, scope: !18)
+!30 = !DILocation(line: 0, scope: !25)
+!31 = !DILocation(line: 42, column: 35, scope: !32)
+!32 = distinct !DILexicalBlock(scope: !25, file: !19, line: 42, column: 5)
+!33 = !DILocation(line: 42, column: 5, scope: !25)
+!34 = !DILocation(line: 43, column: 10, scope: !35)
+!35 = distinct !DILexicalBlock(scope: !36, file: !19, line: 43, column: 10)
+!36 = distinct !DILexicalBlock(scope: !32, file: !19, line: 42, column: 47)
+!37 = !DILocation(line: 43, column: 23, scope: !35)
+!38 = !DILocation(line: 44, column: 22, scope: !39)
+!39 = distinct !DILexicalBlock(scope: !35, file: !19, line: 43, column: 31)
+!40 = !DILocation(line: 46, column: 9, scope: !39)
+!41 = !DILocation(line: 50, column: 20, scope: !36)
+!42 = !DILocation(line: 42, column: 41, scope: !32)
+!43 = distinct !{!43}
+!44 = !DILocation(line: 54, column: 5, scope: !26)
+!45 = !DILocation(line: 55, column: 3, scope: !26)
+!46 = !{!20}
+!47 = !DISubprogram(name: "main", linkageName: "_Z4mainv", scope: !19, file: !19, line: 40, type: !21, scopeLine: 40, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !23)

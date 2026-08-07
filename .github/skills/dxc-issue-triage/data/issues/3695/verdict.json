@@ -1,0 +1,23 @@
+{
+  "batch": "batch-009",
+  "confidence": "high",
+  "created_at": "2021-04-19T19:07:47Z",
+  "expected_symptom": "dxc terminates with an internal compiler failure (assert / access violation) on an invalid shader, emitting no diagnostic",
+  "godbolt_url": "https://godbolt.org/z/aqPedMGE4",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (all 20 releases probed linearly, no invalid probes). v1.4.1907 (2019-07) and v1.5.2010 (2020-10) both predate the 2021-04-19 report and both crash, so this covers the issue's whole life. Not an NDEBUG artefact: the releases are NDEBUG builds and they access-violate, and gh-ing past the assert locally reaches the same fault.",
+  "labels": "bug,crash,incorrect-code",
+  "labels_add": "diagnostic",
+  "labels_now": "bug,crash,incorrect-code",
+  "notes_path": "data/issues/3695/notes.md",
+  "number": 3695,
+  "repro_quality": "complete",
+  "reviewed_by": "GPT (collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still crashes on main (1.9.0.5433, ab5400907) and on all 20 bisectable releases measured from v1.4.1907..v1.9.2607: Debug asserts on a null pointer in DxilLowerCreateHandleForLib (0xE0000001), all 20 access-violate (0xC0000005), and v1.4.1907/v1.5.2010 crash with no output at all. Minimised to 10 lines; the trigger named in the body -- assigning one global RWTexture2D to another -- is diagnosed rather than crashed, and the 10-line crashing reduction uses a round trip through a resource-returning function back into the same global. hlsl_clang_trunk rejects the same source with a located diagnostic.",
+  "title": "DXC Crash on Bad Shader",
+  "triaged_at": "2026-08-07T18:31:14+00:00",
+  "triaged_by": "claude-opus-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3695"
+}

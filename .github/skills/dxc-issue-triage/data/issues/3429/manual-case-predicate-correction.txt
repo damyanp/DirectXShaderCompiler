@@ -1,0 +1,41 @@
+# issue: 3429
+# what: the capture that falsified the first version of match.json.
+#
+# match.json was originally: contains "error: TGSM pointers must originate from an
+# unambiguous TGSM global variable." -- with the "error: " prefix, copied from the
+# reporter's 2024-04-28 paste. Under that predicate `bisect --linear` scored v1.4.1907
+# no-repro and reported "non-monotonic history, transitions at v1.5.2010 -> repro".
+#
+# The capture below, preserved byte-for-byte as the tool wrote it under the OLD predicate
+# (note its "# verdict: no-repro"), is why that transition is not real: v1.4.1907 emits the
+# SAME validation rule for the SAME two instructions, framed differently -- an instruction
+# address and a block name, instead of an "error: " prefix plus a source line:column and the
+# IR text. match.json was then loosened to the rule text alone and every release re-probed.
+#
+# Filed as manual-case-*.txt so it is not mistaken for a probe of the current predicate.
+# ---------------------------------------------------------------------------------------
+
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T17:32:09+00:00
+# cmd: -E main -T cs_6_0 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -E main -T cs_6_0 repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+at 0x2221ed5c658 inside block .lr.ph._crit_edge of function main TGSM pointers must originate from an unambiguous TGSM global variable.
+at 0x2221ed5c898 inside block .lr.ph6 of function main TGSM pointers must originate from an unambiguous TGSM global variable.
+
+Validation failed.
+
+
+

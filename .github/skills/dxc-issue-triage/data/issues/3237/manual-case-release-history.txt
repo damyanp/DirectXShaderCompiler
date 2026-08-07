@@ -1,0 +1,182 @@
+#3237 release history -- ID3D12FunctionParameterReflection::GetDesc
+
+Produced by `python measure.py --history`. Each row drives THAT
+RELEASE's own reflection implementation, by pointing the harness at
+that release's dxcompiler.dll:
+
+    set DXC_REFLECT_DLL=<release>/dxcompiler.dll
+    refl3237.exe -T lib_6_3 <shader>
+
+refl3237.exe is built from refl3237.cpp in this directory; it is inert
+plumbing (it calls IDxcCompiler::Compile and then walks
+IDxcContainerReflection -> ID3D12LibraryReflection ->
+ID3D12FunctionReflection -> ID3D12FunctionParameterReflection). Every
+one of those interfaces is implemented inside dxcompiler.dll, so the
+code under test is the release's, not the harness's.
+
+triage.py bisect cannot produce this table: it resolves a release tag
+to that release's dxc.exe, which never calls the reflection API.
+
+COLUMNS
+  fns    D3D12_LIBRARY_DESC.FunctionCount
+  pcount D3D12_FUNCTION_DESC.FunctionParameterCount
+  param0 HRESULT from ID3D12FunctionParameterReflection::GetDesc(0)
+  ret    HRESULT from GetDesc(D3D_RETURN_PARAMETER_INDEX)
+
+SHADERS
+  repro     export float3 Apply(float3 input) { return input * 2.0f; }
+  as-filed  the issue body's source verbatim, with no `export`
+
+--- shader: repro ---
+
+         release  fns  pcount       param0          ret  verdict
+---------------- ---- ------- ------------ ------------  -------
+       v1.4.1907    1       0   0x80004005   0x80004005  repro
+       v1.5.2003    1       0   0x80004005   0x80004005  repro
+       v1.5.2010    1       0   0x80004005   0x80004005  repro
+       v1.6.2104    1       0   0x80004005   0x80004005  repro
+       v1.6.2106    1       0   0x80004005   0x80004005  repro
+       v1.6.2112    1       0   0x80004005   0x80004005  repro
+       v1.7.2207    1       0   0x80004005   0x80004005  repro
+       v1.7.2212    1       0   0x80004005   0x80004005  repro
+     v1.7.2212.1    1       0   0x80004005   0x80004005  repro
+       v1.7.2308    1       0   0x80004005   0x80004005  repro
+       v1.8.2403    1       0   0x80004005   0x80004005  repro
+     v1.8.2403.1    1       0   0x80004005   0x80004005  repro
+     v1.8.2403.2    1       0   0x80004005   0x80004005  repro
+       v1.8.2405    1       0   0x80004005   0x80004005  repro
+       v1.8.2407    1       0   0x80004005   0x80004005  repro
+       v1.8.2502    1       0   0x80004005   0x80004005  repro
+       v1.8.2505    1       0   0x80004005   0x80004005  repro
+     v1.8.2505.1    1       0   0x80004005   0x80004005  repro
+       v1.9.2602    1       0   0x80004005   0x80004005  repro
+    v1.9.2602.24    1       0   0x80004005   0x80004005  repro
+       v1.9.2607    1       0   0x80004005   0x80004005  repro
+      main-debug    1       0   0x80004005   0x80004005  repro
+
+--- shader: as-filed ---
+
+         release  fns  pcount       param0          ret  verdict
+---------------- ---- ------- ------------ ------------  -------
+       v1.4.1907    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.5.2003    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.5.2010    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.6.2104    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.6.2106    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.6.2112    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.7.2207    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.7.2212    0       -            -            -  invalid-probe  [the library reflects zero functions]
+     v1.7.2212.1    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.7.2308    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.8.2403    0       -            -            -  invalid-probe  [the library reflects zero functions]
+     v1.8.2403.1    0       -            -            -  invalid-probe  [the library reflects zero functions]
+     v1.8.2403.2    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.8.2405    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.8.2407    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.8.2502    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.8.2505    0       -            -            -  invalid-probe  [the library reflects zero functions]
+     v1.8.2505.1    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.9.2602    0       -            -            -  invalid-probe  [the library reflects zero functions]
+    v1.9.2602.24    0       -            -            -  invalid-probe  [the library reflects zero functions]
+       v1.9.2607    0       -            -            -  invalid-probe  [the library reflects zero functions]
+      main-debug    0       -            -            -  invalid-probe  [the library reflects zero functions]
+
+
+VERBATIM. The oldest probeable release, the newest release, and
+ground truth, in full. The command lines are reconstructed with
+subprocess.list2cmdline from the argv that actually ran, with
+paths collapsed to <cache>/<triage>/<repo> placeholders so the
+file is portable; they are not transcriptions.
+
+--- v1.4.1907 ---
+$ set DXC_REFLECT_DLL=<cache>/compilers/releases/v1.4.1907/dxcompiler.dll
+$ <triage>/data/issues/3237/bin/refl3237.exe -T lib_6_3 repro.hlsl
+[exit] 0
+  # refl3237: #3237 library-reflection parameter probe
+  dll: <cache>/compilers/releases/v1.4.1907/dxcompiler.dll
+  source: repro.hlsl
+  IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+  compiler diagnostics:
+  warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+  
+  
+  
+  IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+  IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+  IDxcContainerReflection::GetPartReflection(ID3D12LibraryReflection) -> 0x00000000 (S_OK)
+  ID3D12LibraryReflection::GetDesc -> 0x00000000 (S_OK)
+    D3D12_LIBRARY_DESC.FunctionCount=1
+  ID3D12LibraryReflection::GetFunctionByIndex(0) -> non-null
+  ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+    D3D12_FUNCTION_DESC.Name="\x01?Apply@@YA?AV?$vector@M$02@@V1@@Z"
+    D3D12_FUNCTION_DESC.Version=0x00060063
+    D3D12_FUNCTION_DESC.ConstantBuffers=0
+    D3D12_FUNCTION_DESC.BoundResources=0
+    D3D12_FUNCTION_DESC.RequiredFeatureFlags=0x0
+    D3D12_FUNCTION_DESC.FunctionParameterCount=0
+    D3D12_FUNCTION_DESC.HasReturn=FALSE
+  ID3D12FunctionReflection::GetFunctionParameter(0) -> non-null
+  ID3D12FunctionParameterReflection::GetDesc(param 0) -> 0x80004005 (E_FAIL)
+  ID3D12FunctionParameterReflection::GetDesc(D3D_RETURN_PARAMETER_INDEX) -> 0x80004005 (E_FAIL)
+  SELFCHECK: reached-parameter-getdesc=yes
+  SELFCHECK: function-name-contains-Apply=yes
+  RESULT: PARAM0-GETDESC=0x80004005 RETURN-GETDESC=0x80004005 PARAMCOUNT=0
+
+--- v1.9.2607 ---
+$ set DXC_REFLECT_DLL=<cache>/compilers/releases/v1.9.2607/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/3237/bin/refl3237.exe -T lib_6_3 repro.hlsl
+[exit] 0
+  # refl3237: #3237 library-reflection parameter probe
+  dll: <cache>/compilers/releases/v1.9.2607/bin/x64/dxcompiler.dll
+  source: repro.hlsl
+  IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+  IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+  IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+  IDxcContainerReflection::GetPartReflection(ID3D12LibraryReflection) -> 0x00000000 (S_OK)
+  ID3D12LibraryReflection::GetDesc -> 0x00000000 (S_OK)
+    D3D12_LIBRARY_DESC.FunctionCount=1
+  ID3D12LibraryReflection::GetFunctionByIndex(0) -> non-null
+  ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+    D3D12_FUNCTION_DESC.Name="\x01?Apply@@YA?AV?$vector@M$02@@V1@@Z"
+    D3D12_FUNCTION_DESC.Version=0x00060063
+    D3D12_FUNCTION_DESC.ConstantBuffers=0
+    D3D12_FUNCTION_DESC.BoundResources=0
+    D3D12_FUNCTION_DESC.RequiredFeatureFlags=0x0
+    D3D12_FUNCTION_DESC.FunctionParameterCount=0
+    D3D12_FUNCTION_DESC.HasReturn=FALSE
+  ID3D12FunctionReflection::GetFunctionParameter(0) -> non-null
+  ID3D12FunctionParameterReflection::GetDesc(param 0) -> 0x80004005 (E_FAIL)
+  ID3D12FunctionParameterReflection::GetDesc(D3D_RETURN_PARAMETER_INDEX) -> 0x80004005 (E_FAIL)
+  SELFCHECK: reached-parameter-getdesc=yes
+  SELFCHECK: function-name-contains-Apply=yes
+  RESULT: PARAM0-GETDESC=0x80004005 RETURN-GETDESC=0x80004005 PARAMCOUNT=0
+
+--- main-debug ---
+$ set DXC_REFLECT_DLL=<repo>/build/Debug/bin/dxcompiler.dll
+$ <triage>/data/issues/3237/bin/refl3237.exe -T lib_6_3 repro.hlsl
+[exit] 0
+  # refl3237: #3237 library-reflection parameter probe
+  dll: <repo>/build/Debug/bin/dxcompiler.dll
+  source: repro.hlsl
+  IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+  IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+  IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+  IDxcContainerReflection::GetPartReflection(ID3D12LibraryReflection) -> 0x00000000 (S_OK)
+  ID3D12LibraryReflection::GetDesc -> 0x00000000 (S_OK)
+    D3D12_LIBRARY_DESC.FunctionCount=1
+  ID3D12LibraryReflection::GetFunctionByIndex(0) -> non-null
+  ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+    D3D12_FUNCTION_DESC.Name="\x01?Apply@@YA?AV?$vector@M$02@@V1@@Z"
+    D3D12_FUNCTION_DESC.Version=0x00060063
+    D3D12_FUNCTION_DESC.ConstantBuffers=0
+    D3D12_FUNCTION_DESC.BoundResources=0
+    D3D12_FUNCTION_DESC.RequiredFeatureFlags=0x0
+    D3D12_FUNCTION_DESC.FunctionParameterCount=0
+    D3D12_FUNCTION_DESC.HasReturn=FALSE
+  ID3D12FunctionReflection::GetFunctionParameter(0) -> non-null
+  ID3D12FunctionParameterReflection::GetDesc(param 0) -> 0x80004005 (E_FAIL)
+  ID3D12FunctionParameterReflection::GetDesc(D3D_RETURN_PARAMETER_INDEX) -> 0x80004005 (E_FAIL)
+  SELFCHECK: reached-parameter-getdesc=yes
+  SELFCHECK: function-name-contains-Apply=yes
+  RESULT: PARAM0-GETDESC=0x80004005 RETURN-GETDESC=0x80004005 PARAMCOUNT=0
+

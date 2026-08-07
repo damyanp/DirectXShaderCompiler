@@ -1,0 +1,21 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T17:48:25+00:00
+# cmd: -T lib_6_3 -spirv -fspv-target-env=universal1.5 -default-linkage external variant-default-linkage-external.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-export.json
+# verdict: no-repro
+# variant: default-linkage-external (variant-default-linkage-external.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 -spirv -fspv-target-env=universal1.5 -default-linkage external variant-default-linkage-external.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+fatal error: generated SPIR-V is invalid: No OpEntryPoint instruction was found. This is only allowed if the Linkage or GraphARM capability is being used.
+note: please file a bug report on https://github.com/Microsoft/DirectXShaderCompiler/issues with source code if possible
+
+

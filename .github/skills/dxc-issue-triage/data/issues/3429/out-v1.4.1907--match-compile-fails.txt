@@ -1,0 +1,24 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T17:34:41+00:00
+# cmd: -E main -T cs_6_0 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-compile-fails.json
+# verdict: repro
+
+$ dxc -E main -T cs_6_0 repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+at 0x1f7ffafe258 inside block .lr.ph._crit_edge of function main TGSM pointers must originate from an unambiguous TGSM global variable.
+at 0x1f7ffafde98 inside block .lr.ph6 of function main TGSM pointers must originate from an unambiguous TGSM global variable.
+
+Validation failed.
+
+
+

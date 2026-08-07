@@ -1,0 +1,22 @@
+dxc /Tcs_6_0 /Emain shader.txt
+
+The command line exactly as filed in the issue body.
+
+cmd.txt differs in three cosmetic ways and in nothing else:
+
+  1. `/T`/`/E` are written `-T`/`-E`. Same options; the `-` spelling is also the only one
+     Compiler Explorer's Linux builds can parse, since a `/`-prefixed argument there looks
+     like a path.
+  2. The arguments are separated from their values (`/Tcs_6_0` -> `-T cs_6_0`), which dxc
+     accepts identically.
+  3. The input is named `repro.hlsl` rather than `shader.txt`. It is a byte-for-byte copy of
+     the issue's attachment (SHA-256 2A47875 53E150F6B119C40AF0026ED50B6B0350F15904651CFBE0B7D5E614CDF);
+     `attachment-shader.txt` in this directory is the original, and
+     `variant-as-filed-txt-main-debug.txt` captures the same command run against it, to show
+     the extension changes nothing.
+
+No workaround flags were filed, so there is none to remove.
+
+Note also that damyanp's 2024-07-16 comment links a Compiler Explorer session built with
+`-T cs_6_6` and no `-E`. That is not the configuration in the body; it is captured separately
+as `variant-cs66-main-debug.txt` rather than substituted into cmd.txt.

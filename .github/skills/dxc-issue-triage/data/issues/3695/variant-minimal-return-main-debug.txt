@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T17:36:24+00:00
+# cmd: -T cs_6_0 -E main minimal-return.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: minimal-return (minimal-return.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main minimal-return.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+minimal-return.hlsl:21:7: error: local resource not guaranteed to map to unique global resource.
+  A = local;
+      ^
+
+

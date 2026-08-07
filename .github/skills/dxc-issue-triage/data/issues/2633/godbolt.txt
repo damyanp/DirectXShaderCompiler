@@ -1,0 +1,1 @@
+dxc_1_6_2112:-T lib_6_3 -spirv -fspv-target-env=universal1.5,dxc_trunk:-T lib_6_3 -spirv -fspv-target-env=universal1.5,dxc_trunk:-T lib_6_3 -spirv -fspv-target-env=universal1.5 -DIMPORT_HALF=1,hlsl_clang_trunk:-T lib_6_3 -spirv,hlsl_clang_trunk:-T lib_6_3 -spirv -DIMPORT_HALF=1

@@ -1,0 +1,26 @@
+# compiler: main-debug-refl
+# exe: <triage>/issues/3237/run-refl3237.cmd
+# ran: 2026-08-07T18:13:46+00:00
+# cmd: -T cs_6_0 -E main control-compute.hlsl
+# exit: 2
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: compute (control-compute.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main control-compute.hlsl
+[exe] <triage>/issues/3237/run-refl3237.cmd
+[exit] 2
+--- stdout ---
+# refl3237: #3237 library-reflection parameter probe
+dll: <repo>/build/Debug/bin/dxcompiler.dll
+source: control-compute.hlsl
+IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+IDxcContainerReflection::GetPartReflection(ID3D12LibraryReflection) -> 0x80004002 (E_NOINTERFACE)
+refl3237: WALK-INCOMPLETE: this DXIL part does not expose ID3D12LibraryReflection (not a library?)
+
+--- stderr ---
+

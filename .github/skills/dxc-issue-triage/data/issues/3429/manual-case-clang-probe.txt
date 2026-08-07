@@ -1,0 +1,169 @@
+# issue: 3429
+# what: does CE's HLSL Clang say anything useful about this repro?
+# generator: make-clang-probe.py (committed next to its output)
+# note: each repro request is paired with a CONTROL -- a trivial groupshared compute
+#       shader under identical flags. A Clang failure that the control shares is a
+#       statement about Clang's DXIL backend, not about issue 3429.
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main
+# source:   repro.hlsl
+# exit:     0
+--- stderr ---
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+<source>:7:18: warning: implicit conversion changes signedness: 'uint' (aka 'unsigned int') to 'int' [-Wsign-conversion]
+    7 |     for(int ix = thingCounter; ix >= 0; --ix) {
+      |             ~~   ^~~~~~~~~~~~
+1 warning generated.
+--- stdout ---
+
+--- groupshared-pointer phi/select in the output ---
+none (66 output lines searched)
+--- output ---
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+;
+
+@thingies = external hidden local_unnamed_addr addrspace(3) global [6 x float], align 4
+@thingCounter = external hidden local_unnamed_addr addrspace(3) global i32, align 4
+
+; Function Attrs: noinline nounwind memory(readwrite, argmem: none, inaccessiblemem: none, target_mem: none)
+define void @main() local_unnamed_addr #0 {
+  %1 = load i32, ptr addrspace(3) @thingCounter, align 4, !dbg !17
+  %2 = mul i32 %1, 1, !dbg !28
+  %3 = add i32 0, %2, !dbg !28
+  %4 = getelementptr inbounds nuw [6 x float], ptr addrspace(3) @thingies, i32 0, i32 %3, !dbg !28
+  %5 = load float, ptr addrspace(3) %4, align 4, !dbg !28
+  %6 = fcmp reassoc nnan ninf nsz arcp afn ult float %5, 0.000000e+00, !dbg !29
+  br i1 %6, label %22, label %7, !dbg !29
+
+7:                                                ; preds = %0
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !24, metadata !DIExpression()), !dbg !30
+  tail call void @llvm.dbg.value(metadata i32 %1, metadata !24, metadata !DIExpression()), !dbg !30
+  %8 = icmp sgt i32 %1, -1, !dbg !31
+  br i1 %8, label %9, label %20, !dbg !33
+
+9:                                                ; preds = %7, %17
+  %10 = phi i32 [ %18, %17 ], [ %1, %7 ]
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %10, i64 0, metadata !24, metadata !DIExpression()), !dbg !30
+  tail call void @llvm.dbg.value(metadata i32 %10, metadata !24, metadata !DIExpression()), !dbg !30
+  %11 = mul i32 %10, 1, !dbg !34
+  %12 = add i32 0, %11, !dbg !34
+  %13 = getelementptr inbounds nuw [6 x float], ptr addrspace(3) @thingies, i32 0, i32 %12, !dbg !34
+  %14 = load float, ptr addrspace(3) %13, align 4, !dbg !34
+  %15 = fcmp reassoc nnan ninf nsz arcp afn ugt float %14, 0.000000e+00, !dbg !37
+  br i1 %15, label %17, label %16, !dbg !37
+
+16:                                               ; preds = %9
+  store float 3.000000e+00, ptr addrspace(3) %13, align 4, !dbg !38
+  br label %20, !dbg !40
+
+17:                                               ; preds = %9
+  store float 4.000000e+00, ptr addrspace(3) %13, align 4, !dbg !41
+  %18 = add nsw i32 %10, -1, !dbg !42
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %18, i64 0, metadata !24, metadata !DIExpression()), !dbg !30
+  tail call void @llvm.dbg.value(metadata i32 %18, metadata !24, metadata !DIExpression()), !dbg !30
+  %19 = icmp sgt i32 %10, 0, !dbg !31
+  br i1 %19, label %9, label %20, !dbg !33
+
+20:                                               ; preds = %17, %7, %16
+  %21 = add i32 %1, 1, !dbg !44
+  store i32 %21, ptr addrspace(3) @thingCounter, align 4, !dbg !44
+  br label %22, !dbg !45
+
+22:                                               ; preds = %0, %20
+  ret void
+}
+
+; Function Attrs: nounwind memory(none)
+declare void @llvm.dbg.value(metadata, metadata, metadata) #1
+
+attributes #0 = { noinline nounwind memory(readwrite, argmem: none, inaccessiblemem: none, target_mem: none) }
+attributes #1 = { nounwind memory(none) }
+
+; DXIL: !0: additional data: !46
+; DXIL: !20: to be replaced by: !47
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main
+# source:   control (trivial groupshared compute shader)
+# exit:     0
+--- stderr ---
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+--- stdout ---
+
+--- groupshared-pointer phi/select in the output ---
+none (32 output lines searched)
+--- output ---
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+;
+
+@trivial = external hidden local_unnamed_addr addrspace(3) global [6 x float], align 4
+
+; Function Attrs: noinline nounwind memory(write, argmem: none, inaccessiblemem: none, target_mem: none)
+define void @main() local_unnamed_addr #0 {
+  %1 = call i32 @dx.op.flattenedThreadIdInGroup.i32(i32 96)
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !17, metadata !DIExpression()), !dbg !27
+  tail call void @llvm.dbg.value(metadata i32 %1, metadata !17, metadata !DIExpression()), !dbg !27
+  %2 = mul i32 %1, 1, !dbg !28
+  %3 = add i32 0, %2, !dbg !28
+  %4 = getelementptr inbounds nuw [6 x float], ptr addrspace(3) @trivial, i32 0, i32 %3, !dbg !28
+  store float 1.000000e+00, ptr addrspace(3) %4, align 4, !dbg !29
+  ret void
+}
+
+; Function Attrs: nounwind memory(none)
+declare i32 @dx.op.flattenedThreadIdInGroup.i32(i32) #1
+
+; Function Attrs: nounwind memory(none)
+declare void @llvm.dbg.value(metadata, metadata, metadata) #1
+
+attributes #0 = { noinline nounwind memory(write, argmem: none, inaccessiblemem: none, target_mem: none) }
+attributes #1 = { nounwind memory(none) }
+
+; DXIL: !0: additional data: !30
+; DXIL: !18: to be replaced by: !31
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main -fsyntax-only
+# source:   repro.hlsl
+# exit:     0
+--- stderr ---
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-S' [-Wunused-command-line-argument]
+<source>:7:18: warning: implicit conversion changes signedness: 'uint' (aka 'unsigned int') to 'int' [-Wsign-conversion]
+    7 |     for(int ix = thingCounter; ix >= 0; --ix) {
+      |             ~~   ^~~~~~~~~~~~
+1 warning generated.
+--- stdout ---
+
+--- groupshared-pointer phi/select in the output ---
+none (1 output lines searched)
+--- output ---
+<No output file>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main -fsyntax-only
+# source:   control (trivial groupshared compute shader)
+# exit:     0
+--- stderr ---
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-S' [-Wunused-command-line-argument]
+--- stdout ---
+
+--- groupshared-pointer phi/select in the output ---
+none (1 output lines searched)
+--- output ---
+<No output file>
+

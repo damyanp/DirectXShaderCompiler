@@ -1,0 +1,6 @@
+# Build output. `bin\refl3237.exe` is reproducible from `refl3237.cpp` by
+# running `build-refl3237.cmd`, and a committed binary would be both large and
+# unverifiable. `run-refl3237.cmd` rebuilds it on demand, so a fresh clone
+# needs no extra step.
+bin/
+bin-build.log

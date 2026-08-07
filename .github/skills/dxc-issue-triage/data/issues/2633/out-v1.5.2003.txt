@@ -1,0 +1,27 @@
+# compiler: v1.5.2003
+# exe: <cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe
+# ran: 2026-08-07T17:42:17+00:00
+# cmd: -T lib_6_3 -spirv repro.hlsl ; -T lib_6_3 -spirv lib-export.hlsl
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "CodeGen not available", so this build did not reach the code under test
+
+$ dxc -T lib_6_3 -spirv repro.hlsl
+[exe] <cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : SPIR-V CodeGen not available. Please recompile with -DENABLE_SPIRV_CODEGEN=ON.
+
+
+$ dxc -T lib_6_3 -spirv lib-export.hlsl
+[exe] <cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : SPIR-V CodeGen not available. Please recompile with -DENABLE_SPIRV_CODEGEN=ON.
+

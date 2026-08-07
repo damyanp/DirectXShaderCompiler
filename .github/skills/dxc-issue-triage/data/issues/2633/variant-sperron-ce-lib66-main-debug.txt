@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T17:40:09+00:00
+# cmd: -T lib_6_6 -spirv variant-sperron-ce.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: sperron-ce-lib66 (variant-sperron-ce.hlsl)
+# expect: match
+
+$ dxc -T lib_6_6 -spirv variant-sperron-ce.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-sperron-ce.hlsl:26:23: error: found undefined function
+    output.position = foo(input.position);
+                      ^
+
+

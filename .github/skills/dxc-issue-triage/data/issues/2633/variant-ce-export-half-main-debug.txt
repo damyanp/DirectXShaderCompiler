@@ -1,0 +1,61 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T17:50:50+00:00
+# cmd: -T lib_6_3 -spirv -fspv-target-env=universal1.5 godbolt-source.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: ce-export-half (godbolt-source.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 -spirv -fspv-target-env=universal1.5 godbolt-source.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 11
+; Schema: 0
+               OpCapability MinLod
+               OpCapability StorageImageWriteWithoutFormat
+               OpCapability StorageImageReadWithoutFormat
+               OpCapability FragmentShaderSampleInterlockEXT
+               OpCapability FragmentShaderPixelInterlockEXT
+               OpCapability FragmentShaderShadingRateInterlockEXT
+               OpCapability ComputeDerivativeGroupQuadsKHR
+               OpCapability ComputeDerivativeGroupLinearKHR
+               OpCapability RayQueryKHR
+               OpCapability GroupNonUniformPartitionedEXT
+               OpCapability InterpolationFunction
+               OpCapability QuadControlKHR
+               OpCapability Linkage
+               OpCapability Shader
+               OpExtension "SPV_EXT_fragment_shader_interlock"
+               OpExtension "SPV_KHR_compute_shader_derivatives"
+               OpExtension "SPV_KHR_ray_query"
+               OpExtension "SPV_NV_shader_subgroup_partitioned"
+               OpExtension "SPV_KHR_quad_control"
+               OpMemoryModel Logical GLSL450
+               OpSource HLSL 630
+               OpName %foo "foo"
+               OpName %p "p"
+               OpName %bb_entry "bb.entry"
+               OpDecorate %foo LinkageAttributes "foo" Export
+      %float = OpTypeFloat 32
+  %float_0_5 = OpConstant %float 0.5
+    %v4float = OpTypeVector %float 4
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+          %8 = OpTypeFunction %v4float %_ptr_Function_v4float
+        %foo = OpFunction %v4float None %8
+          %p = OpFunctionParameter %_ptr_Function_v4float
+   %bb_entry = OpLabel
+          %9 = OpLoad %v4float %p
+         %10 = OpVectorTimesScalar %v4float %9 %float_0_5
+               OpReturnValue %10
+               OpFunctionEnd
+
+
+--- stderr ---
+

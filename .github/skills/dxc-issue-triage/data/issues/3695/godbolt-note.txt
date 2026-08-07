@@ -1,0 +1,22 @@
+What to look for (microsoft/DirectXShaderCompiler#3695):
+
+  This shader is INVALID. The correct outcome is a diagnostic. Instead both
+  DXC panes die: read the pane's EXIT STATUS, not its text. On these Linux
+  Release builds the process is killed by a signal and DXC prints nothing
+  before dying -- a near-empty DXC pane here is the bug, not a clean compile.
+
+  Compiler Explorer runs RELEASE builds, so it cannot show the assert. On a
+  local assert-enabled Debug build of main the same input trips an "isa<>
+  used on a null pointer" assertion in llvm/Support/Casting.h and exits
+  0xE0000001; every shipping release binary instead access-violates
+  (0xC0000005). Same defect, two shapes.
+
+  The Clang pane is the successor HLSL front end, and it is the interesting
+  one: it rejects the assignment with a specific Sema error naming the
+  variable, so it never reaches its (incomplete) DXIL backend.
+
+  The construct that matters is the last statement of main: _blurResult is
+  passed to blur(), which returns it, and the result is assigned back to the
+  same global. Assigning one global RWTexture2D to a DIFFERENT one is
+  diagnosed by DXC and does not crash -- it is the round trip through the
+  function back into the same global that does.

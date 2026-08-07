@@ -1,0 +1,4 @@
+{
+  "kind": "nonzero_exit",
+  "note": "Second predicate, bisected separately from match.json. It asks the weaker question 'does this shader fail to compile at all?', which is what separates 'fixed' from 'changed shape': if a release stops emitting the TGSM diagnostic (match.json -> no-match) but still rejects the shader with something else (this -> match), that is changed-behavior, not a fix, and a single predicate would have collapsed the two. Its probes are filed as out-<compiler>--compile-fails.txt so the two histories sit side by side. Note this is deliberately NOT internal_failure: on Windows dxc returns E_FAIL (0x80004005) for ordinary diagnosed errors including DXIL validation failures, so nonzero exit here means 'rejected', not 'crashed'. If a probe were ever to crash, is_internal_failure would say so in the capture header independently."
+}

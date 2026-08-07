@@ -1,0 +1,5 @@
+{
+  "kind": "nonzero_exit",
+  "invert": true,
+  "note": "SECOND PREDICATE, for the OTHER half of the issue body: 'Shader code is invalid - shouldn't compile successfully'. This matches when dxc exits 0, i.e. when it accepted the invalid shader. It exists so that a build which does not crash can be told apart into two very different outcomes: 'now correctly diagnosed' (exit E_FAIL, no match here, no match in match.json) versus 'now silently accepted' (exit 0, matches here) -- the latter is not a fix at all. It is needed because an assert compiled out under NDEBUG can let the unchecked state flow on, and the release binaries this history is bisected over are all NDEBUG builds. Probes under this predicate are filed as out-<compiler>--match-accepts.txt. Note this predicate has no positive anchor and cannot: 'exited 0' is exactly the claim. It is therefore only meaningful when read alongside match.json's history, never on its own."
+}

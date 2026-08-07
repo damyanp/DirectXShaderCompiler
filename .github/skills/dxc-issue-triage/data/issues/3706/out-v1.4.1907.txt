@@ -1,0 +1,133 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T17:37:03+00:00
+# cmd: -T vs_6_2 -E main repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T vs_6_2 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; OUT                      0   x           0     NONE    uint   x   
+;
+;
+; Pipeline Runtime Information: 
+;
+; Vertex Shader
+; OutputPositionPresent=0
+;
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; OUT                      0        nointerpolation       
+;
+; Buffer Definitions:
+;
+; Resource bind info for stbuf
+; {
+;
+;   struct struct.S
+;   {
+;
+;       uint v;                                       ; Offset:    0
+;   
+;   } $Element;                                       ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; stbuf                             texture  struct         r/o      T0             t0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 0, outputs: 1
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%"class.StructuredBuffer<S>" = type { %struct.S }
+%struct.S = type { i32 }
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+
+@"\01?stbuf@@3V?$StructuredBuffer@US@@@@A" = external constant %"class.StructuredBuffer<S>", align 4
+
+define void @main() {
+  %stbuf_texture_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %RawBufferLoad = call %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32 139, %dx.types.Handle %stbuf_texture_structbuf, i32 undef, i32 0, i8 1, i32 4)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %1 = extractvalue %dx.types.ResRet.i32 %RawBufferLoad, 0
+  call void @dx.op.storeOutput.i32(i32 5, i32 0, i32 0, i8 0, i32 %1)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32, %dx.types.Handle, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!7, !12}
+!dx.viewIdState = !{!16}
+!dx.entryPoints = !{!17}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 2}
+!2 = !{i32 1, i32 4}
+!3 = !{!"vs", i32 6, i32 2}
+!4 = !{!5, null, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.StructuredBuffer<S>"* undef, !"stbuf", i32 0, i32 0, i32 1, i32 12, i32 0, !2}
+!7 = !{i32 0, %"class.StructuredBuffer<S>" undef, !8, %struct.S undef, !10}
+!8 = !{i32 4, !9}
+!9 = !{i32 6, !"h", i32 3, i32 0}
+!10 = !{i32 4, !11}
+!11 = !{i32 6, !"v", i32 3, i32 0, i32 7, i32 5}
+!12 = !{i32 1, void ()* @main, !13}
+!13 = !{!14}
+!14 = !{i32 0, !15, !15}
+!15 = !{}
+!16 = !{[2 x i32] [i32 0, i32 1]}
+!17 = !{void ()* @main, !"main", !18, !4, !22}
+!18 = !{null, !19, null}
+!19 = !{!20}
+!20 = !{i32 0, !"OUT", i8 5, i8 0, !21, i8 1, i32 1, i8 1, i32 0, i8 0, null}
+!21 = !{i32 0}
+!22 = !{i32 0, i64 16}
+
+
+--- stderr ---
+

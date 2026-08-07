@@ -1,0 +1,32 @@
+What to look for -- microsoft/DirectXShaderCompiler issue 3429
+
+This compute shader is ordinary HLSL. It has ONE groupshared float array and
+indexes it in a loop. There is only one groupshared array that any pointer here
+could come from, so nothing about it is ambiguous.
+
+  Pane 1  dxc 1.6.2112       - fails DXIL validation.
+  Pane 2  dxc trunk          - still fails: same rule, same two source lines.
+  Pane 3  dxc trunk, -Vd     - the SAME compile with validation switched off, so
+                               you can see the module the optimizer built.
+  Pane 4  clang (HLSL) trunk - compiles the same source; see the caveat below.
+
+In pane 3, inside define void @main(), find the two merge instructions whose
+result type is a groupshared-address-space float pointer, then follow each of
+their incoming values back. Every one is an address computation rooted at the
+single array declared below. The merged pointer is not ambiguous: the
+validator's chain walk only steps through address computations and casts, so it
+stops at the merge instruction and rejects it.
+
+Pane 4 shows clang compiling this source and keeping the address computation
+inside each branch, so no merge of groupshared pointers is formed at all.
+Caveat: clang does not run DXC's DXIL validator, so pane 4 is evidence about
+what clang emits, not about what the validation rule would accept.
+
+Two things to keep in mind while reading:
+  * this banner is part of the compiled source, so every line number the
+    compilers report is shifted down from the numbers quoted in the issue;
+  * Compiler Explorer runs Release builds on Linux.
+
+Every shipped dxc release from v1.4.1907 (2019) through v1.9.2607 (2026)
+rejects this shader; none has ever compiled it. Compiling with -O0 or -Od does
+succeed -- that is the reporter's workaround, and it still works.

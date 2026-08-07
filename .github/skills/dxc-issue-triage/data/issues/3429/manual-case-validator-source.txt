@@ -1,0 +1,34 @@
+# issue: 3429
+# what: does the module DXC emits for repro.hlsl fail the validator built
+#       from this repo's own source, and is the rejected value a phi?
+# generator: make-validator-source-case.py (commit this next to its output)
+# bin: <repo>/build/Debug/bin
+
+==============================================================================
+# emit DXIL with validation disabled, so the optimizer's output survives
+$ <repo>/build/Debug/bin/dxc.exe -E main -T cs_6_0 -Vd -Fc artifact-main-debug-Vd.ll -Fo artifact-main-debug-Vd.dxil repro.hlsl
+[exit] 0 (0x00000000)
+--- stdout ---
+
+--- stderr ---
+
+
+==============================================================================
+# validate that same DXIL with dxv.exe, which is built from this repo's source
+$ <repo>/build/Debug/bin/dxv.exe artifact-main-debug-Vd.dxil
+[exit] 1 (0x00000001)
+--- stdout ---
+Function: main: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%13 = phi float addrspace(3)* [ %8, %7 ], [ %22, %11 ]' in block '#5' of function 'main'.
+Function: main: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%15 = phi float addrspace(3)* [ %22, %19 ], [ %8, %10 ]' in block '#6' of function 'main'.
+Validation failed.
+--- stderr ---
+
+
+==============================================================================
+# every TGSM-pointer-typed phi in the emitted DXIL
+$ grep -n 'phi .*addrspace(3)\*' artifact-main-debug-Vd.ll
+72:   %13 = phi float addrspace(3)* [ %8, %7 ], [ %22, %11 ]
+77:   %15 = phi float addrspace(3)* [ %22, %19 ], [ %8, %10 ]
+

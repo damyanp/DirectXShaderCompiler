@@ -1,0 +1,1 @@
+dxc_1_6_2112,dxc_trunk,dxc_trunk:-T cs_6_0 -E main -Vd,hlsl_clang_trunk

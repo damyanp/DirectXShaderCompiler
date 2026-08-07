@@ -1,0 +1,27 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T17:39:04+00:00
+# cmd: -E main -T cs_6_0 -O1 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: o1 (repro.hlsl)
+# expect: match
+
+$ dxc -E main -T cs_6_0 -O1 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+repro.hlsl:9:22: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%11 = phi float addrspace(3)* [ %8, %7 ], [ %20, %17 ]' in block '#3' of function 'main'.
+repro.hlsl:15:20: error: TGSM pointers must originate from an unambiguous TGSM global variable.
+note: at '%13 = phi float addrspace(3)* [ %20, %17 ], [ %8, %7 ]' in block '#4' of function 'main'.
+Validation failed.
+
+
+

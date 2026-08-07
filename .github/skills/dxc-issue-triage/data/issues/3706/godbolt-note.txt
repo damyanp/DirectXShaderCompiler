@@ -1,0 +1,35 @@
+What to look for (DXC issue 3706)
+
+`j` is declared and never written, then used as the element index of a
+StructuredBuffer. DXC accepts this with no diagnostic at all and exits 0.
+
+In the DXC panes, find the RawBufferLoad call in @main. Its operands are
+    (opcode, handle, index, elementOffset, mask, alignment)
+and the INDEX operand -- the one straight after the handle -- is the
+compiler's placeholder-for-undefined value. That is the whole report.
+
+Read the INDEX slot specifically, not just "is there a placeholder somewhere
+in the line". One in the *elementOffset* slot is required, not a defect: for a
+ByteAddressBuffer the DXIL validator rejects anything else there
+(Instr.CoordinateCountForRawTypedBuf). Checking the wrong slot makes correct
+shaders look broken -- that mistake was made once already, on DXC issue 3009.
+
+Also worth noting:
+
+  * On a local build the module passes DXIL validation and is signed. The
+    validator does police this placeholder value, but only as a value STORED
+    to a UAV (Instr.UndefinedValueForUAVStore), never as a load index.
+    Compiler Explorer cannot show that half: its DXC panes report
+    "DXIL.dll not found", so validation is skipped there.
+
+  * DXC already has the front-end check. Add -Wall or -Wuninitialized to
+    either DXC pane and it reports the read of `j` and points at the
+    declaration. It is simply not in the default warning set.
+
+  * FXC pane: the predecessor compiler rejects this source outright.
+
+  * Clang pane runs -fsyntax-only, because its DXIL backend cannot lower a
+    vertex stage and the errors it produces are about that, not about this
+    issue. It still diagnoses the return statement itself (sign conversion),
+    so the front end is reaching that expression -- it just has nothing to
+    say about `j` being read before it is written.

@@ -1,0 +1,29 @@
+What to look for — #2633, "can HLSL be compiled to a linkable SPIR-V library?"
+
+Compiler Explorer is single-file, so both halves of the question are in this one
+source and -DIMPORT_HALF=1 picks which one is compiled. Every pane below differs
+only in the compiler and that define.
+
+Panes 1-2, dxc 1.6.2112 and dxc trunk, no define — the EXPORT half.
+  Compiles. Look for the Linkage capability, and lower down the decoration
+  marking foo as an Export symbol. That is a relocatable library module, and it
+  has worked since v1.6.2104 (2021-04). It needs -fspv-target-env=universal1.5:
+  Vulkan target envs reject the Linkage capability, so such a module has to be
+  linked before a driver will accept it.
+
+Pane 3, dxc trunk, -DIMPORT_HALF=1 — the IMPORT half.
+  Does not compile: "found undefined function". foo is declared and never
+  defined, and dxc rejects that instead of emitting an Import symbol for a
+  linker to resolve. This is the half that is missing, and the source is
+  @s-perron's own example from the issue thread.
+
+Panes 4-5, clang trunk, the same two halves.
+  Both compile. Clang's HLSL SPIR-V backend emits an Export decoration for the
+  definition and an Import decoration for the undefined declaration — the shape
+  proposed in this thread in 2024. Two differences worth noticing: clang needs
+  no universal1.5 to do it, and it uses Itanium-mangled symbol names where dxc
+  uses the plain source name, so modules from the two compilers would not
+  currently resolve each other's symbols.
+
+Skip the leading "-Qembed_debug unused argument" warning on the clang panes; the
+part that matters is below it.

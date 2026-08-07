@@ -1,0 +1,388 @@
+# Compiler Explorer panes for #2633, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T lib_6_3 -spirv -fspv-target-env=universal1.5
+# exit:     0
+
+; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 12
+; Schema: 0
+               OpCapability Shader
+               OpCapability Linkage
+               OpMemoryModel Logical GLSL450
+          %1 = OpString "/app/example.hlsl"
+               OpSource HLSL 630 %1 "//==========================================================================//
+// What to look for â #2633, \"can HLSL be compiled to a linkable SPIR-V library?\"
+//
+// Compiler Explorer is single-file, so both halves of the question are in this one
+// source and -DIMPORT_HALF=1 picks which one is compiled. Every pane below differs
+// only in the compiler and that define.
+//
+// Panes 1-2, dxc 1.6.2112 and dxc trunk, no define â the EXPORT half.
+//   Compiles. Look for the Linkage capability, and lower down the decoration
+//   marking foo as an Export symbol. That is a relocatable library module, and it
+//   has worked since v1.6.2104 (2021-04). It needs -fspv-target-env=universal1.5:
+//   Vulkan target envs reject the Linkage capability, so such a module has to be
+//   linked before a driver will accept it.
+//
+// Pane 3, dxc trunk, -DIMPORT_HALF=1 â the IMPORT half.
+//   Does not compile: \"found undefined function\". foo is declared and never
+//   defined, and dxc rejects that instead of emitting an Import symbol for a
+//   linker to resolve. This is the half that is missing, and the source is
+//   @s-perron's own example from the issue thread.
+//
+// Panes 4-5, clang trunk, the same two halves.
+//   Both compile. Clang's HLSL SPIR-V backend emits an Export decoration for the
+//   definition and an Import decoration for the undefined declaration â the shape
+//   proposed in this thread in 2024. Two differences worth noticing: clang needs
+//   no universal1.5 to do it, and it uses Itanium-mangled symbol names where dxc
+//   uses the plain source name, so modules from the two compilers would not
+//   currently resolve each other's symbols.
+//
+// Skip the leading \"-Qembed_debug unused argument\" warning on the clang panes; the
+// part that matters is below it.
+//==========================================================================//
+
+// #2633 -- both halves of \"link libraries\" in one file, because Compiler
+// Explorer is single-file. `-DIMPORT_HALF=1` selects the half.
+//
+// This is a TRANSFORMATION of the two-file repro (lib-export.hlsl and
+// repro.hlsl), so it is checked against them locally before being published:
+// variant-ce-export-half-* and variant-ce-import-half-* must reproduce exactly
+// what the separate files do.
+
+#ifndef IMPORT_HALF
+
+// ---- EXPORT half: the library that provides `foo`. ------------------------
+// Compiles. Emits OpCapability Linkage + LinkageAttributes \"foo\" Export.
+
+export float4 foo(float4 p) { return p * 0.5f; }
+
+#else
+
+// ---- IMPORT half: the module that wants to CALL `foo` from elsewhere. -----
+// @s-perron's own case, from https://godbolt.org/z/4s8xaEdTK.
+// Does not compile: there is no way to say \"resolve this at link time\".
+
+struct vertexInfo {
+  float4 position : POSITION;
+};
+
+struct v2p {
+  float4 position : SV_POSITION;
+};
+
+float4 foo(float4 p);
+
+[shader(\"vertex\")] v2p vertexShader(vertexInfo input) {
+  v2p output;
+  output.position = foo(input.position);
+  return output;
+}
+
+#endif
+"
+               OpName %foo "foo"
+               OpName %p "p"
+               OpName %bb_entry "bb.entry"
+               OpDecorate %foo LinkageAttributes "foo" Export
+      %float = OpTypeFloat 32
+  %float_0_5 = OpConstant %float 0.5
+    %v4float = OpTypeVector %float 4
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+          %9 = OpTypeFunction %v4float %_ptr_Function_v4float
+               OpLine %1 46 1
+        %foo = OpFunction %v4float None %9
+               OpLine %1 46 26
+          %p = OpFunctionParameter %_ptr_Function_v4float
+               OpNoLine
+   %bb_entry = OpLabel
+               OpLine %1 46 38
+         %10 = OpLoad %v4float %p
+               OpLine %1 46 40
+         %11 = OpVectorTimesScalar %v4float %10 %float_0_5
+               OpLine %1 46 31
+               OpReturnValue %11
+               OpFunctionEnd
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T lib_6_3 -spirv -fspv-target-env=universal1.5
+# exit:     0
+
+; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 12
+; Schema: 0
+               OpCapability MinLod
+               OpCapability StorageImageWriteWithoutFormat
+               OpCapability StorageImageReadWithoutFormat
+               OpCapability FragmentShaderSampleInterlockEXT
+               OpCapability FragmentShaderPixelInterlockEXT
+               OpCapability FragmentShaderShadingRateInterlockEXT
+               OpCapability ComputeDerivativeGroupQuadsKHR
+               OpCapability ComputeDerivativeGroupLinearKHR
+               OpCapability RayQueryKHR
+               OpCapability GroupNonUniformPartitionedEXT
+               OpCapability InterpolationFunction
+               OpCapability QuadControlKHR
+               OpCapability Linkage
+               OpCapability Shader
+               OpExtension "SPV_EXT_fragment_shader_interlock"
+               OpExtension "SPV_KHR_compute_shader_derivatives"
+               OpExtension "SPV_KHR_ray_query"
+               OpExtension "SPV_NV_shader_subgroup_partitioned"
+               OpExtension "SPV_KHR_quad_control"
+               OpMemoryModel Logical GLSL450
+          %1 = OpString "/app/example.hlsl"
+               OpSource HLSL 630 %1 "//==========================================================================//
+// What to look for — #2633, \"can HLSL be compiled to a linkable SPIR-V library?\"
+//
+// Compiler Explorer is single-file, so both halves of the question are in this one
+// source and -DIMPORT_HALF=1 picks which one is compiled. Every pane below differs
+// only in the compiler and that define.
+//
+// Panes 1-2, dxc 1.6.2112 and dxc trunk, no define — the EXPORT half.
+//   Compiles. Look for the Linkage capability, and lower down the decoration
+//   marking foo as an Export symbol. That is a relocatable library module, and it
+//   has worked since v1.6.2104 (2021-04). It needs -fspv-target-env=universal1.5:
+//   Vulkan target envs reject the Linkage capability, so such a module has to be
+//   linked before a driver will accept it.
+//
+// Pane 3, dxc trunk, -DIMPORT_HALF=1 — the IMPORT half.
+//   Does not compile: \"found undefined function\". foo is declared and never
+//   defined, and dxc rejects that instead of emitting an Import symbol for a
+//   linker to resolve. This is the half that is missing, and the source is
+//   @s-perron's own example from the issue thread.
+//
+// Panes 4-5, clang trunk, the same two halves.
+//   Both compile. Clang's HLSL SPIR-V backend emits an Export decoration for the
+//   definition and an Import decoration for the undefined declaration — the shape
+//   proposed in this thread in 2024. Two differences worth noticing: clang needs
+//   no universal1.5 to do it, and it uses Itanium-mangled symbol names where dxc
+//   uses the plain source name, so modules from the two compilers would not
+//   currently resolve each other's symbols.
+//
+// Skip the leading \"-Qembed_debug unused argument\" warning on the clang panes; the
+// part that matters is below it.
+//==========================================================================//
+
+// #2633 -- both halves of \"link libraries\" in one file, because Compiler
+// Explorer is single-file. `-DIMPORT_HALF=1` selects the half.
+//
+// This is a TRANSFORMATION of the two-file repro (lib-export.hlsl and
+// repro.hlsl), so it is checked against them locally before being published:
+// variant-ce-export-half-* and variant-ce-import-half-* must reproduce exactly
+// what the separate files do.
+
+#ifndef IMPORT_HALF
+
+// ---- EXPORT half: the library that provides `foo`. ------------------------
+// Compiles. Emits OpCapability Linkage + LinkageAttributes \"foo\" Export.
+
+export float4 foo(float4 p) { return p * 0.5f; }
+
+#else
+
+// ---- IMPORT half: the module that wants to CALL `foo` from elsewhere. -----
+// @s-perron's own case, from https://godbolt.org/z/4s8xaEdTK.
+// Does not compile: there is no way to say \"resolve this at link time\".
+
+struct vertexInfo {
+  float4 position : POSITION;
+};
+
+struct v2p {
+  float4 position : SV_POSITION;
+};
+
+float4 foo(float4 p);
+
+[shader(\"vertex\")] v2p vertexShader(vertexInfo input) {
+  v2p output;
+  output.position = foo(input.position);
+  return output;
+}
+
+#endif
+"
+               OpName %foo "foo"
+               OpName %p "p"
+               OpName %bb_entry "bb.entry"
+               OpModuleProcessed "dxc-commit-hash: 13730886"
+               OpModuleProcessed "dxc-cl-option: /app/example.hlsl -E lib.no::entry -T lib_6_3 -Zi -Qembed_debug -spirv -fspv-target-env=universal1.5"
+               OpDecorate %foo LinkageAttributes "foo" Export
+      %float = OpTypeFloat 32
+  %float_0_5 = OpConstant %float 0.5
+    %v4float = OpTypeVector %float 4
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+          %9 = OpTypeFunction %v4float %_ptr_Function_v4float
+               OpLine %1 46 1
+        %foo = OpFunction %v4float None %9
+               OpLine %1 46 26
+          %p = OpFunctionParameter %_ptr_Function_v4float
+               OpNoLine
+   %bb_entry = OpLabel
+               OpLine %1 46 38
+         %10 = OpLoad %v4float %p
+               OpLine %1 46 40
+         %11 = OpVectorTimesScalar %v4float %10 %float_0_5
+               OpLine %1 46 31
+               OpReturnValue %11
+               OpFunctionEnd
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T lib_6_3 -spirv -fspv-target-env=universal1.5 -DIMPORT_HALF=1
+# exit:     5
+
+<source>:66:21: error: found undefined function
+  output.position = foo(input.position);
+                    ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T lib_6_3 -spirv
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+        OpCapability Shader
+        OpCapability Linkage
+        OpCapability FloatControls2
+        OpExtension "SPV_KHR_float_controls2"
+        OpExtension "SPV_KHR_non_semantic_info"
+        %14 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+        OpMemoryModel Logical GLSL450
+        OpSource Unknown 0
+        %15 = OpString "/app/example.hlsl"
+        %16 = OpString "float"
+        %17 = OpString "foo"
+        %18 = OpString "_Z3fooDv4_f"
+        %19 = OpString "float4"
+        %20 = OpString "/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_basic_types.h"
+        %21 = OpString "vector<float, 4>"
+        %22 = OpString ""
+        OpName %10 "_Z3fooDv4_f"
+        OpDecorate %10 LinkageAttributes "_Z3fooDv4_f" Export
+        OpDecorate %13 FPFastMathMode NotNaN|NotInf|NSZ|AllowRecip|AllowContract|AllowReassoc|AllowTransform
+        %1 = OpTypeFloat 32
+        %2 = OpTypeVector %1 4
+        %3 = OpTypeFunction %2 %2
+        %4 = OpTypeInt 32 0
+        %5 = OpTypePointer Private %4
+        %6 = OpConstant %1 0.5
+        %7 = OpConstant %4 0
+        %8 = OpVariable %5 Private %7
+        %9 = OpConstantComposite %2 %6 %6 %6 %6
+        %23 = OpTypeVoid
+        %24 = OpExtInst %23 %14 DebugInfoNone
+        %25 = OpConstant %4 100
+        %26 = OpConstant %4 4
+        %27 = OpConstant %4 5
+        %28 = OpExtInst %23 %14 DebugSource %15
+        %29 = OpExtInst %23 %14 DebugCompilationUnit %25 %26 %28 %27
+        %30 = OpConstant %4 0
+        %31 = OpConstant %4 32
+        %32 = OpConstant %4 3
+        %33 = OpExtInst %23 %14 DebugTypeBasic %16 %31 %32 %30
+        %34 = OpExtInst %23 %14 DebugTypeVector %33 %26
+        %35 = OpExtInst %23 %14 DebugTypedef %21 %34 %28 %30 %30 %29
+        %10 = OpFunction %2 Inline|Pure %3      ; -- Begin function _Z3fooDv4_f
+        %11 = OpFunctionParameter %2
+        %36 = OpLabel
+        ;DEBUG_VALUE: foo:p <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] %0
+        %13 = OpFMul %2 %11 %9
+        OpReturnValue %13
+        OpFunctionEnd
+                                        ; -- End function
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T lib_6_3 -spirv -DIMPORT_HALF=1
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+        OpCapability Shader
+        OpCapability Linkage
+        OpCapability FloatControls2
+        OpExtension "SPV_KHR_float_controls2"
+        OpExtension "SPV_KHR_non_semantic_info"
+        %20 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+        OpMemoryModel Logical GLSL450
+        OpEntryPoint Vertex %16 "vertexShader" %15 %12 %11
+        OpSource Unknown 0
+        %21 = OpString "/app/example.hlsl"
+        %22 = OpString "float"
+        %23 = OpString "foo"
+        %24 = OpString "_Z3fooDv4_f"
+        %25 = OpString "vertexShader"
+        %26 = OpString "_Z12vertexShader10vertexInfo"
+        %27 = OpString "v2p"
+        %28 = OpString ""
+        %29 = OpString "position"
+        %30 = OpString "vertexInfo"
+        %31 = OpString "float4"
+        %32 = OpString "/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_basic_types.h"
+        %33 = OpString "vector<float, 4>"
+        OpName %16 "vertexShader"
+        OpName %12 "POSITION0"
+        OpName %13 "_Z3fooDv4_f"
+        OpName %15 "SV_POSITION"
+        OpDecorate %12 Location 0
+        OpDecorate %13 LinkageAttributes "_Z3fooDv4_f" Import
+        OpDecorate %15 BuiltIn Position
+        OpDecorate %19 FPFastMathMode NotNaN|NotInf|NSZ|AllowRecip|AllowContract|AllowReassoc|AllowTransform
+        %1 = OpTypeVoid
+        %2 = OpTypeFunction %1
+        %3 = OpTypeFloat 32
+        %4 = OpTypeVector %3 4
+        %5 = OpTypeFunction %4 %4
+        %6 = OpTypeInt 32 0
+        %7 = OpTypePointer Output %4
+        %8 = OpTypePointer Input %4
+        %9 = OpTypePointer Private %6
+        %10 = OpConstant %6 0
+        %11 = OpVariable %9 Private %10
+        %12 = OpVariable %8 Input 
+        %15 = OpVariable %7 Output 
+        %34 = OpExtInst %1 %20 DebugInfoNone
+        %35 = OpConstant %6 100
+        %36 = OpConstant %6 4
+        %37 = OpConstant %6 5
+        %38 = OpExtInst %1 %20 DebugSource %21
+        %39 = OpExtInst %1 %20 DebugCompilationUnit %35 %36 %38 %37
+        %40 = OpConstant %6 0
+        %41 = OpConstant %6 32
+        %42 = OpConstant %6 3
+        %43 = OpExtInst %1 %20 DebugTypeBasic %22 %41 %42 %40
+        %44 = OpExtInst %1 %20 DebugTypeVector %43 %36
+        %45 = OpExtInst %1 %20 DebugTypedef %33 %44 %38 %40 %40 %39
+        %46 = OpConstant %6 1
+        %47 = OpConstant %6 58
+        %48 = OpConstant %6 128
+        %49 = OpConstant %6 65536
+        %50 = OpExtInst %1 %20 DebugTypeComposite %27 %46 %38 %47 %40 %39 %28 %48 %49
+        %51 = OpConstant %6 54
+        %52 = OpExtInst %1 %20 DebugTypeComposite %30 %46 %38 %51 %40 %39 %28 %48 %49
+        %13 = OpFunction %4 None %5
+        %14 = OpFunctionParameter %4
+        OpFunctionEnd
+        %16 = OpFunction %1 DontInline %2       ; -- Begin function vertexShader
+        %53 = OpLabel
+        %17 = OpLoad %4 %12 
+        ;DEBUG_VALUE: vertexShader:output <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef, DW_OP_deref] undef
+        ;DEBUG_VALUE: vertexShader:input <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef, DW_OP_deref] undef
+        %19 = OpFunctionCall %4 %13 %17
+        OpStore %15 %19 
+        OpReturn
+        OpFunctionEnd
+                                        ; -- End function

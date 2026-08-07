@@ -1,0 +1,40 @@
+# compiler: main-debug-refl
+# exe: <triage>/issues/3237/run-refl3237.cmd
+# ran: 2026-08-07T18:16:24+00:00
+# cmd: -T lib_6_3 repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T lib_6_3 repro.hlsl
+[exe] <triage>/issues/3237/run-refl3237.cmd
+[exit] 0
+--- stdout ---
+# refl3237: #3237 library-reflection parameter probe
+dll: <repo>/build/Debug/bin/dxcompiler.dll
+source: repro.hlsl
+IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+IDxcContainerReflection::GetPartReflection(ID3D12LibraryReflection) -> 0x00000000 (S_OK)
+ID3D12LibraryReflection::GetDesc -> 0x00000000 (S_OK)
+  D3D12_LIBRARY_DESC.FunctionCount=1
+ID3D12LibraryReflection::GetFunctionByIndex(0) -> non-null
+ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+  D3D12_FUNCTION_DESC.Name="\x01?Apply@@YA?AV?$vector@M$02@@V1@@Z"
+  D3D12_FUNCTION_DESC.Version=0x00060063
+  D3D12_FUNCTION_DESC.ConstantBuffers=0
+  D3D12_FUNCTION_DESC.BoundResources=0
+  D3D12_FUNCTION_DESC.RequiredFeatureFlags=0x0
+  D3D12_FUNCTION_DESC.FunctionParameterCount=0
+  D3D12_FUNCTION_DESC.HasReturn=FALSE
+ID3D12FunctionReflection::GetFunctionParameter(0) -> non-null
+ID3D12FunctionParameterReflection::GetDesc(param 0) -> 0x80004005 (E_FAIL)
+ID3D12FunctionParameterReflection::GetDesc(D3D_RETURN_PARAMETER_INDEX) -> 0x80004005 (E_FAIL)
+SELFCHECK: reached-parameter-getdesc=yes
+SELFCHECK: function-name-contains-Apply=yes
+RESULT: PARAM0-GETDESC=0x80004005 RETURN-GETDESC=0x80004005 PARAMCOUNT=0
+
+--- stderr ---
+
