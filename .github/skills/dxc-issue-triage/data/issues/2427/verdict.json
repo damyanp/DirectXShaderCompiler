@@ -10,11 +10,13 @@
   "notes_path": "issues/2427/notes.md",
   "number": 2427,
   "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
   "summary": "Command line still fails, but correctly so: the trailing backslash escapes the quote during argv splitting, before dxc runs (FXC identical). The real finding is that the agreed fix lapsed - no -Fdd/-Fad exists, and PR #2660 (Fixes #2427) was closed unmerged by an inactivity sweep on 2026-01-22.",
   "title": "Compiler fails on quoted folder parameters finishing with '\\\\' ",
   "triaged_at": "2026-08-06T19:17:26+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/2427"
 }

@@ -37,6 +37,54 @@ just an assertion, and these verdicts are the input to closing or keeping issues
 text no longer matches its behaviour, and issues get edited — so a snapshot of what it said
 when it was measured is part of the evidence.
 
+## Reading a verdict
+
+`verdict.json` is terse by design. The vocabulary it uses:
+
+| `status` | meaning |
+| --- | --- |
+| `repros` | the reported symptom is still observed |
+| `does-not-repro` | the repro runs clean; the symptom is gone |
+| `changed-behavior` | still misbehaves, but differently than reported |
+| `not-compiler-verifiable` | judging it needs a GPU, driver or runtime, not a compiler |
+| `inconclusive` | the repro is too ambiguous to judge |
+
+| `repro_quality` | meaning |
+| --- | --- |
+| `complete` | the issue supplied something that runs as-is |
+| `partial` | supplied, but had to be completed |
+| `prose-only` | described in words, no code |
+| `none` | nothing to work from |
+| `agent-constructed` | built during triage; treat conclusions accordingly |
+
+`history` is either `always-repro'd`, `never-repro'd-in-releases`, or names the release on
+each side of a transition. **The floor is v1.4.1907** — the oldest release shipping a usable
+`dxc` — so `always-repro'd` means "for as long as it is possible to check", not "since it was
+filed".
+
+In an `out-*.txt` header, `# verdict:` is per-probe, not per-issue, and has two further
+values: `invalid-probe` means that compiler never actually ran the repro — it rejected the
+profile, a flag, or a language feature that did not exist yet — so it is evidence of nothing
+and is trimmed from history searches. `unscored` means the issue has no symptom predicate:
+#3150 is a specification gap with nothing to reproduce, but its evidence still records two
+compiler-measurable claims.
+
+A `variant-*.txt` file is a control or a translated variant, never a probe of the primary
+repro. Its `# expect:` header records what it must do — `no-match` for a known-good input the
+predicate must not fire on, `match` for an identity control where sameness is the finding —
+and `reindex` re-checks it on every run.
+
+## Reproducibility check
+
+The evidence is meant to stand without the session that produced it. Verify that rather than
+assume it: give a fresh agent one issue directory, withhold `notes.md`, `verdict.json` and
+`comment.md`, and ask it to derive the verdict and list what it could not determine.
+
+Run it on any issue whose suggested action is `close-fixed`. Doing this on #3038 reproduced
+the verdict and found that the control had been run by hand and never captured — a published
+claim resting on nothing on disk. `triage.py run --shader X --label Y` exists so that
+capturing a control is easier than not capturing it.
+
 ## Getting started on a new machine
 
 ```bash
@@ -53,20 +101,33 @@ machine state, so they are re-registered rather than restored.
 ## reindex is a regression test, not just a restore
 
 Run verdicts are re-derived by running today's predicate code over the archived output, so
-`reindex` re-checks every historical probe and reports two kinds of disagreement:
+`reindex` re-checks every historical probe and reports four kinds of problem:
 
 - **probes today's code scores differently** — a predicate bug found while triaging one
   issue is retroactively applied to every issue already triaged;
 - **probes captured with a command `cmd.txt` no longer specifies** — correcting a repro does
   not delete the outputs captured from the old one, and a superseded probe looks exactly as
-  authoritative as a current one.
+  authoritative as a current one;
+- **controls that no longer do what they were declared to do** — a variant captured with
+  `--expect match|no-match` is an assertion, re-checked forever;
+- **evidence a completed triage should have left behind** — a shader with no captured output,
+  a missing `expected.md`, a verdict with no recorded reviewer.
 
-Both have already caught real problems: three #3873 probes left behind by a profile
-correction, and all 21 of #3768's probes still carrying a workaround that had been removed
-from `cmd.txt`. Neither changed a verdict, but neither was visible without this check.
+All four have caught real problems: three #3873 probes left behind by a profile correction;
+all 21 of #3768's probes still carrying a workaround removed from `cmd.txt`; and, on the
+completeness audit's first run, **six of fifteen issues** with uncaptured control or variant
+output — including two compiler-measured claims in #3150 that had been published with no
+evidence on disk. None of them changed a verdict, and none was visible without the check.
 
-A clean run prints `every probe re-scores as captured, and none are stale`. Treat anything
-else as a finding to explain before adding to the batch.
+This matters most because issues are triaged in **parallel, one session each**. A lesson
+learned on one issue cannot reach the others while they are running, so collation re-scoring
+everything is what applies it retroactively.
+
+Know the edge: `reindex` cannot check reasoning. It will not tell you a repro is unfaithful to
+the issue, that the predicate tests the wrong thing, or that a verdict misreads its own output.
+
+A clean run prints `every probe re-scores as captured, none are stale, and no issue is missing
+required evidence`. Treat anything else as a finding to explain before adding to the batch.
 
 ## Draft comments
 

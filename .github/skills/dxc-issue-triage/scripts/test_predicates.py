@@ -123,9 +123,11 @@ def fake_runs(verdicts):
     seq = list(verdicts)
     calls = {"n": 0}
 
-    def stub(issue, compiler, match_file="match.json", record=True, repeat=1):
+    def stub(issue, compiler, match_file="match.json", record=True, repeat=1,
+             shader=None, label=None, args=None, expect=None):
         if repeat > 1:
-            return _real_execute(issue, compiler, match_file, record, repeat)
+            return _real_execute(issue, compiler, match_file, record, repeat,
+                                 shader, label, args, expect)
         v = seq[min(calls["n"], len(seq) - 1)]
         calls["n"] += 1
         return {"compiler": compiler, "exit": 0 if v == "no-repro" else 1,
@@ -203,6 +205,50 @@ for desc, text, want in [
     ("clean output is NOT an invalid probe", "; shader hash: abc", False),
 ]:
     check(desc, bool(_re.search(_unsupported_re, text)), want)
+
+print()
+
+# --- controls (step 4/7): a control must differ from the repro in exactly one
+# way, so retargeting may touch only the source operand.
+for desc, line, want in [
+    ("replaces the source file",
+     "-T cs_6_5 -E main repro.hlsl", "-T cs_6_5 -E main control.hlsl"),
+    ("leaves an -I path alone",
+     "-I inc.hlsl repro.hlsl", "-I inc.hlsl control.hlsl"),
+    ("leaves an -Fo target alone",
+     "-Fo out.hlsl repro.hlsl", "-Fo out.hlsl control.hlsl"),
+    ("replaces only the first source",
+     "repro.hlsl extra.hlsl", "control.hlsl extra.hlsl"),
+    ("a value-less flag does not shield the source",
+     "-T cs_6_5 -Od repro.hlsl", "-T cs_6_5 -Od control.hlsl"),
+]:
+    check(desc, triage.retarget_cmd(line, "control.hlsl"), want)
+
+try:
+    triage.retarget_cmd("-T cs_6_5 -E main", "control.hlsl")
+    check("refuses a command with no source", "no error", "SystemExit")
+except SystemExit:
+    check("refuses a command with no source", "SystemExit", "SystemExit")
+
+# A control's expected result is the whole point of running it, and it runs in
+# both directions: #3009's control must NOT match (a predicate firing on a
+# correct shader cannot discriminate) while #1803's must (identical DXIL from
+# a column_major declaration is what proves row_major is ignored).
+for desc, expect, verdict, want in [
+    ("negative control that stays clean is fine", "no-match", "no-repro", False),
+    ("negative control that matches is a violation", "no-match", "repro", True),
+    ("identity control that matches is fine", "match", "repro", False),
+    ("identity control that stops matching is a violation", "match", "no-repro", True),
+    ("no declared expectation cannot be violated", None, "repro", False),
+]:
+    check(desc, triage.expectation_violated(expect, verdict), want)
+
+# The bisect stub stands in for execute(); if their signatures drift, the stub
+# silently stops modelling the thing under test.
+import inspect as _inspect
+check("bisect stub mirrors execute()'s signature",
+      str(_inspect.signature(fake_runs([])[0])),
+      str(_inspect.signature(triage.execute)))
 
 print()
 if FAILURES:

@@ -10,11 +10,13 @@
   "notes_path": "issues/3150/notes.md",
   "number": 3150,
   "repro_quality": "prose-only",
+  "reviewed_by": "gpt-5.6-sol",
   "status": "not-compiler-verifiable",
   "suggested_action": "needs-human-judgement",
   "summary": "Spec/docs gap, active design thread (latest 2026-01-22). Checkable facts: the DXIL.rst note planned in 2024-07 never landed; DXC emits LLVM sdiv/udiv not the DXIL UDiv op; and INSTR.NOIDIVBYZERO/NOUDIVBYZERO are unreachable from DXC because a/0 is const-folded to undef first (even at -Od).",
   "title": "Unspecified behavior from new-to-DXIL sdiv instruction",
   "triaged_at": "2026-08-06T19:17:26+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3150"
 }

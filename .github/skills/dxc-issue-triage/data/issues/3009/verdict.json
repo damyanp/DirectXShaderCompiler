@@ -9,11 +9,13 @@
   "labels_now": "bug,validation",
   "number": 3009,
   "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
   "summary": "Uninitialized local silently reaches arithmetic: dxc exits 0, emits 'i32 undef' as an IMad operand, no diagnostic. Reproduces in all 20 releases v1.4.1907..v1.9.2607. Maintainer's SV_Position variant behaves the same with float undef into FMad.",
   "title": "dxc silently passes uninitialized value as undef",
   "triaged_at": "2026-08-06T05:00:55+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3009"
 }

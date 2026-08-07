@@ -11,11 +11,13 @@
   "notes_path": "issues\\1627\\notes.md",
   "number": 1627,
   "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.6-sol",
   "status": "repros",
   "suggested_action": "enhancement-not-bug",
   "summary": "-include never implemented; still rejected on main and every release v1.4.1907-v1.9.2607. Clang has the capability already, reachable as -Xclang -include, so the ask is a driver-level spelling rather than new functionality.",
   "title": "force include file",
   "triaged_at": "2026-08-06T03:47:49+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5480cf8f5fe5da59d797f598a8c12cb5d",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/1627"
 }

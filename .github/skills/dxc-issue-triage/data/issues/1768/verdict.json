@@ -11,11 +11,13 @@
   "notes_path": "issues\\1768\\notes.md",
   "number": 1768,
   "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
   "summary": "GS stream array-of-structs fails internally in every release: assert (Debug main), access violation (v1.4.1907), llvm::cast E_FAIL (v1.9.2607). Should be re-labelled crash.",
   "title": "Arrays of structs in GS OutputStreams are not supported",
   "triaged_at": "2026-08-06T03:20:32+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5480cf8f5fe5da59d797f598a8c12cb5d",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/1768"
 }

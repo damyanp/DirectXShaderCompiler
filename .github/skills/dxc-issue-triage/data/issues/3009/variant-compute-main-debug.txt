@@ -1,0 +1,147 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T00:26:18+00:00
+# cmd: -T cs_6_2 -E main repro-cs.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: compute (repro-cs.hlsl)
+# expect: match
+
+$ dxc -T cs_6_2 -E main repro-cs.hlsl
+[exe] C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: 432e6bcd2bbca25068210fee8fc39f71
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+; cbuffer $Globals
+; {
+;
+;   struct hostlayout.$Globals
+;   {
+;
+;       column_major int2x2 m;                        ; Offset:    0
+;   
+;   } $Globals;                                       ; Offset:    0 Size:    24
+;
+; }
+;
+; Resource bind info for output
+; {
+;
+;   int2 $Element;                                    ; Offset:    0 Size:     8
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; $Globals                          cbuffer      NA          NA     CB0            cb0     1
+; output                                UAV  struct         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.CBufRet.i32 = type { i32, i32, i32, i32 }
+%"class.RWStructuredBuffer<vector<int, 2> >" = type { <2 x i32> }
+%"hostlayout.$Globals" = type { [2 x <2 x i32>] }
+
+define void @main() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %3 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %4 = call %dx.types.CBufRet.i32 @dx.op.cbufferLoadLegacy.i32(i32 59, %dx.types.Handle %2, i32 0)  ; CBufferLoadLegacy(handle,regIndex)
+  %5 = extractvalue %dx.types.CBufRet.i32 %4, 0
+  %6 = extractvalue %dx.types.CBufRet.i32 %4, 1
+  %7 = call %dx.types.CBufRet.i32 @dx.op.cbufferLoadLegacy.i32(i32 59, %dx.types.Handle %2, i32 1)  ; CBufferLoadLegacy(handle,regIndex)
+  %8 = extractvalue %dx.types.CBufRet.i32 %7, 0
+  %9 = extractvalue %dx.types.CBufRet.i32 %7, 1
+  %10 = mul i32 %5, %3
+  %11 = call i32 @dx.op.tertiary.i32(i32 48, i32 undef, i32 %6, i32 %10)  ; IMad(a,b,c)
+  %12 = mul i32 %8, %3
+  %13 = call i32 @dx.op.tertiary.i32(i32 48, i32 undef, i32 %9, i32 %12)  ; IMad(a,b,c)
+  call void @dx.op.rawBufferStore.i32(i32 140, %dx.types.Handle %1, i32 0, i32 0, i32 %11, i32 %13, i32 undef, i32 undef, i8 3, i32 4)  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.rawBufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.i32 @dx.op.cbufferLoadLegacy.i32(i32, %dx.types.Handle, i32) #2
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.tertiary.i32(i32, i32, i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!10}
+
+!0 = !{!"dxc(private) 1.9.0.15422 (main, eff900d54)"}
+!1 = !{i32 1, i32 2}
+!2 = !{i32 1, i32 10}
+!3 = !{!"cs", i32 6, i32 2}
+!4 = !{null, !5, !8, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.RWStructuredBuffer<vector<int, 2> >"* undef, !"", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !7}
+!7 = !{i32 1, i32 8}
+!8 = !{!9}
+!9 = !{i32 0, %"hostlayout.$Globals"* undef, !"", i32 0, i32 0, i32 1, i32 24, null}
+!10 = !{void ()* @main, !"main", null, !4, !11}
+!11 = !{i32 0, i64 16, i32 4, !12}
+!12 = !{i32 1, i32 1, i32 1}
+
+
+--- stderr ---
+

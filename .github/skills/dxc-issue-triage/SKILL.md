@@ -23,6 +23,81 @@ when did that change?** Produce a report backed by on-disk evidence.
 - **Batch and checkpoint.** Triage a handful of issues, then stop and let a human review
   before continuing. Verdict quality degrades silently; unattended full passes hide that.
 
+## How much should live in one session?
+
+**One session per issue, run in parallel, plus a collation session per batch.**
+
+The tempting argument for long sessions — that cross-issue context is what finds method bugs —
+does not survive checking. Of the 16 method lessons in the first three batch reports, **13 were
+discovered inside a single issue**, 2 came from the batch-level draft review, and 1 came from
+`reindex` re-scoring, which uses no session context at all. A seventeenth was found by an agent
+given *no* context at all. What actually crossed issues was **re-recognising** an already-known
+trap, and that is collation work, not discovery work.
+
+Meanwhile long sessions cost real quality. After four issues that still reproduce, the fifth
+gets less scrutiny. And a session spanning a batch will be compacted mid-flight, so its later
+issues are analysed against a summary of the method rather than the method — that is not
+hypothetical, it happened during batch 003.
+
+| phase | job |
+| --- | --- |
+| **open** | select the batch, `labels --refresh`, confirm the ground-truth build |
+| **per issue** | steps 1–9 and 11 for exactly one issue. Parallel. Touches only that issue's directory |
+| **collate** | `reindex`, cross-issue patterns, duplicates, step 10's review, the batch report, and promoting method lessons into `SKILL.md` / `triage.py` |
+
+Two rules make the parallelism safe:
+
+- **A per-issue session never writes shared state.** It does not edit `SKILL.md` or
+  `triage.py`, because a predicate change mid-batch would invalidate verdicts other sessions
+  have already written, and concurrent edits collide. Method observations go in
+  `issues/<nnnn>/method-notes.md`; collation promotes them. Single writer.
+- **Collation runs `reindex` before writing anything.** Because probes are re-scored rather
+  than restored, any lesson promoted during collation is applied retroactively to every issue
+  in the batch — including the ones triaged before it was learned. That is what buys back the
+  lesson-propagation a parallel batch would otherwise lose.
+
+The rule that makes any of this work is that **the conversation is never where a fact lives.**
+Two kinds of context, two destinations:
+
+| context | belongs in | example |
+| --- | --- | --- |
+| about the **method** | `SKILL.md`, `triage.py`, its tests | "absence predicates are satisfied by a failed parse" |
+| about a **verdict** | that issue's artifacts | why this repro, why this predicate, what the control proves |
+
+Anything that exists only in the conversation is a defect, whether or not it is correct.
+
+### What `reindex` guarantees, and what it does not
+
+Parallel triage leans entirely on mechanical checking, so know its edges. `reindex` re-scores
+every probe with today's predicate code, flags probes whose command `cmd.txt` no longer
+specifies, re-checks every control against its declared `--expect`, and audits each issue for
+evidence a completed triage should have left behind.
+
+It cannot check reasoning. It will not tell you a repro is unfaithful to the issue, that the
+predicate tests the wrong thing, or that a verdict misreads its own output. That is what the
+human gate and the blind test are for.
+
+### Test reproducibility, don't assume it
+
+Give a fresh agent **only** one issue directory — barring `notes.md`, `verdict.json` and
+`comment.md`, which contain the conclusion — and ask it to state status, history, repro
+quality, suggested action, which releases are invalid evidence, and *what it could not
+determine*. Then compare.
+
+Run it on at least one issue per batch, and always on any issue whose suggested action is
+`close-fixed`: recommending a close is the highest-stakes verdict, and the one most likely to
+be acted on without re-checking.
+
+Measured on #3038, this reproduced the transition (v1.8.2502 → v1.8.2505), the repro quality,
+the suggested action, and the rejection of v1.4.1907 as unprobeable — and then found a real
+defect: **the control had no captured output.** It had been run by hand, its result published
+in a draft comment, and the evidence never written down. The claim was true and unsupported at
+the same time, which is the failure mode this whole workflow exists to prevent.
+
+The lesson generalised into tooling rather than a reminder: `run --shader X --label Y --expect`
+makes capturing a control the easy path, because a step that depends on remembering to do it by
+hand is a step that will be skipped. **A control nobody can re-run is not a control.**
+
 ## Setup
 
 Artifacts and cache live in **two separate roots**, and the split is the whole storage
@@ -234,6 +309,35 @@ you happen to run will report it fixed:
 predicates too: run the predicate against an input you *know* is good, and require it not to
 match. A predicate that matches everything is indistinguishable from a bug that reproduces
 everywhere.
+
+```bash
+python triage.py run --issue <N> --shader control-separate-raydesc.hlsl \
+    --label control --expect no-match
+```
+
+`--shader` reuses the repro's exact arguments against a different source, so the control and
+the repro differ in exactly one way. Use `--args` instead when the variant changes shader
+stage and therefore cannot reuse the command. Output goes to
+`variant-<label>-<compiler>.txt`, which is deliberately *not* scored as a probe of the primary
+repro — a control that behaves differently is the point, not a disagreement to chase.
+
+**Always declare `--expect`.** It is recorded in the output header and re-checked on every
+`reindex`, which turns the control from an observation into a permanent assertion. It runs in
+both directions, and both are real:
+
+| | |
+| --- | --- |
+| `--expect no-match` | a **negative** control: a known-good input the predicate must not fire on. #3009's predicate matched a fully-correct shader until it was narrowed |
+| `--expect match` | an **identity** control: #1803's shader declared `column_major` must produce *identical* DXIL to the `row_major` original, because that identity is what proves the attribute is ignored |
+
+Getting this backwards is easy and the check catches it: a blanket "warn if a control matches"
+rule reports #1803's central finding as a predicate bug.
+
+> **Capture the control, every time.** #3038's control was run by hand and its result quoted
+> in the report and the draft comment, but the output was never written down — a published
+> claim that existed only in the operator's memory. It happened to be true. `reindex` now
+> fails an issue that has a shader with no captured output, because a control nobody can
+> re-run is not a control.
 
 > Measured on #3009: a predicate matching any `undef` operand of any `dx.op` **also matched a
 > fully-correct shader**, because several DXIL ops carry structurally-undef operands in
@@ -581,7 +685,8 @@ is actually deserved caution. Two categories worth accepting almost every time:
   emits any warning at all.
 
 Where you reject a suggestion, know why. Record anything that changes the method in the batch
-report.
+report, and record the reviewer itself with `verdict --reviewed-by <model>` — a required step
+that leaves no trace is one you cannot later tell was skipped.
 
 **Re-run the review when a draft changes materially.** A draft rewritten after new evidence has
 not been reviewed, and the second pass finds different things than the first. Brief the reviewer
@@ -636,8 +741,15 @@ read is far stronger evidence than an output observation. Then record the verdic
 ```bash
 python triage.py verdict --issue <N> --status repros --repro-quality complete \
   --history "always-repro'd" --confidence high --suggested-action still-valid-keep-open \
-  --summary "..." --notes-path issues/<nnnn>/notes.md --triaged-with-commit <sha>
+  --summary "..." --notes-path issues/<nnnn>/notes.md --triaged-with-commit <sha> \
+  --triaged-by "<model>" --reviewed-by "<reviewer model>"
 ```
+
+`--triaged-with-commit` records which compiler was measured; `--triaged-by` and
+`--reviewed-by` record who did the measuring and who checked the write-up. Record all three.
+A verdict is weighed differently depending on which model produced it, and step 10's review is
+mandatory but unfalsifiable if nothing on disk says it happened — an empty `reviewed_by` is
+the only way a skipped review is visible later.
 
 Suggested actions (recorded, **never applied**): `close-fixed`,
 `needs-repro-from-reporter`, `still-valid-keep-open`, `needs-human-judgement`,

@@ -1,0 +1,14 @@
+# #3150 is not-compiler-verifiable: it is a specification gap, not a defect, so
+# there is no match.json and these probes are recorded unscored.
+#
+# They exist because the verdict makes two claims that ARE compiler-measurable:
+#   1. DXC emits the LLVM sdiv/udiv instructions, not the DXIL UDiv operation
+#      that docs/DXIL.rst actually documents divide-by-zero for.
+#   2. INSTR.NOIDIVBYZERO / NOUDIVBYZERO are unreachable from DXC, because a
+#      constant zero denominator is const-folded to undef before validation
+#      ever sees a division -- see the probe-constzero variant, run at -Od.
+#
+# Both were originally measured by hand and never captured, which is the same
+# defect the #3038 control had. -Qkeep_reflect_in_dxil is not needed; the DXIL
+# text output is what carries the evidence.
+-T cs_6_0 -E main repro.hlsl

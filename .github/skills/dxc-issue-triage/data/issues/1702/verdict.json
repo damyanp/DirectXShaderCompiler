@@ -12,11 +12,13 @@
   "notes_path": "issues\\1702\\notes.md",
   "number": 1702,
   "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
   "summary": "Unsized array param: no X3072 diagnostic, call silently dropped, empty main() emitted. Reported 2018 crash is absent from every shipping release - issue text is stale.",
   "title": "Array as parameter of function",
   "triaged_at": "2026-08-06T03:20:32+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5480cf8f5fe5da59d797f598a8c12cb5d",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/1702"
 }

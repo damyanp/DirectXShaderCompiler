@@ -11,11 +11,13 @@
   "notes_path": "issues\\0708\\notes.md",
   "number": 708,
   "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.6-sol",
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
   "summary": "register(t1[27]) offset silently dropped; resource binds at t1. RegisterOffset is parsed and stored but never read by binding assignment. Unchanged v1.4.1907-v1.9.2607.",
   "title": "RegisterOffset is being ignored from RegisterAssignment",
   "triaged_at": "2026-08-06T03:20:31+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5480cf8f5fe5da59d797f598a8c12cb5d",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/708"
 }

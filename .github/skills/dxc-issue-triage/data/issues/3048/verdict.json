@@ -10,11 +10,13 @@
   "labels_remove": "check-in-clang",
   "number": 3048,
   "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
   "summary": "Derived-to-base conversion crashes codegen (LLVM assert, 0xE0000001, in CGMSHLSLRuntime::ConvertAndStoreElements). Reproduces in all 20 releases v1.4.1907..v1.9.2607.",
   "title": "Casting subclass to parent of three class heirarchy causes crashes",
   "triaged_at": "2026-08-06T05:00:56+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3048"
 }

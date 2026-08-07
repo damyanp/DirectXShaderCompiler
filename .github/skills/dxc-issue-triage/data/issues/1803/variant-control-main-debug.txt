@@ -1,12 +1,18 @@
-# compiler: colmajor
-# exe: <cache>/.
-# ran: 
-# cmd: 
-# exit: None
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T00:25:07+00:00
+# cmd: -T ps_6_0 -E main control-colmajor.hlsl
+# exit: 0
 # timed_out: 0
 # match: match.json
-# verdict: 
+# verdict: repro
+# variant: control (control-colmajor.hlsl)
+# expect: match
 
+$ dxc -T ps_6_0 -E main control-colmajor.hlsl
+[exe] C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+[exit] 0
+--- stdout ---
 ;
 ; Input signature:
 ;
@@ -95,4 +101,7 @@ attributes #1 = { nounwind }
 !7 = !{i32 1, i32 16}
 !8 = !{void ()* @main, !"main", null, !4, !9}
 !9 = !{i32 0, i64 16}
+
+
+--- stderr ---
 

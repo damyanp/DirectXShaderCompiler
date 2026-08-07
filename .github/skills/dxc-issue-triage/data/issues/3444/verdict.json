@@ -9,11 +9,13 @@
   "labels_now": "bug,tech-debt,diagnostic",
   "number": 3444,
   "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
   "summary": "Float-typed SV_DispatchThreadID hits a bad llvm::cast. Never fixed in any release; severity softened from silent access violation (v1.4-v1.6.2104) to a caught internal error, but the leaked cast<X>() text is still not a real diagnostic. Issue title is REFUTED: float, float2, float3 and float4 all fail identically; uint3 control compiles clean.",
   "title": "[DXIL] Decorating CS float argument with SV_DispatchThreadID semantic crashes the compiler (float2, float3 and float4 works)",
   "triaged_at": "2026-08-06T05:00:56+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3444"
 }

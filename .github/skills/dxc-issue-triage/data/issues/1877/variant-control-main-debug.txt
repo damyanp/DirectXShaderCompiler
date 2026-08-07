@@ -1,12 +1,18 @@
-# compiler: append
-# exe: <cache>/.
-# ran: 
-# cmd: 
-# exit: None
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T00:25:07+00:00
+# cmd: -T ps_6_0 -E main control-rw.hlsl
+# exit: 0
 # timed_out: 0
 # match: match.json
-# verdict: 
+# verdict: no-repro
+# variant: control (control-rw.hlsl)
+# expect: no-match
 
+$ dxc -T ps_6_0 -E main control-rw.hlsl
+[exe] C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+[exit] 0
+--- stdout ---
 ;
 ; Input signature:
 ;
@@ -19,7 +25,7 @@
 ; Name                 Index   Mask Register SysValue  Format   Used
 ; -------------------- ----- ------ -------- -------- ------- ------
 ; no parameters
-; shader hash: 23a80d440b546cf580b9d54d1eafea3d
+; shader hash: d75d4a327270fcd3dfec9565fca7c205
 ;
 ; Pipeline Runtime Information: 
 ;
@@ -79,14 +85,14 @@
 ; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
 ; ------------------------------ ---------- ------- ----------- ------- -------------- ------
 ; $Globals                          cbuffer      NA          NA     CB0            cb0     1
-; output                                UAV  struct     r/w+cnt      U0             u0     1
+; output                                UAV  struct         r/w      U0             u0     1
 ;
 target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
 target triple = "dxil-ms-dx"
 
 %dx.types.Handle = type { i8* }
-%dx.types.CBufRet.i32 = type { i32, i32, i32, i32 }
-%"class.AppendStructuredBuffer<I32>" = type { %struct.I32 }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+%"class.RWStructuredBuffer<I32>" = type { %struct.I32 }
 %struct.I32 = type { i32 }
 %"$Globals" = type { %struct.F32 }
 %struct.F32 = type { float }
@@ -94,27 +100,24 @@ target triple = "dxil-ms-dx"
 define void @main() {
   %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
   %2 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
-  %3 = call %dx.types.CBufRet.i32 @dx.op.cbufferLoadLegacy.i32(i32 59, %dx.types.Handle %2, i32 0)  ; CBufferLoadLegacy(handle,regIndex)
-  %4 = extractvalue %dx.types.CBufRet.i32 %3, 0
-  %5 = call i32 @dx.op.bufferUpdateCounter(i32 70, %dx.types.Handle %1, i8 1)  ; BufferUpdateCounter(uav,inc)
-  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 %5, i32 0, i32 %4, i32 undef, i32 undef, i32 undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  %3 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %2, i32 0)  ; CBufferLoadLegacy(handle,regIndex)
+  %4 = extractvalue %dx.types.CBufRet.f32 %3, 0
+  %5 = fptosi float %4 to i32
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 0, i32 0, i32 %5, i32 undef, i32 undef, i32 undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
   ret void
 }
 
-; Function Attrs: nounwind
-declare i32 @dx.op.bufferUpdateCounter(i32, %dx.types.Handle, i8) #0
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #0
 
 ; Function Attrs: nounwind readonly
-declare %dx.types.CBufRet.i32 @dx.op.cbufferLoadLegacy.i32(i32, %dx.types.Handle, i32) #1
-
-; Function Attrs: nounwind readonly
-declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #0
 
 ; Function Attrs: nounwind
-declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #0
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #1
 
-attributes #0 = { nounwind }
-attributes #1 = { nounwind readonly }
+attributes #0 = { nounwind readonly }
+attributes #1 = { nounwind }
 
 !llvm.ident = !{!0}
 !dx.version = !{!1}
@@ -129,10 +132,13 @@ attributes #1 = { nounwind readonly }
 !3 = !{!"ps", i32 6, i32 0}
 !4 = !{null, !5, !8, null}
 !5 = !{!6}
-!6 = !{i32 0, %"class.AppendStructuredBuffer<I32>"* undef, !"", i32 0, i32 0, i32 1, i32 12, i1 false, i1 true, i1 false, !7}
+!6 = !{i32 0, %"class.RWStructuredBuffer<I32>"* undef, !"", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !7}
 !7 = !{i32 1, i32 4}
 !8 = !{!9}
 !9 = !{i32 0, %"$Globals"* undef, !"", i32 0, i32 0, i32 1, i32 4, null}
 !10 = !{void ()* @main, !"main", null, !4, !11}
 !11 = !{i32 0, i64 16}
+
+
+--- stderr ---
 

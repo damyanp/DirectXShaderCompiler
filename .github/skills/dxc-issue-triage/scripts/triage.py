@@ -130,6 +130,11 @@ ISSUE_FIELDS = [
     "summary", "expected_symptom", "notes_path", "triaged_at",
     "triaged_with_commit", "godbolt_url", "godbolt_skip",
     "labels_now", "labels_add", "labels_remove",
+    # Provenance. `triaged_with_commit` says which compiler was measured;
+    # these say who did the measuring and who checked the write-up. A verdict
+    # is read differently depending on which model produced it, and step 10's
+    # independent review is unverifiable if nothing records that it happened.
+    "triaged_by", "reviewed_by",
 ]
 
 # Columns added after the first release of this script. Applied on connect so
@@ -137,6 +142,7 @@ ISSUE_FIELDS = [
 MIGRATIONS = {"issues": {
     "godbolt_url": "TEXT", "godbolt_skip": "TEXT", "labels_now": "TEXT",
     "labels_add": "TEXT", "labels_remove": "TEXT",
+    "triaged_by": "TEXT", "reviewed_by": "TEXT",
 }}
 
 
@@ -524,14 +530,50 @@ def cmd_fetch(a):
     print(f"  comments: {len(j['comments'])}  -> {d}")
 
 
+VALUE_FLAGS = {"-i", "-e", "-t", "-d", "-fo", "-fh", "-fc", "-fe", "-fd",
+               "-fre", "-frs", "-fsh", "-vn", "-exports", "-x"}
+
+
+def retarget_cmd(line, shader):
+    """Point one cmd.txt line at a different source file.
+
+    Only the source operand changes, so a control is run with byte-identical
+    arguments to the repro. A flag's *value* is a separate token -- `-I` takes
+    a path, `-Fo` a filename -- and must survive untouched, or the control
+    stops differing from the repro in exactly one way.
+    """
+    toks = line.split()
+    out, replaced, prev = [], False, ""
+    for tok in toks:
+        is_source = (not replaced
+                     and tok.lower().endswith(".hlsl")
+                     and not tok.startswith(("-", "/"))
+                     and prev.lower().rstrip(":=") not in VALUE_FLAGS)
+        out.append(shader if is_source else tok)
+        replaced = replaced or is_source
+        prev = tok
+    if not replaced:
+        raise SystemExit(f"no source file to replace in: {line}")
+    return " ".join(out)
+
+
 def classify(issue, text, rc, timed_out, match_file="match.json"):
-    """Score one probe: repro | no-repro | invalid-probe.
+    """Score one probe: repro | no-repro | invalid-probe | unscored.
 
     Kept as a free function rather than inlined into `execute` so that
     `reindex` scores committed evidence with *exactly* the code that scored it
     live. If the two could drift, a rebuild could silently disagree with the
     run that produced the file, and the disagreement would look like a finding.
+
+    Not every issue has a symptom predicate. #3150 is a specification gap with
+    nothing to reproduce, and #2427's evidence is four command lines rather
+    than compiler output -- but both still make compiler-measurable claims
+    worth capturing. Returning `unscored` keeps that evidence first-class
+    instead of forcing a meaningless verdict onto it.
     """
+    if not os.path.isfile(os.path.join(issue_dir(issue), match_file)):
+        return "unscored"
+
     verdict = "repro" if matches(issue, text, rc, timed_out, match_file) \
         else "no-repro"
 
@@ -572,7 +614,8 @@ def classify(issue, text, rc, timed_out, match_file="match.json"):
     return verdict
 
 
-def execute(issue, compiler, match_file="match.json", record=True, repeat=1):
+def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
+            shader=None, label=None, args=None, expect=None):
     """Run an issue's repro and classify the result.
 
     `repeat` runs the whole command list several times and reports the symptom
@@ -587,7 +630,8 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1):
     if repeat > 1:
         attempts, seen = [], []
         for i in range(repeat):
-            r = execute(issue, compiler, match_file, record=False, repeat=1)
+            r = execute(issue, compiler, match_file, record=False, repeat=1,
+                        shader=shader, label=label, args=args, expect=expect)
             attempts.append(r)
             seen.append(r["verdict"])
             if r["verdict"] == "repro":
@@ -613,8 +657,25 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1):
 
     d = issue_dir(issue)
     exe = resolve_compiler(compiler)
-    with open(os.path.join(d, "cmd.txt")) as f:
-        cmds = [ln.strip() for ln in f if ln.strip() and not ln.startswith("#")]
+    cmd_path = os.path.join(d, "cmd.txt")
+    if args:
+        # A translated variant changes the shader stage, so it cannot reuse the
+        # repro's arguments -- #1702's compute translation of a pixel repro
+        # needs -T cs_6_0. The header records exactly what ran, so provenance
+        # survives the arguments differing.
+        cmds = [args]
+    else:
+        with open(cmd_path) as f:
+            cmds = [ln.strip() for ln in f if ln.strip() and not ln.startswith("#")]
+
+    # A control is the same command pointed at a different shader, so that the
+    # only thing differing between it and the repro is the thing under test.
+    # Making this a flag rather than a manual invocation is deliberate: #3038's
+    # control was run by hand, its result was published in a draft comment, and
+    # the output was never captured -- the claim survived only in the
+    # operator's head. A control nobody can re-run is not a control.
+    if shader:
+        cmds = [retarget_cmd(line, shader) for line in cmds]
 
     chunks, worst_rc, timed_out = [], 0, False
     for line in cmds:
@@ -634,14 +695,25 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1):
 
     text = "\n".join(chunks)
     verdict = classify(issue, text, worst_rc, timed_out, match_file)
-    out_path = os.path.join(d, f"out-{compiler}.txt")
+    # Variants are stored under a name reindex will not score against the
+    # primary predicate: a control that legitimately behaves differently from
+    # the repro is not a disagreement to investigate. The `variant:` header
+    # names the shader so the completeness audit can tell a control that was
+    # captured from one that was only ever run by hand.
+    subject = shader or next(
+        (t for t in cmds[0].split() if t.lower().endswith(".hlsl")), "?")
+    out_path = os.path.join(
+        d, f"variant-{label}-{compiler}.txt" if label else f"out-{compiler}.txt")
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(f"# compiler: {compiler}\n# exe: {display_exe(exe)}\n"
                 f"# ran: {now()}\n# cmd: {' ; '.join(cmds)}\n"
                 f"# exit: {worst_rc}\n# timed_out: {int(timed_out)}\n"
-                f"# match: {match_file}\n# verdict: {verdict}\n\n{text}")
+                f"# match: {match_file}\n# verdict: {verdict}\n"
+                + (f"# variant: {label} ({subject})\n" if label else "")
+                + (f"# expect: {expect}\n" if expect else "")
+                + f"\n{text}")
 
-    if record:
+    if record and not label:
         c = con()
         c.execute("INSERT INTO runs (issue_number, compiler, cmd, exit_code,"
                   " timed_out, output_path, verdict, note, ran_at)"
@@ -653,14 +725,46 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1):
             "verdict": verdict, "output": out_path, "text": text}
 
 
+def expectation_violated(expect, verdict):
+    """True when a control did not do what it was declared to do.
+
+    A control's value is entirely in its expected result, and that expectation
+    is knowledge that otherwise lives only in prose. Recording it turns the
+    control into an assertion `reindex` can re-check forever.
+
+    Both directions are real. #3009's control must NOT match -- a predicate
+    that fires on a correct shader cannot discriminate. #1803's control must
+    match: it is the same shader declared column_major, so identical DXIL is
+    what proves the row_major attribute is ignored. Warning on a match alone
+    would call that finding a bug.
+    """
+    if expect not in ("match", "no-match"):
+        return False
+    return (verdict == "repro") != (expect == "match")
+
+
 def cmd_run(a):
-    r = execute(a.issue, a.compiler, a.match, repeat=a.repeat)
+    if a.label and not (a.shader or a.args):
+        sys.exit("--label needs --shader (a control: same arguments, different "
+                 "source) or --args (a translation: different stage)")
+    if (a.shader or a.args) and not a.label:
+        sys.exit("--shader/--args need --label, so the output is filed as a "
+                 "variant rather than overwriting the repro's probe")
+    r = execute(a.issue, a.compiler, a.match, repeat=a.repeat,
+                shader=a.shader, label=a.label, args=a.args, expect=a.expect)
     extra = ""
     if r.get("attempts", 1) > 1:
         extra = f" [{r['hits']}/{r['attempts']} runs showed it]"
     print(f"{r['compiler']}: exit={r['exit']} timed_out={r['timed_out']}"
           f" -> {r['verdict']}{extra}")
     print(f"output: {r['output']}")
+    if expectation_violated(a.expect, r["verdict"]):
+        print(f"WARNING: control expected {a.expect} but scored {r['verdict']}."
+              f" Either the predicate does not discriminate, or the control is"
+              f" not what you think it is.")
+    elif a.label and not a.expect:
+        print("note: no --expect recorded, so nothing re-checks this control "
+              "on reindex.")
     if a.show:
         print("\n" + r["text"])
 
@@ -1074,6 +1178,86 @@ def cmd_verdict(a):
     write_verdict_json(a.issue)
 
 
+def audit_issue(d, number, rec):
+    """Report artifacts a completed triage should have left behind.
+
+    The other two reindex checks re-verify evidence that *exists*. This one
+    looks for evidence that should exist and does not -- the failure mode that
+    survives every mechanical check because there is nothing to check.
+
+    It matters most when issues are triaged in parallel sessions, where a
+    lesson learned on one issue cannot reach the others and collation is the
+    only place a gap gets caught. Every entry below is a mistake already made:
+    #3038 published a control result whose output was never captured, and the
+    mandatory independent review ran on all three batches while leaving nothing
+    on disk to prove it.
+    """
+    gaps = []
+    has = lambda f: os.path.isfile(os.path.join(d, f))
+    files = os.listdir(d)
+
+    if not has("expected.md"):
+        gaps.append("no expected.md -- the symptom was never stated before "
+                    "running (step 2)")
+
+    # A shader that is not the repro is a control or a translated variant, and
+    # exists only to be compared against it. If nothing captured its output,
+    # any claim resting on it is unsupported -- exactly #3038.
+    sources = set()
+    if has("cmd.txt"):
+        with open(os.path.join(d, "cmd.txt")) as f:
+            for ln in f:
+                if ln.strip() and not ln.startswith("#"):
+                    prev = ""
+                    for tok in ln.split():
+                        if (tok.lower().endswith(".hlsl")
+                                and not tok.startswith(("-", "/"))
+                                and prev.lower().rstrip(":=") not in VALUE_FLAGS):
+                            sources.add(tok)
+                            break
+                        prev = tok
+    captured = set()
+    for f in files:
+        if f.startswith("variant-") and f.endswith(".txt"):
+            meta, _ = read_out(os.path.join(d, f))
+            m = re.search(r"\((.+)\)", meta.get("variant", ""))
+            if m:
+                captured.add(m.group(1))
+    for shader in sorted(set(f for f in files if f.endswith(".hlsl"))
+                         - sources - captured):
+        gaps.append(f"{shader} has no captured output -- run it with "
+                    f"`run --shader {shader} --label <name>`")
+
+    # A control without a declared expectation is an observation, not an
+    # assertion: nothing re-checks it, so a predicate change can quietly
+    # invalidate the reasoning it supports. Only meaningful where there is a
+    # predicate to assert against -- #3150 has none, and demanding one there
+    # would be noise.
+    for f in sorted(files):
+        if f.startswith("variant-") and f.endswith(".txt"):
+            meta, _ = read_out(os.path.join(d, f))
+            mf = meta.get("match", "match.json")
+            if os.path.isfile(os.path.join(d, mf)) and not meta.get("expect"):
+                gaps.append(f"{f} has no `# expect:` -- re-run it with "
+                            f"--expect match|no-match so reindex re-checks it")
+
+    if not rec:
+        return gaps
+    if not has("notes.md"):
+        gaps.append("no notes.md (step 11)")
+    if not has("comment.md"):
+        gaps.append("no comment.md (step 9)")
+    if not rec.get("reviewed_by"):
+        gaps.append("verdict.json has no reviewed_by -- the independent "
+                    "review is mandatory and left no trace (step 10)")
+    if not rec.get("triaged_by"):
+        gaps.append("verdict.json has no triaged_by")
+    if not (rec.get("godbolt_url") or rec.get("godbolt_skip")):
+        gaps.append("neither a Compiler Explorer link nor a recorded reason "
+                    "for skipping one (step 7)")
+    return gaps
+
+
 def cmd_reindex(a):
     """Rebuild the database from the committed tree.
 
@@ -1091,10 +1275,11 @@ def cmd_reindex(a):
         c.commit()
 
     issues = runs = 0
-    changed, stale = [], []
+    changed, stale, gaps = [], [], []
     for name in sorted(os.listdir(ISSUES)) if os.path.isdir(ISSUES) else []:
         d = os.path.join(ISSUES, name)
         vpath = os.path.join(d, "verdict.json")
+        rec = {}
         if os.path.isfile(vpath):
             with open(vpath, encoding="utf-8") as f:
                 rec = json.load(f)
@@ -1111,6 +1296,26 @@ def cmd_reindex(a):
             continue
         else:
             number = int(name)
+
+        for g in audit_issue(d, number, rec):
+            gaps.append(f"#{number}: {g}")
+
+        # A control carrying a declared expectation is an assertion, so
+        # re-check it here for the same reason probes are re-scored: the
+        # predicate it depends on may have changed since it was captured.
+        for var in sorted(f for f in os.listdir(d)
+                          if f.startswith("variant-") and f.endswith(".txt")):
+            meta, text = read_out(os.path.join(d, var))
+            if not meta.get("expect") or "exit" not in meta:
+                continue
+            mf = meta.get("match", "match.json")
+            if not os.path.isfile(os.path.join(d, mf)):
+                continue
+            rc = None if meta["exit"] in ("None", "TIMEOUT") else int(meta["exit"])
+            v = classify(number, text, rc, meta.get("timed_out") == "1", mf)
+            if expectation_violated(meta["expect"], v):
+                changed.append(f"#{number} {var}: control declared "
+                               f"{meta['expect']} but now scores {v}")
 
         for out in sorted(f for f in os.listdir(d)
                           if f.startswith("out-") and f.endswith(".txt")):
@@ -1167,8 +1372,13 @@ def cmd_reindex(a):
         print("\nverdicts that today's predicate code scores differently:")
         for line in changed:
             print(f"  {line}")
-    if not (stale or changed):
-        print("every probe re-scores as captured, and none are stale")
+    if gaps:
+        print("\nevidence a completed triage should have left behind:")
+        for line in gaps:
+            print(f"  {line}")
+    if not (stale or changed or gaps):
+        print("every probe re-scores as captured, none are stale, and no "
+              "issue is missing required evidence")
 
 
 def cmd_status(a):
@@ -1235,6 +1445,18 @@ def main():
                         "any run shows it; use for nondeterministic failures "
                         "such as heap corruption, races or uninitialised reads")
     s.add_argument("--show", action="store_true")
+    s.add_argument("--shader", help="run this file instead of the repro, with "
+                                    "the same arguments -- for controls and "
+                                    "translated variants")
+    s.add_argument("--label", help="name the variant; output is written to "
+                                   "variant-<label>-<compiler>.txt and is not "
+                                   "scored as a probe of the primary repro")
+    s.add_argument("--args", help="replace the arguments entirely, for a "
+                                  "variant that changes shader stage and so "
+                                  "cannot reuse the repro's command")
+    s.add_argument("--expect", choices=["match", "no-match"],
+                   help="what this control must do. Recorded in the output "
+                        "header and re-checked on every reindex")
     s.set_defaults(func=cmd_run)
 
     s = sub.add_parser("bisect")

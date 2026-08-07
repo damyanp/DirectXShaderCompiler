@@ -1,0 +1,24 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T00:27:42+00:00
+# cmd: -T cs_6_0 -E main -Od probe-constzero.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: unscored
+# variant: constzero-od (probe-constzero.hlsl)
+
+$ dxc -T cs_6_0 -E main -Od probe-constzero.hlsl
+[exe] C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+probe-constzero.hlsl:5:23: error: Assignment of undefined values to UAV.
+note: at 'call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef, i8 1)' in block '#0' of function 'main'.
+Validation failed.
+
+
+

@@ -239,6 +239,90 @@ primary predicate and generate spurious disagreements — #1702's compute-shader
 legitimately emits an error its pixel-shader original does not. Those are now `variant-*.txt`,
 and hand-captured command-line evidence is `manual-case-*.txt`.
 
+### 9. A blind re-derivation test found a claim resting on nothing
+
+Asked whether these analyses are reproducible or are quietly leaning on conversation context,
+we measured it rather than answered it. A fresh agent on a different model was given **only**
+`data/issues/3038/`, with `notes.md`, `verdict.json` and `comment.md` withheld, and asked to
+derive the verdict.
+
+It independently reproduced the transition (v1.8.2502 → v1.8.2505), the repro quality, the
+suggested action, and the rejection of v1.4.1907 as unprobeable. It diverged on one field only
+because the status vocabulary lived in `SKILL.md`, which it could not read — since fixed by
+putting the taxonomy in `README.md`, next to the data it describes.
+
+Then it found a real defect. #3038's control shader existed, but **its output had never been
+captured**. The control had been run by hand, and its result — "the control compiles clean at
+v1.8.2502 where the repro crashes" — was published in both this report and the draft comment
+on the strength of a number nobody had written down. It was true; it has now been captured
+(control exits `0`, repro exits `0x80004005` with `llvm::cast<X>()`); and it was unsupported
+for as long as it took someone to check.
+
+The fix is tooling, not vigilance: `run --shader X --label Y` reuses the repro's exact
+arguments against a different source, so capturing a control is now cheaper than not capturing
+one. A step that depends on remembering to do it by hand is a step that gets skipped.
+
+Two provenance gaps closed alongside it: `verdict.json` now records **which model triaged** the
+issue and **which model ran the mandatory independent review**. The review was required from
+batch 001 onward and genuinely happened every time, but nothing on disk said so — a required
+step that leaves no trace is one you cannot later tell was skipped.
+
+**On session boundaries:** the initial recommendation here — one session per batch — was wrong,
+and checking it is what showed that. Of the 16 method lessons in these three reports, **13 were
+discovered inside a single issue**, two came from the batch-level draft review, and one from
+`reindex`, which uses no session context at all. What crossed issues was *re-recognising* a
+known trap, which is collation work. Meanwhile long sessions cost real quality: scrutiny decays
+across a batch, and a batch-length session gets compacted mid-flight — batch 003's later issues
+were analysed against a summary of the method rather than the method.
+
+The workflow is now **one session per issue, run in parallel, plus a collation session per
+batch**. Two rules keep it safe: a per-issue session never writes shared state (method
+observations go to `method-notes.md`; collation promotes them), and collation runs `reindex`
+first, which re-scores everything and so applies any lesson learned late in the batch
+retroactively to issues triaged before it.
+
+### 10. The completeness audit found six issues with uncaptured evidence
+
+Parallel triage removes the human who would have noticed a missing step, so `reindex` gained a
+fourth check: **evidence a completed triage should have left behind.** On its first run it
+flagged 6 of 15 issues, and every flag was real:
+
+- **#3150 had no captured output at all.** It is legitimately `not-compiler-verifiable` — a
+  specification gap with nothing to reproduce — but its verdict makes two *compiler-measured*
+  claims: that DXC emits LLVM `sdiv`/`udiv` rather than the DXIL `UDiv` operation that
+  `DXIL.rst` documents divide-by-zero for, and that `INSTR.NOIDIVBYZERO` is unreachable because
+  `a / 0` is const-folded to `undef` first. Both were published on the strength of numbers
+  measured by hand and never written down. Now captured: `%7 = sdiv i32 %5, %6`, and at `-Od`
+  the store becomes `i32 undef` and validation rejects it — the divide never survives to be
+  validated as a divide.
+- **#3009, #3048 and #3873's compute translations** — the shaders adopted for the Clang panes —
+  had no captured output, so the requirement that a translation still reproduces before being
+  adopted was unverified. All three do.
+- **#1702, #1803, #1877 and #3009's variants** had output, but with **corrupted provenance
+  headers**: the batch-003 rename left `# compiler: colmajor`, `# exe: <cache>/.`, and empty
+  `cmd`/`exit`/`verdict` fields. They were excluded from probe scoring, which was the point,
+  but that also meant nothing ever looked at them again.
+
+The deeper fix is that a control now carries a **declared expectation**, recorded in its header
+and re-checked on every `reindex`. That turns it from an observation into a permanent
+assertion, and it runs in both directions — a distinction the first implementation got wrong:
+
+- `--expect no-match` — a **negative** control, a known-good input the predicate must not fire
+  on. This is #3009's, and the case that motivated controls in batch 002.
+- `--expect match` — an **identity** control. #1803's shader declared `column_major` must
+  produce *identical* DXIL to the `row_major` original, because that identity is precisely what
+  proves the attribute is ignored.
+
+A blanket "warn if a control matches" rule — which is what was written first — reports #1803's
+central finding as a predicate bug. Two other errors surfaced the same way: `repro-pow2clk.hlsl`
+was labelled a control when it is the maintainer's *second repro*, and the live `run` path
+crashed on an issue with no `match.json` while `reindex` tolerated it, so the two disagreed
+about a case that had never arisen before.
+
+The pattern across all of it: **evidence that nothing re-checks decays silently.** Every gap
+here had existed for at least one batch, none had changed a verdict, and none was visible until
+something mechanical looked for it.
+
 ## Proposed label changes
 
 Validated against the live taxonomy (58 labels, re-fetched this run — batch 002's list was

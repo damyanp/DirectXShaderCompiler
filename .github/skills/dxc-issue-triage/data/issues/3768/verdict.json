@@ -10,11 +10,13 @@
   "number": 3768,
   "regressed_in": "v1.6.2104",
   "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
   "status": "does-not-repro",
   "suggested_action": "close-fixed",
   "summary": "SPIR-V printf heap corruption, in the front end rather than in SPIR-V lowering: the reported stack is BumpPtrAllocator slab teardown under Sema::BuildOverloadedCallExpr. Crash (STATUS_HEAP_CORRUPTION 0xC0000374) confined to v1.6.2104 and v1.6.2106, matching the May 2021 report; clean from v1.6.2112 onward. Nondeterministic: measured 68-82% of runs in the affected releases, so per-run probes are unsound and repeats are required. Current builds are clean over 105 runs across both ps_6_0 and cs_6_0 and both configurations, with correct SPIR-V. The issue reported -fcgl -Vd as a workaround for an unrelated spirv-tools crash; it is obsolete and was never suppressing this defect, so it has been dropped from the repro. Residual risk is only latent corruption detectable under page heap, which needs elevation and was not run.",
   "title": "[SPIR-V] crash compiling shader using printf",
   "triaged_at": "2026-08-06T18:00:09+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3768"
 }

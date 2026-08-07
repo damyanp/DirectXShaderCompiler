@@ -10,11 +10,13 @@
   "notes_path": "issues/3038/notes.md",
   "number": 3038,
   "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.6-sol",
   "status": "does-not-repro",
   "suggested_action": "close-fixed",
   "summary": "Fixed. Crashed v1.5.2010-v1.8.2502 (AV, then llvm::cast<X>()), clean from v1.8.2505. Repro validated against both historically reported signatures; @tex3d's workaround control behaves as predicted. Strongest fix candidate is PR #7440 (in v1.8.2505, not v1.8.2502).",
   "title": "DXR 1.1: Using TraceRayInline(...) right after TraceRay(...) crashes shader compilation",
   "triaged_at": "2026-08-06T19:17:14+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3038"
 }
