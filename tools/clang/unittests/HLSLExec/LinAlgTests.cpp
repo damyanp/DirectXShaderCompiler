@@ -145,6 +145,18 @@ static bool applyApplicability(linalg_test::Applicability Result,
   return false;
 }
 
+// Tier support is the only capability the matrix-free operations depend on.
+// They construct no matrix, so there is no shape or wave size to query.
+static bool linAlgTierApplicable(ID3D12Device *Device, LPCWSTR CaseName) {
+  linalg_test::TierSupport Tier;
+  const HRESULT QueryResult = linalg_test::queryTierSupport(Device, Tier);
+  return applyApplicability(
+      linalg_test::classifyApplicability(
+          QueryResult, SUCCEEDED(QueryResult) && Tier.supported(),
+          linalg_test::CapabilityRequirement::CapabilityGated),
+      CaseName);
+}
+
 namespace cpu_oracle {
 
 using TypedMatrixValues =
@@ -2907,6 +2919,10 @@ static void runQueryAccumLayout(ID3D12Device *Device,
 }
 
 void DxilConf_SM610_LinAlg::QueryAccumLayout() {
+  // Constructs no matrix, so tier support is the only capability it needs.
+  if (!linAlgTierApplicable(D3DDevice, L"QueryAccumLayout"))
+    return;
+
   runQueryAccumLayout(D3DDevice, DxcSupport, VerboseLogging);
 }
 
@@ -3183,6 +3199,11 @@ static void runConvert(ID3D12Device *Device, dxc::SpecificDllLoader &DxcSupport,
 }
 
 void DxilConf_SM610_LinAlg::Convert() {
+  // Operates on vectors rather than matrices, so tier support is the only
+  // capability it needs.
+  if (!linAlgTierApplicable(D3DDevice, L"Convert"))
+    return;
+
   runConvert(D3DDevice, DxcSupport, VerboseLogging);
 }
 
