@@ -1,0 +1,40 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T19:10:56+00:00
+# cmd: -T cs_6_0 -E main case-array-contexts.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: array-contexts (case-array-contexts.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main case-array-contexts.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case-array-contexts.hlsl:5:21: error: variable length arrays are not supported in HLSL
+static int   gStatic[v2.x];
+                    ^
+case-array-contexts.hlsl:6:24: error: variable length arrays are not supported in HLSL
+groupshared int gShared[v2.x];
+                       ^
+case-array-contexts.hlsl:8:17: error: variable length arrays are not supported in HLSL
+struct S { int m[v2.x]; };
+                ^
+case-array-contexts.hlsl:10:23: error: variable length arrays are not supported in HLSL
+cbuffer CB { int cbArr[v2.x]; };
+                      ^
+case-array-contexts.hlsl:14:2: error: 'numthreads' attribute requires an integer constant
+[numthreads(v2.y, 1, 1)]
+ ^          ~~~~
+case-array-contexts.hlsl:14:2: warning: Group size of 0 (0 * 1 * 1) is outside of valid range [1..1024] - attribute will be ignored [-Wignored-attributes]
+[numthreads(v2.y, 1, 1)]
+ ^~~~~~~~~~~~~~~~~~~~~~
+case-array-contexts.hlsl:15:6: error: compute entry point must have a valid numthreads attribute
+void main(uint3 tid : SV_DispatchThreadID)
+     ^
+
+

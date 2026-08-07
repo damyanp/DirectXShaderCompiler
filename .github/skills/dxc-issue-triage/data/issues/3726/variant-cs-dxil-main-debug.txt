@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T19:15:08+00:00
+# cmd: -T cs_6_0 -E main repro-cs.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: cs-dxil (repro-cs.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main repro-cs.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: exported library functions cannot have resource parameters or return value. Value: ?x0@@3V?$RWBuffer@V?$vector@M$03@@@@A
+repro-cs.hlsl:19:10: error: local resource not guaranteed to map to unique global resource.
+    a0 = r0;
+         ^
+
+

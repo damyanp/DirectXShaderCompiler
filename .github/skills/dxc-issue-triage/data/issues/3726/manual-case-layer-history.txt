@@ -1,0 +1,44 @@
+# #3726 -- which layer diagnoses `a0 = r0;`, per release
+#
+# Derived from the committed out-<tag>.txt captures by make-layer-history.py;
+# no compiler is run here. Each capture's three invocations are cmd.txt's:
+#   1. -T ps_6_0 -E main repro.hlsl              (DXIL)
+#   2. -T ps_6_0 -E main -spirv repro.hlsl       (SPIR-V)
+#   3. -T ps_6_0 -E main -fcgl repro.hlsl        (front end only)
+#
+# 0x80004005 is E_FAIL, which is what dxc returns for an ordinary diagnosed
+# error on Windows -- not an internal failure.
+
+release         DXIL exit  resmap err SPIRV exit  SPIR-V binds                 -fcgl exit  fcgl diags
+-----------------------------------------------------------------------------------------------------
+v1.4.1907      0x80004005  yes        0x00000001  no-spirv-codegen             0x00000000  none
+v1.5.2010      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.6.2104      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.6.2106      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.6.2112      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.7.2207      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.7.2212      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.7.2212.1    0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.7.2308      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.8.2403      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.8.2403.1    0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.8.2403.2    0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.8.2405      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.8.2407      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.8.2502      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.8.2505      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.8.2505.1    0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.9.2602      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.9.2602.24   0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+v1.9.2607      0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+main-debug     0x80004005  yes        0x00000000  x0+x1+x2                     0x00000000  none
+
+Reading of the table:
+  * `resmap err` is yes on every release: the DXIL back end has always
+    rejected this, and match.json scores every release `repro`.
+  * `-fcgl exit` is 0 with no diagnostics on every release: the front end
+    has never had anything to say, which is the issue's actual complaint.
+  * `SPIR-V binds` is x0+x1+x2 wherever SPIR-V exists: the module is built
+    from the resources that were assigned INTO, not the ones assigned FROM,
+    so r0/r1/r2 never appear. This records the lowering shape; because the
+    issue asks for this source to be rejected, it is not evidence of a miscompile.

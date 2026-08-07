@@ -1,0 +1,20 @@
+# compiler: v1.5.2010
+# exe: <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+# ran: 2026-08-07T19:12:14+00:00
+# cmd: -T ps_6_0 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:6:14: error: variable length arrays are not supported in HLSL
+    int array[(10).x];
+             ^
+
+

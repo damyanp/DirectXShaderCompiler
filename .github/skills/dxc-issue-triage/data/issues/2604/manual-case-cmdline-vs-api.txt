@@ -1,0 +1,187 @@
+#2604 -- the same arguments through dxc.exe and through the compile
+API
+
+Produced by `python measure-2604.py --contrast`. Every command below
+is echoed exactly as executed (subprocess.list2cmdline), and every
+path is redacted to the placeholders triage.py uses.
+
+WHY THIS FILE EXISTS. `variant-cmdline-main-debug.txt` records the
+dxc.exe run, but dxc.exe succeeds SILENTLY here: the whole effect of
+-Fc is a file it writes, and a file is not in anyone's stdout. The
+capture therefore shows an empty successful run, which reads as
+'nothing happened'. This file records the file.
+
+========================================================================
+A. dxc.exe -- the driver, which parses with DxcFlags =
+   CoreOption | DriverOption
+========================================================================
+
+$ <repo>/build/Debug/bin/dxc.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+--- output ---
+(no output)
+
+file "repro-fc.asm": CREATED, 4103 bytes, 115 lines
+first 6 lines:
+    ;
+    ; Input signature:
+    ;
+    ; Name                 Index   Mask Register SysValue  Format   Used
+    ; -------------------- ----- ------ -------- -------- ------- ------
+    ; COLOR                    0   xyzw        0     NONE   float   xyzw
+
+========================================================================
+A2. dxc.exe again, with -spirv
+========================================================================
+
+$ <repo>/build/Debug/bin/dxc.exe -T ps_6_0 -E main -spirv -Fc repro-fc.asm repro.hlsl
+[exit] 0
+--- output ---
+(no output)
+
+file "repro-fc.asm": CREATED, 1228 bytes, 31 lines -- SPIR-V assembly, a different artifact
+first 4 lines:
+    ; SPIR-V
+    ; Version: 1.0
+    ; Generator: Google spiregg; 0
+    ; Bound: 14
+
+========================================================================
+B. the compile API -- IDxcCompiler::Compile and
+   IDxcCompiler3::Compile, which parse with CompilerFlags =
+   CoreOption alone
+========================================================================
+
+$ set DXC_FC_DLL=<repo>/build/Debug/bin/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+--- output ---
+# fc2604: #2604 -Fc in the compile API
+dll: <repo>/build/Debug/bin/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=4104
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+scored: repro (-Fc rejected)
+SPIR-V codegen in this DLL: available
+file "repro-fc.asm" after the API run: NOT created
+
+========================================================================
+READING IT
+========================================================================
+
+dxc.exe writes the listing. Neither compile entry point in the same
+dxcompiler.dll will: both answer E_INVALIDARG with
+"Unknown argument: '-Fc'", and with -Qunused-arguments (a
+CoreOption, so the library does see it) they compile successfully
+and drop -Fc on the floor -- no DXC_OUT_DISASSEMBLY, no file.
+
+The disassembly itself is not missing from the library; it is one
+more call away. IDxcCompiler::Disassemble on the object returns it
+(the c1-disassemble row). What the issue asks for is that ONE
+Compile call produce both.
+
+The c1-spirv-* rows answer a written claim rather than the issue.
+docs/SPIR-V.rst:4211 lists '``-Fc``: outputs SPIR-V disassembly to
+the given file', and :4197-4198 says those options 'are also
+recognized by the library API calls'. They are not: with -spirv the
+API rejects -Fc identically, and tolerating it with
+-Qunused-arguments still yields no listing. The -spirv baseline in
+the same run compiles successfully, so this is not a build without
+SPIR-V.
+

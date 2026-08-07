@@ -1,0 +1,22 @@
+{
+  "batch": "batch-010",
+  "confidence": "high",
+  "created_at": "2021-04-14T15:08:38Z",
+  "godbolt_skip": "not a compiler defect - the issue asks what the project publishes as release artifacts, and no shader can show that. A CE link would show dxc compiling fine on a Linux host, which is affirmatively misleading here: it invites the reader to conclude the ask has been met when nothing about release publication has changed.",
+  "history": "n/a as a compiler history - no release was probed and nothing was compiled. The artifact history was enumerated instead: 0 macOS assets across all 26 published tagged releases, 73 assets, v1.2.0-alpha (2017-12-01) to v1.9.2607 (2026-07-29). Linux binaries first appeared at v1.7.2212 (2022-12-16) and have shipped on all 18 published releases since, so the other half of the original request was delivered.",
+  "labels": "build,macos",
+  "labels_add": "enhancement",
+  "labels_now": "build,macos",
+  "notes_path": "issues/3686/notes.md",
+  "number": 3686,
+  "repro_quality": "prose-only",
+  "reviewed_by": "gpt-5.6-sol (SKILL.md step 10 initial and final-draft reviews, applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Not a compiler defect: asks what the project publishes as release artifacts, so no compile can answer it. Still true - 0 macOS assets across all 26 published tagged releases (73 assets enumerated), while Linux shipped from v1.7.2212 onward. One unpublished draft had zero assets at capture time; querying its empty tag with gh release view would silently return the latest published release and double-count its three assets. The gap is publication, not the build: azure-pipelines.yml is configured to build and run check-all on macOS on every PR (MacOS_Clang_Release/Debug), and macOS has been a CI configuration since the 2018 Travis bots, but the Nix job publishes only test results. The DXIL-signing blocker cited in the thread no longer applies - lib/DxilHash and dxildll are in-tree and not WIN32-gated, 6770 closed (source-level evidence only; nothing was built or run on macOS). The stated blocker is now Apple code signing, and a maintainer has said there are no plans. What remains is a policy decision, not a measurement.",
+  "title": "Binary release artifacts for macOS",
+  "triaged_at": "2026-08-07T19:22:23+00:00",
+  "triaged_by": "claude-opus-4.5 (Copilot CLI)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3686"
+}

@@ -1,0 +1,12 @@
+# Build output. `bin\fc2604.exe` is reproducible from `fc2604.cpp` by running
+# `build-fc2604.cmd`, and a committed binary would be both large and
+# unverifiable. `run-fc2604.cmd` rebuilds it on demand, so a fresh clone needs
+# no extra step.
+bin/
+bin-build.log
+
+# The -Fc listing. dxc.exe writes this one (that is the finding); the harness
+# deletes it before and after every case. Either way it is compiler output,
+# regenerated on every run, and committing it would let a stale copy be
+# mistaken for evidence that the API wrote it.
+repro-fc.asm

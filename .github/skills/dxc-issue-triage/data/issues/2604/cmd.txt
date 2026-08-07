@@ -1,0 +1,15 @@
+# The "compiler" for this issue is run-fc2604.cmd, not dxc.exe. The reported
+# defect is in IDxcCompiler::Compile / IDxcCompiler3::Compile -- the library
+# entry points -- and dxc.exe is the one caller that DOES handle -Fc, so a
+# dxc.exe probe of these arguments measures the opposite of what the issue is
+# about. The harness calls the compile API directly; see fc2604.cpp.
+#
+# These arguments are nevertheless a valid dxc.exe command line on purpose, so
+# the same line can be run through both and the difference shown rather than
+# asserted (variant-cmdline-main-debug.txt).
+#
+# ps_6_0: the oldest profile every catalogued release supports.
+# repro-fc.asm: the -Fc operand. The harness deletes it before every case, so
+# a file left behind by the dxc.exe variant cannot be mistaken for one the API
+# wrote.
+-T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl

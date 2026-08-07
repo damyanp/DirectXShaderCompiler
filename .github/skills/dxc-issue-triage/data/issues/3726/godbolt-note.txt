@@ -1,0 +1,28 @@
+#3726 -- "Sema should not allow assignment to resource" (open since 2021-04).
+
+The source is a compute-shader restating of the issue's pixel-shader repro, because
+Clang's DXIL backend cannot lower a pixel shader writing SV_Target. getResource()
+assigns the global resource r0 to an `out` resource parameter; main() passes the
+other global, x0, as that argument. The stage-accurate original is in the repo.
+
+What to look at, pane by pane:
+
+  dxc_1_6_2112 / dxc_trunk        Rejected -- but not by Sema. The error comes out
+      of the DXIL lowering pass DxilLowerCreateHandleForLib, roughly 150 passes
+      after code generation. It shows: the first line is a library-export message
+      on a compute shader with no library functions, naming a mangled global.
+      Add -fcgl (stop after front-end IR) and every DXC release from v1.4.1907 to
+      today exits 0 with an empty stderr, so nothing in the front end objects.
+
+  dxc_trunk -spirv                Exit 0, no diagnostic -- and the module binds x0,
+      the assignment's target, while r0, its source, does not appear at all. That
+      is the opposite resource from the one the DXIL path refuses to allow.
+
+  hlsl_clang_trunk                Exit 0, no diagnostic -- and its resource-binding
+      table names r0, not x0. The successor front end accepts the assignment and
+      gives it the copy semantics the DXIL path rejects.
+
+Three back ends, three answers, and no front end diagnoses anything. Whether Sema
+should reject this at all, and how narrowly, is a language-design question: declare
+x0 `static`, or declare it inside main() instead of at global scope, and DXC's DXIL
+path compiles the very same assignment cleanly today.

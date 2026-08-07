@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "SELFCHECK: fc-operand-seen=yes"
+    },
+    {
+      "kind": "contains",
+      "value": "RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present"
+    },
+    {
+      "kind": "contains",
+      "value": "RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent"
+    }
+  ],
+  "note": "The second, separate claim on this issue: the 2020-07-30 comment reports that passing -Fc to the compile API returns E_INVALIDARG, where dxc.exe accepts it. That is a different statement from the issue body's feature request (match.json), and the two can move independently -- flipping -Fc to CoreOption would silence this one while leaving the feature unimplemented -- so they get separate predicates and separate probes, per SKILL.md's 'a probe is identified by its question'.\n\n0x80070057 is E_INVALIDARG. It is the value of IDxcOperationResult::GetStatus(), NOT the HRESULT of the Compile call, which is S_OK -- dxcutil::ReadOptsAndValidate packages the option error into a DxcResult and dxcompilerobj.cpp's Compile then returns S_OK (dxcutil.cpp:118-127, dxcompilerobj.cpp:560-566). `call=0x00000000 status=0x80070057` asserts exactly that split, which is worth pinning because a caller checking only the call's HRESULT sees success.\n\nAnchored on c1-baseline for the same reason as match.json: a probe that could not compile anything at all must not be able to satisfy this. fc-operand-seen=yes is what stops the clause being vacuous on a command line with no -Fc.\n\nMeasured on IDxcCompiler because that is what the 2020 reporter had; out-main-debug-fc.txt records IDxcCompiler3 answering identically (RESULT case=c3-fc ... status=0x80070057)."
+}

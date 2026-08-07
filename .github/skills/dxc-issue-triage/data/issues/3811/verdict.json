@@ -1,0 +1,23 @@
+{
+  "batch": "batch-010",
+  "confidence": "high",
+  "created_at": "2021-06-02T18:52:51Z",
+  "godbolt_url": "https://godbolt.org/z/57zn3j6YK",
+  "history": "match.json (undef-seeded phi reaches accepted DXIL): always-repro'd across all 20 bisectable releases v1.4.1907..v1.9.2607, 0 invalid probes, plus main-debug and -Od. match-silent.json (that AND no warning either, i.e. the reported wording): repro on 8 releases v1.4.1907..v1.7.2212.1, no-repro from v1.7.2308 onward (12 releases) -- single clean transition. Attributed to 1380cf88e (PR 5047, 2023-03-01, warn_hlsl_uninit_out_param): in v1.7.2308, not in v1.7.2212.1; window 257 commits, only 1 introduces the diagnostic. Strong but not built at the commit. The PHI exemption itself dates to 6ee4074a4 (2016-12, first commit), predating every probeable release.",
+  "labels": "validation",
+  "labels_add": "incorrect-code, diagnostic, check-in-clang",
+  "labels_now": "validation",
+  "notes_path": "issues/3811/notes.md",
+  "number": 3811,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (SKILL.md step 10 initial and final-draft reviews, applied selectively at collation)",
+  "status": "changed-behavior",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "The underlying validator gap still holds, but the exact repro is no longer silent. The loop version exits 0 with a -Wparameter-usage warning and its define void @main() is line-for-line identical (27/27) to the DXIL pasted in 2021: phi float [ %10, %5 ], [ undef, %4 ] feeding fadd, and undef reaching the output when count <= 0. DXIL validation accepts it. The straight-line spelling is still rejected by the validator (E_FAIL 0x80004005, InstrNoReadingUninitialized) on main and on both ends of the release range. The mechanism is one line of source: lib/DxilValidation/DxilValidation.cpp has bool LegalUndef = isa<PHINode>(&I), so the rule is local and syntactic and PHI nodes are exempt by name -- through the loop, fadd operand is the phi, not literally UndefValue. A local-variable restatement remains completely silent, proving the 2023 out-parameter warning did not close the validator hole. Not optimisation-dependent (-Od reproduces). Related to #3009, #3706, and #3693, but not a duplicate: those exercise direct undef arithmetic, resource indexing, and nested out-of-bounds Sema handling rather than PHI-carried propagation.",
+  "text_stale": "The title and body say no error/warning. Since v1.7.2308 dxc emits repro.hlsl:7:3: warning: parameter result is uninitialized when used here [-Wparameter-usage] on this exact shader, so the reported wording is now false and a spot-check reads as cannot-reproduce for a live defect. The defect itself is untouched, and the warning does not cover it: variant-local-uninit.hlsl (same loop over a local variable instead of an out parameter) is still completely silent -- exit 0, no error, no warning, same undef-seeded phi -- and matches both predicates on main.",
+  "title": "Reading uninitialized value in dynamic loop produces undef with no error/warning",
+  "triaged_at": "2026-08-07T19:31:16+00:00",
+  "triaged_by": "Claude Sonnet 4.5 (GitHub Copilot CLI)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3811"
+}

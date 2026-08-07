@@ -467,9 +467,17 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 >
 > The wrapper needs an absolute path, must answer `--version`, and should take the real
 > compiler from an environment variable so the same harness can be pointed at a release. After
-> that the whole tool works unchanged, including `reindex`. Measured on #2923; `bisect` is the
-> one command that still cannot drive it, because it builds its own command line from
-> `cmd.txt`.
+> that the whole tool works unchanged, including `reindex`. **Do not run `bisect` on a
+> harness-as-compiler issue:** it always substitutes each release's `dxc.exe`, not the harness,
+> and can confidently report the inverse history. This has now happened or been narrowly
+> avoided on #2918, #2922, #2923, #3237 and #2604. Write a release matrix that points the
+> harness at each release's executable or DLL instead.
+
+> **A source location does not identify the diagnostic layer.** A DXIL lowering pass can map
+> debug locations back to `file:line:col:` and print a caret exactly like Sema; #3726's
+> `local resource not guaranteed to map to unique global resource` comes from
+> `DxilCondenseResources.cpp`, despite that shape. Attribute a diagnostic from its emitting
+> source or from a stage-stopping probe such as `-fcgl`, never from its formatting.
 >
 > For a release-to-release history of such a pass, `dxopt` will load any release's DLL:
 >
@@ -673,11 +681,20 @@ Then classify against `expected.md`:
 | `repros` | reported symptom still observed |
 | `does-not-repro` | repro runs clean, symptom gone |
 | `changed-behavior` | still misbehaves, differently than reported |
-| `not-compiler-verifiable` | needs GPU/runtime/driver/D3D execution to judge |
+| `not-compiler-verifiable` | needs GPU/runtime/driver or project/process evidence, not a compiler |
 | `inconclusive` | repro too ambiguous to judge |
 
-`not-compiler-verifiable` is a legitimate, useful outcome — not a failure. Do not force a
-verdict on a rendering-artifact or driver-behaviour issue by compiling it.
+`not-compiler-verifiable` is a legitimate, useful outcome — not a failure. Before writing
+`cmd.txt`, ask what a clean compile would prove. If it is compatible with the report being
+entirely true — release packaging, documentation or policy issues are common examples — the
+compiler is not the instrument. State why no probe exists and capture the metadata or process
+evidence instead.
+
+> **Name the population in metadata censuses.** "All releases" is ambiguous when drafts exist.
+> On #3686, 26 published releases carried 73 assets; one unpublished draft was separate.
+> Its empty tag exposed a sharper trap: `gh release view ""` silently resolves the latest
+> *published* release, returning its three assets and manufacturing a 27/76 census. Query drafts
+> by release ID through `gh api`, and report published and draft populations separately.
 
 > **Before you interpret a single probe, check whether the issue is filed against code that is
 > not merged.** An issue that names a branch or a PR is not a claim about `main` at all, and
@@ -889,7 +906,9 @@ across issues.
 > shape), so **the runner warns instead** when an absence-only predicate matches a failed
 > compile. Anchor the predicate with a positive clause — #2792's
 > `extractvalue %dx.types.CBufRet.f32 <v>, 1` cannot be emitted by a compile that failed — and
-> always confirm the probe actually emitted DXIL.
+> always confirm the probe actually emitted DXIL. For a missing-diagnostic issue, prefer a
+> positive artifact that only successful codegen can emit; #3811 anchored "no warning" on its
+> undef-seeded `phi`, so a failed parse could not score as silent success.
 >
 > **The same clause is also vacuously true on a shader that never mentions the symbol**, and no
 > amount of tooling can see that. #8732's `not_regex "%bound\w*\s*=\s*Op\w*Variable"` was
@@ -971,6 +990,11 @@ across issues.
 > release *and* probe each one enough times, or an unlucky run inside the broken window closes
 > it prematurely and reports a one-release blip.
 
+> **Search `tools/clang/test/` before bisecting an accept/reject issue.** On #3708, one test
+> already asserted the exact diagnostic, marked it `fxc-pass`, and said support was desirable.
+> That established the known divergence, its source-side history and the test a fix must update
+> before a 20-release scan added anything.
+
 **The bisection floor is v1.4.1907 (2019-07)** — the oldest release shipping a usable `dxc`.
 For issues predating it, `always-repro'd` means "for as long as it is possible to check", and
 must be reported that way rather than as "since it was filed". For SPIR-V issues the floor is
@@ -991,7 +1015,9 @@ publish one without checking it shows what you claim.
 `// What to look for` banner. A bare link to a shader that compiles "fine" invites the reader
 to conclude the bug is gone — name the exact thing to check: the `HLSL Bind` column, the empty
 `main()`, the abnormal exit code. Keep it in its own file rather than in `repro.hlsl`, so the
-repro stays exactly what was tested locally; the banner is presentation, not evidence.
+repro stays exactly what was tested locally; the banner is presentation, not evidence. Write
+plain prose, not leading `//`; `annotate()` owns the marker and strips one if supplied so old
+notes cannot publish as `// //`.
 
 **Not every issue deserves a link.** If the whole behaviour is a one-line error, or the issue
 is a pure feature request with nothing to see, record that decision instead of forcing one:
@@ -1052,6 +1078,9 @@ about the stage says nothing about the issue, so:
 
 **A missing Clang repro is better than a noisy, useless one.** Check the translation still
 reproduces before adopting it, and keep the stage-accurate original as the local evidence.
+When `--source` selects a restatement, give **every** pane an explicit `id:<args>` override:
+the source does not carry its target profile, and reusing `cmd.txt`'s pixel arguments for a
+compute restatement invalidates every pane. `godbolt` now refuses that ambiguous combination.
 
 > **A Clang error is not evidence until you have a control.** Clang's DXIL backend is
 > incomplete, so it fails on inputs that have nothing to do with the issue. #1702 looked like
@@ -1184,6 +1213,10 @@ know a draft is a draft.
 
 Name the issue, so a file found on its own is traceable. Claim only what the file can know:
 "unposted" is not verifiable by a file that outlives its own posting.
+
+Never invent an `@mention`. Verify every handle against `issue.json`'s `author.login`; an empty
+login means the account is unavailable, so refer to the comment by date instead. #2604 caught a
+guessed public attribution before it shipped.
 
 - Lead with the verdict and the version tested (`still reproduces on main (…, <sha>)`).
 - Show the evidence: the annotated link, and the two or three lines of output that matter.

@@ -1,0 +1,9 @@
+# The issue names no command line at all. `float4 main(): SV_Target` is a pixel shader,
+# so the invocation the report implies is:
+-T ps_6_0 -E main repro.hlsl
+
+# cmd.txt keeps that as line 1, unmodified, and adds two more invocations of the SAME
+# source: `-spirv`, because the body's second half is entirely about the SPIR-V backend
+# not reporting the error; and `-fcgl`, because the title is a claim about Sema and
+# -fcgl is the only way to ask the front end on its own. Neither addition changes what
+# line 1 does.

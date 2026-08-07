@@ -1,0 +1,55 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T19:14:42+00:00
+# cmd: -T ps_6_0 -E main control-sema-mismatch.hlsl ; -T ps_6_0 -E main -spirv control-sema-mismatch.hlsl ; -T ps_6_0 -E main -fcgl control-sema-mismatch.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-sema.json
+# verdict: repro
+# variant: sema-mismatch (control-sema-mismatch.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main control-sema-mismatch.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-sema-mismatch.hlsl:26:8: error: cannot convert from 'Texture2D<float4>' to '__restrict SamplerState'
+    a0 = r0;
+       ^
+control-sema-mismatch.hlsl:27:8: error: cannot convert from 'SamplerState' to '__restrict Texture2D<float4>'
+    a1 = r1;
+       ^
+
+
+
+$ dxc -T ps_6_0 -E main -spirv control-sema-mismatch.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-sema-mismatch.hlsl:26:8: error: cannot convert from 'Texture2D<float4>' to '__restrict SamplerState'
+    a0 = r0;
+       ^
+control-sema-mismatch.hlsl:27:8: error: cannot convert from 'SamplerState' to '__restrict Texture2D<float4>'
+    a1 = r1;
+       ^
+
+
+
+$ dxc -T ps_6_0 -E main -fcgl control-sema-mismatch.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-sema-mismatch.hlsl:26:8: error: cannot convert from 'Texture2D<float4>' to '__restrict SamplerState'
+    a0 = r0;
+       ^
+control-sema-mismatch.hlsl:27:8: error: cannot convert from 'SamplerState' to '__restrict Texture2D<float4>'
+    a1 = r1;
+       ^
+
+

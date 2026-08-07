@@ -1,0 +1,26 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "SELFCHECK: fc-operand-seen=yes"
+    },
+    {
+      "kind": "contains",
+      "value": "SELFCHECK: spirv-codegen=available"
+    },
+    {
+      "kind": "contains",
+      "value": "RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present"
+    },
+    {
+      "kind": "contains",
+      "value": "RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent"
+    },
+    {
+      "kind": "contains",
+      "value": "RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent"
+    }
+  ],
+  "note": "This predicate tests a written claim rather than the issue body. docs/SPIR-V.rst:4194-4198 says 'Command-line options supported by SPIR-V CodeGen are listed below. They are also recognized by the library API calls.', and the list that follows contains, at line 4211, '``-Fc``: outputs SPIR-V disassembly to the given file'. The 2020 comment on issue 2604 cites exactly that sentence as grounds for expecting -Fc to work through the API. The claim is therefore measured, not argued: this predicate reproduces when the SPIR-V path rejects -Fc anyway.\n\nCONTROL. Two clauses exist only to stop this passing for the wrong reason. `spirv-codegen=available` is the guard: on a dxcompiler.dll built without SPIR-V, -spirv is itself an unknown argument and every case would return the same 0x80070057 for an entirely unrelated reason, so the harness compiles a -spirv baseline FIRST and only runs the -Fc cases if that baseline succeeded and produced an object. The c1-spirv-baseline clause is that baseline: it proves this DLL really does emit SPIR-V for this shader. Without both, 'SPIR-V rejects -Fc' is indistinguishable from 'this build has no SPIR-V'. The ground-truth Debug build reports spirv-codegen=available and the baseline yields an object, so the guard is live rather than decorative.\n\nWHY BOTH -Fc CLAUSES. c1-spirv-fc records the rejection the doc contradicts. c1-spirv-fc-qunused suppresses the unknown-argument check (via -Qunused-arguments, a CoreOption) and shows that even once the argument is tolerated, no SPIR-V disassembly reaches the caller and no file appears -- so the documentation is wrong about the outcome, not merely about the diagnostic. Note that the SPIR-V listing dxc.exe writes for -Fc is SPIR-V assembly, a different artifact from the DXIL listing in match.json; the API produces neither.\n\nSCOPE. A no-repro here would mean the SPIR-V library path handles -Fc even though the DXIL one does not, which would change the verdict on this issue from 'not implemented' to 'implemented for SPIR-V only'. It does not: measured identical on ground truth (13730886e). What the result does establish is a separate, small, actionable defect -- docs/SPIR-V.rst promises something no release has ever delivered. That doc line dates to 8702f97df (2017-10-20) and the surrounding sentence to 474954a6e (2018-08-01), both predating this issue."
+}

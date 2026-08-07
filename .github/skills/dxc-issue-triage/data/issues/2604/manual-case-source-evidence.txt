@@ -1,0 +1,205 @@
+#2604 -- the source behind the measurement
+
+Produced by `python measure-2604.py --source`, run from a checkout of
+the repo this file lives in. Every command is echoed exactly as
+executed; re-run any of them yourself.
+
+Probes 6 and 7 are ABSENCE claims. Each is preceded by a
+known-positive CONTROL: the same pattern and the same tool, over a
+scope where it is known to match. Without that, an empty result is
+indistinguishable from a typo, a bad path filter, or a tool that
+quietly declines to search -- which is a mistake this workflow has
+made before.
+
+========================================================================
+1. -Fc carries DriverOption and NOT CoreOption -- so dxc.exe sees it and
+   the library does not.
+========================================================================
+
+$ git grep -n -E "^def (Fc|Fh|Fo|Fe|Fd|Fre|Frs|Fsh|Fi) :" -- include/dxc/Support/HLSLOptions.td
+[exit] 0
+include/dxc/Support/HLSLOptions.td:503:def Fo : JoinedOrSeparate<["-", "/"], "Fo">, MetaVarName<"<file>">, HelpText<"Output object file">, Flags<[CoreOption, RewriteOption, DriverOption]>, Group<hlslcomp_Group>;
+include/dxc/Support/HLSLOptions.td:505:def Fc : JoinedOrSeparate<["-", "/"], "Fc">, MetaVarName<"<file>">, HelpText<"Output assembly code listing file">, Flags<[DriverOption]>, Group<hlslcomp_Group>;
+include/dxc/Support/HLSLOptions.td:507:def Fh : JoinedOrSeparate<["-", "/"], "Fh">, MetaVarName<"<file>">, HelpText<"Output header file containing object code">, Flags<[DriverOption]>, Group<hlslcomp_Group>;
+include/dxc/Support/HLSLOptions.td:508:def Fe : JoinedOrSeparate<["-", "/"], "Fe">, MetaVarName<"<file>">, HelpText<"Output warnings and errors to the given file">, Flags<[CoreOption, DriverOption]>, Group<hlslcomp_Group>;
+include/dxc/Support/HLSLOptions.td:509:def Fd : JoinedOrSeparate<["-", "/"], "Fd">, MetaVarName<"<file>">,
+include/dxc/Support/HLSLOptions.td:512:def Fre : Separate<["-", "/"], "Fre">, MetaVarName<"<file>">, HelpText<"Output reflection to the given file">, Flags<[CoreOption, DriverOption]>, Group<hlslcomp_Group>;
+include/dxc/Support/HLSLOptions.td:513:def Frs : Separate<["-", "/"], "Frs">, MetaVarName<"<file>">, HelpText<"Output root signature to the given file">, Flags<[CoreOption, DriverOption]>, Group<hlslcomp_Group>;
+include/dxc/Support/HLSLOptions.td:514:def Fsh : Separate<["-", "/"], "Fsh">, MetaVarName<"<file>">, HelpText<"Output shader hash to the given file">, Flags<[CoreOption, DriverOption]>, Group<hlslcomp_Group>;
+include/dxc/Support/HLSLOptions.td:515:def Fi : JoinedOrSeparate<["-", "/"], "Fi">, MetaVarName<"<file>">,
+
+========================================================================
+2. ...and it has been that way since the repo's first commit. `git log -L`
+   follows the line through renames and reindents; one commit means one
+   state, ever.
+========================================================================
+
+$ git --no-pager log -L 505,505:include/dxc/Support/HLSLOptions.td "--format=%h %ad %s" --date=short -s
+[exit] 0
+6ee4074a4 2016-12-28 first commit
+
+========================================================================
+3. The two flag masks, and the two callers that pick between them.
+========================================================================
+
+$ git grep -n -E "(CompilerFlags|DxcFlags|RewriterFlags) =|ReadDxcOpts\(" -- include/dxc/Support/HLSLOptions.h tools/clang/tools/dxcompiler/dxcutil.cpp tools/clang/tools/dxclib/dxc.cpp
+[exit] 0
+include/dxc/Support/HLSLOptions.h:75:static const unsigned CompilerFlags = HlslFlags::CoreOption;
+include/dxc/Support/HLSLOptions.h:77:static const unsigned DxcFlags =
+include/dxc/Support/HLSLOptions.h:309:int ReadDxcOpts(const llvm::opt::OptTable *optionTable, unsigned flagsToInclude,
+tools/clang/tools/dxclib/dxc.cpp:1437:          ReadDxcOpts(optionTable, DxcFlags, argStrings, dxcOpts, errorStream);
+tools/clang/tools/dxcompiler/dxcutil.cpp:114:  if (0 != hlsl::options::ReadDxcOpts(table, hlsl::options::CompilerFlags,
+
+========================================================================
+4. What an unrecognised option does: it lands in OPT_UNKNOWN, and unless
+   -Qunused-arguments is present, ReadDxcOpts fails the whole parse.
+========================================================================
+
+$ git grep -n -A 6 Args.filtered(OPT_UNKNOWN) -- lib/DxcSupport/HLSLOptions.cpp
+[exit] 0
+lib/DxcSupport/HLSLOptions.cpp:534:    for (const Arg *A : Args.filtered(OPT_UNKNOWN)) {
+lib/DxcSupport/HLSLOptions.cpp-535-      errors << "Unknown argument: '" << A->getAsString(Args).c_str() << "'";
+lib/DxcSupport/HLSLOptions.cpp-536-      return 1;
+lib/DxcSupport/HLSLOptions.cpp-537-    }
+lib/DxcSupport/HLSLOptions.cpp-538-  }
+lib/DxcSupport/HLSLOptions.cpp-539-
+lib/DxcSupport/HLSLOptions.cpp-540-  // Add macros from the command line.
+
+========================================================================
+5. ...and -Qunused-arguments IS a CoreOption, which is why it is available
+   to the library and can switch the failure off.
+========================================================================
+
+$ git grep -n Qunused_arguments -- include/dxc/Support/HLSLOptions.td
+[exit] 0
+include/dxc/Support/HLSLOptions.td:105:def Qunused_arguments : Flag<["-"], "Qunused-arguments">, Group<hlslcore_Group>, Flags<[CoreOption]>,
+
+========================================================================
+6. ABSENCE: opts.AssemblyCode -- the field -Fc feeds -- has no consumer
+   anywhere inside dxcompiler/. Only the driver and a test tool act on
+   it (the third hit, HLSLOptions.cpp:1336, only rejects a non-empty
+   AssemblyCode when Metal codegen is on). This is why adding CoreOption
+   to -Fc would not, on its own, implement the feature: nothing in the
+   library would then act on the value.
+========================================================================
+
+CONTROL (the same pattern, same tool, repo-wide -- it does match things, and
+this listing is also the complete set of readers):
+$ git grep -n AssemblyCode -- *.cpp *.h
+[exit] 0
+include/dxc/Support/HLSLOptions.h:124:  llvm::StringRef AssemblyCode;               // OPT_Fc
+lib/DxcSupport/HLSLOptions.cpp:617:  // AssemblyCodeHex not supported (Fx)
+lib/DxcSupport/HLSLOptions.cpp:619:  opts.AssemblyCode = Args.getLastArgValue(OPT_Fc);
+lib/DxcSupport/HLSLOptions.cpp:1336:    if (!opts.AssemblyCode.empty() || opts.OutputObject.empty()) {
+tools/clang/tools/dxclib/dxc.cpp:378:      !m_Opts.OutputHeader.empty() || !m_Opts.AssemblyCode.empty() ||
+tools/clang/tools/dxclib/dxc.cpp:438:  if (!m_Opts.AssemblyCode.empty()) {
+tools/clang/tools/dxclib/dxc.cpp:439:    WriteBlobToFile(pDisassembleResult, m_Opts.AssemblyCode,
+tools/clang/unittests/dxc_batch/dxc_batch.cpp:269:      !m_Opts.OutputHeader.empty() || !m_Opts.AssemblyCode.empty() ||
+tools/clang/unittests/dxc_batch/dxc_batch.cpp:300:  } else if (!m_Opts.AssemblyCode.empty()) {
+tools/clang/unittests/dxc_batch/dxc_batch.cpp:301:    WriteBlobToFile(pDisassembleResult, m_Opts.AssemblyCode,
+
+CLAIM:
+$ git grep -n AssemblyCode -- tools/clang/tools/dxcompiler/
+[exit] 1
+(no output -- git grep exits 1 when nothing matched)
+
+========================================================================
+7. ABSENCE: no Compile path produces DXC_OUT_DISASSEMBLY. The only
+   producer is DxcCompiler::Disassemble; dxcapi.h documents exactly that.
+========================================================================
+
+CONTROL (sibling DXC_OUT_* kinds in the same file, to show the file is searched):
+$ git grep -c -E DXC_OUT_(OBJECT|ERRORS) -- tools/clang/tools/dxcompiler/dxcompilerobj.cpp
+[exit] 0
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp:8
+
+CLAIM:
+$ git grep -n DXC_OUT_DISASSEMBLY -- tools/clang/tools/dxcompiler/dxcompilerobj.cpp include/dxc/dxcapi.h
+[exit] 0
+include/dxc/dxcapi.h:381:  /// * DXC_OUT_DISASSEMBLY - Disassemble()
+include/dxc/dxcapi.h:731:  DXC_OUT_DISASSEMBLY = 5, ///< IDxcBlobUtf8 or IDxcBlobWide - from Disassemble.
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp:1386:      IFT(DxcResult::Create(S_OK, DXC_OUT_DISASSEMBLY,
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp:1388:                                DXC_OUT_DISASSEMBLY, CP_UTF8, StreamStr.c_str(),
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp:1813:    IFR(pResult->GetOutput(DXC_OUT_DISASSEMBLY, IID_PPV_ARGS(ppDisassembly),
+
+========================================================================
+8. Where E_INVALIDARG is manufactured, and why the CALL still returns
+   S_OK: dxcutil::ReadOptsAndValidate builds an already-finished
+   DxcResult carrying E_INVALIDARG and sets finished=true; Compile then
+   hands that result back and returns S_OK. The failure is on the result
+   object, not on the call -- a caller that only checks the HRESULT of
+   Compile() sees success.
+========================================================================
+
+$ git grep -n -B 6 -A 10 "E_INVALIDARG, DXC_OUT_NONE" -- tools/clang/tools/dxcompiler/dxcutil.cpp
+[exit] 0
+tools/clang/tools/dxcompiler/dxcutil.cpp-114-  if (0 != hlsl::options::ReadDxcOpts(table, hlsl::options::CompilerFlags,
+tools/clang/tools/dxcompiler/dxcutil.cpp-115-                                      mainArgs, opts, outStream)) {
+tools/clang/tools/dxcompiler/dxcutil.cpp-116-    CComPtr<IDxcBlob> pErrorBlob;
+tools/clang/tools/dxcompiler/dxcutil.cpp-117-    IFT(pOutputStream->QueryInterface(&pErrorBlob));
+tools/clang/tools/dxcompiler/dxcutil.cpp-118-    outStream.flush();
+tools/clang/tools/dxcompiler/dxcutil.cpp-119-    IFT(DxcResult::Create(
+tools/clang/tools/dxcompiler/dxcutil.cpp:120:        E_INVALIDARG, DXC_OUT_NONE,
+tools/clang/tools/dxcompiler/dxcutil.cpp-121-        {DxcOutputObject::ErrorOutput(opts.DefaultTextCodePage,
+tools/clang/tools/dxcompiler/dxcutil.cpp-122-                                      (LPCSTR)pErrorBlob->GetBufferPointer(),
+tools/clang/tools/dxcompiler/dxcutil.cpp-123-                                      pErrorBlob->GetBufferSize())},
+tools/clang/tools/dxcompiler/dxcutil.cpp-124-        ppResult));
+tools/clang/tools/dxcompiler/dxcutil.cpp-125-    finished = true;
+tools/clang/tools/dxcompiler/dxcutil.cpp-126-    return;
+tools/clang/tools/dxcompiler/dxcutil.cpp-127-  }
+tools/clang/tools/dxcompiler/dxcutil.cpp-128-  DXASSERT(opts.HLSLVersion > hlsl::LangStd::v2015,
+tools/clang/tools/dxcompiler/dxcutil.cpp-129-           "else ReadDxcOpts didn't fail for non-isense");
+tools/clang/tools/dxcompiler/dxcutil.cpp-130-  finished = false;
+
+========================================================================
+9. ...and both compile entry points do exactly that: DxcCompiler::Compile
+   (IDxcCompiler3, line ~562) and DxcCompilerAdapter::WrapCompile (the
+   legacy IDxcCompiler, line ~1908). Both `return S_OK` with the failed
+   result. This is why the harness reports call= and status= separately.
+========================================================================
+
+$ git grep -n -A 4 "if (finished) {" -- tools/clang/tools/dxcompiler/dxcompilerobj.cpp
+[exit] 0
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp:562:        if (finished) {
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp-563-          IFT(pDxcOperationResult->QueryInterface(riid, ppResult));
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp-564-          hr = S_OK;
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp-565-          goto Cleanup;
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp-566-        }
+--
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp:1908:    if (finished) {
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp-1909-      IFT(pOperationResult->QueryInterface(ppResult));
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp-1910-      return S_OK;
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp-1911-    }
+tools/clang/tools/dxcompiler/dxcompilerobj.cpp-1912-
+
+========================================================================
+10. The documentation the 2020 comment relied on. docs/SPIR-V.rst says
+    the listed options 'are also recognized by the library API calls',
+    and -Fc is on that list. The measurement says otherwise -- see the
+    c1-spirv-* rows in manual-case-release-history.txt. This is a real
+    documentation defect and it is a sufficient explanation for the
+    2020 reporter's surprise.
+========================================================================
+
+CONTROL (a sibling entry in the same list, to show the list is being searched):
+$ git grep -c -E ``-Fo`` -- docs/SPIR-V.rst
+[exit] 0
+docs/SPIR-V.rst:1
+
+CLAIM:
+$ git grep -n -E "also recognized by the library|``-Fc``" -- docs/SPIR-V.rst
+[exit] 0
+docs/SPIR-V.rst:4198:also recognized by the library API calls.
+docs/SPIR-V.rst:4211:- ``-Fc``: outputs SPIR-V disassembly to the given file
+
+========================================================================
+11. ...and that documentation has said so since before the issue was
+    filed: the -Fc bullet since 2017, the 'also recognized' sentence
+    since 2018. The issue is from 2019-11 and the comment from 2020-07.
+========================================================================
+
+$ git --no-pager log -L 4211,4211:docs/SPIR-V.rst -L 4197,4198:docs/SPIR-V.rst "--format=%h %ad %s" --date=short -s
+[exit] 0
+474954a6e 2018-08-01 [spirv] Update mapping manual w.r.t. debugging and options (#1475)
+8702f97df 2017-10-20 [spirv] Add support for four register number shifting options (#720)
+

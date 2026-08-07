@@ -1,0 +1,14 @@
+What to look for, issue 3708. `okLiteral[10]` is the control: every pane
+accepts it, so any pane that rejects only the swizzled and subscripted
+bounds is objecting to those, not to the stage, the profile or the buffer.
+This is a compute restating of the pixel repro measured locally, because
+clang's DXIL backend cannot lower a pixel shader writing SV_Target.
+
+  FXC cs_5_0    exit 0 -- folds the component and accepts all four bounds.
+  DXC 1.6.2112  three errors, one per swizzled/subscripted bound.
+  DXC trunk     the same three. Unchanged in all 20 releases v1.4.1907 on.
+  clang trunk   accepts `(10).x` -- the case this issue was filed about --
+                and rejects the other two, its own note blaming the read of
+                a non-constexpr variable rather than the component access.
+                Spelled `constexpr uint2`, clang accepts those too; neither
+                FXC nor DXC knows the keyword.

@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "=\\s*phi\\s+float\\s+\\[[^\\r\\n]*\\bundef\\b" },
+    { "kind": "not_regex", "value": "(?i)\\b(error|warning):" }
+  ],
+  "note": "THE REPORTED WORDING, verbatim: undef in the DXIL with 'no error/warning'. Identical to match.json except that the absence clause also forbids a warning. It exists because the two halves of the report have diverged, and a single predicate would collapse that into a misleading verdict either way: score only the silence and the issue reads 'fixed'; score only the undef and the write-up never mentions that dxc is no longer silent. Bisecting this one dates the arrival of the -Wparameter-usage diagnostic; bisecting match.json dates the defect itself. Anchored by the same positive phi clause, for the same reason. Controls: control-initialized.hlsl `--expect no-match`."
+}

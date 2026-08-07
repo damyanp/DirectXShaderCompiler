@@ -1,0 +1,28 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T19:10:37+00:00
+# cmd: -T ps_6_0 -E main case-nonarray-ice-contexts.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: nonarray-ice (case-nonarray-ice-contexts.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main case-nonarray-ice-contexts.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case-nonarray-ice-contexts.hlsl:9:14: error: expression is not an integral constant expression
+enum E { A = v2.x };
+             ^~~~
+case-nonarray-ice-contexts.hlsl:15:14: error: case value is not a constant expression
+        case v2.x: r = 1; break;      // case label
+             ^
+case-nonarray-ice-contexts.hlsl:18:19: error: non-type template argument of type 'unsigned int' is not an integral constant expression
+    vector<float, v2.y> vv = 0;       // non-type template argument
+                  ^~~~
+
+

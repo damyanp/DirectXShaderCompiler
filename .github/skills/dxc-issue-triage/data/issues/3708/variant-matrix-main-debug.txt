@@ -1,0 +1,31 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T19:10:36+00:00
+# cmd: -T ps_6_0 -E main case-array-bound-matrix.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: matrix (case-array-bound-matrix.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main case-array-bound-matrix.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case-array-bound-matrix.hlsl:11:15: error: variable length arrays are not supported in HLSL
+    int array2[(10).x];             // swizzle of a literal      <- issue body
+              ^
+case-array-bound-matrix.hlsl:13:15: error: variable length arrays are not supported in HLSL
+    int array4[scalarLength.x];     // swizzle of a const SCALAR
+              ^
+case-array-bound-matrix.hlsl:14:15: error: variable length arrays are not supported in HLSL
+    int array5[vectorLengths.x];    // swizzle of a const vector
+              ^
+case-array-bound-matrix.hlsl:15:15: error: variable length arrays are not supported in HLSL
+    int array6[vectorLengths[1]];   // subscript of a const vector
+              ^
+
+

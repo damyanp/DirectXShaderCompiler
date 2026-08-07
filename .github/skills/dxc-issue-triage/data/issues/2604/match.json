@@ -1,0 +1,22 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "SELFCHECK: fc-operand-seen=yes"
+    },
+    {
+      "kind": "contains",
+      "value": "RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present"
+    },
+    {
+      "kind": "contains",
+      "value": "RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present"
+    },
+    {
+      "kind": "contains",
+      "value": "RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent"
+    }
+  ],
+  "note": "The issue body's request -- 'separate simultaneous disassembly output' -- is that ONE Compile call yield both the object and its listing. So the symptom is 'a Compile call was given -Fc and no listing reached the caller', measured on IDxcCompiler, the interface that existed when this was filed in 2019 (IDxcCompiler3 arrived in DXC 1.6) and the only one every catalogued release ships. match-einvalidarg.json carries the separate 2020-comment claim about E_INVALIDARG, and out-main-debug-fc.txt shows both interfaces behave identically today.\n\nThe symptom clause is deliberately the -Qunused-arguments case, not the plain one. -Qunused-arguments is Flags<[CoreOption]> (HLSLOptions.td:105) so the library DOES see it, and it skips the OPT_UNKNOWN loop in ReadDxcOpts (HLSLOptions.cpp:533-538). That turns the rejection off and leaves the compile succeeding with -Fc present and ignored -- which is the state that tests the FEATURE rather than the argument mask. If someone flipped -Fc to CoreOption without teaching dxcompiler.dll to emit a listing, the plain case would stop returning E_INVALIDARG and a rejection-based predicate would report this issue fixed; this clause would still be true, correctly.\n\nEvery clause is a positive `contains` of a literal token the harness must print, so there is no absence clause to be satisfied for free by a call that never happened -- `absent` here is text fc2604.exe emits, not the absence of text. The first two clauses are the anchors SKILL.md requires for a missing-output symptom: c1-baseline proves the compile pipeline works and produced an object, and c1-disassemble proves THIS dxcompiler.dll can disassemble that object (4104 bytes on ground truth). Without the second, 'no disassembly' could mean the harness cannot obtain disassembly at all.\n\nThe fc-operand-seen anchor is not decoration. Without it every clause is vacuously true of a run with no -Fc on the command line at all -- variant-no-fc-main-debug-fc.txt is that control, --expect no-match, and it fails the predicate only because of this line. variant-fre and variant-fh are the same shape for a different flag: -Fre is Flags<[CoreOption, DriverOption]> and IS accepted by the API, -Fh is Flags<[DriverOption]> like -Fc and is rejected identically, which shows the rejection is a property of the flag mask and not of how the harness passes arguments. variant-joined-fc uses the joined spelling -Fc<file> and expects match, an identity control in #1803's sense: the spelling must not matter.\n\nNothing here is an exit code. fc2604.exe exits 0 whenever the probe completed, because dxc.exe returns E_FAIL for ordinary diagnosed errors and conflating an API HRESULT with a process status is this issue's specific trap."
+}

@@ -233,6 +233,7 @@ def read_out(path):
 
 def gh(*args):
     return subprocess.check_output(["gh", *args], text=True,
+                                   encoding="utf-8", errors="replace",
                                    shell=(os.name == "nt"))
 
 
@@ -687,7 +688,8 @@ def show_releases():
 
 def cmd_compiler(a):
     ver = subprocess.run([a.exe, "--version"], capture_output=True,
-                         text=True).stdout.strip().replace("\n", " ")
+                         text=True, encoding="utf-8",
+                         errors="replace").stdout.strip().replace("\n", " ")
     c = con()
     c.execute("INSERT OR REPLACE INTO compilers (id, exe_path, git_commit,"
               " version, built_at) VALUES (?,?,?,?,?)",
@@ -1058,7 +1060,8 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
         try:
             p = subprocess.run([exe] + split_cmd(line), cwd=d,
                                capture_output=True, text=True,
-                               errors="replace", timeout=TIMEOUT)
+                               encoding="utf-8", errors="replace",
+                               timeout=TIMEOUT)
             rc, out, err, to = p.returncode, p.stdout, p.stderr, False
         except subprocess.TimeoutExpired as e:
             rc, out, err, to = None, e.stdout or "", e.stderr or "", True
@@ -1555,7 +1558,10 @@ def annotate(issue, source):
         return source
     rule = "//" + "=" * 74 + "//"
     body = open(note_path, encoding="utf-8").read().strip("\n")
-    lines = [f"// {ln}".rstrip() for ln in body.splitlines()]
+    # The marker belongs to the renderer, not the note. Older issue notes
+    # sometimes supplied it too, producing permanent `// //` CE banners.
+    note_lines = [re.sub(r"^\s*//\s?", "", ln) for ln in body.splitlines()]
+    lines = [f"// {ln}".rstrip() for ln in note_lines]
     return "\n".join([rule, *lines, rule, "", source.lstrip("\n")])
 
 
@@ -1610,12 +1616,20 @@ def cmd_godbolt(a):
     # is how a contrasting compiler (e.g. FXC, with /T instead of -T) is put
     # side by side with DXC in one link.
     compilers = []
+    missing_overrides = []
     for entry in spec.split(","):
         entry = entry.strip()
         if not entry:
             continue
         cid, _, override = entry.partition(":")
+        if name != "repro.hlsl" and not override.strip():
+            missing_overrides.append(cid)
         compilers.append((cid, override.strip() or args))
+    if missing_overrides:
+        sys.exit(
+            f"--source {name} changes the source but cannot infer its profile; "
+            "give explicit id:<args> overrides for every pane "
+            f"(missing: {', '.join(missing_overrides)})")
 
     extra = [f for f in os.listdir(d) if f.endswith((".h", ".hlsli"))]
     if extra:

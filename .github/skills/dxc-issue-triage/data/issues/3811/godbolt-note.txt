@@ -1,0 +1,19 @@
+What to look for: DXC accepts a read of an uninitialised value and emits `undef` for it,
+with no error, when the read goes through a loop-carried phi node. The identical read
+written straight-line (the commented-out line) IS rejected by DXIL validation.
+
+In each DXC pane, find the loop body and read the accumulator's phi node: its incoming
+value from the loop preheader is the token `undef`, and the next line adds it into the
+running total with a floating-point add. Then look at what the compiler said: there is no
+error and DXIL validation passed. Trunk additionally warns
+(`parameter 'result' is uninitialized when used here [-Wparameter-usage]`), which
+dxc 1.6.2112 does not; the emitted DXIL is the same in both.
+
+To see the contrast the issue is actually about, uncomment the straight-line accumulation
+and delete the loop. DXC then reports "Instructions should not read uninitialized value"
+and refuses to produce a module. Same uninitialised read; diagnosed one way, silent
+the other.
+
+This is a compute restating of the vs_6_0 shader in the issue, so that Clang -- whose DXIL
+backend cannot lower vertex signature I/O -- can answer the same question on the same
+source. The stage-accurate original was measured locally and behaves identically.

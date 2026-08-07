@@ -100,6 +100,21 @@ print("invert")
 check("invert flips the result",
       evaluate({"kind": "contains", "value": "x", "invert": True}, "y"), True)
 
+print("Compiler Explorer annotation")
+_annotation_dir = tempfile.mkdtemp()
+_old_issue_dir = triage.issue_dir
+triage.issue_dir = lambda n: _annotation_dir
+try:
+    with open(os.path.join(_annotation_dir, "godbolt-note.txt"), "w",
+              encoding="utf-8") as f:
+        f.write("// already marked\nplain prose\n")
+    annotated = triage.annotate(1, "float4 main() : SV_Target { return 0; }\n")
+    check("annotation owns exactly one comment marker",
+          "// already marked" in annotated and "// // already marked" not in annotated,
+          True)
+finally:
+    triage.issue_dir = _old_issue_dir
+
 print("malformed predicates fail loudly")
 for spec in ({"kind": "contains"}, {"kind": "any_of"},
              {"kind": "any_of", "value": []}):
@@ -607,6 +622,5 @@ if FAILURES:
     print(f"{len(FAILURES)} FAILURE(S)")
     sys.exit(1)
 print("all predicate tests passed")
-
 
 

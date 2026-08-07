@@ -1,0 +1,106 @@
+# compiler: main-debug-fc
+# exe: <triage>/issues/2604/run-fc2604.cmd
+# ran: 2026-08-07T19:33:56+00:00
+# cmd: -T ps_6_0 -E main -Fre repro-refl.bin repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: fre (repro.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main -Fre repro-refl.bin repro.hlsl
+[exe] <triage>/issues/2604/run-fc2604.cmd
+[exit] 0
+--- stdout ---
+# fc2604: #2604 -Fc in the compile API
+dll: <repo>/build/Debug/bin/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fre repro-refl.bin repro.hlsl
+-Fc operand: fc2604-out.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "fc2604-out.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "fc2604-out.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "fc2604-out.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "fc2604-out.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "-Fre is not supported with -spirv"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  skipped                    this DLL was built without SPIR-V codegen
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  skipped                    this DLL was built without SPIR-V codegen
+
+SELFCHECK: cases-run=8/10
+SELFCHECK: fc-operand-seen=no
+SELFCHECK: spirv-codegen=unavailable
+SELFCHECK: baseline-disassembly-bytes=4104
+
+RESULT case=c1-fc call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc skipped=no-spirv-codegen
+RESULT case=c1-spirv-fc-qunused skipped=no-spirv-codegen
+
+--- stderr ---
+

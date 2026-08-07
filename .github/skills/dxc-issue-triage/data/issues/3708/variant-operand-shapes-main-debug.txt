@@ -1,0 +1,46 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T19:10:37+00:00
+# cmd: -T ps_6_0 -E main case-operand-shapes.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: operand-shapes (case-operand-shapes.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main case-operand-shapes.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case-operand-shapes.hlsl:11:12: error: variable length arrays are not supported in HLSL
+    int a01[uint2(20, 30).x];    // rvalue vector, swizzle
+           ^
+case-operand-shapes.hlsl:12:12: error: variable length arrays are not supported in HLSL
+    int a02[uint2(20, 30)[0]];   // rvalue vector, subscript
+           ^
+case-operand-shapes.hlsl:13:12: error: variable length arrays are not supported in HLSL
+    int a03[v2.r];               // colour-channel spelling of .x
+           ^
+case-operand-shapes.hlsl:14:12: error: variable length arrays are not supported in HLSL
+    int a04[m22._11];            // matrix, one-based named component
+           ^
+case-operand-shapes.hlsl:15:12: error: variable length arrays are not supported in HLSL
+    int a05[m22._m00];           // matrix, zero-based named component
+           ^
+case-operand-shapes.hlsl:16:12: error: variable length arrays are not supported in HLSL
+    int a06[m22[0][0]];          // matrix, double subscript
+           ^
+case-operand-shapes.hlsl:17:12: error: variable length arrays are not supported in HLSL
+    int a07[(10).xx[0]];         // multi-component swizzle, then subscript
+           ^
+case-operand-shapes.hlsl:18:12: error: variable length arrays are not supported in HLSL
+    int a08[v2.x + v2.y];        // arithmetic over two swizzles
+           ^
+case-operand-shapes.hlsl:19:12: error: variable length arrays are not supported in HLSL
+    int a09[via];                // static const folded from a swizzle
+           ^
+
+

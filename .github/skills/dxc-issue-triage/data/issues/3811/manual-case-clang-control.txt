@@ -1,0 +1,297 @@
+# Compiler Explorer controls for #3811's Clang pane.
+# Written by ce-clang-control.py -- rerun it to re-derive.
+# compiler: hlsl_clang_trunk   args: -T cs_6_0
+# CE runs Linux Release builds; it corroborates the local Debug
+# build and never overrules it.
+
+==========================================================================
+# case: repro-loop   (derived from variant-compute.hlsl)
+# POST https://godbolt.org/api/compiler/hlsl_clang_trunk/compile
+# exit: 0
+# asm lines read: 347
+# main() body lines extracted: 70
+# diagnostics (excluding CE's own -Qembed_debug note): 2
+    [1m<source>:13:20: [0m[0;1;35mwarning: [0m[1mimplicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion][0m
+    [0m1 warning generated.
+# undef-seeded float phi nodes: 1
+    %5 = phi nsz float [ undef, %0 ], [ %11, %8 ]
+
+--- source ---
+// Issue 3811 -- compute restatement of repro.hlsl, for a Compiler Explorer session that all
+// three compilers (dxc, dxc trunk, clang) can answer on the SAME source. Clang's DXIL backend
+// cannot lower vertex signature I/O, so the vs_6_0 original would fill a Clang pane with noise
+// about the stage rather than about this issue.
+// The local, stage-accurate evidence is repro.hlsl at vs_6_0, exactly as filed.
+StructuredBuffer<float> values : register(t0, space0);
+RWStructuredBuffer<float> result_out : register(u0);
+
+void Accumulate(int count, out float result)
+{
+	// result += values[0];  // <-- straight-line spelling: rejected by DXIL validation
+	for (int i = 0; i < count; i++)
+		result += values[i];  // <-- loop spelling: accepted
+}
+
+[numthreads(1, 1, 1)]
+void main(uint3 tid : SV_DispatchThreadID)
+{
+	float result = 0.0;
+	Accumulate((int)tid.x, result);
+	result_out[0] = result;
+}
+
+--- full compiler output ---
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:13:20: [0m[0;1;35mwarning: [0m[1mimplicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion][0m
+   13 |                 result += values[i];  [0;33m// <-- loop spelling: accepted[0m
+      | [0;1;32m                          ~~~~~~ ^
+[0m1 warning generated.
+
+--- define void @main() ---
+define void @main() local_unnamed_addr #0 {
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !118, metadata !DIExpression()), !dbg !126
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !118, metadata !DIExpression()), !dbg !126
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !121, metadata !DIExpression()), !dbg !126
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !121, metadata !DIExpression()), !dbg !126
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 1, i64 0, metadata !122, metadata !DIExpression()), !dbg !126
+  tail call void @llvm.dbg.value(metadata i32 1, metadata !122, metadata !DIExpression()), !dbg !126
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !123, metadata !DIExpression()), !dbg !126
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !123, metadata !DIExpression()), !dbg !126
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata ptr @.str, i64 0, metadata !124, metadata !DIExpression()), !dbg !126
+  tail call void @llvm.dbg.value(metadata ptr @.str, metadata !124, metadata !DIExpression()), !dbg !126
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !126
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !134, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !134, metadata !DIExpression()), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !137, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !137, metadata !DIExpression()), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 1, i64 0, metadata !138, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata i32 1, metadata !138, metadata !DIExpression()), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !139, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !139, metadata !DIExpression()), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata ptr @.str.2, i64 0, metadata !140, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata ptr @.str.2, metadata !140, metadata !DIExpression()), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !141, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !141, metadata !DIExpression()), !dbg !143
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 0)
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata float 0.000000e+00, i64 0, metadata !147, metadata !DIExpression()), !dbg !160
+  tail call void @llvm.dbg.value(metadata float 0.000000e+00, metadata !147, metadata !DIExpression()), !dbg !160
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %2, i64 0, metadata !161, metadata !DIExpression()), !dbg !170
+  tail call void @llvm.dbg.value(metadata i32 %2, metadata !161, metadata !DIExpression()), !dbg !170
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !168, metadata !DIExpression()), !dbg !172
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !168, metadata !DIExpression()), !dbg !172
+  %3 = call i32 @dx.op.binary.i32(i32 37, i32 %2, i32 0), !dbg !173
+  br label %4, !dbg !173
+
+4:                                                ; preds = %8, %0
+  %5 = phi nsz float [ undef, %0 ], [ %11, %8 ]
+  %6 = phi i32 [ 0, %0 ], [ %12, %8 ], !dbg !174
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %6, i64 0, metadata !168, metadata !DIExpression()), !dbg !172
+  tail call void @llvm.dbg.value(metadata i32 %6, metadata !168, metadata !DIExpression()), !dbg !172
+  %7 = icmp eq i32 %6, %3, !dbg !175
+  br i1 %7, label %13, label %8, !dbg !177
+
+8:                                                ; preds = %4
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata ptr poison, i64 0, metadata !178, metadata !DIExpression()), !dbg !182
+  tail call void @llvm.dbg.value(metadata ptr poison, metadata !178, metadata !DIExpression()), !dbg !182
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %6, i64 0, metadata !181, metadata !DIExpression()), !dbg !182
+  tail call void @llvm.dbg.value(metadata i32 %6, metadata !181, metadata !DIExpression()), !dbg !182
+  %9 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %1, i32 %6, i32 0), !dbg !184
+  %10 = extractvalue %dx.types.ResRet.f32 %9, 0, !dbg !184
+  %11 = fadd reassoc nnan ninf nsz arcp afn float %10, %5, !dbg !185
+  %12 = add nuw i32 %6, 1, !dbg !186
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %12, i64 0, metadata !168, metadata !DIExpression()), !dbg !172
+  tail call void @llvm.dbg.value(metadata i32 %12, metadata !168, metadata !DIExpression()), !dbg !172
+  br label %4, !dbg !187, !llvm.loop !188
+
+13:                                               ; preds = %4
+  %14 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata target("dx.RawBuffer", float, 1, 0) poison, i64 0, metadata !142, metadata !DIExpression(DW_OP_LLVM_fragment, 32, 32)), !dbg !143
+  tail call void @llvm.dbg.value(metadata target("dx.RawBuffer", float, 1, 0) poison, metadata !142, metadata !DIExpression(DW_OP_LLVM_fragment, 32, 32)), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata target("dx.RawBuffer", float, 1, 0) poison, i64 0, metadata !142, metadata !DIExpression(DW_OP_LLVM_fragment, 0, 32)), !dbg !143
+  tail call void @llvm.dbg.value(metadata target("dx.RawBuffer", float, 1, 0) poison, metadata !142, metadata !DIExpression(DW_OP_LLVM_fragment, 0, 32)), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata float %5, i64 0, metadata !147, metadata !DIExpression()), !dbg !160
+  tail call void @llvm.dbg.value(metadata float %5, metadata !147, metadata !DIExpression()), !dbg !160
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata ptr poison, i64 0, metadata !189, metadata !DIExpression()), !dbg !193
+  tail call void @llvm.dbg.value(metadata ptr poison, metadata !189, metadata !DIExpression()), !dbg !193
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !192, metadata !DIExpression()), !dbg !193
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !192, metadata !DIExpression()), !dbg !193
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %14, i32 0, i32 0, float %5, float undef, float undef, float undef, i8 1), !dbg !195
+  ret void
+}
+
+==========================================================================
+# case: straightline   (derived from variant-compute.hlsl)
+# POST https://godbolt.org/api/compiler/hlsl_clang_trunk/compile
+# exit: 0
+# asm lines read: 207
+# main() body lines extracted: 21
+# diagnostics (excluding CE's own -Qembed_debug note): 0
+    (none)
+# undef-seeded float phi nodes: 0
+    (none)
+
+--- source ---
+// Issue 3811 -- compute restatement of repro.hlsl, for a Compiler Explorer session that all
+// three compilers (dxc, dxc trunk, clang) can answer on the SAME source. Clang's DXIL backend
+// cannot lower vertex signature I/O, so the vs_6_0 original would fill a Clang pane with noise
+// about the stage rather than about this issue.
+// The local, stage-accurate evidence is repro.hlsl at vs_6_0, exactly as filed.
+StructuredBuffer<float> values : register(t0, space0);
+RWStructuredBuffer<float> result_out : register(u0);
+
+void Accumulate(int count, out float result)
+{
+	// result += values[0];  // <-- straight-line spelling: rejected by DXIL validation
+	result += values[0];  // <-- straight-line spelling
+}
+
+[numthreads(1, 1, 1)]
+void main(uint3 tid : SV_DispatchThreadID)
+{
+	float result = 0.0;
+	Accumulate((int)tid.x, result);
+	result_out[0] = result;
+}
+
+--- full compiler output ---
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+
+--- define void @main() ---
+define void @main() local_unnamed_addr #0 {
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !112, metadata !DIExpression()), !dbg !120
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !112, metadata !DIExpression()), !dbg !120
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !115, metadata !DIExpression()), !dbg !120
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !115, metadata !DIExpression()), !dbg !120
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 1, i64 0, metadata !116, metadata !DIExpression()), !dbg !120
+  tail call void @llvm.dbg.value(metadata i32 1, metadata !116, metadata !DIExpression()), !dbg !120
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !117, metadata !DIExpression()), !dbg !120
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !117, metadata !DIExpression()), !dbg !120
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !128, metadata !DIExpression()), !dbg !137
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !128, metadata !DIExpression()), !dbg !137
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !131, metadata !DIExpression()), !dbg !137
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !131, metadata !DIExpression()), !dbg !137
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 1, i64 0, metadata !132, metadata !DIExpression()), !dbg !137
+  tail call void @llvm.dbg.value(metadata i32 1, metadata !132, metadata !DIExpression()), !dbg !137
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !133, metadata !DIExpression()), !dbg !137
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !133, metadata !DIExpression()), !dbg !137
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !135, metadata !DIExpression()), !dbg !137
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !135, metadata !DIExpression()), !dbg !137
+  ret void
+}
+
+==========================================================================
+# case: initialized   (derived from variant-compute.hlsl)
+# POST https://godbolt.org/api/compiler/hlsl_clang_trunk/compile
+# exit: 0
+# asm lines read: 347
+# main() body lines extracted: 70
+# diagnostics (excluding CE's own -Qembed_debug note): 2
+    [1m<source>:14:20: [0m[0;1;35mwarning: [0m[1mimplicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion][0m
+    [0m1 warning generated.
+# undef-seeded float phi nodes: 0
+    (none)
+
+--- source ---
+// Issue 3811 -- compute restatement of repro.hlsl, for a Compiler Explorer session that all
+// three compilers (dxc, dxc trunk, clang) can answer on the SAME source. Clang's DXIL backend
+// cannot lower vertex signature I/O, so the vs_6_0 original would fill a Clang pane with noise
+// about the stage rather than about this issue.
+// The local, stage-accurate evidence is repro.hlsl at vs_6_0, exactly as filed.
+StructuredBuffer<float> values : register(t0, space0);
+RWStructuredBuffer<float> result_out : register(u0);
+
+void Accumulate(int count, out float result)
+{
+	result = 0.0;
+	// result += values[0];  // <-- straight-line spelling: rejected by DXIL validation
+	for (int i = 0; i < count; i++)
+		result += values[i];  // <-- loop spelling: accepted
+}
+
+[numthreads(1, 1, 1)]
+void main(uint3 tid : SV_DispatchThreadID)
+{
+	float result = 0.0;
+	Accumulate((int)tid.x, result);
+	result_out[0] = result;
+}
+
+--- full compiler output ---
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:14:20: [0m[0;1;35mwarning: [0m[1mimplicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion][0m
+   14 |                 result += values[i];  [0;33m// <-- loop spelling: accepted[0m
+      | [0;1;32m                          ~~~~~~ ^
+[0m1 warning generated.
+
+--- define void @main() ---
+define void @main() local_unnamed_addr #0 {
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !118, metadata !DIExpression()), !dbg !126
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !118, metadata !DIExpression()), !dbg !126
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !121, metadata !DIExpression()), !dbg !126
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !121, metadata !DIExpression()), !dbg !126
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 1, i64 0, metadata !122, metadata !DIExpression()), !dbg !126
+  tail call void @llvm.dbg.value(metadata i32 1, metadata !122, metadata !DIExpression()), !dbg !126
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !123, metadata !DIExpression()), !dbg !126
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !123, metadata !DIExpression()), !dbg !126
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata ptr @.str, i64 0, metadata !124, metadata !DIExpression()), !dbg !126
+  tail call void @llvm.dbg.value(metadata ptr @.str, metadata !124, metadata !DIExpression()), !dbg !126
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !126
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !134, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !134, metadata !DIExpression()), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !137, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !137, metadata !DIExpression()), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 1, i64 0, metadata !138, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata i32 1, metadata !138, metadata !DIExpression()), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !139, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !139, metadata !DIExpression()), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata ptr @.str.2, i64 0, metadata !140, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata ptr @.str.2, metadata !140, metadata !DIExpression()), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !141, metadata !DIExpression()), !dbg !143
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !141, metadata !DIExpression()), !dbg !143
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 0)
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata float 0.000000e+00, i64 0, metadata !147, metadata !DIExpression()), !dbg !160
+  tail call void @llvm.dbg.value(metadata float 0.000000e+00, metadata !147, metadata !DIExpression()), !dbg !160
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %2, i64 0, metadata !161, metadata !DIExpression()), !dbg !170
+  tail call void @llvm.dbg.value(metadata i32 %2, metadata !161, metadata !DIExpression()), !dbg !170
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !168, metadata !DIExpression()), !dbg !172
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !168, metadata !DIExpression()), !dbg !172
+  %3 = call i32 @dx.op.binary.i32(i32 37, i32 %2, i32 0), !dbg !173
+  br label %4, !dbg !173
+
+4:                                                ; preds = %8, %0
+  %5 = phi nsz float [ 0.000000e+00, %0 ], [ %11, %8 ], !dbg !170
+  %6 = phi i32 [ 0, %0 ], [ %12, %8 ], !dbg !174
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %6, i64 0, metadata !168, metadata !DIExpression()), !dbg !172
+  tail call void @llvm.dbg.value(metadata i32 %6, metadata !168, metadata !DIExpression()), !dbg !172
+  %7 = icmp eq i32 %6, %3, !dbg !175
+  br i1 %7, label %13, label %8, !dbg !177
+
+8:                                                ; preds = %4
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata ptr poison, i64 0, metadata !178, metadata !DIExpression()), !dbg !182
+  tail call void @llvm.dbg.value(metadata ptr poison, metadata !178, metadata !DIExpression()), !dbg !182
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %6, i64 0, metadata !181, metadata !DIExpression()), !dbg !182
+  tail call void @llvm.dbg.value(metadata i32 %6, metadata !181, metadata !DIExpression()), !dbg !182
+  %9 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %1, i32 %6, i32 0), !dbg !184
+  %10 = extractvalue %dx.types.ResRet.f32 %9, 0, !dbg !184
+  %11 = fadd reassoc nnan ninf nsz arcp afn float %10, %5, !dbg !185
+  %12 = add nuw i32 %6, 1, !dbg !186
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %12, i64 0, metadata !168, metadata !DIExpression()), !dbg !172
+  tail call void @llvm.dbg.value(metadata i32 %12, metadata !168, metadata !DIExpression()), !dbg !172
+  br label %4, !dbg !187, !llvm.loop !188
+
+13:                                               ; preds = %4
+  %14 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata target("dx.RawBuffer", float, 1, 0) poison, i64 0, metadata !142, metadata !DIExpression(DW_OP_LLVM_fragment, 32, 32)), !dbg !143
+  tail call void @llvm.dbg.value(metadata target("dx.RawBuffer", float, 1, 0) poison, metadata !142, metadata !DIExpression(DW_OP_LLVM_fragment, 32, 32)), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata target("dx.RawBuffer", float, 1, 0) poison, i64 0, metadata !142, metadata !DIExpression(DW_OP_LLVM_fragment, 0, 32)), !dbg !143
+  tail call void @llvm.dbg.value(metadata target("dx.RawBuffer", float, 1, 0) poison, metadata !142, metadata !DIExpression(DW_OP_LLVM_fragment, 0, 32)), !dbg !143
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata float %5, i64 0, metadata !147, metadata !DIExpression()), !dbg !160
+  tail call void @llvm.dbg.value(metadata float %5, metadata !147, metadata !DIExpression()), !dbg !160
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata ptr poison, i64 0, metadata !189, metadata !DIExpression()), !dbg !193
+  tail call void @llvm.dbg.value(metadata ptr poison, metadata !189, metadata !DIExpression()), !dbg !193
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !192, metadata !DIExpression()), !dbg !193
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !192, metadata !DIExpression()), !dbg !193
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %14, i32 0, i32 0, float %5, float undef, float undef, float undef, i8 1), !dbg !195
+  ret void
+}
+

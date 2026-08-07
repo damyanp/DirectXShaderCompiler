@@ -1,0 +1,22 @@
+{
+  "batch": "batch-010",
+  "confidence": "high",
+  "created_at": "2021-04-24T13:20:16Z",
+  "godbolt_url": "https://godbolt.org/z/51xjeKra5",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (all 20 measured releases, no invalid probes)",
+  "labels": "fxc-disagrees",
+  "labels_add": "hlsl-next, usability",
+  "labels_now": "fxc-disagrees",
+  "notes_path": "issues/3708/notes.md",
+  "number": 3708,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (SKILL.md step 10 initial and final-draft reviews, applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still reproduces on main (1.9.0.5433, 13730886e) and on all 20 measured releases v1.4.1907..v1.9.2607, no invalid probes; v1.6.2104 shipped 4 days before the report and reproduces. The body is narrower than the measured behavior: each tested integral-constant-expression use rejects a vector or matrix component, not just an array bound - case labels, enumerators, non-type template arguments and [numthreads] each fail with their own diagnostic. Also refused: .x on a static const scalar, matrix ._11/._m00/[0][0], .r, rvalue swizzles, v2[1], v2.x+v2.y. The tested scalar-alias workaround fails too, and constexpr is not a DXC keyword. Unaffected by -HV 2016/2017/2018/2021. FXC 10.1 accepts every tested form including case v2.x and vector<float,v2.y>; clang trunk accepts (10).x - the exact case filed - and rejects the static const ones only under the ordinary C++ non-constexpr rule, accepting them when spelled constexpr uint2. Rejected by two HLSL-specific sites in ExprConstant.cpp (CheckICE blacklist at 9035-9036, IntExprEvaluator::VisitCastExpr at 7749-7750), both dating to the 2016 initial commit; err_hlsl_vla is raised at SemaType.cpp:2142-2146. The only HLSLVectorElementExpr visitor in the constant evaluator is in VectorExprEvaluator, so only vector-result swizzles fold; there is no VisitExtMatrixElementExpr at all. DXC pins this in its own test suite - tools/clang/test/SemaHLSL/const-expr.hlsl:379-382, added 2017-08-29 in 6322c8ca3 (PR #605) - marking it fxc-pass with the comment \"It would be desirable to have this supported\", so any fix must update that test. Whether to fold component access into a constant expression is a language decision (match FXC, or adopt clang constexpr rules which HLSL cannot spell) and is not pre-empted here.",
+  "title": "Component swizzling / vector indexing not considered a constant expression",
+  "triaged_at": "2026-08-07T19:32:53+00:00",
+  "triaged_by": "claude-opus-4.6",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3708"
+}

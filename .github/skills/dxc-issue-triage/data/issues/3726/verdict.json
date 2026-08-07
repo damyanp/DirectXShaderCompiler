@@ -1,0 +1,22 @@
+{
+  "batch": "batch-010",
+  "confidence": "high",
+  "created_at": "2021-04-29T20:28:45Z",
+  "godbolt_url": "https://godbolt.org/z/77EjzsnP9",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (match.json, the DXIL back-end error); front end never diagnosed it across v1.5.2010..v1.9.2607 (match-sema.json, inverted polarity, 1 release skipped as unprobeable)",
+  "labels": "incorrect-code",
+  "labels_add": "diagnostic, check-in-clang",
+  "labels_now": "incorrect-code",
+  "notes_path": "issues/3726/notes.md",
+  "number": 3726,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (SKILL.md step 10 initial and final-draft reviews, applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on all 21 measured DXC builds, v1.4.1907..main (13730886e), exactly as filed. The front end is silent: -fcgl exits 0 with empty stderr on all 21 builds, and no resource-assignment diagnostic exists in DiagnosticSemaKinds.td (191 err_hlsl entries; the only resource-named one is about intrinsic arguments). The rejection comes from the DXIL back end -- DxilCondenseResources.cpp:699/701, reported from LegalizeResourceUseHelper inside DxilLowerCreateHandleForLib, ~150 passes after -dxilgen -- and its first line is a catch-all fallback telling a pixel shader with no library functions that \"exported library functions cannot have resource parameters\". -spirv exits 0 with no diagnostic on all 19 SPIR-V-capable measured releases; the emitted module binds x0/x1/x2 (the assignment targets) while r0/r1/r2 never appear. Because the issue asks for the as-filed source to be rejected, that is evidence of acceptance and lowering shape, not a miscompile. New: hlsl_clang_trunk also accepts it at exit 0 and lowers the store through r0 (controlled: the same shader minus the assignment compiles cleanly on both dxc_trunk and hlsl_clang_trunk). Scope matters and is a design question: with x0/x1/x2 static (as a 2024 comment suggests) or function-local (PR #3721 shape) the DXIL path also exits 0, so a blanket Sema rule would reject forms DXC accepts today. Reader trap: applying the \"should be static\" correction makes the DXIL half compile cleanly, which looks like cannot-reproduce. History: match.json (positive, the back-end error) always-repro'd across v1.4.1907..v1.9.2607; match-sema.json (INVERTED POLARITY -- a match would mean the front end diagnoses it, i.e. fixed) never-repro'd across v1.5.2010..v1.9.2607, v1.4.1907 demoted to invalid-probe by the SPIR-V feature marker on cmd.txt line 2 and re-probed separately (also silent).",
+  "title": "Sema should not allow assignment to resource",
+  "triaged_at": "2026-08-07T19:39:41+00:00",
+  "triaged_by": "claude-opus-4.6",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3726"
+}

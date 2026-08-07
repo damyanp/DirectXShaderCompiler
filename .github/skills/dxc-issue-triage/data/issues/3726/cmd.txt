@@ -1,0 +1,26 @@
+# #3726 -- the reported situation IS a statement about WHICH LAYER diagnoses this code, so
+# one probe captures all three layers on the same source, for every compiler:
+#
+#   line 1  DXIL     the compile the issue says the *backend* rejects
+#   line 2  SPIR-V   the compile the issue says succeeds instead of erroring
+#   line 3  -fcgl    high-level IR only: the DXIL lowering passes never run, so a
+#                    diagnostic here is a FRONT-END diagnostic and nothing else.
+#                    This is the instrument that answers the title's question --
+#                    "does Sema reject it?" -- rather than inferring it from message
+#                    shape. Message shape does not work: the DXIL backend error is
+#                    printed WITH a `repro.hlsl:15:10:` source location on main and
+#                    WITHOUT one on v1.4.1907 ("Use /Zi for source location"), so a
+#                    file:line prefix does not distinguish front end from back end.
+#
+# Line 1 alone is the report; see cmd-as-filed.txt. Lines 2 and 3 add layers, they do
+# not alter line 1.
+#
+# The reporter names no profile. `float4 main(): SV_Target` plus `Sample` is a pixel
+# shader, and ps_6_0 is the OLDEST profile that can express it, which keeps every
+# release probeable instead of answering `invalid profile` (SKILL.md step 6).
+#
+# No -Vd, no -Zi, no other flags: the issue is about which layer speaks, so nothing
+# that could silence a layer is added.
+-T ps_6_0 -E main repro.hlsl
+-T ps_6_0 -E main -spirv repro.hlsl
+-T ps_6_0 -E main -fcgl repro.hlsl

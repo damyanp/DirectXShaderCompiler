@@ -1,0 +1,2473 @@
+#2604 release history -- does the compile API handle -Fc?
+
+Produced by `python measure-2604.py --history`. Each row drives THAT
+RELEASE's own option parsing and compile entry points, by pointing
+the harness at that release's dxcompiler.dll:
+
+    set DXC_FC_DLL=<release>/dxcompiler.dll
+    fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+
+fc2604.exe is built from fc2604.cpp in this directory and is inert
+plumbing: it calls IDxcCompiler::Compile, IDxcCompiler3::Compile and
+IDxcCompiler::Disassemble. All three are implemented inside
+dxcompiler.dll, so the code under test is the release's, not the
+harness's.
+
+triage.py bisect cannot produce this table: it resolves a release tag
+to that release's dxc.exe, which is the one caller that DOES handle
+-Fc. It would score every release no-repro.
+
+v1.5.2003 is included although it is flagged bisectable=0; the scan
+otherwise jumps 2019-07 -> 2020-10, and this issue was filed
+2019-11-26 and commented on 2020-07-30.
+
+COLUMNS
+  c1-fc      IDxcOperationResult::GetStatus after
+             IDxcCompiler::Compile with `-Fc <file>`
+             0x80070057 = E_INVALIDARG, the 2020 comment's report
+  +Qunused   the same with -Qunused-arguments, which is a CoreOption
+             and suppresses the unknown-argument check -- this is the
+             case that tests the FEATURE rather than the flag mask
+  listing    did anything carry a disassembly listing back to the
+             caller?  none/obj = an object came back but no listing
+  disasm     IDxcCompiler::Disassemble on that object (the anchor:
+             the listing IS available, one call later)
+  spirv-fc   the same -Fc probe with -spirv added, guarded by a
+             -spirv baseline that must first compile successfully.
+             docs/SPIR-V.rst:4197-4198 + :4211 claim -Fc is supported
+             by SPIR-V CodeGen and 'also recognized by the library
+             API calls'; this column is that claim, measured.
+  IDxcCompiler3  available from DXC 1.6 on; pre-1.6 rows measure the
+             legacy interface only, which is the one the 2019 issue
+             and the 2020 comment were filed against
+
+       release         date       c1-fc    +Qunused  listing   disasm     spirv-fc  IDxcCompiler3
+-------------- ------------ ----------- ----------- -------- -------- ------------  -------------
+     v1.4.1907   2019-07-15  0x80070057  0x00000000 none/obj  present     no-spirv  unavailable (predates DXC 1.6)
+     v1.5.2003   2020-03-25  0x80070057  0x00000000 none/obj  present     no-spirv  available
+     v1.5.2010   2020-10-22  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.6.2104   2021-04-20  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.6.2106   2021-07-01  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.6.2112   2021-12-08  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.7.2207   2022-07-18  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.7.2212   2022-12-16  0x80070057  0x00000000 none/obj  present   0x80070057  available
+   v1.7.2212.1   2023-03-01  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.7.2308   2023-08-14  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.8.2403   2024-03-07  0x80070057  0x00000000 none/obj  present   0x80070057  available
+   v1.8.2403.1   2024-03-22  0x80070057  0x00000000 none/obj  present   0x80070057  available
+   v1.8.2403.2   2024-03-29  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.8.2405   2024-05-24  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.8.2407   2024-07-31  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.8.2502   2025-02-20  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.8.2505   2025-05-24  0x80070057  0x00000000 none/obj  present   0x80070057  available
+   v1.8.2505.1   2025-07-14  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.9.2602   2026-02-20  0x80070057  0x00000000 none/obj  present   0x80070057  available
+  v1.9.2602.24   2026-05-27  0x80070057  0x00000000 none/obj  present   0x80070057  available
+     v1.9.2607   2026-07-29  0x80070057  0x00000000 none/obj  present   0x80070057  available
+    main-debug      (local)  0x80070057  0x00000000 none/obj  present   0x80070057  available
+
+VERDICT PER ROW
+
+       v1.4.1907          repro  -Fc rejected
+       v1.5.2003          repro  -Fc rejected
+       v1.5.2010          repro  -Fc rejected
+       v1.6.2104          repro  -Fc rejected
+       v1.6.2106          repro  -Fc rejected
+       v1.6.2112          repro  -Fc rejected
+       v1.7.2207          repro  -Fc rejected
+       v1.7.2212          repro  -Fc rejected
+     v1.7.2212.1          repro  -Fc rejected
+       v1.7.2308          repro  -Fc rejected
+       v1.8.2403          repro  -Fc rejected
+     v1.8.2403.1          repro  -Fc rejected
+     v1.8.2403.2          repro  -Fc rejected
+       v1.8.2405          repro  -Fc rejected
+       v1.8.2407          repro  -Fc rejected
+       v1.8.2502          repro  -Fc rejected
+       v1.8.2505          repro  -Fc rejected
+     v1.8.2505.1          repro  -Fc rejected
+       v1.9.2602          repro  -Fc rejected
+    v1.9.2602.24          repro  -Fc rejected
+       v1.9.2607          repro  -Fc rejected
+      main-debug          repro  -Fc rejected
+
+========================================================================
+FULL TRANSCRIPTS
+========================================================================
+
+------------------------------------------------------------------------
+release: v1.4.1907  (2019-07-15)
+dll: <cache>/compilers/releases/v1.4.1907/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.4.1907/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: unavailable (predates DXC 1.6)
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         (IDxcResult unavailable on this DLL; IDxcOperationResult has no channel for a disassembly listing)
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         (IDxcResult unavailable on this DLL; IDxcOperationResult has no channel for a disassembly listing)
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         (IDxcResult unavailable on this DLL; IDxcOperationResult has no channel for a disassembly listing)
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  skipped                    IDxcCompiler3 is not available on this DLL
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  skipped                    IDxcCompiler3 is not available on this DLL
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  skipped                    IDxcCompiler3 is not available on this DLL
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "SPIR-V CodeGen not available. Please recompile with -DENABLE_SPIRV_CODEGEN=ON."
+  IDxcResult outputs         (IDxcResult unavailable on this DLL; IDxcOperationResult has no channel for a disassembly listing)
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  skipped                    this DLL was built without SPIR-V codegen
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  skipped                    this DLL was built without SPIR-V codegen
+
+SELFCHECK: cases-run=5/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=unavailable
+SELFCHECK: baseline-disassembly-bytes=3797
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc skipped=no-IDxcCompiler3
+RESULT case=c3-fc-qunused skipped=no-IDxcCompiler3
+RESULT case=c3-baseline skipped=no-IDxcCompiler3
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc skipped=no-spirv-codegen
+RESULT case=c1-spirv-fc-qunused skipped=no-spirv-codegen
+
+------------------------------------------------------------------------
+release: v1.5.2003  (2020-03-25)
+dll: <cache>/compilers/releases/v1.5.2003/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.5.2003/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "SPIR-V CodeGen not available. Please recompile with -DENABLE_SPIRV_CODEGEN=ON."
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  skipped                    this DLL was built without SPIR-V codegen
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  skipped                    this DLL was built without SPIR-V codegen
+
+SELFCHECK: cases-run=8/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=unavailable
+SELFCHECK: baseline-disassembly-bytes=3763
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc skipped=no-spirv-codegen
+RESULT case=c1-spirv-fc-qunused skipped=no-spirv-codegen
+
+------------------------------------------------------------------------
+release: v1.5.2010  (2020-10-22)
+dll: <cache>/compilers/releases/v1.5.2010/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.5.2010/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3763
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.6.2104  (2021-04-20)
+dll: <cache>/compilers/releases/v1.6.2104/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.6.2104/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3763
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.6.2106  (2021-07-01)
+dll: <cache>/compilers/releases/v1.6.2106/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.6.2106/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3763
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.6.2112  (2021-12-08)
+dll: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3763
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.7.2207  (2022-07-18)
+dll: <cache>/compilers/releases/v1.7.2207/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.7.2207/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3763
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.7.2212  (2022-12-16)
+dll: <cache>/compilers/releases/v1.7.2212/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.7.2212/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3751
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.7.2212.1  (2023-03-01)
+dll: <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3751
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.7.2308  (2023-08-14)
+dll: <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3750
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.8.2403  (2024-03-07)
+dll: <cache>/compilers/releases/v1.8.2403/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.8.2403/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3751
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.8.2403.1  (2024-03-22)
+dll: <cache>/compilers/releases/v1.8.2403.1/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.8.2403.1/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3751
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.8.2403.2  (2024-03-29)
+dll: <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3751
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.8.2405  (2024-05-24)
+dll: <cache>/compilers/releases/v1.8.2405/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.8.2405/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3751
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.8.2407  (2024-07-31)
+dll: <cache>/compilers/releases/v1.8.2407/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.8.2407/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  errors                     "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments."
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=3750
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.8.2502  (2025-02-20)
+dll: <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=4089
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.8.2505  (2025-05-24)
+dll: <cache>/compilers/releases/v1.8.2505/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.8.2505/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=4090
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.8.2505.1  (2025-07-14)
+dll: <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=4090
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.9.2602  (2026-02-20)
+dll: <cache>/compilers/releases/v1.9.2602/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.9.2602/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=4090
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.9.2602.24  (2026-05-27)
+dll: <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=4090
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: v1.9.2607  (2026-07-29)
+dll: <cache>/compilers/releases/v1.9.2607/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <cache>/compilers/releases/v1.9.2607/bin/x64/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=4101
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+
+------------------------------------------------------------------------
+release: main-debug  ((local))
+dll: <repo>/build/Debug/bin/dxcompiler.dll
+$ <triage>/data/issues/2604/bin/fc2604.exe -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+[exit] 0
+------------------------------------------------------------------------
+# fc2604: #2604 -Fc in the compile API
+dll: <repo>/build/Debug/bin/dxcompiler.dll
+source: repro.hlsl
+argv as filed: -T ps_6_0 -E main -Fc repro-fc.asm repro.hlsl
+-Fc operand: repro-fc.asm
+IDxcCompiler (legacy): available
+IDxcCompiler3: available
+
+[c1-fc] IDxcCompiler::Compile, args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-fc-qunused] IDxcCompiler::Compile, args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-baseline] IDxcCompiler::Compile, -Fc removed (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-disassemble] IDxcCompiler::Disassemble on that object (ANCHOR)
+  call returned              0x00000000 (S_OK)
+  object blob                n/a
+  DXC_OUT_DISASSEMBLY        present
+
+[c3-fc] IDxcCompiler3::Compile, argv as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-fc-qunused] IDxcCompiler3::Compile, argv as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c3-baseline] IDxcCompiler3::Compile, -Fc removed
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE NONE NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-baseline] IDxcCompiler::Compile, -spirv, -Fc removed (SPIR-V ANCHOR)
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+
+[c1-spirv-fc] IDxcCompiler::Compile, -spirv + args as filed
+  call returned              0x00000000 (S_OK)
+  result status              0x80070057 (E_INVALIDARG)
+  errors                     "Unknown argument: '-Fc'"
+  IDxcResult outputs         NONE
+  object blob                absent
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+[c1-spirv-fc-qunused] IDxcCompiler::Compile, -spirv + args as filed + -Qunused-arguments
+  call returned              0x00000000 (S_OK)
+  result status              0x00000000 (S_OK)
+  IDxcResult outputs         OBJECT ERRORS NONE
+  object blob                present
+  DXC_OUT_DISASSEMBLY        absent
+  file "repro-fc.asm"        NOT created
+
+SELFCHECK: cases-run=10/10
+SELFCHECK: fc-operand-seen=yes
+SELFCHECK: spirv-codegen=available
+SELFCHECK: baseline-disassembly-bytes=4104
+
+RESULT case=c1-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c1-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-disassemble call=0x00000000 status=n/a object=n/a disasm=present fcfile=n/a
+RESULT case=c3-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c3-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent
+RESULT case=c3-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-baseline call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=n/a
+RESULT case=c1-spirv-fc call=0x00000000 status=0x80070057 object=absent disasm=absent fcfile=absent
+RESULT case=c1-spirv-fc-qunused call=0x00000000 status=0x00000000 object=present disasm=absent fcfile=absent

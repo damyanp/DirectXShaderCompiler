@@ -1,0 +1,1258 @@
+[
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/5504966",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2017-12-01T20:01:35Z",
+        "digest": null,
+        "downloadCount": 1004,
+        "id": "MDEyOlJlbGVhc2VBc3NldDU1MDQ5NjY=",
+        "label": "",
+        "name": "dxil.zip",
+        "size": 13110498,
+        "state": "uploaded",
+        "updatedAt": "2017-12-01T20:01:45Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.2.0-alpha/dxil.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": true,
+    "name": "",
+    "publishedAt": "2017-12-01T20:12:49Z",
+    "tagName": "v1.2.0-alpha"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/14708976",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2019-09-02T20:08:46Z",
+        "digest": null,
+        "downloadCount": 2262,
+        "id": "MDEyOlJlbGVhc2VBc3NldDE0NzA4OTc2",
+        "label": "",
+        "name": "dxc_2019-07-15.zip",
+        "size": 7455171,
+        "state": "uploaded",
+        "updatedAt": "2019-09-02T20:09:03Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.4.1907/dxc_2019-07-15.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/14750124",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2019-09-04T20:59:16Z",
+        "digest": null,
+        "downloadCount": 384,
+        "id": "MDEyOlJlbGVhc2VBc3NldDE0NzUwMTI0",
+        "label": "",
+        "name": "pdb_2019-07-15.zip",
+        "size": 47745732,
+        "state": "uploaded",
+        "updatedAt": "2019-09-04T20:59:18Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.4.1907/pdb_2019-07-15.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for July 2019",
+    "publishedAt": "2019-09-02T20:11:08Z",
+    "tagName": "v1.4.1907"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/19152973",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2020-03-30T19:29:29Z",
+        "digest": null,
+        "downloadCount": 2095,
+        "id": "MDEyOlJlbGVhc2VBc3NldDE5MTUyOTcz",
+        "label": "",
+        "name": "dxc_2020_03-25.zip",
+        "size": 7753880,
+        "state": "uploaded",
+        "updatedAt": "2020-03-30T19:30:54Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.5.2003/dxc_2020_03-25.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/19153030",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2020-03-30T19:30:54Z",
+        "digest": null,
+        "downloadCount": 418,
+        "id": "MDEyOlJlbGVhc2VBc3NldDE5MTUzMDMw",
+        "label": "",
+        "name": "pdb_2020-03-25.zip",
+        "size": 49060912,
+        "state": "uploaded",
+        "updatedAt": "2020-03-30T19:39:37Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.5.2003/pdb_2020-03-25.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": true,
+    "name": "DX Compiler pre-release for March 2020",
+    "publishedAt": "2020-03-30T21:13:11Z",
+    "tagName": "v1.5.2003"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/27401627",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2020-10-22T23:14:38Z",
+        "digest": null,
+        "downloadCount": 6740,
+        "id": "MDEyOlJlbGVhc2VBc3NldDI3NDAxNjI3",
+        "label": "",
+        "name": "dxc_2020_10-22.zip",
+        "size": 9204642,
+        "state": "uploaded",
+        "updatedAt": "2020-10-22T23:14:40Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.5.2010/dxc_2020_10-22.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/27401630",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2020-10-22T23:14:49Z",
+        "digest": null,
+        "downloadCount": 1305,
+        "id": "MDEyOlJlbGVhc2VBc3NldDI3NDAxNjMw",
+        "label": "",
+        "name": "pdb_2020_10-22.zip",
+        "size": 57326488,
+        "state": "uploaded",
+        "updatedAt": "2020-10-22T23:14:51Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.5.2010/pdb_2020_10-22.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for October 2020",
+    "publishedAt": "2020-10-23T22:13:14Z",
+    "tagName": "v1.5.2010"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/35425189",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2021-04-19T22:50:37Z",
+        "digest": null,
+        "downloadCount": 15853,
+        "id": "MDEyOlJlbGVhc2VBc3NldDM1NDI1MTg5",
+        "label": "",
+        "name": "dxc_2021_04-20.zip",
+        "size": 9128115,
+        "state": "uploaded",
+        "updatedAt": "2021-04-19T22:50:48Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.6.2104/dxc_2021_04-20.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/51415073",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2021-12-09T19:26:24Z",
+        "digest": null,
+        "downloadCount": 74,
+        "id": "RA_kwDOBIRuvs4DEIgh",
+        "label": "",
+        "name": "pdb_2021_04-20.zip",
+        "size": 60546059,
+        "state": "uploaded",
+        "updatedAt": "2021-12-09T19:26:27Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.6.2104/pdb_2021_04-20.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for April 2021",
+    "publishedAt": "2021-04-20T16:55:52Z",
+    "tagName": "v1.6.2104"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/39583883",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2021-07-01T22:32:52Z",
+        "digest": null,
+        "downloadCount": 3690,
+        "id": "MDEyOlJlbGVhc2VBc3NldDM5NTgzODgz",
+        "label": "",
+        "name": "dxc_2021_07_01.zip",
+        "size": 9446653,
+        "state": "uploaded",
+        "updatedAt": "2021-07-01T22:32:59Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.6.2106/dxc_2021_07_01.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/51415013",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2021-12-09T19:25:31Z",
+        "digest": null,
+        "downloadCount": 103,
+        "id": "RA_kwDOBIRuvs4DEIfl",
+        "label": "",
+        "name": "pdb_2021_07_01.zip",
+        "size": 67274505,
+        "state": "uploaded",
+        "updatedAt": "2021-12-09T19:25:35Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.6.2106/pdb_2021_07_01.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for June 2021",
+    "publishedAt": "2021-07-08T17:59:52Z",
+    "tagName": "v1.6.2106"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/51340270",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2021-12-08T22:27:08Z",
+        "digest": null,
+        "downloadCount": 124554,
+        "id": "RA_kwDOBIRuvs4DD2Pu",
+        "label": "",
+        "name": "dxc_2021_12_08.zip",
+        "size": 9589104,
+        "state": "uploaded",
+        "updatedAt": "2021-12-08T22:27:10Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.6.2112/dxc_2021_12_08.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/51340804",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2021-12-08T22:35:51Z",
+        "digest": null,
+        "downloadCount": 840,
+        "id": "RA_kwDOBIRuvs4DD2YE",
+        "label": "",
+        "name": "pdb_2021_12_08.zip",
+        "size": 67849785,
+        "state": "uploaded",
+        "updatedAt": "2021-12-08T22:35:54Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.6.2112/pdb_2021_12_08.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler for December 2021 with HLSL 2021 Preview",
+    "publishedAt": "2021-12-08T22:38:13Z",
+    "tagName": "v1.6.2112"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/71974964",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2022-07-19T00:22:42Z",
+        "digest": null,
+        "downloadCount": 34935,
+        "id": "RA_kwDOBIRuvs4ESkA0",
+        "label": "",
+        "name": "dxc_2022_07_18.zip",
+        "size": 19480899,
+        "state": "uploaded",
+        "updatedAt": "2022-07-19T00:22:54Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.7.2207/dxc_2022_07_18.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/71974968",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2022-07-19T00:22:54Z",
+        "digest": null,
+        "downloadCount": 637,
+        "id": "RA_kwDOBIRuvs4ESkA4",
+        "label": "",
+        "name": "pdb_2022_07_18.zip",
+        "size": 133845619,
+        "state": "uploaded",
+        "updatedAt": "2022-07-19T00:23:10Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.7.2207/pdb_2022_07_18.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for July 2022",
+    "publishedAt": "2022-07-14T19:33:48Z",
+    "tagName": "v1.7.2207"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/88521124",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2022-12-16T23:38:16Z",
+        "digest": null,
+        "downloadCount": 11587,
+        "id": "RA_kwDOBIRuvs4FRrmk",
+        "label": "",
+        "name": "dxc_2022_12_16.zip",
+        "size": 24695601,
+        "state": "uploaded",
+        "updatedAt": "2022-12-16T23:38:19Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.7.2212/dxc_2022_12_16.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/88521334",
+        "contentType": "application/x-gzip",
+        "createdAt": "2022-12-16T23:40:56Z",
+        "digest": null,
+        "downloadCount": 3304,
+        "id": "RA_kwDOBIRuvs4FRrp2",
+        "label": "",
+        "name": "linux_dxc_2022_12_16.tar.gz",
+        "size": 12743706,
+        "state": "uploaded",
+        "updatedAt": "2022-12-16T23:40:57Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.7.2212/linux_dxc_2022_12_16.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/88521127",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2022-12-16T23:38:19Z",
+        "digest": null,
+        "downloadCount": 216,
+        "id": "RA_kwDOBIRuvs4FRrmn",
+        "label": "",
+        "name": "pdb_2022_12_16.zip",
+        "size": 215033875,
+        "state": "uploaded",
+        "updatedAt": "2022-12-16T23:38:27Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.7.2212/pdb_2022_12_16.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for December 2022",
+    "publishedAt": "2022-12-16T23:52:42Z",
+    "tagName": "v1.7.2212"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/97683743",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2023-03-02T00:12:19Z",
+        "digest": null,
+        "downloadCount": 90250,
+        "id": "RA_kwDOBIRuvs4F0okf",
+        "label": "",
+        "name": "dxc_2023_03_01.zip",
+        "size": 24699817,
+        "state": "uploaded",
+        "updatedAt": "2023-03-02T00:12:20Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.7.2212.1/dxc_2023_03_01.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/97683751",
+        "contentType": "application/x-gzip",
+        "createdAt": "2023-03-02T00:12:27Z",
+        "digest": null,
+        "downloadCount": 3936,
+        "id": "RA_kwDOBIRuvs4F0okn",
+        "label": "",
+        "name": "linux_dxc_2023_03_01.x86_64.tar.gz",
+        "size": 12747541,
+        "state": "uploaded",
+        "updatedAt": "2023-03-02T00:12:28Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.7.2212.1/linux_dxc_2023_03_01.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/97683745",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2023-03-02T00:12:20Z",
+        "digest": null,
+        "downloadCount": 2445,
+        "id": "RA_kwDOBIRuvs4F0okh",
+        "label": "",
+        "name": "pdb_2023_03_01.zip",
+        "size": 20005552,
+        "state": "uploaded",
+        "updatedAt": "2023-03-02T00:12:21Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.7.2212.1/pdb_2023_03_01.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for December 2022 - Bug fixes",
+    "publishedAt": "2023-03-02T18:40:59Z",
+    "tagName": "v1.7.2212.1"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/113793757",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2023-06-21T23:42:59Z",
+        "digest": null,
+        "downloadCount": 473,
+        "id": "RA_kwDOBIRuvs4GyFrd",
+        "label": "",
+        "name": "dxc_preview_2023_06_21.zip",
+        "size": 23397500,
+        "state": "uploaded",
+        "updatedAt": "2023-06-21T23:43:01Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2306-preview/dxc_preview_2023_06_21.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/113793762",
+        "contentType": "application/x-gzip",
+        "createdAt": "2023-06-21T23:43:13Z",
+        "digest": null,
+        "downloadCount": 93,
+        "id": "RA_kwDOBIRuvs4GyFri",
+        "label": "",
+        "name": "linux_dxc_preview_2023_06_21.x86_64.tar.gz",
+        "size": 11339463,
+        "state": "uploaded",
+        "updatedAt": "2023-06-21T23:43:14Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2306-preview/linux_dxc_preview_2023_06_21.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/113793759",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2023-06-21T23:43:05Z",
+        "digest": null,
+        "downloadCount": 65,
+        "id": "RA_kwDOBIRuvs4GyFrf",
+        "label": "",
+        "name": "pdb_preview_2023_06_21.zip",
+        "size": 18637265,
+        "state": "uploaded",
+        "updatedAt": "2023-06-21T23:43:06Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2306-preview/pdb_preview_2023_06_21.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": true,
+    "name": "DX Compiler Preview Release for June 2023",
+    "publishedAt": "2023-06-22T19:01:43Z",
+    "tagName": "v1.8.2306-preview"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/121487824",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2023-08-14T19:43:10Z",
+        "digest": null,
+        "downloadCount": 227361,
+        "id": "RA_kwDOBIRuvs4HPcHQ",
+        "label": "",
+        "name": "dxc_2023_08_14.zip",
+        "size": 25291620,
+        "state": "uploaded",
+        "updatedAt": "2023-08-14T19:43:12Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.7.2308/dxc_2023_08_14.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/121488867",
+        "contentType": "application/x-gzip",
+        "createdAt": "2023-08-14T19:56:56Z",
+        "digest": null,
+        "downloadCount": 10468,
+        "id": "RA_kwDOBIRuvs4HPcXj",
+        "label": "",
+        "name": "linux_dxc_2023_08_14.x86_64.tar.gz",
+        "size": 13075792,
+        "state": "uploaded",
+        "updatedAt": "2023-08-14T19:56:58Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.7.2308/linux_dxc_2023_08_14.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/121487828",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2023-08-14T19:43:12Z",
+        "digest": null,
+        "downloadCount": 556,
+        "id": "RA_kwDOBIRuvs4HPcHU",
+        "label": "",
+        "name": "pdb_2023_08_14.zip",
+        "size": 20697130,
+        "state": "uploaded",
+        "updatedAt": "2023-08-14T19:43:13Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.7.2308/pdb_2023_08_14.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for August 2023.",
+    "publishedAt": "2023-08-14T20:00:24Z",
+    "tagName": "v1.7.2308"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/155494463",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-03-07T21:28:04Z",
+        "digest": null,
+        "downloadCount": 3579,
+        "id": "RA_kwDOBIRuvs4JRKg_",
+        "label": "",
+        "name": "dxc_2024_03_07.zip",
+        "size": 25760729,
+        "state": "uploaded",
+        "updatedAt": "2024-03-07T21:28:07Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2403/dxc_2024_03_07.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/155494483",
+        "contentType": "application/x-gzip",
+        "createdAt": "2024-03-07T21:28:15Z",
+        "digest": null,
+        "downloadCount": 1637,
+        "id": "RA_kwDOBIRuvs4JRKhT",
+        "label": "",
+        "name": "linux_dxc_2024_03_07.x86_64.tar.gz",
+        "size": 13157036,
+        "state": "uploaded",
+        "updatedAt": "2024-03-07T21:28:16Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2403/linux_dxc_2024_03_07.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/155494466",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-03-07T21:28:07Z",
+        "digest": null,
+        "downloadCount": 120,
+        "id": "RA_kwDOBIRuvs4JRKhC",
+        "label": "",
+        "name": "pdb_2024_03_07.zip",
+        "size": 21040501,
+        "state": "uploaded",
+        "updatedAt": "2024-03-07T21:28:08Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2403/pdb_2024_03_07.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for March 2024",
+    "publishedAt": "2024-03-11T16:56:06Z",
+    "tagName": "v1.8.2403"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/158000738",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-03-22T02:28:23Z",
+        "digest": null,
+        "downloadCount": 1101,
+        "id": "RA_kwDOBIRuvs4JauZi",
+        "label": "",
+        "name": "dxc_2024_03_22.zip",
+        "size": 25758163,
+        "state": "uploaded",
+        "updatedAt": "2024-03-22T02:28:33Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2403.1/dxc_2024_03_22.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/158000776",
+        "contentType": "application/x-gzip",
+        "createdAt": "2024-03-22T02:28:56Z",
+        "digest": null,
+        "downloadCount": 266,
+        "id": "RA_kwDOBIRuvs4JauaI",
+        "label": "",
+        "name": "linux_dxc_2024_03_22.x86_64.tar.gz",
+        "size": 13153284,
+        "state": "uploaded",
+        "updatedAt": "2024-03-22T02:29:12Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2403.1/linux_dxc_2024_03_22.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/158000749",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-03-22T02:28:35Z",
+        "digest": null,
+        "downloadCount": 80,
+        "id": "RA_kwDOBIRuvs4JauZt",
+        "label": "",
+        "name": "pdb_2024_03_22.zip",
+        "size": 21039074,
+        "state": "uploaded",
+        "updatedAt": "2024-03-22T02:28:50Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2403.1/pdb_2024_03_22.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler Release for March 2024 - Patch 1",
+    "publishedAt": "2024-03-22T19:00:41Z",
+    "tagName": "v1.8.2403.1"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/159371427",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-03-30T02:10:21Z",
+        "digest": null,
+        "downloadCount": 20712,
+        "id": "RA_kwDOBIRuvs4Jf9Cj",
+        "label": "",
+        "name": "dxc_2024_03_29.zip",
+        "size": 25731223,
+        "state": "uploaded",
+        "updatedAt": "2024-03-30T02:10:32Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2403.2/dxc_2024_03_29.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/159371465",
+        "contentType": "application/x-gzip",
+        "createdAt": "2024-03-30T02:10:42Z",
+        "digest": null,
+        "downloadCount": 649,
+        "id": "RA_kwDOBIRuvs4Jf9DJ",
+        "label": "",
+        "name": "linux_dxc_2024_03_29.x86_64.tar.gz",
+        "size": 13153443,
+        "state": "uploaded",
+        "updatedAt": "2024-03-30T02:10:47Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2403.2/linux_dxc_2024_03_29.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/159371447",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-03-30T02:10:32Z",
+        "digest": null,
+        "downloadCount": 149,
+        "id": "RA_kwDOBIRuvs4Jf9C3",
+        "label": "",
+        "name": "pdb_2024_03_29.zip",
+        "size": 21035774,
+        "state": "uploaded",
+        "updatedAt": "2024-03-30T02:10:40Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2403.2/pdb_2024_03_29.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler Release for March 2024 - Patch 2",
+    "publishedAt": "2024-04-02T17:54:44Z",
+    "tagName": "v1.8.2403.2"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/170458655",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-05-28T04:36:46Z",
+        "digest": null,
+        "downloadCount": 6784,
+        "id": "RA_kwDOBIRuvs4KKP4f",
+        "label": "",
+        "name": "dxc_2024_05_24.zip",
+        "size": 25850970,
+        "state": "uploaded",
+        "updatedAt": "2024-05-28T04:36:47Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2405/dxc_2024_05_24.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/170458633",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-05-28T04:36:28Z",
+        "digest": null,
+        "downloadCount": 674,
+        "id": "RA_kwDOBIRuvs4KKP4J",
+        "label": "",
+        "name": "dxc_2024_05_24_clang_cl.zip",
+        "size": 28240230,
+        "state": "uploaded",
+        "updatedAt": "2024-05-28T04:36:29Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2405/dxc_2024_05_24_clang_cl.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/170458628",
+        "contentType": "application/x-gzip",
+        "createdAt": "2024-05-28T04:36:25Z",
+        "digest": null,
+        "downloadCount": 2545,
+        "id": "RA_kwDOBIRuvs4KKP4E",
+        "label": "",
+        "name": "linux_dxc_2024_05_24.x86_64.tar.gz",
+        "size": 13211019,
+        "state": "uploaded",
+        "updatedAt": "2024-05-28T04:36:26Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2405/linux_dxc_2024_05_24.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/170458653",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-05-28T04:36:45Z",
+        "digest": null,
+        "downloadCount": 144,
+        "id": "RA_kwDOBIRuvs4KKP4d",
+        "label": "",
+        "name": "pdb_2024_05_24.zip",
+        "size": 21128764,
+        "state": "uploaded",
+        "updatedAt": "2024-05-28T04:36:46Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2405/pdb_2024_05_24.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/170458631",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-05-28T04:36:27Z",
+        "digest": null,
+        "downloadCount": 65,
+        "id": "RA_kwDOBIRuvs4KKP4H",
+        "label": "",
+        "name": "pdb_2024_05_24_clang_cl.zip",
+        "size": 14828646,
+        "state": "uploaded",
+        "updatedAt": "2024-05-28T04:36:27Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2405/pdb_2024_05_24_clang_cl.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for May 2024",
+    "publishedAt": "2024-05-28T18:16:19Z",
+    "tagName": "v1.8.2405"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/180237441",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-07-17T23:20:34Z",
+        "digest": null,
+        "downloadCount": 379,
+        "id": "RA_kwDOBIRuvs4KvjSB",
+        "label": "",
+        "name": "dxc_mesh_nodes_preview_2024_07_17.zip",
+        "size": 23810094,
+        "state": "uploaded",
+        "updatedAt": "2024-07-17T23:20:35Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2405-mesh-nodes-preview/dxc_mesh_nodes_preview_2024_07_17.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/180237444",
+        "contentType": "application/x-gzip",
+        "createdAt": "2024-07-17T23:20:35Z",
+        "digest": null,
+        "downloadCount": 50,
+        "id": "RA_kwDOBIRuvs4KvjSE",
+        "label": "",
+        "name": "linux_dxc_mesh_nodes_preview_2024_07_17.x86_64.tar.gz",
+        "size": 11320165,
+        "state": "uploaded",
+        "updatedAt": "2024-07-17T23:20:36Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2405-mesh-nodes-preview/linux_dxc_mesh_nodes_preview_2024_07_17.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/180237433",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-07-17T23:20:32Z",
+        "digest": null,
+        "downloadCount": 32,
+        "id": "RA_kwDOBIRuvs4KvjR5",
+        "label": "",
+        "name": "pdb_mesh_nodes_preview_2024_07_17.zip",
+        "size": 19251181,
+        "state": "uploaded",
+        "updatedAt": "2024-07-17T23:20:34Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2405-mesh-nodes-preview/pdb_mesh_nodes_preview_2024_07_17.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": true,
+    "name": "DX Compiler Mesh Nodes Preview Release",
+    "publishedAt": "2024-07-18T18:00:32Z",
+    "tagName": "v1.8.2405-mesh-nodes-preview"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/182980147",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-07-31T13:29:16Z",
+        "digest": null,
+        "downloadCount": 192104,
+        "id": "RA_kwDOBIRuvs4K6A4z",
+        "label": "",
+        "name": "dxc_2024_07_31.zip",
+        "size": 25833008,
+        "state": "uploaded",
+        "updatedAt": "2024-07-31T13:29:25Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2407/dxc_2024_07_31.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/182980116",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-07-31T13:28:58Z",
+        "digest": null,
+        "downloadCount": 15977,
+        "id": "RA_kwDOBIRuvs4K6A4U",
+        "label": "",
+        "name": "dxc_2024_07_31_clang_cl.zip",
+        "size": 28254878,
+        "state": "uploaded",
+        "updatedAt": "2024-07-31T13:29:08Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2407/dxc_2024_07_31_clang_cl.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/182980109",
+        "contentType": "application/x-gzip",
+        "createdAt": "2024-07-31T13:28:47Z",
+        "digest": null,
+        "downloadCount": 11649,
+        "id": "RA_kwDOBIRuvs4K6A4N",
+        "label": "",
+        "name": "linux_dxc_2024_07_31.x86_64.tar.gz",
+        "size": 13222255,
+        "state": "uploaded",
+        "updatedAt": "2024-07-31T13:28:52Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2407/linux_dxc_2024_07_31.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/182980135",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-07-31T13:29:09Z",
+        "digest": null,
+        "downloadCount": 336,
+        "id": "RA_kwDOBIRuvs4K6A4n",
+        "label": "",
+        "name": "pdb_2024_07_31.zip",
+        "size": 21190361,
+        "state": "uploaded",
+        "updatedAt": "2024-07-31T13:29:16Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2407/pdb_2024_07_31.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/182980113",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2024-07-31T13:28:52Z",
+        "digest": null,
+        "downloadCount": 156,
+        "id": "RA_kwDOBIRuvs4K6A4R",
+        "label": "",
+        "name": "pdb_2024_07_31_clang_cl.zip",
+        "size": 14836212,
+        "state": "uploaded",
+        "updatedAt": "2024-07-31T13:28:58Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2407/pdb_2024_07_31_clang_cl.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for July 2024",
+    "publishedAt": "2024-07-31T19:31:49Z",
+    "tagName": "v1.8.2407"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/231385721",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2025-02-21T19:20:35Z",
+        "digest": null,
+        "downloadCount": 155511,
+        "id": "RA_kwDOBIRuvs4Nyqp5",
+        "label": "",
+        "name": "dxc_2025_02_20.zip",
+        "size": 26346851,
+        "state": "uploaded",
+        "updatedAt": "2025-02-21T19:20:40Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2502/dxc_2025_02_20.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/231385733",
+        "contentType": "application/x-gzip",
+        "createdAt": "2025-02-21T19:20:44Z",
+        "digest": null,
+        "downloadCount": 9575,
+        "id": "RA_kwDOBIRuvs4NyqqF",
+        "label": "",
+        "name": "linux_dxc_2025_02_20.x86_64.tar.gz",
+        "size": 12451658,
+        "state": "uploaded",
+        "updatedAt": "2025-02-21T19:20:46Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2502/linux_dxc_2025_02_20.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/231385730",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2025-02-21T19:20:40Z",
+        "digest": null,
+        "downloadCount": 283,
+        "id": "RA_kwDOBIRuvs4NyqqC",
+        "label": "",
+        "name": "pdb_2025_02_20.zip",
+        "size": 21594874,
+        "state": "uploaded",
+        "updatedAt": "2025-02-21T19:20:44Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2502/pdb_2025_02_20.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for February 2025",
+    "publishedAt": "2025-02-21T22:07:31Z",
+    "tagName": "v1.8.2502"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/258609203",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2025-05-27T18:47:24Z",
+        "digest": null,
+        "downloadCount": 79060,
+        "id": "RA_kwDOBIRuvs4PahAz",
+        "label": "",
+        "name": "dxc_2025_05_24.zip",
+        "size": 26599715,
+        "state": "uploaded",
+        "updatedAt": "2025-05-27T18:47:29Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2505/dxc_2025_05_24.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/258609207",
+        "contentType": "application/x-gzip",
+        "createdAt": "2025-05-27T18:47:29Z",
+        "digest": null,
+        "downloadCount": 17885,
+        "id": "RA_kwDOBIRuvs4PahA3",
+        "label": "",
+        "name": "linux_dxc_2025_05_24.x86_64.tar.gz",
+        "size": 12648941,
+        "state": "uploaded",
+        "updatedAt": "2025-05-27T18:47:32Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2505/linux_dxc_2025_05_24.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/258609193",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2025-05-27T18:47:20Z",
+        "digest": null,
+        "downloadCount": 163,
+        "id": "RA_kwDOBIRuvs4PahAp",
+        "label": "",
+        "name": "pdb_2025_05_24.zip",
+        "size": 21793977,
+        "state": "uploaded",
+        "updatedAt": "2025-05-27T18:47:24Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2505/pdb_2025_05_24.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for May 2025",
+    "publishedAt": "2025-05-30T17:00:58Z",
+    "tagName": "v1.8.2505"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/272848549",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2025-07-14T21:43:32Z",
+        "digest": "sha256:9ad895a6b039e3a8f8c22a1009f866800b840a74b50db9218d13319e215ea8a4",
+        "downloadCount": 135677,
+        "id": "RA_kwDOBIRuvs4QQ1al",
+        "label": "",
+        "name": "dxc_2025_07_14.zip",
+        "size": 26505604,
+        "state": "uploaded",
+        "updatedAt": "2025-07-14T21:43:33Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2505.1/dxc_2025_07_14.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/272848547",
+        "contentType": "application/x-gzip",
+        "createdAt": "2025-07-14T21:43:30Z",
+        "digest": "sha256:f2213da1fc99dc8778c8823078e16ba97c7f80f86a1d4520ab1adf4b462bc48c",
+        "downloadCount": 32912,
+        "id": "RA_kwDOBIRuvs4QQ1aj",
+        "label": "",
+        "name": "linux_dxc_2025_07_14.x86_64.tar.gz",
+        "size": 12648060,
+        "state": "uploaded",
+        "updatedAt": "2025-07-14T21:43:32Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2505.1/linux_dxc_2025_07_14.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/272848553",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2025-07-14T21:43:33Z",
+        "digest": "sha256:9482d93bb1f9d3e18d5649d40a6a88fca7bc2d3c81d5eb50dae75986fb760f58",
+        "downloadCount": 501,
+        "id": "RA_kwDOBIRuvs4QQ1ap",
+        "label": "",
+        "name": "pdb_2025_07_14.zip",
+        "size": 21804747,
+        "state": "uploaded",
+        "updatedAt": "2025-07-14T21:43:35Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2505.1/pdb_2025_07_14.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler release for May 2025 - Patch 1",
+    "publishedAt": "2025-07-15T15:58:48Z",
+    "tagName": "v1.8.2505.1"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/362289653",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2026-02-25T18:07:29Z",
+        "digest": "sha256:a1e89031421cf3c1fca6627766ab3020ca4f962ac7e2caa7fab2b33a8436151e",
+        "downloadCount": 116624,
+        "id": "RA_kwDOBIRuvs4VmBn1",
+        "label": "",
+        "name": "dxc_2026_02_20.zip",
+        "size": 27061312,
+        "state": "uploaded",
+        "updatedAt": "2026-02-25T18:07:30Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2602/dxc_2026_02_20.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/362289271",
+        "contentType": "application/x-gzip",
+        "createdAt": "2026-02-25T18:06:41Z",
+        "digest": "sha256:a1d3e3b5e1c5685b3eb27d5e8890e41d87df45def05112a2d6f1a63a931f7d60",
+        "downloadCount": 87388,
+        "id": "RA_kwDOBIRuvs4VmBh3",
+        "label": "",
+        "name": "linux_dxc_2026_02_20.x86_64.tar.gz",
+        "size": 12986764,
+        "state": "uploaded",
+        "updatedAt": "2026-02-25T18:06:43Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2602/linux_dxc_2026_02_20.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/362290013",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2026-02-25T18:08:13Z",
+        "digest": "sha256:e6d4be799f2d8c1f9dc150327625aebf6c466d1f61fe1042db9f268cc64ef35f",
+        "downloadCount": 609,
+        "id": "RA_kwDOBIRuvs4VmBtd",
+        "label": "",
+        "name": "pdb_2026_02_20.zip",
+        "size": 21755137,
+        "state": "uploaded",
+        "updatedAt": "2026-02-25T18:08:14Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2602/pdb_2026_02_20.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler Release for Feb 2026",
+    "publishedAt": "2026-02-26T17:49:15Z",
+    "tagName": "v1.9.2602"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/402820202",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2026-04-22T20:16:43Z",
+        "digest": "sha256:997eab6088000587b3a8339332055c972cb58985c43caa153b92cc63bc374862",
+        "downloadCount": 680,
+        "id": "RA_kwDOBIRuvs4YAoxq",
+        "label": "",
+        "name": "dxc_preview_2026_04_22.zip",
+        "size": 27276554,
+        "state": "uploaded",
+        "updatedAt": "2026-04-22T20:16:46Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.10.2605.2/dxc_preview_2026_04_22.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/402820257",
+        "contentType": "application/x-gzip",
+        "createdAt": "2026-04-22T20:16:48Z",
+        "digest": "sha256:968855c8cc93cbc081cc5e8de77d53f05bb2a40460c9c9a2fe2b30ea2f0ca0ed",
+        "downloadCount": 98,
+        "id": "RA_kwDOBIRuvs4YAoyh",
+        "label": "",
+        "name": "linux_dxc_preview_2026_04_22.x86_64.tar.gz",
+        "size": 13089367,
+        "state": "uploaded",
+        "updatedAt": "2026-04-22T20:16:49Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.10.2605.2/linux_dxc_preview_2026_04_22.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/402820243",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2026-04-22T20:16:46Z",
+        "digest": "sha256:36d4af0cade2a265a44d8fc73dfb1a60b01034641c26d5f34a14c84f9b7b8db3",
+        "downloadCount": 49,
+        "id": "RA_kwDOBIRuvs4YAoyT",
+        "label": "",
+        "name": "pdb_preview_2026_04_22.zip",
+        "size": 21949481,
+        "state": "uploaded",
+        "updatedAt": "2026-04-22T20:16:48Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.10.2605.2/pdb_preview_2026_04_22.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": true,
+    "name": "Shader Model 6.10 Preview Release (May 2026)",
+    "publishedAt": "2026-04-27T16:54:44Z",
+    "tagName": "v1.10.2605.2"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/427238261",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2026-05-22T17:06:29Z",
+        "digest": "sha256:045e2cfd900135f640954553038febbc98692599c5606376726d00541dae69b6",
+        "downloadCount": 1787,
+        "id": "RA_kwDOBIRuvs4ZdyN1",
+        "label": "",
+        "name": "dxc_preview_2026_05_22.zip",
+        "size": 27300212,
+        "state": "uploaded",
+        "updatedAt": "2026-05-22T17:06:30Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.10.2605.24/dxc_preview_2026_05_22.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/427238312",
+        "contentType": "application/x-gzip",
+        "createdAt": "2026-05-22T17:06:30Z",
+        "digest": "sha256:6119f59c4f758973cadc170607ba83e657dd2c6fb7ca3dfb7362717a4ece8d9e",
+        "downloadCount": 646,
+        "id": "RA_kwDOBIRuvs4ZdyOo",
+        "label": "",
+        "name": "linux_dxc_preview_2026_05_22.x86_64.tar.gz",
+        "size": 13100797,
+        "state": "uploaded",
+        "updatedAt": "2026-05-22T17:06:31Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.10.2605.24/linux_dxc_preview_2026_05_22.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/427238254",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2026-05-22T17:06:27Z",
+        "digest": "sha256:54dd6b376f974fe9ad640fca83d852acd05d7a15a1bfd34c95eb8801047f41a1",
+        "downloadCount": 76,
+        "id": "RA_kwDOBIRuvs4ZdyNu",
+        "label": "",
+        "name": "pdb_preview_2026_05_22.zip",
+        "size": 21960437,
+        "state": "uploaded",
+        "updatedAt": "2026-05-22T17:06:29Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.10.2605.24/pdb_preview_2026_05_22.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": true,
+    "name": "Shader Model 6.10 Preview Release (May 2026) - Patch 1",
+    "publishedAt": "2026-05-26T19:53:57Z",
+    "tagName": "v1.10.2605.24"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/431431702",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2026-05-27T21:01:22Z",
+        "digest": "sha256:cf658aacf070d3045e31b8f1f8a696c2945f37c1095019481ef7c513368db3b4",
+        "downloadCount": 23108,
+        "id": "RA_kwDOBIRuvs4ZtyAW",
+        "label": "",
+        "name": "dxc_2026_05_27.zip",
+        "size": 27108038,
+        "state": "uploaded",
+        "updatedAt": "2026-05-27T21:01:25Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2602.24/dxc_2026_05_27.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/431431778",
+        "contentType": "application/x-gzip",
+        "createdAt": "2026-05-27T21:01:26Z",
+        "digest": "sha256:928b3e9986d11dc4279050e02340950c29bcbd1e5efb9d3ded9669dade37639d",
+        "downloadCount": 34944,
+        "id": "RA_kwDOBIRuvs4ZtyBi",
+        "label": "",
+        "name": "linux_dxc_2026_05_26.x86_64.tar.gz",
+        "size": 13004129,
+        "state": "uploaded",
+        "updatedAt": "2026-05-27T21:01:27Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2602.24/linux_dxc_2026_05_26.x86_64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/431431752",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2026-05-27T21:01:25Z",
+        "digest": "sha256:f859e75c25adac9158191f9da3a9f42bd27ba687b0e42377bb50a9b9589341b9",
+        "downloadCount": 248,
+        "id": "RA_kwDOBIRuvs4ZtyBI",
+        "label": "",
+        "name": "pdb_2026_05_27.zip",
+        "size": 21804098,
+        "state": "uploaded",
+        "updatedAt": "2026-05-27T21:01:26Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2602.24/pdb_2026_05_27.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler Release for Feb 2026 - Patch 1",
+    "publishedAt": "2026-06-03T22:42:30Z",
+    "tagName": "v1.9.2602.24"
+  },
+  {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/494331779",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2026-07-29T17:33:42Z",
+        "digest": "sha256:a1dfb116ba3eeae6a1582291b53a8e7bf65ad760676bd3194685c8f7367cd241",
+        "downloadCount": 1199,
+        "id": "RA_kwDOBIRuvs4ddueD",
+        "label": "",
+        "name": "dxc_2026_07_29.zip",
+        "size": 41625275,
+        "state": "uploaded",
+        "updatedAt": "2026-07-29T17:33:44Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2607/dxc_2026_07_29.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/494331808",
+        "contentType": "application/x-gzip",
+        "createdAt": "2026-07-29T17:33:44Z",
+        "digest": "sha256:55665c87824051ed4774ff3280a79ccbbb7d39243b9736ca5e98222134112d54",
+        "downloadCount": 5505,
+        "id": "RA_kwDOBIRuvs4ddueg",
+        "label": "",
+        "name": "linux_dxc_2026_07_29.x86_x64.tar.gz",
+        "size": 515588543,
+        "state": "uploaded",
+        "updatedAt": "2026-07-29T17:33:58Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2607/linux_dxc_2026_07_29.x86_x64.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/releases/assets/494331747",
+        "contentType": "application/x-zip-compressed",
+        "createdAt": "2026-07-29T17:33:41Z",
+        "digest": "sha256:7fe30461cc812e6210d0c77e9766adb6386b76240462ff3a7d6c09f8fe127d22",
+        "downloadCount": 31,
+        "id": "RA_kwDOBIRuvs4ddudj",
+        "label": "",
+        "name": "pdb_2026_07_29.zip",
+        "size": 30430362,
+        "state": "uploaded",
+        "updatedAt": "2026-07-29T17:33:42Z",
+        "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2607/pdb_2026_07_29.zip"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "name": "DX Compiler Release for July 2026",
+    "publishedAt": "2026-07-29T17:35:31Z",
+    "tagName": "v1.9.2607"
+  }
+]

@@ -1,0 +1,61 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T19:21:50+00:00
+# cmd: -T cs_6_0 -E main -spirv repro-cs.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: cs-spirv (repro-cs.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main -spirv repro-cs.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 22
+; Schema: 0
+               OpCapability Shader
+               OpCapability SampledBuffer
+               OpCapability ImageBuffer
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %gl_GlobalInvocationID
+               OpExecutionMode %main LocalSize 1 1 1
+               OpSource HLSL 600
+               OpName %type_buffer_image "type.buffer.image"
+               OpName %x0 "x0"
+               OpName %main "main"
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %x0 DescriptorSet 0
+               OpDecorate %x0 Binding 1
+      %float = OpTypeFloat 32
+    %float_1 = OpConstant %float 1
+    %v4float = OpTypeVector %float 4
+          %8 = OpConstantComposite %v4float %float_1 %float_1 %float_1 %float_1
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+%type_buffer_image = OpTypeImage %float Buffer 2 0 0 2 Rgba32f
+%_ptr_UniformConstant_type_buffer_image = OpTypePointer UniformConstant %type_buffer_image
+       %uint = OpTypeInt 32 0
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+       %void = OpTypeVoid
+         %16 = OpTypeFunction %void
+         %x0 = OpVariable %_ptr_UniformConstant_type_buffer_image UniformConstant
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+%_ptr_Input_uint = OpTypePointer Input %uint
+       %main = OpFunction %void None %16
+         %18 = OpLabel
+         %19 = OpAccessChain %_ptr_Input_uint %gl_GlobalInvocationID %int_0
+         %20 = OpLoad %uint %19
+         %21 = OpLoad %type_buffer_image %x0
+               OpImageWrite %21 %20 %8 None
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+
