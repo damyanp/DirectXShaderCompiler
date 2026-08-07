@@ -145,6 +145,37 @@ static bool applyApplicability(linalg_test::Applicability Result,
   return false;
 }
 
+// Tier 1 requires no outer product formats, so this is always gated.
+static bool outerProductApplicable(ID3D12Device *Device,
+                                   ComponentType InputCompType,
+                                   ComponentType ResultCompType,
+                                   LPCWSTR CaseName) {
+  bool Supported = false;
+  HRESULT QueryResult = E_INVALIDARG;
+
+  const std::optional<linalg_abi::D3D12_LINEAR_ALGEBRA_DATATYPE> InputType =
+      toCapabilityDataType(InputCompType);
+  const std::optional<linalg_abi::D3D12_LINEAR_ALGEBRA_DATATYPE> ResultType =
+      toCapabilityDataType(ResultCompType);
+  if (InputType.has_value() && ResultType.has_value()) {
+    linalg_test::TierSupport Tier;
+    QueryResult = linalg_test::queryTierSupport(Device, Tier);
+    if (SUCCEEDED(QueryResult) && Tier.supported()) {
+      linalg_test::ThreadOuterProductSupport Support;
+      QueryResult = linalg_test::queryThreadOuterProduct(
+          Device, {*InputType, *ResultType}, Support);
+      if (SUCCEEDED(QueryResult))
+        Supported = Support.supported();
+    }
+  }
+
+  return applyApplicability(
+      linalg_test::classifyApplicability(
+          QueryResult, Supported,
+          linalg_test::CapabilityRequirement::CapabilityGated),
+      CaseName);
+}
+
 namespace cpu_oracle {
 
 using TypedMatrixValues =
@@ -2851,6 +2882,12 @@ void DxilConf_SM610_LinAlg::OuterProduct_Thread_16x16_F16() {
   Params.Layout = MatrixLayout::OuterProductOptimal;
   Params.NumThreads = 1;
   Params.Enable16Bit = true;
+
+  // Tier 1 requires no outer product formats at all, so this is gated.
+  if (!outerProductApplicable(D3DDevice, Params.CompType, Params.CompType,
+                              L"OuterProduct_Thread_16x16_F16"))
+    return;
+
   runOuterProduct(D3DDevice, DxcSupport, Params, VerboseLogging);
 #else
 #ifdef _HLK_CONF
