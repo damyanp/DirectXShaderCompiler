@@ -1,0 +1,70 @@
+# compiler: main-debug-pix
+# exe: <triage>/issues/2923/run-2923.cmd
+# ran: 2026-08-07T16:10:15+00:00
+# cmd: repro.hlsl -Od
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc repro.hlsl -Od
+[exe] <triage>/issues/2923/run-2923.cmd
+[exit] 0
+--- stdout ---
+# shader: repro.hlsl    optimization: -Od
+# (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
+
+$ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
+$ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
+3040 bytes written to repro-Od.ildb.bc
+$ dxopt  -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+                                                      InstructionRange: 0 19 main as
+
+InstructionCount:19
+$ opt -S -o=repro-Od.annotated.ll repro-Od.annotated.bc
+$ python check-2923.py repro-Od.annotated.ll -Od
+
+=== PIX virtual-register report: repro-Od.annotated.ll (-Od) ===
+llvm.dbg.declare call sites: 7, attributed to an annotated alloca: 7
+allocas carrying !pix-alloca-reg: 7
+  %0     [1 x float]                  regs[0] base=0 count=1
+         declares: p [DW_TAG_auto_variable src-line 19] !DIExpression(DW_OP_bit_piece, 0, 32)
+         writes  -> registers: (none)
+  %1     [1 x float]                  regs[1] base=1 count=1
+         declares: p [DW_TAG_auto_variable src-line 19] !DIExpression(DW_OP_bit_piece, 32, 32)
+         writes  -> registers: (none)
+  %2     [1 x float]                  regs[2] base=2 count=1
+         declares: p [DW_TAG_auto_variable src-line 19] !DIExpression(DW_OP_bit_piece, 64, 32)
+         writes  -> registers: (none)
+  %3     [1 x float]                  regs[3] base=3 count=1
+         declares: p [DW_TAG_auto_variable src-line 19] !DIExpression(DW_OP_bit_piece, 96, 32)
+         writes  -> registers: (none)
+  %4     [1 x float]                  regs[4] base=4 count=1
+         declares: p [DW_TAG_auto_variable src-line 19] !DIExpression(DW_OP_bit_piece, 128, 32)
+         writes  -> registers: (none)
+  %5     [1 x float]                  regs[5] base=5 count=1
+         declares: p [DW_TAG_auto_variable src-line 19] !DIExpression(DW_OP_bit_piece, 160, 32)
+         writes  -> registers: (none)
+  %6     %struct.smallPayload.0       regs[6..11] base=6 count=6
+         declares: p [DW_TAG_arg_variable src-line 16] !DIExpression()
+         writes  -> registers: 6,7,8,9,10,11
+
+source variables described by alloca registers:
+  var !47 "p" [DW_TAG_auto_variable src-line 19]: 6 alloca range(s), declared registers [0, 1, 2, 3, 4, 5], written registers []
+         registers declared but NEVER written: [0, 1, 2, 3, 4, 5]
+  var !99 "p" [DW_TAG_arg_variable src-line 16]: 1 alloca range(s), declared registers [6, 7, 8, 9, 10, 11], written registers [6, 7, 8, 9, 10, 11]
+
+PixTest.cpp TestStructAnnotationCase emulation:
+  OffsetAndSizes.size() : expected 1   actual 7   FAIL
+  AllocaWrites.size()   : expected 6   actual 6   ok
+  ValidateAllocaWrite(0): expected regBase+index == 0, actual 6+0 == 6 FAIL
+  ValidateAllocaWrite(1): expected regBase+index == 1, actual 6+1 == 7 FAIL
+  ValidateAllocaWrite(2): expected regBase+index == 2, actual 6+2 == 8 FAIL
+  ValidateAllocaWrite(3): expected regBase+index == 3, actual 6+3 == 9 FAIL
+  ValidateAllocaWrite(4): expected regBase+index == 4, actual 6+4 == 10 FAIL
+  ValidateAllocaWrite(5): expected regBase+index == 5, actual 6+5 == 11 FAIL
+
+PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable src-line 19] [0, 1, 2, 3, 4, 5]
+
+--- stderr ---
+

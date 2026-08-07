@@ -1,0 +1,115 @@
+#2922 release history -- does the PIX value-to-declare pass drop the
+pointer-typed dbg.value that -O1 produces?
+
+Produced by `python measure.py --history`. Each row runs THAT BUILD's own
+PIX pass, by pointing dxopt at that build's dxcompiler.dll:
+
+  <dxc.exe>   -T as_6_5 -E main /Zi /Qembed_debug -HV 2018 -enable-16bit-types <-Od|-O1> repro.hlsl
+  <dxopt.exe> -external <that build's dxcompiler.dll> -external-fn DxcCreateInstance \
+              -o=<bc> <ll> -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+  <opt.exe>   -S <bc>
+
+dxopt.exe and opt.exe come from the local Debug build and are only
+plumbing (blob marshalling and disassembly). The pass under test is the
+release's.
+
+OBSERVABLE: number of `call void @llvm.dbg.declare` INSTRUCTIONS in the
+pass output. That is the pass's whole product, and PixTest builds its
+AllocaWrites by walking exactly those DbgDeclareInsts. 0 at -O1, on a
+module that does contain a pointer-typed dbg.value, is the reported bug.
+
+  ptr    = pointer-typed `llvm.dbg.value` instructions dxc emitted (input)
+  decl   = `llvm.dbg.declare` instructions in the pass OUTPUT
+  dbgreg = `alloca [N x ...]` debug registers the pass synthesised
+
+       release  opt  ptr  decl  dbgreg  verdict
+-------------- ---- ---- ----- -------  -------
+     v1.4.1907  -Od    -     -       -  invalid-probe  [error: invalid profile as_6_5]
+     v1.4.1907  -O1    -     -       -  invalid-probe  [error: invalid profile as_6_5]
+     v1.5.2010  -Od    0     0       0  invalid-probe  [no llvm.dbg.declare/value records emitted for the local]
+     v1.5.2010  -O1    0     0       0  invalid-probe  [no llvm.dbg.declare/value records emitted for the local]
+     v1.6.2104  -Od    0     1       0  control
+     v1.6.2104  -O1    1     0       0  repro
+     v1.6.2106  -Od    0     1       0  control
+     v1.6.2106  -O1    1     0       0  repro
+     v1.6.2112  -Od    0     1       0  control
+     v1.6.2112  -O1    1     0       0  repro
+     v1.7.2207  -Od    0     1       0  control
+     v1.7.2207  -O1    1     2       2  no-repro
+     v1.7.2212  -Od    0     1       0  control
+     v1.7.2212  -O1    1     2       2  no-repro
+   v1.7.2212.1  -Od    0     1       0  control
+   v1.7.2212.1  -O1    1     2       2  no-repro
+     v1.7.2308  -Od    0     1       0  control
+     v1.7.2308  -O1    1     2       2  no-repro
+     v1.8.2403  -Od    0     1       0  control
+     v1.8.2403  -O1    1     2       2  no-repro
+   v1.8.2403.1  -Od    0     1       0  control
+   v1.8.2403.1  -O1    1     2       2  no-repro
+   v1.8.2403.2  -Od    0     1       0  control
+   v1.8.2403.2  -O1    1     2       2  no-repro
+     v1.8.2405  -Od    0     1       0  control
+     v1.8.2405  -O1    1     2       2  no-repro
+     v1.8.2407  -Od    0     1       0  control
+     v1.8.2407  -O1    1     2       2  no-repro
+     v1.8.2502  -Od    0     1       0  control
+     v1.8.2502  -O1    1     2       2  no-repro
+     v1.8.2505  -Od    0     1       0  control
+     v1.8.2505  -O1    1     2       2  no-repro
+   v1.8.2505.1  -Od    0     1       0  control
+   v1.8.2505.1  -O1    1     2       2  no-repro
+     v1.9.2602  -Od    0     1       0  control
+     v1.9.2602  -O1    1     2       2  no-repro
+  v1.9.2602.24  -Od    0     1       0  control
+  v1.9.2602.24  -O1    1     2       2  no-repro
+     v1.9.2607  -Od    0     1       0  control
+     v1.9.2607  -O1    1     2       2  no-repro
+    main-debug  -Od    0     1       0  control
+    main-debug  -O1    1     2       2  no-repro
+
+
+VERBATIM. The whole of @main after the pass ran, for the last
+release with the bug and for ground truth. Pre-fix, the variable
+"p" has no debug record of any kind left: the pass early-returned
+on the pointer and its cleanup removed the llvm.dbg.value it did
+not convert. Post-fix, two llvm.dbg.declares appear, one per
+component of the float2, each on a synthesised [1 x float] debug
+register -- which is what PixTest counts.
+
+--- pass output, v1.6.2112-O1  (last release with the bug) ---
+  define void @main() {
+    %p1 = alloca %struct.smallPayload.0, align 8, !pix-dxil-inst-num !38, !pix-alloca-reg !39
+    %1 = getelementptr %struct.smallPayload.0, %struct.smallPayload.0* %p1, i32 0, i32 0, i32 0, !dbg !40, !pix-dxil-inst-num !41, !pix-dxil-reg !42 ; line:11 col:10
+    store float 1.000000e+00, float* %1, align 8, !dbg !40, !pix-dxil-inst-num !43, !pix-alloca-reg-write !44 ; line:11 col:10
+    %2 = getelementptr %struct.smallPayload.0, %struct.smallPayload.0* %p1, i32 0, i32 0, i32 1, !dbg !40, !pix-dxil-inst-num !45, !pix-dxil-reg !42 ; line:11 col:10
+    store float 2.000000e+00, float* %2, align 4, !dbg !40, !pix-dxil-inst-num !46, !pix-alloca-reg-write !47 ; line:11 col:10
+    call void @dx.op.dispatchMesh.struct.smallPayload.0(i32 173, i32 1, i32 1, i32 1, %struct.smallPayload.0* nonnull %p1), !dbg !48, !pix-dxil-inst-num !49 ; line:12 col:5
+    ret void, !dbg !50, !pix-dxil-inst-num !51 ; line:13 col:1
+  }
+  => llvm.dbg.declare instructions in @main: 0
+
+--- pass output, main-debug-O1  (ground truth, main @ ab5400907) ---
+  define void @main() {
+  entry:
+    %0 = alloca [1 x float], i32 0, !pix-alloca-reg !37
+    call void @llvm.dbg.declare(metadata [1 x float]* %0, metadata !38, metadata !42), !dbg !43 ; var:"p" !DIExpression(DW_OP_bit_piece, 0, 32)
+    %1 = alloca [1 x float], i32 0, !pix-alloca-reg !36
+    call void @llvm.dbg.declare(metadata [1 x float]* %1, metadata !38, metadata !44), !dbg !43 ; var:"p" !DIExpression(DW_OP_bit_piece, 32, 32)
+    %p1 = alloca %struct.smallPayload.0, align 8, !pix-alloca-reg !45
+    %2 = getelementptr inbounds %struct.smallPayload.0, %struct.smallPayload.0* %p1, i32 0, i32 0, i32 0, !dbg !46, !pix-dxil-reg !47, !pix-dxil-inst-num !48 ; line:11 col:10
+    store float 1.000000e+00, float* %2, align 8, !dbg !46, !pix-dxil-inst-num !49, !pix-alloca-reg-write !50 ; line:11 col:10
+    %3 = getelementptr inbounds %struct.smallPayload.0, %struct.smallPayload.0* %p1, i32 0, i32 0, i32 1, !dbg !46, !pix-dxil-reg !47, !pix-dxil-inst-num !51 ; line:11 col:10
+    store float 2.000000e+00, float* %3, align 4, !dbg !46, !pix-dxil-inst-num !52, !pix-alloca-reg-write !53 ; line:11 col:10
+    %4 = load %struct.smallPayload.0, %struct.smallPayload.0* %p1, !dbg !54, !pix-dxil-inst-num !55 ; line:12 col:5
+    %5 = extractvalue %struct.smallPayload.0 %4, 0, !pix-dxil-inst-num !56
+    %6 = extractvalue [2 x float] %5, 0, !pix-dxil-reg !57, !pix-dxil-inst-num !58
+    %7 = extractvalue [2 x float] %5, 1, !pix-dxil-reg !59, !pix-dxil-inst-num !60
+    %8 = getelementptr [1 x float], [1 x float]* %0, i32 0, i32 0, !pix-dxil-reg !61, !pix-dxil-inst-num !62
+    store float %6, float* %8, !pix-dxil-inst-num !63, !pix-alloca-reg-write !64
+    %9 = getelementptr [1 x float], [1 x float]* %1, i32 0, i32 0, !pix-dxil-reg !65, !pix-dxil-inst-num !66
+    store float %7, float* %9, !pix-dxil-inst-num !67, !pix-alloca-reg-write !68
+    call void @dx.op.dispatchMesh.struct.smallPayload.0(i32 173, i32 1, i32 1, i32 1, %struct.smallPayload.0* nonnull %p1), !dbg !54, !pix-dxil-inst-num !69 ; line:12 col:5
+    ret void, !dbg !70, !pix-dxil-inst-num !71 ; line:13 col:1
+  }
+  => llvm.dbg.declare instructions in @main: 2
+

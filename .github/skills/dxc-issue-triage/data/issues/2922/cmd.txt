@@ -1,0 +1,16 @@
+# Compile half only. See notes.md "What cmd.txt can and cannot measure".
+#
+# This is the exact dxc invocation PixTest.cpp performs for
+# PixTest::PixStructAnnotation_FloatN, with -Od replaced by -O1 as the issue
+# instructs. Args come from PixTestUtils.cpp Compile() (/Zi /Qembed_debug
+# prepended) plus TestStructAnnotationCase()'s -HV 2018 -enable-16bit-types,
+# profile as_6_5, entry main.
+#
+# The reported symptom is NOT visible here: it appears only after the PIX
+# optimizer pass -dxil-dbg-value-to-dbg-declare runs over this module, and
+# dxc.exe cannot run PIX passes (dxopt.exe / IDxcOptimizer can). What this
+# command establishes is the PRECONDITION for the bug: that -O1 hands the pass
+# a pointer-typed llvm.dbg.value. See measure.py for the two-stage measurement
+# that observes the actual symptom, and manual-case-release-history.txt for
+# the result.
+-T as_6_5 -E main /Zi /Qembed_debug -O1 -HV 2018 -enable-16bit-types repro.hlsl

@@ -1,0 +1,48 @@
+# manual capture: FXC on the repro, for issue #3377
+# harness:  ce-probe.py   (re-runnable: `python ce-probe.py <compiler-id> <shader> "<args>"`)
+# compiler: fxc_10_0_19041 on Compiler Explorer  (Direct3D Shader Compiler 10.1)
+# ran:      2026-08-07
+# NOTE:     hand-driven capture, not a probe of the primary repro. Not scored by match.json.
+#
+# WHY
+# The issue body opens with "It successfully compiles on FXC as Pixel Shader 5.0, but fails to
+# build on DXC as Pixel Shader 6.0". That is a checkable claim about a second compiler, and it
+# is the reason a D3D9-era shader was ported this way in the first place. CASE 1 checks it.
+#
+# CASE 2 and CASE 3 are the controls SKILL.md requires before believing a cross-compiler
+# difference. CASE 3 shows FXC on this harness does report failures when there are any
+# (exit 1, "error X3501"), so CASE 1's exit 0 is a real success and not the harness swallowing
+# an error. CASE 2 shows FXC -- unlike DXC -- does not require a semantic on the parameter
+# either, so the difference is about the whole construct, not only about the semantic.
+#
+# Limits: this is a compile, not an execution; it says FXC accepts the source, not that the
+# resulting shader does anything sensible with `decal`.
+### CASE 1: repro.hlsl -- the issue body's claim, verbatim
+### compiler: fxc_10_0_19041
+### source:   repro.hlsl
+### args:     /T ps_5_0 /E main_fragment
+### exit:     0
+[stdout] Microsoft (R) Direct3D Shader Compiler 10.1
+[stdout] Copyright (C) 2013 Microsoft. All rights reserved.
+[stdout] 
+[stdout] compilation code save succeeded; see C:\Windows\TEMP\compiler-explorer-compilerWdEycv\output.s
+### CASE 2: control-no-semantic.hlsl -- the same source minus the `: TEXUNIT0` semantic
+### compiler: fxc_10_0_19041
+### source:   control-no-semantic.hlsl
+### args:     /T ps_5_0 /E main_fragment
+### exit:     0
+[stdout] Microsoft (R) Direct3D Shader Compiler 10.1
+[stdout] Copyright (C) 2013 Microsoft. All rights reserved.
+[stdout] 
+[stdout] compilation code save succeeded; see C:\Windows\TEMP\compiler-explorer-compiler6dVJ3S\output.s
+### CASE 3: repro.hlsl with a bogus entry point -- proves this harness reports failures
+### compiler: fxc_10_0_19041
+### source:   repro.hlsl
+### args:     /T ps_5_0 /E no_such_entry
+### exit:     1
+[stdout] Microsoft (R) Direct3D Shader Compiler 10.1
+[stdout] Copyright (C) 2013 Microsoft. All rights reserved.
+[stdout] 
+[stderr] error X3501: 'no_such_entry': entrypoint not found
+[stderr] 
+[stderr] compilation failed; no code produced

@@ -1,0 +1,130 @@
+# compiler: v1.6.2106
+# exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+# ran: 2026-08-07T15:45:06+00:00
+# cmd: -T as_6_5 -E main /Zi /Qembed_debug -O1 -HV 2018 -enable-16bit-types repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T as_6_5 -E main /Zi /Qembed_debug -O1 -HV 2018 -enable-16bit-types repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 238f5e737ff825285ebe86b53d46a552.pdb
+; shader hash: 238f5e737ff825285ebe86b53d46a552
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.smallPayload.0 = type { [2 x float] }
+%struct.smallPayload = type { <2 x float> }
+
+define void @main() {
+  %p1 = alloca %struct.smallPayload.0, align 8
+  %1 = getelementptr %struct.smallPayload.0, %struct.smallPayload.0* %p1, i32 0, i32 0, i32 0, !dbg !38 ; line:11 col:10
+  store float 1.000000e+00, float* %1, align 8, !dbg !38 ; line:11 col:10
+  %2 = getelementptr %struct.smallPayload.0, %struct.smallPayload.0* %p1, i32 0, i32 0, i32 1, !dbg !38 ; line:11 col:10
+  store float 2.000000e+00, float* %2, align 4, !dbg !38 ; line:11 col:10
+  call void @llvm.dbg.value(metadata %struct.smallPayload.0* %p1, i64 0, metadata !39, metadata !43), !dbg !44 ; var:"p" !DIExpression()
+  call void @dx.op.dispatchMesh.struct.smallPayload.0(i32 173, i32 1, i32 1, i32 1, %struct.smallPayload.0* nonnull %p1), !dbg !45 ; line:12 col:5  ; DispatchMesh(threadGroupCountX,threadGroupCountY,threadGroupCountZ,payload)
+  ret void, !dbg !46 ; line:13 col:1
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.dispatchMesh.struct.smallPayload.0(i32, i32, i32, i32, %struct.smallPayload.0*) #0
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!18, !19}
+!llvm.ident = !{!20}
+!dx.source.contents = !{!21}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!22}
+!dx.source.args = !{!23}
+!dx.version = !{!24}
+!dx.valver = !{!25}
+!dx.shaderModel = !{!26}
+!dx.typeAnnotations = !{!27, !31}
+!dx.entryPoints = !{!34}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !14)
+!1 = !DIFile(filename: "repro.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, line: 10, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, line: 10, size: 64, align: 32, elements: !6, templateParams: !10)
+!6 = !{!7, !9}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 10, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 10, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !{!11, !12}
+!11 = !DITemplateTypeParameter(name: "element", type: !8)
+!12 = !DITemplateValueParameter(name: "element_count", type: !13, value: i32 2)
+!13 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!14 = !{!15}
+!15 = !DISubprogram(name: "main", scope: !1, file: !1, line: 8, type: !16, isLocal: false, isDefinition: true, scopeLine: 9, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!16 = !DISubroutineType(types: !17)
+!17 = !{null}
+!18 = !{i32 2, !"Dwarf Version", i32 4}
+!19 = !{i32 2, !"Debug Info Version", i32 3}
+!20 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!21 = !{!"repro.hlsl", !"struct smallPayload\0D\0A{\0D\0A    float2 f2;\0D\0A};\0D\0A\0D\0A\0D\0A[numthreads(1, 1, 1)]\0D\0Avoid main()\0D\0A{\0D\0A    smallPayload p;\0D\0A    p.f2 = float2(1,2);\0D\0A    DispatchMesh(1, 1, 1, p);\0D\0A}\0D\0A"}
+!22 = !{!"repro.hlsl"}
+!23 = !{!"-E", !"main", !"-T", !"as_6_5", !"/Zi", !"/Qembed_debug", !"-O1", !"-HV", !"2018", !"-enable-16bit-types"}
+!24 = !{i32 1, i32 5}
+!25 = !{i32 1, i32 6}
+!26 = !{!"as", i32 6, i32 5}
+!27 = !{i32 0, %struct.smallPayload undef, !28, %struct.smallPayload.0 undef, !30}
+!28 = !{i32 8, !29}
+!29 = !{i32 6, !"f2", i32 3, i32 0, i32 7, i32 9}
+!30 = !{i32 0, !29}
+!31 = !{i32 1, void ()* @main, !32}
+!32 = !{!33}
+!33 = !{i32 1, !2, !2}
+!34 = !{void ()* @main, !"main", null, null, !35}
+!35 = !{i32 0, i64 8388608, i32 10, !36}
+!36 = !{!37, i32 8}
+!37 = !{i32 1, i32 1, i32 1}
+!38 = !DILocation(line: 11, column: 10, scope: !15)
+!39 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "p", scope: !15, file: !1, line: 10, type: !40)
+!40 = !DICompositeType(tag: DW_TAG_structure_type, name: "smallPayload", file: !1, line: 1, size: 64, align: 32, elements: !41)
+!41 = !{!42}
+!42 = !DIDerivedType(tag: DW_TAG_member, name: "f2", scope: !40, file: !1, line: 3, baseType: !4, size: 64, align: 32)
+!43 = !DIExpression()
+!44 = !DILocation(line: 10, column: 18, scope: !15)
+!45 = !DILocation(line: 12, column: 5, scope: !15)
+!46 = !DILocation(line: 13, column: 1, scope: !15)
+
+
+--- stderr ---
+

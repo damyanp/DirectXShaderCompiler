@@ -1,0 +1,34 @@
+# Commits inside #2923's measured regression window (v1.6.2104 -> v1.6.2106).
+# Written by window-commits.py -- rerun it to re-derive this file.
+# This is a COUNT, not an attribution: nine candidates cannot be told apart by
+# release-to-release probing, and no commit was built in isolation.
+
+==============================================================================
+# every commit touching the PIX pass directory in the window
+$ git log --oneline v1.6.2104..v1.6.2106 -- lib/DxilPIXPasses/
+dad1cfc30 PIX: Don't seek beyond terminator instructions (value-to-declare pass) (#3855) (#3856)
+ec7e33230 PIX: Check SM66 handle types for dynamic indexing (#3819)
+ad4a3ea92 PIX: Entry point can be null for DXBC->DXIL hull shader (#3805)
+e46fa6b4f PIX: Find correct type of struct members, add instructions only after phi nodes, add logging (#3786)
+ba1900c9d PIX: Allow debug of enum classes (#3756)
+320d40bf3 PIX: Change insertion point to after referenced value (#3746)
+cb485263b PIX: Null check before dyn_cast (#3654)
+ea1efe96b PIX passes: Centralize handle-generation code and update for 6.6 (#3628)
+880c1359c PIX SM 6.6 resource access tracking (#3594)
+# count: 9
+
+==============================================================================
+# ...of those, the ones touching the value-to-declare pass
+$ git log --oneline v1.6.2104..v1.6.2106 -- lib/DxilPIXPasses/DxilDbgValueToDbgDeclare.cpp
+dad1cfc30 PIX: Don't seek beyond terminator instructions (value-to-declare pass) (#3855) (#3856)
+ad4a3ea92 PIX: Entry point can be null for DXBC->DXIL hull shader (#3805)
+e46fa6b4f PIX: Find correct type of struct members, add instructions only after phi nodes, add logging (#3786)
+ba1900c9d PIX: Allow debug of enum classes (#3756)
+320d40bf3 PIX: Change insertion point to after referenced value (#3746)
+# count: 5
+
+==============================================================================
+# ...and the ones touching the numbering pass named in the issue title
+$ git log --oneline v1.6.2104..v1.6.2106 -- lib/DxilPIXPasses/DxilAnnotateWithVirtualRegister.cpp
+ad4a3ea92 PIX: Entry point can be null for DXBC->DXIL hull shader (#3805)
+# count: 1

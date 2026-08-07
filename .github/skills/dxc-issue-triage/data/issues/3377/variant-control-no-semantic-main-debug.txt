@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T15:24:14+00:00
+# cmd: -T ps_6_0 -E main_fragment control-no-semantic.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-no-semantic (control-no-semantic.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main_fragment control-no-semantic.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-no-semantic.hlsl:10:27: warning: effect state block ignored - effect syntax is deprecated. To use braces as an initializer use them with equal signs. [-Weffects-syntax]
+SamplerState PointSampler { Filter = MIN_MAG_MIP_POINT; AddressU = Clamp; AddressV = Clamp; };
+                          ^
+control-no-semantic.hlsl:30:1: error: Semantic must be defined for all parameters of an entry function or patch constant function
+float4 main_fragment(float2 texCoord : TEXCOORD0, uniform Texture2D<float4> decal) : SV_Target
+^
+
+

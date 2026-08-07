@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T15:29:23+00:00
+# cmd: -T lib_6_6 -Zpr -all_resources_bound -Zi -Od -nologo attach/DefaultRT.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: as-filed-xbox-flag (attach/DefaultRT.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_6 -Zpr -all_resources_bound -Zi -Od -nologo attach/DefaultRT.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+warning: no output provided for debug - embedding PDB in shader container.  Use -Qembed_debug to silence this warning.
+attach/DefaultRT.hlsl:5:5: error: root signature error - Expected a root signature flag value, found: 'XBOX_RAYTRACING'
+    "RootFlags(XBOX_RAYTRACING),"
+    ^
+
+

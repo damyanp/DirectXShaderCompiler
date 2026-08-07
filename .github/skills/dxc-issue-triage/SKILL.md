@@ -87,6 +87,12 @@ Two rules make the parallelism safe:
   than restored, any lesson promoted during collation is applied retroactively to every issue
   in the batch — including the ones triaged before it was learned. That is what buys back the
   lesson-propagation a parallel batch would otherwise lose.
+  **`audit` does not do this**; only `reindex` re-scores. `audit` checks completeness and
+  staleness and reads the existing verdicts. Batch 008's brief said `audit` re-scored every
+  probe and used that as the reason to run it first — it does not, so a batch that runs only
+  `audit` gets no retroactive re-scoring at all. Both commands are worth running; do not
+  substitute one for the other, and if `reindex` is deliberately withheld from a batch, say in
+  the report that no retroactive re-scoring occurred.
 
 The shared *cache* is different from shared state, and is safe to contend on: `ensure_release`
 takes a per-tag lock, downloads to a scratch directory and moves the finished archive into
@@ -117,8 +123,13 @@ isolation — it is the one place cross-issue context can leak back in. Give it:
 - the ground-truth compiler id, and the reminder to verify `dxc --version`;
 - the boundary: it writes only `data/issues/<nnnn>/`, and records method observations in
   `method-notes.md` rather than editing `SKILL.md` or `triage.py`;
-- the check it may run: `triage.py audit --issue <n>`. **Not `reindex`** — that rewrites the
-  whole database and will delete peers' rows;
+- the check it may run: `triage.py audit --issue <n>`, and it *should* run it before reporting
+  back. `audit` opens no transaction and rewrites no table, so it is safe in a parallel phase;
+  it was added precisely because the only way to reach the completeness check used to be
+  `reindex`. **`reindex` is the one to forbid** — it opens `DELETE FROM issues; DELETE FROM
+  runs;` and cost two batch-004 workers their in-flight rows. Batch 008's brief banned both,
+  which removed the per-issue completeness check from exactly the phase it was built for; one
+  worker ran it anyway and was right to;
 - the stop condition: verdict recorded and draft written, or a clear statement of what blocked
   it. `inconclusive` is a real outcome; a forced verdict is not.
 
@@ -280,6 +291,31 @@ cmake --build <build> --config Debug --target dxc --parallel
 
 Triage provenance is worthless if the binary misreports what it is.
 
+> **A rewritten history invalidates recorded build provenance. Verify by tree, not by SHA.**
+> The commit hash baked into `dxc --version` is a *snapshot* identifier: rewriting history
+> — even a message-only `filter-branch` that changes no source at all — gives every commit a
+> new SHA, and the one your ground-truth binary reports stops existing. `git merge-base
+> --is-ancestor <recorded-sha> HEAD` then fails, which reads exactly like "this build is from
+> some unrelated branch".
+>
+> Measured after the batch-007 commit-message rewrite: `main-debug` was registered at
+> `ab5400907`, which the rewrite replaced with `950b58792`. The binary was completely valid —
+> but nothing in the registry could show that, because the only identifier it stored was dead.
+>
+> The check that settles it is the **tree**, which a message-only rewrite leaves untouched:
+>
+> ```bash
+> git rev-parse "<recorded-sha>^{tree}"          # find the tree the build came from
+> git log --format="%h %T" upstream/main..HEAD   # find the live commit with that tree
+> git diff --name-only <recorded-sha> FETCH_HEAD # must touch nothing outside the skill dir
+> ```
+>
+> That last line is the one that matters, and it is the right check even when no rewrite has
+> happened: what makes a build ground truth for `main` is that **no compiler source differs
+> from `main`**, not that a hash matches. Prefer it over the SHA comparison, and do not rebuild
+> on a SHA mismatch until you have checked whether any source actually changed — a Debug build
+> is expensive and a message-only rewrite needs none.
+
 ## Per-issue workflow
 
 ### 1. Read the whole issue, comments included
@@ -334,6 +370,22 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 >
 > Keep the original as `cmd-as-filed.txt` and note in `cmd.txt` why it differs.
 
+> **An attachment from a real project carries platform tokens, and every one is an
+> `invalid-probe` waiting to happen.** Console and vendor SDKs extend HLSL, and stock `dxc`
+> rejects their spellings in a completely different part of the compiler from the one under
+> test. Measured on #3693, whose attached project uses `RootFlags(XBOX_RAYTRACING)`: public
+> dxc fails in the root-signature parser, which reads perfectly well as "the compiler
+> diagnoses this now" if you are looking for a diagnostic. Grep an attachment for
+> vendor-specific tokens before running it, neutralise them, and say in the write-up that you
+> did and what you replaced.
+
+> **Never point a release-sweep script at the same output filenames as the ground-truth run.**
+> The sweep runs last, silently overwrites the `.ll`/`.bc` artifacts the ground-truth probe
+> left behind, and the directory ends up describing a release build under a filename that says
+> `main-debug`. Measured on #2923. Either name the provenance into the filename or re-run
+> ground truth after the sweep — and prefer the first, because the second only works if you
+> remember.
+
 > **A committed repro must be runnable from the repo alone.** Two things break this silently,
 > and both were found by re-running #2427's hand-driven `run-2427.cmd` months after it was
 > written. It hardcoded an absolute path to one contributor's `dxc.exe`; and it depended on an
@@ -370,6 +422,50 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 >
 > Note that dxc's assert output puts the value of `File:` on the *following* line, so reading
 > only the first line attributes the assert to the wrong file.
+>
+> **Run `cdb` through `cmd.exe`, not through PowerShell.** From PowerShell, `cdb -c "..."`
+> produces no output at all — no error, no diagnostic, exit 0 — which reads as "the debugger
+> found nothing". Measured on #3377. Put the whole invocation, redirection included, inside
+> `cmd.exe /c`, and drop the `--` separator, which `cmd` does not need and `cdb` sometimes
+> takes as a target. While you are there: **do not try to report `ERRORLEVEL` from a `.cmd`
+> harness.** `set /a` resets it and a nested `for /f` clobbers it, so a batch file will
+> cheerfully print `0` for a run that crashed. Capture exit statuses from the Python that
+> launched the process.
+
+> **When the symptom is in a pass `dxc.exe` cannot run, register the harness as a compiler.**
+> Some defects live in code no compiler driver reaches — PIX's `IDxcOptimizer` passes are the
+> standing example: `dxc.exe` never runs them, and a locally built `opt.exe` does not link
+> them either. The instinct is to write a standalone script beside the issue, and #2918 did;
+> the cost is that `run`, `--expect`, variants and `audit` all stop applying to it and
+> `reindex` cannot re-score its evidence.
+>
+> The cheaper route is to make the harness *look like a compiler*:
+>
+> ```bash
+> python triage.py compiler --id main-debug-pix --exe <abs path>/run-passes.cmd
+> ```
+>
+> The wrapper needs an absolute path, must answer `--version`, and should take the real
+> compiler from an environment variable so the same harness can be pointed at a release. After
+> that the whole tool works unchanged, including `reindex`. Measured on #2923; `bisect` is the
+> one command that still cannot drive it, because it builds its own command line from
+> `cmd.txt`.
+>
+> For a release-to-release history of such a pass, `dxopt` will load any release's DLL:
+>
+> ```
+> dxopt.exe -o=out.bc -external <release>/dxcompiler.dll -external-fn DxcCreateInstance \
+>           -opt-mod-passes -<pass-name> in.bc
+> ```
+>
+> **Argument order is load-bearing**: `-o=`, `-external` and `-external-fn` must all precede
+> the input file, and getting it wrong yields a bare `0x80070057` with no explanation.
+>
+> This also buys a **component cross-probe**, which answers *where* before it answers *when*.
+> Run the 2x2 of {compiler A, compiler B} x {passes A, passes B}: if the result tracks the pass
+> DLL rather than the driver, the change is in the passes and no amount of further bisection
+> over `dxc` will find it. Measured on #2923, and it is what let that issue's draft say
+> "`lib/DxilPIXPasses`" instead of "somewhere between these two releases".
 
 ### 4. Define the symptom predicate
 
@@ -508,6 +604,27 @@ rule reports #1803's central finding as a predicate bug.
 > Narrowing it to `undef` reaching an *arithmetic* op made it discriminate. Record the control
 > in the predicate's `note` so the next person does not have to rediscover it.
 
+> **A missing-diagnostic issue has a standard control pair, and it needs both.** The symptom is
+> silence, and silence has two innocent explanations: the compiler never looks, or there was
+> nothing to say. So run (a) an input the compiler *does* diagnose, proving the diagnostic
+> exists and the pipeline reaches it, and (b) an input that is simply correct code, proving the
+> check is not firing on everything. Measured on #3693, where (a) is the same out-of-bounds
+> access hoisted out of the subscript — DXC rejects it — and (b) is the in-bounds index.
+> **The predicate must carry a positive anchor or (b) is meaningless**: a bare absence clause
+> is satisfied by correct code too, so without an anchor the second control cannot fail and
+> proves nothing.
+
+> **`run --args` is a full argv, not extra flags.** It replaces `cmd.txt` entirely, so it must
+> repeat the source filename even when `--shader` also names it. Omitting it gives dxc no
+> input and the resulting error looks like a compiler behaviour.
+
+> **`audit` wants a tool-made capture for every `.hlsl` in the directory.** A matrix driven by
+> a hand-written script leaves shaders with no `variant-*.txt` beside them, and the audit is
+> right to complain — a case nobody can re-run through the tool is a case whose result exists
+> only in a text file somebody wrote. Run one representative `triage.py run --shader <file>
+> --label <name> --expect ...` per source file even when the interesting measurement came from
+> the script.
+
 ### 5. Run against the ground-truth build
 
 ```bash
@@ -621,6 +738,22 @@ release binaries and repeat the run; a single clean pass is not evidence of a fi
 > Reach for it whenever the reporter says "intermittent", "sometimes", "flaky", or names heap
 > corruption, uninitialised memory, ASLR or threading. Do not use it as a blanket default —
 > it multiplies the cost of every probe.
+>
+> **`--repeat` is for a nondeterministic *occurrence*, not a nondeterministic *form*.** These
+> look similar and want opposite treatment. Measured on #3377: the crash's shape varies run to
+> run — v1.8.2502 alternates between a silent `0xC0000409` and a `0xC0000005` with a message,
+> same binary, same input — but it crashes every single time, and *every* probe in the
+> twenty-release scan scored `repro`. There was no clean result anywhere in the scan, so there
+> was no boundary that could have been an artefact, so `--repeat` had nothing to protect. The
+> right measurement for varying form is a hit-rate count on a few builds (40/40 here), quoted
+> as counts; the right measurement for varying occurrence is `--repeat` across the scan.
+> Before paying for `--repeat`, ask which of the two you actually have.
+
+> **Match on exit status, not on what the compiler said.** A corollary of "an internal failure
+> may print nothing at all", strong enough on its own evidence to state twice. Measured on
+> #3377: **8 of 20 releases crash with completely empty stderr**, and the release that does
+> print something only prints it on some runs. Any predicate keyed to message text would have
+> drawn a fix boundary through the middle of an issue that has never once worked.
 
 ### 6. Locate the transition
 
@@ -702,6 +835,24 @@ across issues.
 > unmeasurable because `lib_6_9` is new: five of twenty releases can express it, a
 > `control-hello.hlsl` proved so, and all five reproduce — a full history where the prediction
 > said there would be none.
+>
+> **Run the feature-presence control on every probed release, not only on ground truth.** A
+> release can compile the repro successfully and still not be answering the question. Measured
+> on #2922: v1.5.2010 accepts the repro, exits 0, and emits no `DILocalVariable` at all under
+> `-Od` — so the debug metadata the whole issue is about is simply absent, and the probe scored
+> a confident `no-repro` on a build that could not have shown the symptom. Nothing in the exit
+> status or the diagnostics says so. Only running the `-Od` control *per release* exposed it.
+> A quiet invalid probe is worse than a loud one: `bisect` trims the loud kind and reports the
+> count.
+
+> **The bisectable catalog has a hole, and it is where 2020 issues live.** `v1.5.2003` is
+> flagged `bisectable=0` (it is a GitHub prerelease), so the scan jumps v1.4.1907 (2019-07)
+> straight to v1.5.2010 (2020-10) — fourteen months, spanning the reports filed in between.
+> For any issue filed in that window, fetch and run v1.5.2003 by hand and say in the write-up
+> that you did. Measured on #2923, where it was decisive in the least convenient direction:
+> the agent-built repro is numbered *correctly* at the exact release that was current when the
+> issue was filed, which is the difference between "still broken since 2020" and "this
+> reconstruction may not be the reporter's instance".
 
 > **An absence-based predicate is satisfied for free by a compile that never got started.**
 > If the symptom is that something is *missing* (`not_contains`, `not_regex`, or an inverted
@@ -727,6 +878,31 @@ across issues.
 > `run --expect no-match` printing `WARNING: control expected no-match but scored repro`. If an
 > absence clause names a specific symbol, one of your controls must be a shader that *does*
 > declare it.
+
+> **An absence predicate can also be *falsified* for free — the trap runs in both directions.**
+> The documented hazard above is a rejected compile scoring as a reproduction. The mirror is a
+> rejected compile scoring as *clean*, and it is harder to see because a clean result reads as
+> good news. Measured on #3092, whose predicate was `not_regex "LocalSizeId"`: DXC's SPIR-V
+> validator **echoes the instruction it is rejecting into the diagnostic**, so a failed compile
+> printed `LocalSizeId` and the probe scored "no match" — the capability reported present on
+> the strength of the error message that says it is not. Tightening the regex does not help:
+> the validator prints the instruction verbatim, so any pattern that would match the good
+> output also matches the complaint. The only thing that caught it was `--expect match` on a
+> control nobody would have thought to doubt. **When the symptom is the absence of a token,
+> check whether the compiler's own diagnostics quote that token** — validators, verifiers and
+> `-verify` modes routinely do.
+
+> **A control cannot catch a broken reader.** Controls prove a predicate discriminates between
+> two inputs. They cannot prove the thing *producing* the text under test is working, because
+> a reader that is broken reports both arms clean and the pair looks consistent. Measured on
+> #2923: the harness scraped PIX register numbers out of LLVM IR with `\S+` standing in for a
+> type name, and `\S+` cannot match `[1 x float]*` — LLVM's type printer puts spaces inside
+> types. The reproducing case scored clean, the control scored clean, and the two agreed. The
+> fix is not a better regex but a **self-consistency line**: if a harness generates the text
+> its own predicate scores, make it assert what it expects to find and print a loud marker
+> when it finds nothing (`PIX-2923: PARSE-WARNING: 0 variables parsed`). A harness that can
+> return "nothing here" and "nothing matched" through the same channel will eventually be
+> believed.
 
 > **A crashed probe measured nothing.** A release that access-violates on the repro did not
 > observe the reported symptom; it failed before it could. Scored as `no-repro` that is the
@@ -876,9 +1052,31 @@ reproduces before adopting it, and keep the stage-accurate original as the local
 >
 > **FXC panes need controls too.** The control discipline above is written about Clang, but an
 > FXC pane is a different compiler with its own failure modes and the same reasoning applies.
-> Also note that `godbolt` records only the **first line** of each pane's output in its summary:
-> for `hlsl_clang_trunk` that is usually a `-Qembed_debug` unused-argument warning, so the tool
-> can print nothing of the finding while the link itself is perfect. Open the link.
+
+> **`godbolt` prints only the FIRST line of each pane, and that hid the finding twice in one
+> batch.** On #3092 `hlsl_clang_trunk`'s first line is a `-Qembed_debug` unused-argument
+> warning; the result — Clang emitting DXC's diagnostic verbatim — is on line 2. On #3377 the
+> first line was enough to see `SIGSEGV` and not enough to count Clang's thirteen errors or
+> confirm FXC had succeeded. Both workers, independently and without knowing of each other,
+> wrote their own client against `POST /api/compiler/<id>/compile` to get past it. Two people
+> paying the same cost is a tool defect, not a habit: `godbolt` now writes the full text of
+> every pane to `manual-case-godbolt-verify.txt`, so the summary line stays short and the
+> evidence is complete and on disk. Read that file rather than the console — and still open
+> the link before citing it.
+
+> **Verify the short link by reading it back, not by trusting the 200.**
+> `GET https://godbolt.org/api/shortlinkinfo/<id>` returns the stored session: compiler ids,
+> per-pane arguments and the source. The shortener answers with a URL whether or not what it
+> stored is what you sent, and a link with a dropped pane or the wrong arguments is worse than
+> no link, because it is a claim the reader *will* check. Three workers in batch 008 started
+> doing this by hand; `godbolt` now does it and warns on a mismatch.
+
+> **`godbolt-note.txt` is compiled, not merely displayed.** The banner is prepended to the
+> source that CE actually builds, and DXC records its input in `!dx.source.contents` — so
+> literal IR quoted in a "what to look for" note appears verbatim in the pane's own DXIL
+> output, where it will satisfy any text search a reader (or a future predicate) runs against
+> that pane. Measured on #2922. Describe the instruction in prose, or quote it in a form that
+> cannot be confused with the compiler's own output.
 
 The same discipline applies to argument handling: `dxc_trunk` appears to accept `/FI` silently,
 but so does `/ZZZNONSENSE` — on CE's Linux builds a `/`-prefixed argument looks like a path, so
@@ -904,6 +1102,11 @@ Three limits, all of which bound how much the link can be trusted:
 > assert and CE ships no assertions-enabled DXC, so the link shows three compilers succeeding.
 > Published bare, that reads as "cannot reproduce". It is still worth publishing — it is the
 > evidence that release builds are unaffected — but only with the limitation stated beside it.
+>
+> **CE returns ANSI SGR escapes in compiler output.** Clang colours its diagnostics, so a
+> literal `error:` match can miss `\x1b[0;1;31merror:`. Strip them in the *matcher*
+> (`re.sub(r'\x1b\[[0-9;]*m', '', text)`), never in the committed capture — hand-editing a
+> capture is falsification, and the escapes are part of what CE actually returned.
 
 `dxc_trunk` is a rolling build and is not reproducible over time. It can even vary between
 runs of the same input — #1768 alternates between `SIGSEGV` and a bad-cast error. Do not pin
@@ -1086,6 +1289,26 @@ read is far stronger evidence than an output observation. Then record the verdic
 > ancestry check proves a commit is *in* the fixing release, not that it *is* the fix. #3038's
 > window between v1.8.2502 and v1.8.2505 holds 162 commits. Say so, and call the attribution
 > strong rather than certain unless you built at the commit and tested it.
+>
+> **Count the window by *file*, not by commit title.** Titles are the tempting filter and they
+> are unreliable in both directions. Measured on #2923: nine commits touch `lib/DxilPIXPasses/`
+> between v1.6.2104 and v1.6.2106, and reading the titles suggests three are relevant — but
+> `git log <a>..<b> -- <the file>` says **five** touch the pass in question. Ask git which
+> commits touched the file, and quote that number.
+>
+> **A cherry-picked commit has two SHAs and only one of them is in the window.** The mainline
+> commit and its release-branch pick are the same change with different hashes, and
+> `git log <tag>..<tag>` will show you the pick while a search of `main` shows you the
+> original. Measured on #2923, whose notes named `650de80d3` when the commit inside the window
+> is `dad1cfc30`. Before naming a SHA, confirm it with
+> `git merge-base --is-ancestor <sha> <tag>`.
+
+> **Generate every `manual-case-*.txt` from a small script that echoes the command it is about
+> to run.** A transcribed command line is an assertion about what happened, and it is checked
+> by nobody. Measured on #2922, where a committed capture opened with a `$ git tag --contains
+> … | sort -V` line that was not the command actually run. `subprocess.list2cmdline(argv)`
+> prints exactly what was executed; commit the generator next to its output so a reader can
+> re-derive the file instead of trusting it.
 
 ```bash
 python triage.py verdict --issue <N> --status repros --repro-quality complete \
@@ -1159,9 +1382,54 @@ work, and none of them do.
 > short fields are read first, quoted most, and reviewed least. A short field is not licence
 > to state something the long-form evidence does not; **compression must only remove claims,
 > never add one.** Step 10 reviews `comment.md`; nothing reviews `summary` or `text_stale`.
+>
+> **So collation must read them, deliberately, as a separate pass.** Not "check the verdicts" —
+> re-read every `summary` and every `text_stale` against that issue's `notes.md`, sentence by
+> sentence, asking only *does the evidence support this exact claim*. Batch 008 found two
+> unsupported compressions this way in five issues, neither of which affected a verdict:
+> #2922's summary asserted the fix commit as fact where its notes say "strong, not certain",
+> and #3693's said "FXC rejects the same source" where FXC has no raytracing profile and what
+> it actually rejected was a compute restating. Both drafts were correct; only the one-line
+> fields were wrong. That is the shape of the failure — it survives precisely because the long
+> form is right.
 
 Always state the sampling bias. Verdicts from the oldest issues do not generalise to the
 backlog.
+
+**Run the timeline check before writing the report.** For every issue in the batch, list its
+cross-reference events and confirm that none of them was created by the triage itself:
+
+```bash
+gh api repos/<repo>/issues/<N>/timeline?per_page=100 \
+   --jq '.[] | select(.event=="cross-referenced") | "\(.created_at)  \(.actor.login)  #\(.source.issue.number)"'
+```
+
+Every event should predate the batch. This is the cheap check that would have caught batch
+007's cross-reference damage on the day rather than days later — a commit message containing
+`#NNNN` posts a public reference to the real upstream issue, from a branch nobody has seen,
+and read-only intent is not a read-only guarantee. It costs one call per issue, and the
+result belongs in the report's caveats either way: "no cross-reference on any of these five
+was created by this branch" is a claim worth being able to make. Measured clean on batch 008
+(1, 0, 3, 3, 0 pre-existing events across the five, plus 0 on the carried-over #2918).
+
+**Cross-issue analysis is collation's only unique output, and "same area" is not "same
+defect".** Issues filed within days of each other by the same engineer against the same
+subsystem invite the conclusion that they are one bug. Check how they *resolve* before
+saying so: batch 008's #2918, #2922 and #2923 are all PIX debug-info issues filed on the same
+day by the same reporter, and they resolve in three different directions — #2918 fixed in
+v1.6.2104, #2923 **regressed** at v1.6.2106, #2922 fixed between v1.6.2112 and v1.7.2207. A
+shared file is not a shared root cause. When you can find a maintainer's own statement
+separating them, quote it; here jeffnn, asked in PR #3746 whether it might fix #2922,
+answered *"I don't think so- that bug is all about not even handling the pointer properly."*
+That is worth more than any amount of code reading.
+
+**Two workers hitting the same trap independently is much stronger evidence than one.** They
+worked in isolation and could not have copied each other, so a repeated cost is a tool defect
+rather than a habit — and it justifies changing the tool, not just documenting the trap.
+Batch 008 had two: the `godbolt` first-line summary (hit on #3092 and #3377, both of which
+wrote their own CE client) and shortlink read-back verification (adopted by three workers by
+hand). Both are now in `triage.py`. When reading `method-notes.md` at collation, sort by how
+many workers independently reported each observation before deciding what to promote.
 
 ## Cross-batch overview
 

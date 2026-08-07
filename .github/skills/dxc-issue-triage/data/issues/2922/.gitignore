@@ -1,0 +1,4 @@
+# artifacts/ is regenerable scratch: `python measure.py --history` rewrites all of
+# it, and it holds ~90 .ll/.bc/.log files plus the raw TAEF console dump. The
+# committed evidence is manual-case-*.txt, which measure.py writes from these.
+artifacts/

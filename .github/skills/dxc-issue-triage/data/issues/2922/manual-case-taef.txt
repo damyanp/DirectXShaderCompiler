@@ -1,0 +1,95 @@
+#2922 -- the reporter's literal repro, run on ground truth
+==========================================================
+
+The issue says:
+
+    Repro: e.g., open PixTest.cpp, find the "Compile" function and change the
+    -Od to -O1, then run the taef tests with /name:PixTest::PixStructAnnotation_*
+
+That instruction can no longer be followed literally, because the edit it asks for has
+already been made upstream. PixTest.cpp now runs EVERY PixStructAnnotation_* test at both
+-Od and -O1 unconditionally:
+
+    tools/clang/unittests/HLSL/PixTest.cpp
+      static const OptimizationChoice OptimizationChoices[] = {
+          {L"-Od", false},
+          {L"-O1", true},
+      };
+
+and the three per-test opt-outs that used to stop the -O1 half from running are gone.
+Commit c0676c7ca deleted all three:
+
+    $ git show c0676c7ca -- tools/clang/unittests/HLSL/PixTest.cpp \
+        | grep -c "don't run -O1 test until pointer types are dealt with"
+    3
+    $ grep -c "don't run -O1 test" tools/clang/unittests/HLSL/PixTest.cpp
+    0
+
+The line they removed read, verbatim:
+
+    break; // don't run -O1 test until pointer types are dealt with by value-to-declare pass
+
+So "run the taef tests" IS the -O1 test today. Running them:
+
+    $ cd C:\prj\DirectXShaderCompiler\build\Debug\bin
+    $ "C:\Program Files (x86)\Windows Kits\10\Testing\Runtimes\TAEF\x64\TE.exe" \
+          ClangHLSLTests.dll /name:PixTest::PixStructAnnotation_*
+
+Ground truth: build\Debug\bin, dxcompiler.dll 1.10(5433-ab540090)(1.9.0.5433), main @ ab5400907.
+Full unedited console output: manual-case-taef-raw.txt (1953 lines).
+
+    StartGroup: PixTest::PixStructAnnotation_Lib_DualRaygen
+    EndGroup: PixTest::PixStructAnnotation_Lib_DualRaygen [Passed]
+    StartGroup: PixTest::PixStructAnnotation_Simple
+    EndGroup: PixTest::PixStructAnnotation_Simple [Passed]
+    StartGroup: PixTest::PixStructAnnotation_CopiedStruct
+    EndGroup: PixTest::PixStructAnnotation_CopiedStruct [Passed]
+    StartGroup: PixTest::PixStructAnnotation_MixedSizes
+    EndGroup: PixTest::PixStructAnnotation_MixedSizes [Passed]
+    StartGroup: PixTest::PixStructAnnotation_StructWithinStruct
+    EndGroup: PixTest::PixStructAnnotation_StructWithinStruct [Passed]
+    StartGroup: PixTest::PixStructAnnotation_1DArray
+    EndGroup: PixTest::PixStructAnnotation_1DArray [Passed]
+    StartGroup: PixTest::PixStructAnnotation_2DArray
+    EndGroup: PixTest::PixStructAnnotation_2DArray [Passed]
+    StartGroup: PixTest::PixStructAnnotation_EmbeddedArray
+    EndGroup: PixTest::PixStructAnnotation_EmbeddedArray [Passed]
+    StartGroup: PixTest::PixStructAnnotation_FloatN
+    EndGroup: PixTest::PixStructAnnotation_FloatN [Passed]
+    StartGroup: PixTest::PixStructAnnotation_SequentialFloatN
+    EndGroup: PixTest::PixStructAnnotation_SequentialFloatN [Passed]
+    StartGroup: PixTest::PixStructAnnotation_EmbeddedFloatN
+    EndGroup: PixTest::PixStructAnnotation_EmbeddedFloatN [Passed]
+    StartGroup: PixTest::PixStructAnnotation_Matrix
+    EndGroup: PixTest::PixStructAnnotation_Matrix [Passed]
+    StartGroup: PixTest::PixStructAnnotation_MemberFunction
+    EndGroup: PixTest::PixStructAnnotation_MemberFunction [Passed]
+    StartGroup: PixTest::PixStructAnnotation_BigMess
+    EndGroup: PixTest::PixStructAnnotation_BigMess [Passed]
+    StartGroup: PixTest::PixStructAnnotation_AlignedFloat4Arrays
+    EndGroup: PixTest::PixStructAnnotation_AlignedFloat4Arrays [Passed]
+    StartGroup: PixTest::PixStructAnnotation_Inheritance
+    EndGroup: PixTest::PixStructAnnotation_Inheritance [Passed]
+    StartGroup: PixTest::PixStructAnnotation_ResourceAsMember
+    EndGroup: PixTest::PixStructAnnotation_ResourceAsMember [Passed]
+    StartGroup: PixTest::PixStructAnnotation_WheresMyDbgValue
+    EndGroup: PixTest::PixStructAnnotation_WheresMyDbgValue [Passed]
+
+    Summary: Total=18, Passed=18, Failed=0, Blocked=0, Not Run=0, Skipped=0
+
+WHAT THIS IS AND IS NOT EVIDENCE OF
+-----------------------------------
+It IS evidence that the reported repro, executed as written against today's tree, does not
+fail. Three of these tests (_FloatN, _SequentialFloatN, _EmbeddedFloatN) are the ones whose
+-O1 half used to be skipped for exactly this bug, and their -O1 halves now run and pass.
+
+It is NOT a release history: ClangHLSLTests.dll is built from main and loads main's
+dxcompiler.dll, so this cannot say anything about v1.6.2112 or any other release. The
+release history is in manual-case-release-history.txt, which drives each release's own
+dxcompiler.dll through dxopt -external.
+
+It is also not a substitute for the direct measurement. A passing test suite could in
+principle pass for the wrong reason -- for instance if the -O1 configuration silently stopped
+reaching the pass. manual-case-release-history.txt rules that out by showing the pass output
+itself: main's -O1 run does contain the pointer-typed llvm.dbg.value on input and does emit
+two llvm.dbg.declares on output.

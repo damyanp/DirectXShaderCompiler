@@ -1,0 +1,59 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T15:29:20+00:00
+# cmd: -T cs_6_0 -E main -spirv control-static-const.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-static-const (control-static-const.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main -spirv control-static-const.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 19
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %gl_GlobalInvocationID
+               OpExecutionMode %main LocalSize 4 1 1
+               OpSource HLSL 600
+               OpName %type_RWStructuredBuffer_uint "type.RWStructuredBuffer.uint"
+               OpName %Out "Out"
+               OpName %main "main"
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %Out DescriptorSet 0
+               OpDecorate %Out Binding 0
+               OpDecorate %_runtimearr_uint ArrayStride 4
+               OpMemberDecorate %type_RWStructuredBuffer_uint 0 Offset 0
+               OpDecorate %type_RWStructuredBuffer_uint BufferBlock
+       %uint = OpTypeInt 32 0
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+%_runtimearr_uint = OpTypeRuntimeArray %uint
+%type_RWStructuredBuffer_uint = OpTypeStruct %_runtimearr_uint
+%_ptr_Uniform_type_RWStructuredBuffer_uint = OpTypePointer Uniform %type_RWStructuredBuffer_uint
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+       %void = OpTypeVoid
+         %13 = OpTypeFunction %void
+%_ptr_Uniform_uint = OpTypePointer Uniform %uint
+        %Out = OpVariable %_ptr_Uniform_type_RWStructuredBuffer_uint Uniform
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+       %main = OpFunction %void None %13
+         %15 = OpLabel
+         %16 = OpLoad %v3uint %gl_GlobalInvocationID
+         %17 = OpCompositeExtract %uint %16 0
+         %18 = OpAccessChain %_ptr_Uniform_uint %Out %int_0 %17
+               OpStore %18 %17
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

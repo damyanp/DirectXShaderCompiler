@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T15:24:16+00:00
+# cmd: -T ps_6_0 -E main_fragment variant-minimal.hlsl
+# exit: 2147483651
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: minimal (variant-minimal.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main_fragment variant-minimal.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147483651
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: Terminal Error 0x80000003
+

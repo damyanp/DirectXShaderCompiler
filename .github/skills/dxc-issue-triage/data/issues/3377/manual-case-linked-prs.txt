@@ -1,0 +1,37 @@
+# What happened to the fixes proposed for #3377.
+# Written by linked-prs.py -- rerun it to re-derive this file.
+# All commands are read-only `gh` GETs.
+
+==============================================================================
+# cross-reference events on #3377 (who linked it, from where)
+$ gh api repos/microsoft/DirectXShaderCompiler/issues/3377/timeline?per_page=100 --jq ".[] | select(.event==\"cross-referenced\") | \"\(.created_at)  \(.actor.login)  #\(.source.issue.number)  \(.source.issue.title)\""
+2022-07-01T17:44:11Z  bob80905  #4538  Add extra type null checking to prevent AV
+2022-07-13T23:34:51Z  bob80905  #4554  param validation for uniform / resources in entry point functions
+2022-08-01T21:27:46Z  tex3d  #4566  [SPIR-V] Feature request: use "uniform" syntax to access SBT record data in ray tracing workflows
+
+==============================================================================
+# PR 4538 state
+$ gh pr view 4538 --repo microsoft/DirectXShaderCompiler --json number,title,state,mergedAt,closedAt,createdAt,author --template "{{.number}} {{.title}}
+  state={{.state}} created={{.createdAt}} mergedAt={{.mergedAt}} closedAt={{.closedAt}} author={{.author.login}}
+"
+4538 Add extra type null checking to prevent AV
+  state=CLOSED created=2022-07-01T00:12:56Z mergedAt=<no value> closedAt=2024-03-28T19:42:12Z author=bob80905
+
+==============================================================================
+# PR 4554 state
+$ gh pr view 4554 --repo microsoft/DirectXShaderCompiler --json number,title,state,mergedAt,closedAt,createdAt,author --template "{{.number}} {{.title}}
+  state={{.state}} created={{.createdAt}} mergedAt={{.mergedAt}} closedAt={{.closedAt}} author={{.author.login}}
+"
+4554 param validation for uniform / resources in entry point functions
+  state=CLOSED created=2022-07-13T23:34:51Z mergedAt=<no value> closedAt=2025-02-06T19:57:16Z author=bob80905
+
+==============================================================================
+# PR 4554 body -- names this issue as the defect it fixes
+$ gh pr view 4554 --repo microsoft/DirectXShaderCompiler --json body --template {{.body}}
+There was some lacking parameter validation for arguments to entry point functions that either had the uniform attribute, or were HLSL resource types. This was causing AV problems as described in #3377.
+Now, when each parameter is processed, checking for the uniform attribute and that the parameter type is not a resource takes place, to prevent implicit assumptions from being incorrect. Additionally, some extra nullptr checking to prevent the underlying AV problem.
+
+==============================================================================
+# PR 4554 human comments -- why it did not land
+$ gh api repos/microsoft/DirectXShaderCompiler/issues/4554/comments --jq ".[] | select(.user.login != \"AppVeyorBot\") | \"\(.user.login): \(.body)\""
+bob80905: Merge conflicts, and according to @Tex3D it seems like this is the wrong direction

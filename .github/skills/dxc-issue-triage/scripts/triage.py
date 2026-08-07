@@ -725,6 +725,26 @@ VALUE_FLAGS = {"-i", "-e", "-t", "-d", "-fo", "-fh", "-fc", "-fe", "-fd",
                "-fre", "-frs", "-fsh", "-vn", "-exports", "-x", "-include"}
 
 
+def split_cmd(line):
+    """Split a cmd.txt line into argv, treating `\\` as a path separator.
+
+    `shlex.split` runs in POSIX mode, where a backslash is an escape: it turns
+    `-I inc\\sub` into `-I incsub` and `-Fo out\\a.dxo` into `-Fo outa.dxo`,
+    silently, with no error to notice. Every path DXC is given on Windows is
+    spelled that way, so the failure mode is a probe that compiles the wrong
+    thing or writes to the wrong place and still looks fine in the capture.
+
+    Quoting still works -- `"a b.hlsl"` is one token -- because only the escape
+    character is disabled, not the quote characters. Nothing in the current
+    corpus was affected (no committed cmd.txt contains a backslash); this is a
+    trap removed before it is stepped on rather than a repair.
+    """
+    lex = shlex.shlex(line, posix=True)
+    lex.whitespace_split = True
+    lex.escape = ""
+    return list(lex)
+
+
 def retarget_cmd(line, shader):
     """Point one cmd.txt line at a different source file.
 
@@ -1036,7 +1056,7 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
     chunks, worst_rc, timed_out = [], 0, False
     for line in cmds:
         try:
-            p = subprocess.run([exe] + shlex.split(line), cwd=d,
+            p = subprocess.run([exe] + split_cmd(line), cwd=d,
                                capture_output=True, text=True,
                                errors="replace", timeout=TIMEOUT)
             rc, out, err, to = p.returncode, p.stdout, p.stderr, False
@@ -1123,7 +1143,40 @@ def expectation_violated(expect, verdict):
     return (verdict == "repro") != (expect == "match")
 
 
+def ground_truth_compiler(issue):
+    """Which non-release compiler this issue's existing captures were taken with.
+
+    Returns an id, or None if there is no unambiguous answer.
+
+    Measured on #2923: the symptom lives in a PIX pass `dxc.exe` never runs, so
+    the issue was registered against a harness compiler (`main-debug-pix`).
+    A later `triage.py run --issue 2923` -- no `--compiler` -- silently fell
+    back to `main-debug`, compiled the repro with plain `dxc`, scored a
+    perfectly plausible `no-repro`, and wrote a DB row contradicting the two
+    `repro` rows already there. Nothing in the output said which compiler had
+    been chosen for you. A default that is right for most issues is exactly the
+    kind that is not noticed when it is wrong.
+    """
+    d = issue_dir(issue)
+    if not os.path.isdir(d):
+        return None
+    ids = set()
+    for name in os.listdir(d):
+        m = re.fullmatch(r"out-(.+)\.txt", name)
+        if m and not m.group(1).startswith("v"):
+            ids.add(m.group(1))
+    return ids.pop() if len(ids) == 1 else None
+
+
 def cmd_run(a):
+    if a.compiler is None:
+        recorded = ground_truth_compiler(a.issue)
+        a.compiler = recorded or "main-debug"
+        if recorded and recorded != "main-debug":
+            print(f"note: no --compiler given; using {recorded}, which is what "
+                  f"this issue's existing captures used. Pass --compiler "
+                  f"main-debug explicitly if you really want plain dxc.",
+                  file=sys.stderr)
     if a.label and not (a.shader or a.args):
         sys.exit("--label needs --shader (a control: same arguments, different "
                  "source) or --args (a translation: different stage)")
@@ -1419,6 +1472,14 @@ def ce_post(path, payload):
         return json.loads(r.read().decode())
 
 
+def ce_get_json(path):
+    import urllib.request
+    req = urllib.request.Request(
+        CE + path, headers={"Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=90) as r:
+        return json.loads(r.read().decode())
+
+
 def ce_args(issue):
     """Turn cmd.txt into CE user arguments: drop the source file name.
 
@@ -1441,7 +1502,7 @@ def ce_args(issue):
                  if ln.strip() and not ln.startswith("#")]
     if len(lines) > 1:
         print("  warning: multi-invocation cmd.txt; linking the first only")
-    toks, keep = shlex.split(lines[0]), []
+    toks, keep = split_cmd(lines[0]), []
     for i, t in enumerate(toks):
         positional = i == 0 or toks[i - 1].lower().rstrip(":=") not in VALUE_FLAGS
         if positional and os.path.exists(os.path.join(d, t)):
@@ -1566,17 +1627,60 @@ def cmd_godbolt(a):
 
     print(f"#{a.issue}: dxc {full}\n  CE args: {args}")
     if not a.no_verify:
+        # Print a one-line summary, but write the WHOLE pane output to disk.
+        #
+        # This loop used to print only each pane's first line, and that hid the
+        # finding twice in one batch. On #3092 `hlsl_clang_trunk`'s first line
+        # is a `-Qembed_debug` unused-argument warning; the result -- Clang
+        # emitting DXC's diagnostic verbatim -- is on line 2. On #3377 the
+        # first line was enough to see `SIGSEGV` but not to count Clang's 13
+        # errors or confirm FXC had succeeded. Both workers ended up writing
+        # their own CE client to get past it. The full text was already in
+        # hand; only the printing threw it away.
+        verify = [f"# Compiler Explorer panes for #{a.issue}, full output.",
+                  f"# Written by `triage.py godbolt` -- rerun it to re-derive.",
+                  f"# CE runs Linux Release builds: it corroborates the local",
+                  f"# Debug build and never overrules it.", ""]
         for cid, cargs in compilers:
             rc, text, crashed = ce_compile(source, cid, cargs)
             first = next((ln for ln in text.splitlines() if ln.strip()), "")
             print(f"  {cid:<18} exit={rc}"
                   f"{' CRASH' if crashed else ''}  {first[:70]}")
+            verify += ["=" * 74,
+                       f"# compiler: {cid}",
+                       f"# args:     {cargs}",
+                       f"# exit:     {rc}{'  CRASH' if crashed else ''}",
+                       "", text, ""]
+        vpath = os.path.join(d, "manual-case-godbolt-verify.txt")
+        with open(vpath, "w", encoding="utf-8", newline="\n") as f:
+            f.write("\n".join(verify))
+        print(f"  panes: {os.path.basename(vpath)}")
 
     url = ce_post("/api/shortener", {"sessions": [{
         "id": 1, "language": "hlsl", "source": source,
         "compilers": [{"id": cid, "options": ca, "filters": dict(CE_FILTERS),
                        "libs": []} for cid, ca in compilers],
     }]})["url"]
+
+    # Read the link back before recording it. Three workers in batch 008
+    # independently started doing this by hand, which is the signal that it
+    # belongs in the tool: the shortener answers 200 with a URL whether or not
+    # the session it stored is the one that was sent, and a link with the wrong
+    # arguments or a dropped pane is worse than no link -- it is a claim a
+    # reader will check.
+    try:
+        info = ce_get_json(f"/api/shortlinkinfo/{url.rsplit('/', 1)[-1]}")
+        got = [c.get("id") for s in info.get("sessions", [])
+               for c in s.get("compilers", [])]
+        want = [cid for cid, _ in compilers]
+        if got != want:
+            print(f"  warning: link round-trips as {got}, not {want}")
+        stored = (info.get("sessions") or [{}])[0].get("source", "")
+        if stored.strip() != source.strip():
+            print("  warning: the link's source is not the source that was "
+                  "sent; do not cite this link")
+    except Exception as e:
+        print(f"  warning: could not verify the link ({e}); open it by hand")
 
     c.execute("INSERT OR IGNORE INTO issues (number) VALUES (?)", (a.issue,))
     c.execute("UPDATE issues SET godbolt_url = ?, godbolt_skip = NULL"
@@ -2150,7 +2254,10 @@ def main():
 
     s = sub.add_parser("run")
     s.add_argument("--issue", type=int, required=True)
-    s.add_argument("--compiler", default="main-debug")
+    s.add_argument("--compiler", default=None,
+                   help="compiler id from `triage.py compiler` (default: "
+                        "main-debug, unless this issue's existing captures "
+                        "were all taken with a different one)")
     s.add_argument("--match", default="match.json")
     s.add_argument("--repeat", type=int, default=1,
                    help="run the repro up to N times and report the symptom if "

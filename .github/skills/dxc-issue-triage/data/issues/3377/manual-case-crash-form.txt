@@ -1,0 +1,85 @@
+# manual capture: what FORM the failure takes, over repeated runs, on four builds
+# harness:  crash-form.py   (re-runnable: `python crash-form.py [dxc.exe] [runs]`)
+# repro:    repro.hlsl with the arguments in cmd.txt (-T ps_6_0 -E main_fragment)
+# NOTE:     hand-driven capture, not a probe. Not scored by match.json.
+#
+# WHY THIS EXISTS
+# The failing code is an out-of-bounds std::vector index --
+#   lib/Transforms/Scalar/ScalarReplAggregatesHLSL.cpp:4791  DXASSERT(argIdx < endArgIdx, ...)
+#   lib/Transforms/Scalar/ScalarReplAggregatesHLSL.cpp:4792  FlatAnnotationList[argIdx]
+# and NDEBUG turns that DXASSERT into `do { } while (0)` (include/dxc/Support/Global.h:356),
+# so every release binary runs the unguarded index. What happens next depends on the heap
+# bytes that follow the vector, so the exit status AND the message vary -- between releases,
+# and on some builds between runs of the SAME binary.
+#
+# This is the evidence for why match.json is `internal_failure` (exit-status based) rather
+# than a text match: 8 of the 20 release binaries fail with completely empty stderr, and a
+# text predicate would have scored those 8 clean and invented a fix boundary that does not
+# exist. Every one of the 40 runs below is an internal failure; not one produced DXIL, and
+# not one produced a diagnostic.
+#
+# ran: 2026-08-07 (see per-block output)
+### dxc:  ..\..\..\..\..\..\build\Debug\bin\dxc.exe
+### args: -T ps_6_0 -E main_fragment repro.hlsl
+### runs: 10
+run  1: exit=0x80000003  stderr=Internal compiler error: Terminal Error 0x80000003
+run  2: exit=0x80000003  stderr=Internal compiler error: Terminal Error 0x80000003
+run  3: exit=0x80000003  stderr=Internal compiler error: Terminal Error 0x80000003
+run  4: exit=0x80000003  stderr=Internal compiler error: Terminal Error 0x80000003
+run  5: exit=0x80000003  stderr=Internal compiler error: Terminal Error 0x80000003
+run  6: exit=0x80000003  stderr=Internal compiler error: Terminal Error 0x80000003
+run  7: exit=0x80000003  stderr=Internal compiler error: Terminal Error 0x80000003
+run  8: exit=0x80000003  stderr=Internal compiler error: Terminal Error 0x80000003
+run  9: exit=0x80000003  stderr=Internal compiler error: Terminal Error 0x80000003
+run 10: exit=0x80000003  stderr=Internal compiler error: Terminal Error 0x80000003
+### tally
+  10/10  exit=0x80000003  Internal compiler error: Terminal Error 0x80000003
+### dxc:  ..\..\..\.cache\compilers\releases\v1.4.1907\dxc.exe
+### args: -T ps_6_0 -E main_fragment repro.hlsl
+### runs: 10
+run  1: exit=0xC0000005  stderr=<no output>
+run  2: exit=0xC0000005  stderr=<no output>
+run  3: exit=0xC0000005  stderr=<no output>
+run  4: exit=0xC0000409  stderr=<no output>
+run  5: exit=0xC0000005  stderr=<no output>
+run  6: exit=0xC0000005  stderr=<no output>
+run  7: exit=0xC0000409  stderr=<no output>
+run  8: exit=0xC0000005  stderr=<no output>
+run  9: exit=0xC0000005  stderr=<no output>
+run 10: exit=0xC0000005  stderr=<no output>
+### tally
+   8/10  exit=0xC0000005  <no output>
+   2/10  exit=0xC0000409  <no output>
+### dxc:  ..\..\..\..\..\..\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
+### args: -T ps_6_0 -E main_fragment repro.hlsl
+### runs: 10
+run  1: exit=0xC0000409  stderr=<no output>
+run  2: exit=0xC0000409  stderr=<no output>
+run  3: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to read from address 0x000000240000001B
+run  4: exit=0xC0000409  stderr=<no output>
+run  5: exit=0xC0000409  stderr=<no output>
+run  6: exit=0xC0000409  stderr=<no output>
+run  7: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0x0000000000000000
+run  8: exit=0xC0000409  stderr=<no output>
+run  9: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0x0000000000000000
+run 10: exit=0xC0000409  stderr=<no output>
+### tally
+   1/10  exit=0xC0000005  Internal compiler error: access violation. Attempted to read from address 0x000000240000001B
+   2/10  exit=0xC0000005  Internal compiler error: access violation. Attempted to write from address 0x0000000000000000
+   7/10  exit=0xC0000409  <no output>
+### dxc:  ..\..\..\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
+### args: -T ps_6_0 -E main_fragment repro.hlsl
+### runs: 10
+run  1: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0x00007FF8662CB000
+run  2: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0x00007FF8662CB000
+run  3: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0x00007FF8662CB000
+run  4: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0x00007FF8662CB000
+run  5: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0x00007FF8662CB000
+run  6: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0x00007FF8662CB000
+run  7: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0x00007FF8662CB000
+run  8: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0x00007FF8662CB000
+run  9: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0xFFFFFFFFFFFFFFFC
+run 10: exit=0xC0000005  stderr=Internal compiler error: access violation. Attempted to write from address 0x00007FF8662CB000
+### tally
+   9/10  exit=0xC0000005  Internal compiler error: access violation. Attempted to write from address 0x00007FF8662CB000
+   1/10  exit=0xC0000005  Internal compiler error: access violation. Attempted to write from address 0xFFFFFFFFFFFFFFFC

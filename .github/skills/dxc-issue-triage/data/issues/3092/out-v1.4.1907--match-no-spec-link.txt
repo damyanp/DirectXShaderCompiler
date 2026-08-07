@@ -1,0 +1,18 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T15:30:31+00:00
+# cmd: -T cs_6_0 -E main -spirv repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match-no-spec-link.json
+# verdict: invalid-probe
+# invalid-probe-reason: an absence clause of this predicate can be satisfied for free by a run that failed early (matched "CodeGen not available")
+
+$ dxc -T cs_6_0 -E main -spirv repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : SPIR-V CodeGen not available. Please recompile with -DENABLE_SPIRV_CODEGEN=ON.
+

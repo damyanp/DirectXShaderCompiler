@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T15:29:36+00:00
+# cmd: -T cs_6_0 -E main -spirv variant-static-specconst.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: static-specconst (variant-static-specconst.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main -spirv variant-static-specconst.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-static-specconst.hlsl:8:42: error: specialization constant must be externally visible
+[[vk::constant_id(1)]] static const uint TGSIZE_X = 4;
+                                         ^
+
+

@@ -1,0 +1,25 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T15:31:06+00:00
+# cmd: -T cs_6_0 -E main -Od -nologo case-compute.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: compute (case-compute.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main -Od -nologo case-compute.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+at 0x29b72f68cf8 inside block #0 of function main Access to out-of-bounds memory is disallowed
+
+Validation failed.
+
+
+

@@ -1,0 +1,32 @@
+#3092 -- [SPIR-V] Allow thread group size to be specified with specialization constants
+https://github.com/microsoft/DirectXShaderCompiler/issues/3092
+
+WHAT TO LOOK FOR: every pane FAILS, including the Clang one. The line to read
+in each is
+
+    error: 'numthreads' attribute requires an integer constant
+
+TGSIZE_X is a Vulkan specialization constant, and [numthreads] will not take
+one -- which is the whole of the request. There is no spelling today that makes
+the SPIR-V workgroup size depend on a specialization constant.
+
+The syntax below is the one @s-perron asked for on the issue in 2023.
+
+hlsl_clang_trunk is here because the HLSL front end is being rebuilt in Clang,
+so "has the successor already answered this?" is the more useful question on a
+five-year-old request. It has not: same diagnostic, same wording.
+
+Four things this page cannot show, all measured and recorded in the triage
+evidence, and quoted in the issue comment:
+  * with TGSIZE_X changed to `static const uint`, the same shader compiles in
+    BOTH compilers and emits `OpExecutionMode %main LocalSize 4 1 1` -- so the
+    restriction is specific to specialization constants, not to named constants
+    generally, and the Clang failure above is not stage or backend noise;
+  * with the spec constant declared and used but the workgroup size written as
+    a literal, both compilers emit `SpecId 1` and an `OpSpecConstant` -- so
+    [[vk::constant_id]] itself works in both;
+  * `[[vk::constant_id(1)]] static const uint` is rejected in turn, with
+    "specialization constant must be externally visible", so no declaration
+    satisfies both requirements;
+  * the same diagnostic appears in every DXC release from v1.5.2010 to
+    v1.9.2607. v1.4.1907 cannot answer at all -- "SPIR-V CodeGen not available".

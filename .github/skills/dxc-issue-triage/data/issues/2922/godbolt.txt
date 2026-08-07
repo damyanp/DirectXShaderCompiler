@@ -1,0 +1,1 @@
+dxc_1_6_2112:-T as_6_5 -E main /Zi /Qembed_debug -O1 -HV 2018 -enable-16bit-types,dxc_trunk:-T as_6_5 -E main /Zi /Qembed_debug -O1 -HV 2018 -enable-16bit-types,dxc_trunk:-T as_6_5 -E main /Zi /Qembed_debug -Od -HV 2018 -enable-16bit-types

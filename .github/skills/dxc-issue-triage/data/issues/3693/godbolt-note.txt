@@ -1,0 +1,41 @@
+DXC issue #3693 -- Vector element index out-of-bounds not leading to compile error
+https://github.com/microsoft/DirectXShaderCompiler/issues/3693
+
+WHAT TO LOOK FOR
+
+`indices` is a uint3, so its valid element indices are 0..2. Line 16 reads
+`indices[3]`. Nothing here is dynamic: the index is a literal.
+
+FXC pane -- rejects it:
+
+    error X3504: array index out of bounds
+
+DXC panes (1.6.2112 and trunk) -- exit 0. The out-of-bounds element becomes
+`undef` and is used as a StructuredBuffer index:
+
+    call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(
+        i32 68, %dx.types.Handle %g_vertices_texture_structbuf,
+        i32 undef, i32 0)   ; BufferLoad(srv,index,wot)
+
+Validation passes. Nothing downstream objects.
+
+Clang pane (hlsl_clang_trunk) -- also exit 0; the same element becomes
+`i32 poison` in the equivalent load.
+
+WHY THE POSITION MATTERS. DXC has the diagnostic and it works -- it just is
+not reached when the subscript is the INDEX OPERAND of another subscript.
+Hoist the same access out and DXC rejects it:
+
+    const uint oob = indices[3];      // error: vector element index '3'
+    g_out[tid] = g_vertices[oob];     //        is out of bounds
+
+CONTROL. Write the same element as a swizzle, `indices.w`, and all three
+compilers reject it (`error X3018: invalid subscript 'w'` / `error: vector
+swizzle 'w' is out of bounds` / `error: vector component access exceeds type
+'const uint3'`). So no pane here is silent because it failed to compile the
+source or does not support these resource types.
+
+STAGE. The issue reports lib_6_6 raytracing; this is a compute restating,
+because FXC has no raytracing profile at all. The construct is not
+stage-specific: the raytracing original behaves identically on DXC (exit 0,
+`i32 undef` reaching rawBufferLoad).

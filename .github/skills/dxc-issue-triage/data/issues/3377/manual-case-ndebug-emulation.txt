@@ -1,0 +1,102 @@
+# manual capture: NDEBUG emulation -- the Debug assert and the reporter's Release access
+#                 violation are the same defect
+# compiler: main-debug  (<repo>\build\Debug\bin\dxc.exe)
+# version:  dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+# harness:  ndebug-emulate.cmd   (cdb 10.0.26100.6584, x64)  -- re-runnable
+# ran:      2026-08-07
+# NOTE:     hand-driven capture, not a probe. Not scored by match.json.
+#           Trimmed by trim-cdb.py; module-load and symbol-path noise removed.
+#
+# WHY
+# The ground-truth build is a Debug build and stops at a DXASSERT, while @Dwedit reported an
+# access violation from a release dxcompiler. Those could be two different things. `gh` in cdb
+# steps over a __debugbreak() and continues, which is exactly what a build with
+# DXASSERT compiled out (include/dxc/Support/Global.h:356, `do { } while (0)`) would do -- so
+# this run answers "what does the release build do?" without building one.
+#
+# WHAT IT SHOWS
+# Two asserts fire and are stepped over:
+#     ScalarReplAggregatesHLSL.cpp(4791)  !(argIdx < endArgIdx)      "arg index out of bound"
+#     ScalarReplAggregatesHLSL.cpp(4801)  !(matrix.Orientation == MatrixOrientation::ColumnMajor)
+# The second is itself a consequence of the first: line 4792 indexes FlatAnnotationList out of
+# bounds, so `paramAnnotation` is whatever heap bytes follow the vector, and those bytes claim
+# a matrix annotation with a nonsense orientation.
+#
+# Execution then reaches c0000374 (STATUS_HEAP_CORRUPTION) and finally dies on an access
+# violation inside memcpy, under:
+#     std::vector<unsigned int>::_Emplace_reallocate
+#     hlsl::DxilParameterAnnotation::AppendSemanticIndex
+#     AllocateSemanticIndex  (x4, recursive)
+#     SROA_Parameter_HLSL::allocateSemanticIndex
+#     SROA_Parameter_HLSL::flattenArgument
+# which is @Dwedit's 2021 stack frame for frame, including his note that it "crashes in a
+# memory copy". So this is NOT an NDEBUG artefact: with the assert compiled out the bad index
+# is simply used, and that is what the 20 release binaries do (see manual-case-crash-form.txt
+# and the out-v*.txt probes).
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T ps_6_0 -E main_fragment repro.hlsl
+(1098.6410): Break instruction exception - code 80000003 (first chance)
+Error: 	!(argIdx < endArgIdx)
+File:
+C:\prj\DirectXShaderCompiler\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
+Func:	AllocateSemanticIndex.
+	arg index out of bound
+(1098.6410): Break instruction exception - code 80000003 (first chance)
+Error: 	!(matrix.Orientation == MatrixOrientation::ColumnMajor)
+File:
+C:\prj\DirectXShaderCompiler\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4801)
+Func:	AllocateSemanticIndex.
+(1098.6410): Break instruction exception - code 80000003 (first chance)
+(1098.6410): Break instruction exception - code 80000003 (first chance)
+(1098.6410): Unknown exception - code c0000374 (first chance)
+(1098.6410): Unknown exception - code c0000374 (!!! second chance !!!)
+(1098.6410): Break instruction exception - code 80000003 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+(1098.6410): Access violation - code c0000005 (first chance)
+Last event: 1098.6410: Access violation - code c0000005 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 000000c5`e4583538 00007ff8`2dbe53b6     VCRUNTIME140D!memcpy_avx_ermsb_amd+0x167
+01 000000c5`e4583540 00007ff8`2dbe5033     dxcompiler!std::_Impl_copy_memmeow_tail<1,unsigned int *>+0x46
+02 000000c5`e4583580 00007ff8`2dbe2508     dxcompiler!std::_Impl_copy_memmeow<1,unsigned int *,unsigned int *>+0xd3
+03 000000c5`e4583600 00007ff8`2dbe5f6c     dxcompiler!std::_Copy_memcpy<unsigned int *,unsigned int *>+0x28
+04 000000c5`e4583630 00007ff8`2dc08e29     dxcompiler!std::_Uninitialized_move<unsigned int *,std::allocator<unsigned int> >+0x6c
+05 000000c5`e45836a0 00007ff8`2dc08c23     dxcompiler!std::vector<unsigned int,std::allocator<unsigned int> >::_Emplace_reallocate<unsigned int &>+0x1f9
+06 000000c5`e45837a0 00007ff8`2dc09206     dxcompiler!std::vector<unsigned int,std::allocator<unsigned int> >::_Emplace_one_at_back<unsigned int &>+0x83
+07 000000c5`e45837f0 00007ff8`2dc1678d     dxcompiler!std::vector<unsigned int,std::allocator<unsigned int> >::emplace_back<unsigned int &>+0x26
+08 000000c5`e4583830 00007ff8`2e18c4c4     dxcompiler!hlsl::DxilParameterAnnotation::AppendSemanticIndex+0x2d
+09 000000c5`e4583870 00007ff8`2e18c333     dxcompiler!AllocateSemanticIndex+0x354
+0a 000000c5`e4583900 00007ff8`2e18c333     dxcompiler!AllocateSemanticIndex+0x1c3
+0b 000000c5`e4583990 00007ff8`2e18c1da     dxcompiler!AllocateSemanticIndex+0x1c3
+0c 000000c5`e4583a20 00007ff8`2e18bf0c     dxcompiler!AllocateSemanticIndex+0x6a
+0d 000000c5`e4583ab0 00007ff8`2e18a32d     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::allocateSemanticIndex+0x2fc
+0e 000000c5`e4583c30 00007ff8`2e186479     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::flattenArgument+0x21ad
+0f 000000c5`e4585260 00007ff8`2e184f56     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::createFlattenedFunction+0x4a9
+10 000000c5`e45860a0 00007ff8`306874e8     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::runOnModule+0x4f6
+11 000000c5`e4586620 00007ff8`30688325     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+12 000000c5`e45869d0 00007ff8`3067ec6c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+13 000000c5`e4586a80 00007ff8`2e394a16     dxcompiler!llvm::legacy::PassManager::run+0x2c
+14 000000c5`e4586ac0 00007ff8`2e391fa8     dxcompiler!`anonymous namespace'::EmitAssemblyHelper::EmitAssembly+0x616
+15 000000c5`e4586ca0 00007ff8`2e36a201     dxcompiler!clang::EmitBackendOutput+0x158

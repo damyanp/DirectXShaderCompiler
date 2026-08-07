@@ -1,0 +1,47 @@
+# compiler: main-debug-pix
+# exe: <triage>/issues/2923/run-2923.cmd
+# ran: 2026-08-07T16:10:35+00:00
+# cmd: control-inout-param.hlsl -Od
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-inout (control-inout-param.hlsl)
+# expect: no-match
+
+$ dxc control-inout-param.hlsl -Od
+[exe] <triage>/issues/2923/run-2923.cmd
+[exit] 0
+--- stdout ---
+# shader: control-inout-param.hlsl    optimization: -Od
+# (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
+
+$ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-inout-param.hlsl -Focontrol-inout-param-Od.dxo
+$ dxa -extractpart=dbgmodule -o=control-inout-param-Od.ildb.bc control-inout-param-Od.dxo
+2952 bytes written to control-inout-param-Od.ildb.bc
+$ dxopt  -o=control-inout-param-Od.annotated.bc control-inout-param-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+                                                      InstructionRange: 0 19 main as
+
+InstructionCount:19
+$ opt -S -o=control-inout-param-Od.annotated.ll control-inout-param-Od.annotated.bc
+$ python check-2923.py control-inout-param-Od.annotated.ll -Od
+
+=== PIX virtual-register report: control-inout-param-Od.annotated.ll (-Od) ===
+llvm.dbg.declare call sites: 2, attributed to an annotated alloca: 2
+allocas carrying !pix-alloca-reg: 1
+  %p1    %struct.smallPayload.0       regs[0..5] base=0 count=6
+         declares: p [DW_TAG_auto_variable src-line 17] !DIExpression(); p [DW_TAG_arg_variable src-line 14] !DIExpression()
+         writes  -> registers: 0,1,2,3,4,5
+
+source variables described by alloca registers:
+  var !48 "p" [DW_TAG_auto_variable src-line 17]: 1 alloca range(s), declared registers [0, 1, 2, 3, 4, 5], written registers [0, 1, 2, 3, 4, 5]
+  var !80 "p" [DW_TAG_arg_variable src-line 14]: 1 alloca range(s), declared registers [0, 1, 2, 3, 4, 5], written registers [0, 1, 2, 3, 4, 5]
+
+PixTest.cpp TestStructAnnotationCase emulation:
+  OffsetAndSizes.size() : expected 1   actual 1   ok
+  AllocaWrites.size()   : expected 6   actual 0   FAIL
+
+PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
+
+--- stderr ---
+

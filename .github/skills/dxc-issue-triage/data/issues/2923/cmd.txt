@@ -1,0 +1,10 @@
+# The symptom is in the PIX "numbering" pass, which never runs during an
+# ordinary dxc compile, so the "compiler" for this issue is run-2923.cmd --
+# the four-tool pipeline PixTest.cpp's RunAnnotationPasses performs
+# (dxc -> dxa -extractpart=dbgmodule -> dxopt PIX passes -> opt -S), followed
+# by check-2923.py, which reports the resulting virtual-register numbering.
+# It is registered as the compiler id `main-debug-pix`; see method-notes.md.
+#
+# -Od is the reporter's plainest case. The unit test named in the issue also
+# covers -O1; that is captured as variant-o1-main-debug-pix.txt.
+repro.hlsl -Od

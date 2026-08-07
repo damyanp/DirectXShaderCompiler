@@ -1,0 +1,332 @@
+# Compiler Explorer probes of hlsl_clang_trunk for #3092, with controls.
+#
+# SKILL.md: "A Clang error is not evidence until you have a control." Clang's
+# HLSL/DXIL support is incomplete, so it fails on inputs that have nothing to
+# do with the issue. Cases 2-3 are the controls that isolate case 1.
+#
+# Produced by:  python ce-probe.py <source> hlsl_clang_trunk
+# hlsl_clang_trunk is a rolling build; the class of failure is the evidence,
+# not the exact build.
+
+===== case 1: the repro -- spec constant as the numthreads argument =====
+# compiler-explorer: hlsl_clang_trunk
+# source: repro.hlsl
+# args: -T cs_6_0 -E main -spirv
+# ran: 2026-08-07T15:33:11.667970+00:00
+# exit: 1
+# internal-failure: 0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:14:2: [0m[0;1;31merror: [0m[1m'numthreads' attribute requires an integer constant[0m
+   14 | [numthreads(TGSIZE_X, [0;32m1[0m, [0;32m1[0m)][0m
+      | [0;1;32m ^          ~~~~~~~~
+[0m[1m<source>:15:6: [0m[0;1;31merror: [0m[1mmissing numthreads attribute for compute shader entry[0m
+   15 | [0;34mvoid[0m main(uint3 tid : SV_DispatchThreadID) {[0m
+      | [0;1;32m     ^
+[0m2 errors generated.
+<Compilation failed>
+
+===== case 2 (control): same shader, static const uint instead =====
+# compiler-explorer: hlsl_clang_trunk
+# source: control-static-const.hlsl
+# args: -T cs_6_0 -E main -spirv
+# ran: 2026-08-07T15:33:12.351015+00:00
+# exit: 0
+# internal-failure: 0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+        OpCapability Shader
+        OpCapability Int8
+        OpExtension "SPV_KHR_non_semantic_info"
+        %32 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+        OpMemoryModel Logical GLSL450
+        OpEntryPoint GLCompute %24 "main" %22 %23 %20
+        OpExecutionMode %24 LocalSize 4 1 1
+        OpSource Unknown 0
+        %33 = OpString "/app/example.hlsl"
+        %34 = OpString "unsigned int"
+        %35 = OpString "int"
+        %36 = OpString "char"
+        %37 = OpString "RWStructuredBuffer"
+        %38 = OpString "_ZN4hlsl18RWStructuredBufferIjEC4Ev"
+        %39 = OpString "_ZN4hlsl18RWStructuredBufferIjEC4ERKS1_"
+        %40 = OpString "operator="
+        %41 = OpString "_ZN4hlsl18RWStructuredBufferIjEaSERKS1_"
+        %42 = OpString "__createFromBindingWithImplicitCounter"
+        %43 = OpString "_ZN4hlsl18RWStructuredBufferIjE38__createFromBindingWithImplicitCounterEjjijPKcj"
+        %44 = OpString "__createFromImplicitBindingWithImplicitCounter"
+        %45 = OpString "_ZN4hlsl18RWStructuredBufferIjE46__createFromImplicitBindingWithImplicitCounterEjjijPKcj"
+        %46 = OpString "operator[]"
+        %47 = OpString "_ZNK4hlsl18RWStructuredBufferIjEixEj"
+        %48 = OpString "Load"
+        %49 = OpString "_ZNK4hlsl18RWStructuredBufferIjE4LoadEj"
+        %50 = OpString "_ZNK4hlsl18RWStructuredBufferIjE4LoadEjRj"
+        %51 = OpString "IncrementCounter"
+        %52 = OpString "_ZN4hlsl18RWStructuredBufferIjE16IncrementCounterEv"
+        %53 = OpString "DecrementCounter"
+        %54 = OpString "_ZN4hlsl18RWStructuredBufferIjE16DecrementCounterEv"
+        %55 = OpString "GetDimensions"
+        %56 = OpString "_ZN4hlsl18RWStructuredBufferIjE13GetDimensionsERjS2_"
+        %57 = OpString "__cxx_global_var_init"
+        %58 = OpString ""
+        %59 = OpString "_GLOBAL__sub_I_example.hlsl"
+        %60 = OpString "_ZN4hlsl18RWStructuredBufferIjEC2ERKS1_"
+        %61 = OpString "main"
+        %62 = OpString "_Z4mainDv3_j"
+        %63 = OpString "RWStructuredBuffer<unsigned int>"
+        %64 = OpString "__handle"
+        %65 = OpString "__counter_handle"
+        %66 = OpString "__hlsl_resource_t"
+        %67 = OpString "uint3"
+        %68 = OpString "/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_basic_types.h"
+        %69 = OpString "vector<unsigned int, 3>"
+        %70 = OpString "uint"
+        %71 = OpString "Out"
+        %72 = OpString "_ZL3Out"
+        OpName %24 "main"
+        OpName %25 ".str"
+        OpName %22 "Out"
+        OpName %7 "spirv.VulkanBuffer"
+        OpName %23 "__spirv_BuiltInGlobalInvocationId"
+        OpDecorate %22 DescriptorSet 0
+        OpDecorate %22 Binding 0
+        OpDecorate %5 ArrayStride 4
+        OpMemberDecorate %6 0 Offset 0
+        OpDecorate %6 Block
+        OpDecorate %23 BuiltIn GlobalInvocationId
+        %1 = OpTypeVoid
+        %2 = OpTypeFunction %1
+        %3 = OpTypeInt 32 0
+        %4 = OpTypePointer StorageBuffer %3
+        %5 = OpTypeRuntimeArray %3
+        %6 = OpTypeStruct %5
+        %7 = OpTypePointer StorageBuffer %6
+        %8 = OpTypeInt 8 0
+        %9 = OpConstant %3 4
+        %10 = OpTypeArray %8 %9
+        %11 = OpTypePointer Private %3
+        %12 = OpTypePointer Function %10
+        %13 = OpConstant %3 0
+        %14 = OpTypeVector %3 3
+        %15 = OpTypePointer Input %14
+        %16 = OpConstant %8 0
+        %17 = OpConstant %8 116
+        %18 = OpConstant %8 117
+        %19 = OpConstant %8 79
+        %20 = OpVariable %11 Private %13
+        %21 = OpConstantComposite %10 %19 %18 %17 %16
+        %22 = OpVariable %7 StorageBuffer 
+        %23 = OpVariable %15 Input 
+        %73 = OpExtInst %1 %32 DebugInfoNone
+        %74 = OpConstant %3 100
+        %75 = OpConstant %3 4
+        %76 = OpConstant %3 5
+        %77 = OpExtInst %1 %32 DebugSource %33
+        %78 = OpExtInst %1 %32 DebugCompilationUnit %74 %75 %77 %76
+        %79 = OpConstant %3 0
+        %80 = OpConstant %3 32
+        %81 = OpConstant %3 6
+        %82 = OpExtInst %1 %32 DebugTypeBasic %34 %80 %81 %79
+        %83 = OpExtInst %1 %32 DebugTypeBasic %35 %80 %75 %79
+        %84 = OpConstant %3 8
+        %85 = OpExtInst %1 %32 DebugTypeBasic %36 %84 %76 %79
+        %86 = OpConstant %3 7
+        %87 = OpConstant %3 12
+        %88 = OpExtInst %1 %32 DebugTypePointer %82 %87 %79
+        %89 = OpExtInst %1 %32 DebugTypeFunction %79 %1
+        %90 = OpExtInst %1 %32 DebugSource %68
+        %91 = OpConstant %3 35
+        %92 = OpExtInst %1 %32 DebugTypedef %70 %82 %90 %91 %79 %78
+        %93 = OpExtInst %1 %32 DebugSource %58
+        %94 = OpConstant %3 128
+        %95 = OpConstant %3 65536
+        %96 = OpExtInst %1 %32 DebugTypeComposite %63 %79 %93 %79 %79 %78 %58 %94 %95
+        %97 = OpConstant %3 1
+        %98 = OpConstant %3 16
+        %99 = OpExtInst %1 %32 DebugTypeComposite %66 %97 %77 %79 %79 %78 %58 %73 %98
+        %100 = OpConstant %3 8236
+        %101 = OpExtInst %1 %32 DebugFunction %57 %89 %77 %79 %79 %78 %58 %100 %79
+        %102 = OpExtInst %1 %32 DebugFunction %58 %89 %77 %79 %79 %78 %59 %100 %79
+        %103 = OpConstant %3 11
+        %104 = OpExtInst %1 %32 DebugGlobalVariable %71 %96 %77 %103 %79 %78 %72 %73 %87
+        %24 = OpFunction %1 DontInline %2       ; -- Begin function main
+        %105 = OpLabel
+        %25 = OpVariable %12 Function %21
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:orderId <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] 0
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:spaceNo <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] 0
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:range <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] 1
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:index <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] 0
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:name <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] undef
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:counterOrderId <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] 1
+        %27 = OpCopyObject %7 %22
+        ;DEBUG_VALUE: RWStructuredBuffer:this <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] undef
+        ;DEBUG_VALUE: RWStructuredBuffer:other <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] undef
+        %28 = OpLoad %14 %23 
+        %29 = OpCompositeExtract %3 %28 0
+        ;DEBUG_VALUE: main:tid <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] undef
+        ;DEBUG_VALUE: operator[]:this <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] undef
+        ;DEBUG_VALUE: operator[]:Index <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] %15
+        %30 = OpAccessChain %4 %27 %13 %29
+        %31 = OpCopyObject %7 %22
+        OpStore %30 %29 
+        OpReturn
+        OpFunctionEnd
+                                        ; -- End function
+
+===== case 3 (control): spec constant declared and used, literal numthreads =====
+# compiler-explorer: hlsl_clang_trunk
+# source: control-specconst-literal.hlsl
+# args: -T cs_6_0 -E main -spirv
+# ran: 2026-08-07T15:33:13.278365+00:00
+# exit: 0
+# internal-failure: 0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+        OpCapability Shader
+        OpCapability Int8
+        OpExtension "SPV_KHR_non_semantic_info"
+        %35 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+        OpMemoryModel Logical GLSL450
+        OpEntryPoint GLCompute %26 "main" %24 %21 %25 %20
+        OpExecutionMode %26 LocalSize 4 1 1
+        OpSource Unknown 0
+        %36 = OpString "/app/example.hlsl"
+        %37 = OpString "unsigned int"
+        %38 = OpString "int"
+        %39 = OpString "char"
+        %40 = OpString "RWStructuredBuffer"
+        %41 = OpString "_ZN4hlsl18RWStructuredBufferIjEC4Ev"
+        %42 = OpString "_ZN4hlsl18RWStructuredBufferIjEC4ERKS1_"
+        %43 = OpString "operator="
+        %44 = OpString "_ZN4hlsl18RWStructuredBufferIjEaSERKS1_"
+        %45 = OpString "__createFromBindingWithImplicitCounter"
+        %46 = OpString "_ZN4hlsl18RWStructuredBufferIjE38__createFromBindingWithImplicitCounterEjjijPKcj"
+        %47 = OpString "__createFromImplicitBindingWithImplicitCounter"
+        %48 = OpString "_ZN4hlsl18RWStructuredBufferIjE46__createFromImplicitBindingWithImplicitCounterEjjijPKcj"
+        %49 = OpString "operator[]"
+        %50 = OpString "_ZNK4hlsl18RWStructuredBufferIjEixEj"
+        %51 = OpString "Load"
+        %52 = OpString "_ZNK4hlsl18RWStructuredBufferIjE4LoadEj"
+        %53 = OpString "_ZNK4hlsl18RWStructuredBufferIjE4LoadEjRj"
+        %54 = OpString "IncrementCounter"
+        %55 = OpString "_ZN4hlsl18RWStructuredBufferIjE16IncrementCounterEv"
+        %56 = OpString "DecrementCounter"
+        %57 = OpString "_ZN4hlsl18RWStructuredBufferIjE16DecrementCounterEv"
+        %58 = OpString "GetDimensions"
+        %59 = OpString "_ZN4hlsl18RWStructuredBufferIjE13GetDimensionsERjS2_"
+        %60 = OpString "__cxx_global_var_init.1"
+        %61 = OpString ""
+        %62 = OpString "_GLOBAL__sub_I_example.hlsl"
+        %63 = OpString "__cxx_global_var_init"
+        %64 = OpString "_ZN4hlsl18RWStructuredBufferIjEC2ERKS1_"
+        %65 = OpString "main"
+        %66 = OpString "_Z4mainDv3_j"
+        %67 = OpString "RWStructuredBuffer<unsigned int>"
+        %68 = OpString "__handle"
+        %69 = OpString "__counter_handle"
+        %70 = OpString "__hlsl_resource_t"
+        %71 = OpString "uint"
+        %72 = OpString "/cefs/d1/d1a679fe132356f5b804caf2_clang-trunk-20260807/lib/clang/24/include/hlsl/hlsl_basic_types.h"
+        %73 = OpString "uint3"
+        %74 = OpString "vector<unsigned int, 3>"
+        %75 = OpString "TGSIZE_X"
+        %76 = OpString "_ZL8TGSIZE_X"
+        %77 = OpString "Out"
+        %78 = OpString "_ZL3Out"
+        OpName %26 "main"
+        OpName %27 ".str"
+        OpName %20 "_ZL8TGSIZE_X"
+        OpName %24 "Out"
+        OpName %7 "spirv.VulkanBuffer"
+        OpName %25 "__spirv_BuiltInGlobalInvocationId"
+        OpDecorate %23 SpecId 1
+        OpDecorate %24 DescriptorSet 0
+        OpDecorate %24 Binding 0
+        OpDecorate %5 ArrayStride 4
+        OpMemberDecorate %6 0 Offset 0
+        OpDecorate %6 Block
+        OpDecorate %25 BuiltIn GlobalInvocationId
+        %1 = OpTypeVoid
+        %2 = OpTypeFunction %1
+        %3 = OpTypeInt 32 0
+        %4 = OpTypePointer StorageBuffer %3
+        %5 = OpTypeRuntimeArray %3
+        %6 = OpTypeStruct %5
+        %7 = OpTypePointer StorageBuffer %6
+        %8 = OpTypeInt 8 0
+        %9 = OpConstant %3 4
+        %10 = OpTypeArray %8 %9
+        %11 = OpTypePointer Private %3
+        %12 = OpTypePointer Function %10
+        %13 = OpConstant %3 0
+        %14 = OpTypeVector %3 3
+        %15 = OpTypePointer Input %14
+        %16 = OpConstant %8 0
+        %17 = OpConstant %8 116
+        %18 = OpConstant %8 117
+        %19 = OpConstant %8 79
+        %20 = OpVariable %11 Private %13
+        %21 = OpVariable %11 Private %13
+        %22 = OpConstantComposite %10 %19 %18 %17 %16
+        %23 = OpSpecConstant %3 4
+        %24 = OpVariable %7 StorageBuffer 
+        %25 = OpVariable %15 Input 
+        %79 = OpExtInst %1 %35 DebugInfoNone
+        %80 = OpConstant %3 100
+        %81 = OpConstant %3 4
+        %82 = OpConstant %3 5
+        %83 = OpExtInst %1 %35 DebugSource %36
+        %84 = OpExtInst %1 %35 DebugCompilationUnit %80 %81 %83 %82
+        %85 = OpConstant %3 0
+        %86 = OpConstant %3 32
+        %87 = OpConstant %3 6
+        %88 = OpExtInst %1 %35 DebugTypeBasic %37 %86 %87 %85
+        %89 = OpExtInst %1 %35 DebugTypeBasic %38 %86 %81 %85
+        %90 = OpConstant %3 8
+        %91 = OpExtInst %1 %35 DebugTypeBasic %39 %90 %82 %85
+        %92 = OpConstant %3 7
+        %93 = OpConstant %3 12
+        %94 = OpExtInst %1 %35 DebugTypePointer %88 %93 %85
+        %95 = OpExtInst %1 %35 DebugTypeFunction %85 %1
+        %96 = OpExtInst %1 %35 DebugSource %72
+        %97 = OpConstant %3 35
+        %98 = OpExtInst %1 %35 DebugTypedef %71 %88 %96 %97 %85 %84
+        %99 = OpExtInst %1 %35 DebugSource %61
+        %100 = OpConstant %3 128
+        %101 = OpConstant %3 65536
+        %102 = OpExtInst %1 %35 DebugTypeComposite %67 %85 %99 %85 %85 %84 %61 %100 %101
+        %103 = OpConstant %3 1
+        %104 = OpConstant %3 16
+        %105 = OpExtInst %1 %35 DebugTypeComposite %70 %103 %83 %85 %85 %84 %61 %79 %104
+        %106 = OpConstant %3 8236
+        %107 = OpExtInst %1 %35 DebugFunction %60 %95 %83 %85 %85 %84 %61 %106 %85
+        %108 = OpExtInst %1 %35 DebugFunction %61 %95 %83 %85 %85 %84 %62 %106 %85
+        %109 = OpExtInst %1 %35 DebugFunction %63 %95 %83 %85 %85 %84 %61 %106 %85
+        %110 = OpConstant %3 14
+        %111 = OpExtInst %1 %35 DebugGlobalVariable %77 %102 %83 %110 %85 %84 %78 %79 %93
+        %26 = OpFunction %1 DontInline %2       ; -- Begin function main
+        %112 = OpLabel
+        %27 = OpVariable %12 Function %22
+        OpStore %20 %23 
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:orderId <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] 0
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:spaceNo <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] 0
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:range <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] 1
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:index <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] 0
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:name <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] undef
+        ;DEBUG_VALUE: __createFromImplicitBindingWithImplicitCounter:counterOrderId <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] 1
+        %29 = OpCopyObject %7 %24
+        ;DEBUG_VALUE: RWStructuredBuffer:this <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] undef
+        ;DEBUG_VALUE: RWStructuredBuffer:other <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] undef
+        %30 = OpLoad %14 %25 
+        %31 = OpCompositeExtract %3 %30 0
+        ;DEBUG_VALUE: main:tid <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] undef
+        ;DEBUG_VALUE: operator[]:this <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] undef
+        ;DEBUG_VALUE: operator[]:Index <- [DW_OP_constu 0, DW_OP_swap, DW_OP_xderef] %19
+        %32 = OpIMul %3 %31 %23
+        %33 = OpAccessChain %4 %29 %13 %31
+        %34 = OpCopyObject %7 %24
+        OpStore %33 %32 
+        OpReturn
+        OpFunctionEnd
+                                        ; -- End function
+

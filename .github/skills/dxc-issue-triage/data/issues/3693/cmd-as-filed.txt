@@ -1,0 +1,31 @@
+As filed in the issue body:
+
+    dxc.exe /T lib_6_6 /Zpr /all_resources_bound /Zi /Od /Vn"g_DefaultRT_DXIL_Lib" /Fh"DefaultRT.dxil-lib.h" /nologo DefaultRT.hlsl
+
+cmd.txt departs from it in three ways, all recorded here because a repro that quietly
+changes the reported configuration has measured something else:
+
+1. `/Vn` and `/Fh` dropped. They only name and write a C header holding the DXIL container;
+   nothing about the reported symptom depends on them, and they would write a file into the
+   issue directory on every probe.
+2. `/`-style switches written as `-`. dxc accepts both spellings for these flags. `-Zpr` is
+   confirmed honoured in the captured output (`row_major float4x4 projectionViewWorld` in
+   the cbuffer dump); `-all_resources_bound` is confirmed by the module flags metadata,
+   which reads `!{i32 0, i64 273}` with the flag and `!{i32 0, i64 17}` without it
+   (0x100 = all-resources-bound), and by the recorded command line in the DXIL
+   (`!"-T", !"lib_6_6", !"-Zpr", !"-all_resources_bound", ...`) -- both visible in
+   out-main-debug.txt. Unrecognised `/`-flags are silently ignored by dxc, so this is
+   checked rather than assumed.
+3. `RootFlags(XBOX_RAYTRACING)` in the attached DefaultRT.hlsl is replaced by `RootFlags(0)`.
+   Stock dxc rejects the Xbox-only flag outright:
+
+       DefaultRT.hlsl:5:5: error: root signature error - Expected a root signature flag
+       value, found: 'XBOX_RAYTRACING'
+       exit 0x80004005
+
+   captured in variant-as-filed-xbox-flag-main-debug.txt. Without this change every probe
+   dies in the root-signature parser and measures nothing about vector indexing -- the
+   `invalid-probe` trap. Nothing else in the file is touched, so line and column numbers
+   still match the attachment (the out-of-bounds subscript is line 124, col 118).
+
+The original attachment is preserved verbatim in attach/ (downloaded from the issue).

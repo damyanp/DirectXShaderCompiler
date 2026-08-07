@@ -1,0 +1,40 @@
+Verification of https://godbolt.org/z/End684Ycq
+captured 2026-08-07T09:07:19.2914935-07:00
+
+Each pane was re-compiled through the Compiler Explorer API using the exact compiler
+id and options recorded in the shortlink (GET /api/shortlinkinfo/End684Ycq), with the same
+source the shortlink carries. Listed below are the pane output lines whose first token
+is "call" or "declare" and which mention llvm.dbg, plus instruction counts.
+
+Counting note: DXC records the whole source, banner included, in !dx.source.contents.
+An earlier version of godbolt-note.txt quoted IR literally, so a naive text count over
+the full pane output reported dbg.declare calls that exist only inside that string. The
+banner no longer spells the "call void @" prefix, and the counts below are restricted to
+instruction lines regardless. See method-notes.md.
+
+======================================================================
+PANE  dxc_1_6_2112   -T as_6_5 -E main /Zi /Qembed_debug -O1 -HV 2018 -enable-16bit-types
+exit  0
+----------------------------------------------------------------------
+  call void @llvm.dbg.value(metadata %struct.smallPayload.0* %p1, i64 0, metadata !39, metadata !43), !dbg !44 ; var:"p" !DIExpression() func:"main"
+  declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #1
+  [llvm.dbg.declare INSTRUCTIONS] 0
+  [llvm.dbg.value   INSTRUCTIONS] 1
+
+======================================================================
+PANE  dxc_trunk   -T as_6_5 -E main /Zi /Qembed_debug -O1 -HV 2018 -enable-16bit-types
+exit  0
+----------------------------------------------------------------------
+  call void @llvm.dbg.value(metadata %struct.smallPayload.0* %p1, i64 0, metadata !38, metadata !42), !dbg !43 ; var:"p" !DIExpression() func:"main"
+  declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #1
+  [llvm.dbg.declare INSTRUCTIONS] 0
+  [llvm.dbg.value   INSTRUCTIONS] 1
+
+======================================================================
+PANE  dxc_trunk   -T as_6_5 -E main /Zi /Qembed_debug -Od -HV 2018 -enable-16bit-types
+exit  0
+----------------------------------------------------------------------
+  call void @llvm.dbg.declare(metadata %struct.smallPayload.0* %p1, metadata !37, metadata !41), !dbg !42 ; var:"p" !DIExpression() func:"main"
+  declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+  [llvm.dbg.declare INSTRUCTIONS] 1
+  [llvm.dbg.value   INSTRUCTIONS] 0

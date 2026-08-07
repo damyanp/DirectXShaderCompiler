@@ -1,0 +1,44 @@
+What to look for -- #3377, DXC issue triage
+https://github.com/microsoft/DirectXShaderCompiler/issues/3377
+
+dxc CRASHES on this shader. There is no error message to read, so check each pane's EXIT
+STATUS and its "Output" tab, not the (empty) assembly:
+
+  fxc_10_0_19041   exit 0    "compilation code save succeeded"
+  dxc_1_6_2112     exit 139  Program terminated with signal: SIGSEGV
+  dxc_trunk        exit 139  Program terminated with signal: SIGSEGV
+
+FXC compiling this as ps_5_0 is the issue body's opening claim, shown rather than asserted.
+On Windows the same DXC failure exits 0xC0000005 -- the -1073741819 the reporter quoted -- or
+0xC0000409, and most builds print nothing at all. dxc_trunk is a rolling build, so read the
+class of failure rather than a fixed signature.
+
+The trigger is the SEMANTIC on the Texture2D entry-point parameter: `decal : TEXUNIT0` on
+main_fragment. Two things to try in the editor:
+
+  * delete just `: TEXUNIT0`. DXC then says "error: Semantic must be defined for all
+    parameters of an entry function or patch constant function" -- so the construct has no
+    spelling that compiles: with the semantic DXC dies, without it DXC demands one;
+  * replace the whole file with
+
+        float4 main_fragment(uniform Texture2D<float4> decal : TEXUNIT0) : SV_Target
+        { return decal.Load(int3(0, 0, 0)); }
+
+    which crashes identically. Neither the float4x4 nor the effect-syntax SamplerState is
+    involved, and neither is the `uniform` keyword.
+
+LIMITATION. Compiler Explorer ships RELEASE builds, where DXC's asserts are compiled out. An
+assert-enabled Debug build of main stops earlier and more informatively, at
+
+    DXASSERT(argIdx < endArgIdx, "arg index out of bound")
+    lib/Transforms/Scalar/ScalarReplAggregatesHLSL.cpp:4791, in AllocateSemanticIndex
+
+which is the bounds check the release builds do not have; the next line indexes the vector
+anyway. So CE corroborates the local Debug build here, and cannot overrule it. CE's oldest DXC
+is 1.6.2112 and dates nothing: the local scan covers v1.4.1907 onward, and every release in it
+crashes.
+
+No Clang pane: clang's HLSL front end has no `uniform` parameters yet and answers this source
+with 13 errors about constructs unrelated to the issue. Dropping `uniform` -- which does not
+change what DXC does -- leaves a shader clang's Sema accepts silently, so it has no rule
+against this construct either. Neither result belongs in a pane beside the crash.

@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T15:28:56+00:00
+# cmd: -T lib_6_6 -Zpr -all_resources_bound -Zi -Od -nologo control-diagnosed.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: diagnosed (control-diagnosed.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_6 -Zpr -all_resources_bound -Zi -Od -nologo control-diagnosed.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+warning: no output provided for debug - embedding PDB in shader container.  Use -Qembed_debug to silence this warning.
+control-diagnosed.hlsl:128:30: error: vector element index '3' is out of bounds
+    const uint oob = indices[3];
+                             ^
+
+

@@ -1,0 +1,22 @@
+{
+  "batch": "batch-008",
+  "confidence": "high",
+  "created_at": "2020-08-19T05:11:34Z",
+  "godbolt_url": "https://godbolt.org/z/5dG5M5EnP",
+  "history": "always-repro'd across v1.5.2010..v1.9.2607 (19 releases, probed linearly); v1.4.1907 answers 'SPIR-V CodeGen not available' and is an invalid probe. v1.5.2010 (2020-10-22) postdates the 2020-08-19 report, so no probeable release can cover the reporter's own build.",
+  "labels": "spirv",
+  "labels_add": "enhancement, hlsl-next",
+  "labels_now": "spirv",
+  "notes_path": "issues/3092/notes.md",
+  "number": 3092,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, SKILL.md step 10, applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Still absent on main (ab5400907) and on all 19 catalog releases with SPIR-V CodeGen v1.5.2010..v1.9.2607: [numthreads] rejects a [[vk::constant_id]] spec constant, and hlsl_clang_trunk emits the same first diagnostic. static const is already accepted, so what is missing is a dimension not known at compile time. PR #7378 (OpExecutionModeId refactor) landed; the maintainer's other two checklist items are HLSL spec decisions.",
+  "title": "[SPIR-V] Allow thread group size to be specified with specialization constants",
+  "triaged_at": "2026-08-07T16:47:25+00:00",
+  "triaged_by": "claude-opus-4.6",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3092"
+}

@@ -1,0 +1,20 @@
+# compiler: v1.7.2212.1
+# exe: <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe
+# ran: 2026-08-07T15:30:00+00:00
+# cmd: -T cs_6_0 -E main -spirv repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E main -spirv repro.hlsl
+[exe] <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:14:2: error: 'numthreads' attribute requires an integer constant
+[numthreads(TGSIZE_X, 1, 1)]
+ ^          ~~~~~~~~
+
+

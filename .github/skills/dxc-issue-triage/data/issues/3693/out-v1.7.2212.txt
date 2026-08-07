@@ -1,0 +1,979 @@
+# compiler: v1.7.2212
+# exe: <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+# ran: 2026-08-07T15:29:46+00:00
+# cmd: -T lib_6_6 -Zpr -all_resources_bound -Zi -Od -nologo repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T lib_6_6 -Zpr -all_resources_bound -Zi -Od -nologo repro.hlsl
+[exe] <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       UAVs at every shader stage
+;
+; shader debug name: 6f58325bc8d7682a10d1ffe83a099efc.pdb
+; shader hash: 6f58325bc8d7682a10d1ffe83a099efc
+;
+; Buffer Definitions:
+;
+; cbuffer g_sceneCB
+; {
+;
+;   struct hostlayout.g_sceneCB
+;   {
+;
+;       struct hostlayout.struct.SceneConstants
+;       {
+;
+;           row_major float4x4 projectionViewWorld;   ; Offset:    0
+;           float3 cameraWorldPos;                    ; Offset:   64
+;           float rayMaxLength;                       ; Offset:   76
+;           float3 lightWorldPos;                     ; Offset:   80
+;           uint pad0;                                ; Offset:   92
+;           float4 lightDiffuseColor;                 ; Offset:   96
+;           float4 lightAmbientColor;                 ; Offset:  112
+;       
+;       } g_sceneCB;                                  ; Offset:    0
+;
+;   
+;   } g_sceneCB;                                      ; Offset:    0 Size:   128
+;
+; }
+;
+; cbuffer g_materialCB
+; {
+;
+;   struct g_materialCB
+;   {
+;
+;       struct struct.MaterialConstants
+;       {
+;
+;           float4 albedo;                            ; Offset:    0
+;       
+;       } g_materialCB;                               ; Offset:    0
+;
+;   
+;   } g_materialCB;                                   ; Offset:    0 Size:    16
+;
+; }
+;
+; Resource bind info for g_vertices
+; {
+;
+;   struct struct.Vertex
+;   {
+;
+;       float3 position;                              ; Offset:    0
+;       float3 normal;                                ; Offset:   12
+;   
+;   } $Element;                                       ; Offset:    0 Size:    24
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; g_sceneCB                         cbuffer      NA          NA     CB0            cb0     1
+; g_materialCB                      cbuffer      NA          NA     CB1            cb1     1
+; g_tlas                            texture     i32         ras      T0             t0     1
+; g_indices                         texture    byte         r/o      T1             t1     1
+; g_vertices                        texture  struct         r/o      T2             t2     1
+; g_rtOutput                            UAV     f32          2d      U0             u0     1
+;
+;
+; Subobjects:
+;
+;  GlobalRootSignature DefaultRT_GlobalRootSignature = { <116 bytes> };
+;  LocalRootSignature DefaultRT_LocalRootSignature = { <92 bytes> };
+;  HitGroup DefaultRT_HitGroup = { HitGroupType = Triangle, Anyhit = "", Closesthit = "DefaultRT_ClosestHitShader", Intersection = "" };
+;  RaytracingShaderConfig DefaultRT_ShaderConfig = { MaxPayloadSizeInBytes = 16, MaxAttributeSizeInBytes = 8 };
+;  RaytracingPipelineConfig DefaultRT_PipelineConfig = { MaxTraceRecursionDepth = 1 };
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%hostlayout.g_sceneCB = type { %hostlayout.struct.SceneConstants }
+%hostlayout.struct.SceneConstants = type { [4 x <4 x float>], <3 x float>, float, <3 x float>, i32, <4 x float>, <4 x float> }
+%struct.RayDesc = type { <3 x float>, float, <3 x float>, float }
+%struct.RayPayload = type { <4 x float> }
+%dx.types.ResourceProperties = type { i32, i32 }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+%struct.BuiltInTriangleIntersectionAttributes = type { <2 x float> }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%dx.types.ResRet.f32 = type { float, float, float, float, i32 }
+%struct.RaytracingAccelerationStructure = type { i32 }
+%struct.ByteAddressBuffer = type { i32 }
+%"class.StructuredBuffer<Vertex>" = type { %struct.Vertex }
+%struct.Vertex = type { <3 x float>, <3 x float> }
+%"class.RWTexture2D<vector<float, 4> >" = type { <4 x float> }
+%g_materialCB = type { %struct.MaterialConstants }
+%struct.MaterialConstants = type { <4 x float> }
+
+@"\01?g_rtOutput@@3V?$RWTexture2D@V?$vector@M$03@@@@A" = external constant %dx.types.Handle, align 4
+@"\01?g_tlas@@3URaytracingAccelerationStructure@@A" = external constant %dx.types.Handle, align 4
+@"\01?g_indices@@3UByteAddressBuffer@@A" = external constant %dx.types.Handle, align 4
+@"\01?g_vertices@@3V?$StructuredBuffer@UVertex@@@@A" = external constant %dx.types.Handle, align 4
+@g_materialCB = external constant %dx.types.Handle
+@g_sceneCB_legacy = external global %hostlayout.g_sceneCB
+@dx.nothing.a = internal constant [1 x i32] zeroinitializer
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+; Function Attrs: nounwind
+define void @"\01?DefaultRT_RayGenShader@@YAXXZ"() #1 {
+  %1 = load %dx.types.Handle, %dx.types.Handle* @"\01?g_tlas@@3URaytracingAccelerationStructure@@A", !dbg !202 ; line:108 col:5
+  %2 = load %dx.types.Handle, %dx.types.Handle* @"\01?g_rtOutput@@3V?$RWTexture2D@V?$vector@M$03@@@@A", !dbg !203 ; line:111 col:5
+  %3 = load %hostlayout.g_sceneCB, %hostlayout.g_sceneCB* @g_sceneCB_legacy
+  %ray = alloca %struct.RayDesc, align 4
+  %payload = alloca %struct.RayPayload, align 4
+  %4 = call %dx.types.Handle @dx.op.createHandleForLib.hostlayout.g_sceneCB(i32 160, %hostlayout.g_sceneCB %3)  ; CreateHandleForLib(Resource)
+  %5 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %4, %dx.types.ResourceProperties { i32 13, i32 128 })  ; AnnotateHandle(res,props)  resource: CBuffer
+  %6 = call %dx.types.Handle @dx.op.createHandleForLib.hostlayout.g_sceneCB(i32 160, %hostlayout.g_sceneCB %3)  ; CreateHandleForLib(Resource)
+  %7 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %6, %dx.types.ResourceProperties { i32 13, i32 128 })  ; AnnotateHandle(res,props)  resource: CBuffer
+  %DispatchRaysIndex = call i32 @dx.op.dispatchRaysIndex.i32(i32 145, i8 0), !dbg !204 ; line:96 col:23  ; DispatchRaysIndex(col)
+  %DispatchRaysIndex3 = call i32 @dx.op.dispatchRaysIndex.i32(i32 145, i8 1), !dbg !204 ; line:96 col:23  ; DispatchRaysIndex(col)
+  %8 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !204 ; line:96 col:23
+  %9 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !205 ; line:96 col:5
+  call void @llvm.dbg.value(metadata i32 %DispatchRaysIndex, i64 0, metadata !206, metadata !207), !dbg !208 ; var:"index" !DIExpression(DW_OP_bit_piece, 0, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata i32 %DispatchRaysIndex3, i64 0, metadata !206, metadata !210), !dbg !208 ; var:"index" !DIExpression(DW_OP_bit_piece, 32, 32) func:"GenerateCameraRay"
+  %.i0 = uitofp i32 %DispatchRaysIndex to float, !dbg !211 ; line:64 col:17
+  %.i1 = uitofp i32 %DispatchRaysIndex3 to float, !dbg !211 ; line:64 col:17
+  %.i021 = fadd fast float %.i0, 5.000000e-01, !dbg !212 ; line:64 col:23
+  %.i123 = fadd fast float %.i1, 5.000000e-01, !dbg !212 ; line:64 col:23
+  %10 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !213 ; line:64 col:12
+  call void @llvm.dbg.value(metadata float %.i021, i64 0, metadata !214, metadata !207), !dbg !213 ; var:"xy" !DIExpression(DW_OP_bit_piece, 0, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %.i123, i64 0, metadata !214, metadata !210), !dbg !213 ; var:"xy" !DIExpression(DW_OP_bit_piece, 32, 32) func:"GenerateCameraRay"
+  %DispatchRaysDimensions = call i32 @dx.op.dispatchRaysDimensions.i32(i32 146, i8 0), !dbg !216 ; line:65 col:29  ; DispatchRaysDimensions(col)
+  %DispatchRaysDimensions1 = call i32 @dx.op.dispatchRaysDimensions.i32(i32 146, i8 1), !dbg !216 ; line:65 col:29  ; DispatchRaysDimensions(col)
+  %11 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !216 ; line:65 col:29
+  %.i024 = uitofp i32 %DispatchRaysDimensions to float, !dbg !216 ; line:65 col:29
+  %.i125 = uitofp i32 %DispatchRaysDimensions1 to float, !dbg !216 ; line:65 col:29
+  %.i026 = fdiv fast float %.i021, %.i024, !dbg !217 ; line:65 col:27
+  %.i127 = fdiv fast float %.i123, %.i125, !dbg !217 ; line:65 col:27
+  %.i029 = fmul fast float %.i026, 2.000000e+00, !dbg !218 ; line:65 col:57
+  %.i131 = fmul fast float %.i127, 2.000000e+00, !dbg !218 ; line:65 col:57
+  %.i033 = fsub fast float %.i029, 1.000000e+00, !dbg !219 ; line:65 col:63
+  %.i135 = fsub fast float %.i131, 1.000000e+00, !dbg !219 ; line:65 col:63
+  %12 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !220 ; line:65 col:12
+  call void @llvm.dbg.value(metadata float %.i033, i64 0, metadata !221, metadata !207), !dbg !220 ; var:"screenPos" !DIExpression(DW_OP_bit_piece, 0, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %.i135, i64 0, metadata !221, metadata !210), !dbg !220 ; var:"screenPos" !DIExpression(DW_OP_bit_piece, 32, 32) func:"GenerateCameraRay"
+  %13 = fsub fast float -0.000000e+00, %.i135, !dbg !222 ; line:68 col:19
+  %14 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !223 ; line:68 col:17
+  call void @llvm.dbg.value(metadata float %.i033, i64 0, metadata !221, metadata !207), !dbg !220 ; var:"screenPos" !DIExpression(DW_OP_bit_piece, 0, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %13, i64 0, metadata !221, metadata !210), !dbg !220 ; var:"screenPos" !DIExpression(DW_OP_bit_piece, 32, 32) func:"GenerateCameraRay"
+  %15 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %7, i32 0), !dbg !224 ; line:71 col:59  ; CBufferLoadLegacy(handle,regIndex)
+  %16 = extractvalue %dx.types.CBufRet.f32 %15, 0, !dbg !224 ; line:71 col:59
+  %17 = extractvalue %dx.types.CBufRet.f32 %15, 1, !dbg !224 ; line:71 col:59
+  %18 = extractvalue %dx.types.CBufRet.f32 %15, 2, !dbg !224 ; line:71 col:59
+  %19 = extractvalue %dx.types.CBufRet.f32 %15, 3, !dbg !224 ; line:71 col:59
+  %20 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %7, i32 1), !dbg !224 ; line:71 col:59  ; CBufferLoadLegacy(handle,regIndex)
+  %21 = extractvalue %dx.types.CBufRet.f32 %20, 0, !dbg !224 ; line:71 col:59
+  %22 = extractvalue %dx.types.CBufRet.f32 %20, 1, !dbg !224 ; line:71 col:59
+  %23 = extractvalue %dx.types.CBufRet.f32 %20, 2, !dbg !224 ; line:71 col:59
+  %24 = extractvalue %dx.types.CBufRet.f32 %20, 3, !dbg !224 ; line:71 col:59
+  %25 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %7, i32 2), !dbg !224 ; line:71 col:59  ; CBufferLoadLegacy(handle,regIndex)
+  %26 = extractvalue %dx.types.CBufRet.f32 %25, 0, !dbg !224 ; line:71 col:59
+  %27 = extractvalue %dx.types.CBufRet.f32 %25, 1, !dbg !224 ; line:71 col:59
+  %28 = extractvalue %dx.types.CBufRet.f32 %25, 2, !dbg !224 ; line:71 col:59
+  %29 = extractvalue %dx.types.CBufRet.f32 %25, 3, !dbg !224 ; line:71 col:59
+  %30 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %7, i32 3), !dbg !224 ; line:71 col:59  ; CBufferLoadLegacy(handle,regIndex)
+  %31 = extractvalue %dx.types.CBufRet.f32 %30, 0, !dbg !224 ; line:71 col:59
+  %32 = extractvalue %dx.types.CBufRet.f32 %30, 1, !dbg !224 ; line:71 col:59
+  %33 = extractvalue %dx.types.CBufRet.f32 %30, 2, !dbg !224 ; line:71 col:59
+  %34 = extractvalue %dx.types.CBufRet.f32 %30, 3, !dbg !224 ; line:71 col:59
+  %35 = fmul fast float %.i033, %16, !dbg !225 ; line:71 col:20
+  %FMad18 = call float @dx.op.tertiary.f32(i32 46, float %13, float %21, float %35), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %FMad17 = call float @dx.op.tertiary.f32(i32 46, float 0.000000e+00, float %26, float %FMad18), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %FMad16 = call float @dx.op.tertiary.f32(i32 46, float 1.000000e+00, float %31, float %FMad17), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %36 = fmul fast float %.i033, %17, !dbg !225 ; line:71 col:20
+  %FMad15 = call float @dx.op.tertiary.f32(i32 46, float %13, float %22, float %36), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %FMad14 = call float @dx.op.tertiary.f32(i32 46, float 0.000000e+00, float %27, float %FMad15), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %FMad13 = call float @dx.op.tertiary.f32(i32 46, float 1.000000e+00, float %32, float %FMad14), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %37 = fmul fast float %.i033, %18, !dbg !225 ; line:71 col:20
+  %FMad12 = call float @dx.op.tertiary.f32(i32 46, float %13, float %23, float %37), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %FMad11 = call float @dx.op.tertiary.f32(i32 46, float 0.000000e+00, float %28, float %FMad12), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %FMad10 = call float @dx.op.tertiary.f32(i32 46, float 1.000000e+00, float %33, float %FMad11), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %38 = fmul fast float %.i033, %19, !dbg !225 ; line:71 col:20
+  %FMad9 = call float @dx.op.tertiary.f32(i32 46, float %13, float %24, float %38), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %FMad8 = call float @dx.op.tertiary.f32(i32 46, float 0.000000e+00, float %29, float %FMad9), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %FMad = call float @dx.op.tertiary.f32(i32 46, float 1.000000e+00, float %34, float %FMad8), !dbg !225 ; line:71 col:20  ; FMad(a,b,c)
+  %39 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !226 ; line:71 col:12
+  call void @llvm.dbg.value(metadata float %FMad16, i64 0, metadata !227, metadata !207), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 0, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %FMad13, i64 0, metadata !227, metadata !210), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 32, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %FMad10, i64 0, metadata !227, metadata !228), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 64, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %FMad, i64 0, metadata !227, metadata !229), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 96, 32) func:"GenerateCameraRay"
+  %.i036 = fdiv fast float %FMad16, %FMad, !dbg !230 ; line:73 col:15
+  %.i137 = fdiv fast float %FMad13, %FMad, !dbg !230 ; line:73 col:15
+  %.i2 = fdiv fast float %FMad10, %FMad, !dbg !230 ; line:73 col:15
+  %40 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !230 ; line:73 col:15
+  call void @llvm.dbg.value(metadata float %.i036, i64 0, metadata !227, metadata !207), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 0, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %FMad13, i64 0, metadata !227, metadata !210), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 32, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %FMad10, i64 0, metadata !227, metadata !228), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 64, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %FMad, i64 0, metadata !227, metadata !229), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 96, 32) func:"GenerateCameraRay"
+  %41 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !230 ; line:73 col:15
+  call void @llvm.dbg.value(metadata float %.i036, i64 0, metadata !227, metadata !207), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 0, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %.i137, i64 0, metadata !227, metadata !210), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 32, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %FMad10, i64 0, metadata !227, metadata !228), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 64, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %FMad, i64 0, metadata !227, metadata !229), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 96, 32) func:"GenerateCameraRay"
+  %42 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !230 ; line:73 col:15
+  call void @llvm.dbg.value(metadata float %.i036, i64 0, metadata !227, metadata !207), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 0, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %.i137, i64 0, metadata !227, metadata !210), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 32, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %.i2, i64 0, metadata !227, metadata !228), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 64, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %FMad, i64 0, metadata !227, metadata !229), !dbg !226 ; var:"world" !DIExpression(DW_OP_bit_piece, 96, 32) func:"GenerateCameraRay"
+  %43 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %7, i32 4), !dbg !231 ; line:74 col:24  ; CBufferLoadLegacy(handle,regIndex)
+  %44 = extractvalue %dx.types.CBufRet.f32 %43, 0, !dbg !231 ; line:74 col:24
+  call void @llvm.dbg.value(metadata float %44, i64 0, metadata !232, metadata !207), !dbg !233 ; var:"origin" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DefaultRT_RayGenShader"
+  %45 = insertelement <3 x float> undef, float %44, i64 0, !dbg !231 ; line:74 col:24
+  %46 = extractvalue %dx.types.CBufRet.f32 %43, 1, !dbg !231 ; line:74 col:24
+  call void @llvm.dbg.value(metadata float %46, i64 0, metadata !232, metadata !210), !dbg !233 ; var:"origin" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DefaultRT_RayGenShader"
+  %47 = insertelement <3 x float> %45, float %46, i64 1, !dbg !231 ; line:74 col:24
+  %48 = extractvalue %dx.types.CBufRet.f32 %43, 2, !dbg !231 ; line:74 col:24
+  call void @llvm.dbg.value(metadata float %48, i64 0, metadata !232, metadata !228), !dbg !233 ; var:"origin" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DefaultRT_RayGenShader"
+  %49 = insertelement <3 x float> %47, float %48, i64 2, !dbg !231 ; line:74 col:24
+  %50 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !234 ; line:74 col:12
+  call void @llvm.dbg.value(metadata float %44, i64 0, metadata !235, metadata !207), !dbg !236 ; var:"origin" !DIExpression(DW_OP_bit_piece, 0, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %46, i64 0, metadata !235, metadata !210), !dbg !236 ; var:"origin" !DIExpression(DW_OP_bit_piece, 32, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %48, i64 0, metadata !235, metadata !228), !dbg !236 ; var:"origin" !DIExpression(DW_OP_bit_piece, 64, 32) func:"GenerateCameraRay"
+  %.i038 = fsub fast float %.i036, %44, !dbg !237 ; line:75 col:37
+  %.i139 = fsub fast float %.i137, %46, !dbg !237 ; line:75 col:37
+  %.i240 = fsub fast float %.i2, %48, !dbg !237 ; line:75 col:37
+  %51 = call float @dx.op.dot3.f32(i32 55, float %.i038, float %.i139, float %.i240, float %.i038, float %.i139, float %.i240), !dbg !238 ; line:75 col:17  ; Dot3(ax,ay,az,bx,by,bz)
+  %Rsqrt = call float @dx.op.unary.f32(i32 25, float %51), !dbg !238 ; line:75 col:17  ; Rsqrt(value)
+  %.i041 = fmul fast float %.i038, %Rsqrt, !dbg !238 ; line:75 col:17
+  %.i142 = fmul fast float %.i139, %Rsqrt, !dbg !238 ; line:75 col:17
+  %.i243 = fmul fast float %.i240, %Rsqrt, !dbg !238 ; line:75 col:17
+  %.upto047 = insertelement <3 x float> undef, float %.i041, i32 0, !dbg !238 ; line:75 col:17
+  %.upto148 = insertelement <3 x float> %.upto047, float %.i142, i32 1, !dbg !238 ; line:75 col:17
+  %52 = insertelement <3 x float> %.upto148, float %.i243, i32 2, !dbg !238 ; line:75 col:17
+  %53 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !239 ; line:75 col:15
+  call void @llvm.dbg.value(metadata float %.i041, i64 0, metadata !240, metadata !207), !dbg !241 ; var:"direction" !DIExpression(DW_OP_bit_piece, 0, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %.i142, i64 0, metadata !240, metadata !210), !dbg !241 ; var:"direction" !DIExpression(DW_OP_bit_piece, 32, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %.i243, i64 0, metadata !240, metadata !228), !dbg !241 ; var:"direction" !DIExpression(DW_OP_bit_piece, 64, 32) func:"GenerateCameraRay"
+  call void @llvm.dbg.value(metadata float %.i041, i64 0, metadata !242, metadata !207), !dbg !243 ; var:"rayDir" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DefaultRT_RayGenShader"
+  call void @llvm.dbg.value(metadata float %.i142, i64 0, metadata !242, metadata !210), !dbg !243 ; var:"rayDir" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DefaultRT_RayGenShader"
+  call void @llvm.dbg.value(metadata float %.i243, i64 0, metadata !242, metadata !228), !dbg !243 ; var:"rayDir" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DefaultRT_RayGenShader"
+  %54 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !244 ; line:76 col:1
+  call void @llvm.dbg.value(metadata float %44, i64 0, metadata !232, metadata !207), !dbg !233 ; var:"origin" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DefaultRT_RayGenShader"
+  call void @llvm.dbg.value(metadata float %46, i64 0, metadata !232, metadata !210), !dbg !233 ; var:"origin" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DefaultRT_RayGenShader"
+  call void @llvm.dbg.value(metadata float %48, i64 0, metadata !232, metadata !228), !dbg !233 ; var:"origin" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DefaultRT_RayGenShader"
+  call void @llvm.dbg.declare(metadata %struct.RayDesc* %ray, metadata !245, metadata !252), !dbg !253 ; var:"ray" !DIExpression() func:"DefaultRT_RayGenShader"
+  %55 = getelementptr inbounds %struct.RayDesc, %struct.RayDesc* %ray, i32 0, i32 0, !dbg !254 ; line:101 col:9
+  %56 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !255 ; line:101 col:16
+  store <3 x float> %49, <3 x float>* %55, align 4, !dbg !255 ; line:101 col:16
+  %57 = getelementptr inbounds %struct.RayDesc, %struct.RayDesc* %ray, i32 0, i32 2, !dbg !256 ; line:102 col:9
+  %58 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !257 ; line:102 col:19
+  store <3 x float> %52, <3 x float>* %57, align 4, !dbg !257 ; line:102 col:19
+  %59 = getelementptr inbounds %struct.RayDesc, %struct.RayDesc* %ray, i32 0, i32 1, !dbg !258 ; line:105 col:9
+  %60 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !259 ; line:105 col:14
+  store float 0x3F50624DE0000000, float* %59, align 4, !dbg !259 ; line:105 col:14
+  %61 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %5, i32 4), !dbg !260 ; line:106 col:26  ; CBufferLoadLegacy(handle,regIndex)
+  %62 = extractvalue %dx.types.CBufRet.f32 %61, 3, !dbg !260 ; line:106 col:26
+  %63 = getelementptr inbounds %struct.RayDesc, %struct.RayDesc* %ray, i32 0, i32 3, !dbg !261 ; line:106 col:9
+  %64 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !262 ; line:106 col:14
+  store float %62, float* %63, align 4, !dbg !262 ; line:106 col:14
+  call void @llvm.dbg.declare(metadata %struct.RayPayload* %payload, metadata !263, metadata !252), !dbg !264 ; var:"payload" !DIExpression() func:"DefaultRT_RayGenShader"
+  %65 = getelementptr inbounds %struct.RayPayload, %struct.RayPayload* %payload, i32 0, i32 0, !dbg !265 ; line:107 col:26
+  %66 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !265 ; line:107 col:26
+  store <4 x float> zeroinitializer, <4 x float>* %65, align 4, !dbg !265 ; line:107 col:26
+  %67 = call %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32 160, %dx.types.Handle %1), !dbg !202 ; line:108 col:5  ; CreateHandleForLib(Resource)
+  %68 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %67, %dx.types.ResourceProperties { i32 16, i32 0 }), !dbg !202 ; line:108 col:5  ; AnnotateHandle(res,props)  resource: RTAccelerationStructure
+  %69 = getelementptr %struct.RayDesc, %struct.RayDesc* %ray, i32 0, i32 0, !dbg !202 ; line:108 col:5
+  %70 = load <3 x float>, <3 x float>* %69, !dbg !202 ; line:108 col:5
+  %71 = extractelement <3 x float> %70, i64 0, !dbg !202 ; line:108 col:5
+  %72 = extractelement <3 x float> %70, i64 1, !dbg !202 ; line:108 col:5
+  %73 = extractelement <3 x float> %70, i64 2, !dbg !202 ; line:108 col:5
+  %74 = getelementptr %struct.RayDesc, %struct.RayDesc* %ray, i32 0, i32 1, !dbg !202 ; line:108 col:5
+  %75 = load float, float* %74, !dbg !202 ; line:108 col:5
+  %76 = getelementptr %struct.RayDesc, %struct.RayDesc* %ray, i32 0, i32 2, !dbg !202 ; line:108 col:5
+  %77 = load <3 x float>, <3 x float>* %76, !dbg !202 ; line:108 col:5
+  %78 = extractelement <3 x float> %77, i64 0, !dbg !202 ; line:108 col:5
+  %79 = extractelement <3 x float> %77, i64 1, !dbg !202 ; line:108 col:5
+  %80 = extractelement <3 x float> %77, i64 2, !dbg !202 ; line:108 col:5
+  %81 = getelementptr %struct.RayDesc, %struct.RayDesc* %ray, i32 0, i32 3, !dbg !202 ; line:108 col:5
+  %82 = load float, float* %81, !dbg !202 ; line:108 col:5
+  call void @dx.op.traceRay.struct.RayPayload(i32 157, %dx.types.Handle %68, i32 16, i32 -1, i32 0, i32 1, i32 0, float %71, float %72, float %73, float %75, float %78, float %79, float %80, float %82, %struct.RayPayload* %payload), !dbg !202 ; line:108 col:5  ; TraceRay(AccelerationStructure,RayFlags,InstanceInclusionMask,RayContributionToHitGroupIndex,MultiplierForGeometryContributionToShaderIndex,MissShaderIndex,Origin_X,Origin_Y,Origin_Z,TMin,Direction_X,Direction_Y,Direction_Z,TMax,payload)
+  %83 = getelementptr inbounds %struct.RayPayload, %struct.RayPayload* %payload, i32 0, i32 0, !dbg !266 ; line:111 col:50
+  %84 = load <4 x float>, <4 x float>* %83, align 4, !dbg !266 ; line:111 col:50
+  %DispatchRaysIndex5 = call i32 @dx.op.dispatchRaysIndex.i32(i32 145, i8 0), !dbg !267 ; line:111 col:16  ; DispatchRaysIndex(col)
+  %DispatchRaysIndex6 = call i32 @dx.op.dispatchRaysIndex.i32(i32 145, i8 1), !dbg !267 ; line:111 col:16  ; DispatchRaysIndex(col)
+  %85 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !267 ; line:111 col:16
+  %86 = call %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32 160, %dx.types.Handle %2), !dbg !203 ; line:111 col:5  ; CreateHandleForLib(Resource)
+  %87 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %86, %dx.types.ResourceProperties { i32 4098, i32 1033 }), !dbg !203 ; line:111 col:5  ; AnnotateHandle(res,props)  resource: RWTexture2D<4xF32>
+  %88 = extractelement <4 x float> %84, i64 0, !dbg !268 ; line:111 col:40
+  %89 = extractelement <4 x float> %84, i64 1, !dbg !268 ; line:111 col:40
+  %90 = extractelement <4 x float> %84, i64 2, !dbg !268 ; line:111 col:40
+  %91 = extractelement <4 x float> %84, i64 3, !dbg !268 ; line:111 col:40
+  call void @dx.op.textureStore.f32(i32 67, %dx.types.Handle %87, i32 %DispatchRaysIndex5, i32 %DispatchRaysIndex6, i32 undef, float %88, float %89, float %90, float %91, i8 15), !dbg !268 ; line:111 col:40  ; TextureStore(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask)
+  %92 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !269 ; line:112 col:1
+  ret void, !dbg !269 ; line:112 col:1
+}
+
+; Function Attrs: nounwind
+define void @"\01?DefaultRT_ClosestHitShader@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"(%struct.RayPayload* noalias %payload, %struct.BuiltInTriangleIntersectionAttributes* %attr) #1 {
+  %1 = load %dx.types.Handle, %dx.types.Handle* @"\01?g_vertices@@3V?$StructuredBuffer@UVertex@@@@A", !dbg !270 ; line:124 col:33
+  %2 = load %dx.types.Handle, %dx.types.Handle* @"\01?g_indices@@3UByteAddressBuffer@@A", !dbg !271 ; line:121 col:27
+  %3 = load %dx.types.Handle, %dx.types.Handle* @g_materialCB
+  %4 = load %hostlayout.g_sceneCB, %hostlayout.g_sceneCB* @g_sceneCB_legacy
+  %g_materialCB = call %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32 160, %dx.types.Handle %3)  ; CreateHandleForLib(Resource)
+  %5 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %g_materialCB, %dx.types.ResourceProperties { i32 13, i32 16 })  ; AnnotateHandle(res,props)  resource: CBuffer
+  %6 = call %dx.types.Handle @dx.op.createHandleForLib.hostlayout.g_sceneCB(i32 160, %hostlayout.g_sceneCB %4)  ; CreateHandleForLib(Resource)
+  %7 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %6, %dx.types.ResourceProperties { i32 13, i32 128 })  ; AnnotateHandle(res,props)  resource: CBuffer
+  %8 = call %dx.types.Handle @dx.op.createHandleForLib.hostlayout.g_sceneCB(i32 160, %hostlayout.g_sceneCB %4)  ; CreateHandleForLib(Resource)
+  %9 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %8, %dx.types.ResourceProperties { i32 13, i32 128 })  ; AnnotateHandle(res,props)  resource: CBuffer
+  call void @llvm.dbg.declare(metadata %struct.BuiltInTriangleIntersectionAttributes* %attr, metadata !272, metadata !252), !dbg !273 ; var:"attr" !DIExpression() func:"DefaultRT_ClosestHitShader"
+  %10 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !274 ; line:117 col:26
+  %WorldRayOrigin = call float @dx.op.worldRayOrigin.f32(i32 147, i8 0), !dbg !275 ; line:50 col:12  ; WorldRayOrigin(col)
+  %WorldRayOrigin31 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 1), !dbg !275 ; line:50 col:12  ; WorldRayOrigin(col)
+  %WorldRayOrigin32 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 2), !dbg !275 ; line:50 col:12  ; WorldRayOrigin(col)
+  %RayTCurrent = call float @dx.op.rayTCurrent.f32(i32 154), !dbg !277 ; line:50 col:31  ; RayTCurrent()
+  %WorldRayDirection = call float @dx.op.worldRayDirection.f32(i32 148, i8 0), !dbg !278 ; line:50 col:47  ; WorldRayDirection(col)
+  %WorldRayDirection29 = call float @dx.op.worldRayDirection.f32(i32 148, i8 1), !dbg !278 ; line:50 col:47  ; WorldRayDirection(col)
+  %WorldRayDirection30 = call float @dx.op.worldRayDirection.f32(i32 148, i8 2), !dbg !278 ; line:50 col:47  ; WorldRayDirection(col)
+  %.i0 = fmul fast float %RayTCurrent, %WorldRayDirection, !dbg !279 ; line:50 col:45
+  %.i1 = fmul fast float %RayTCurrent, %WorldRayDirection29, !dbg !279 ; line:50 col:45
+  %.i2 = fmul fast float %RayTCurrent, %WorldRayDirection30, !dbg !279 ; line:50 col:45
+  %.i037 = fadd fast float %WorldRayOrigin, %.i0, !dbg !280 ; line:50 col:29
+  %.i138 = fadd fast float %WorldRayOrigin31, %.i1, !dbg !280 ; line:50 col:29
+  %.i239 = fadd fast float %WorldRayOrigin32, %.i2, !dbg !280 ; line:50 col:29
+  %11 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !281 ; line:50 col:5
+  %12 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !282 ; line:117 col:12
+  call void @llvm.dbg.value(metadata float %.i037, i64 0, metadata !283, metadata !207), !dbg !282 ; var:"hitPosition" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i138, i64 0, metadata !283, metadata !210), !dbg !282 ; var:"hitPosition" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i239, i64 0, metadata !283, metadata !228), !dbg !282 ; var:"hitPosition" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DefaultRT_ClosestHitShader"
+  %PrimitiveIndex = call i32 @dx.op.primitiveIndex.i32(i32 161), !dbg !284 ; line:120 col:24  ; PrimitiveIndex()
+  %13 = mul i32 %PrimitiveIndex, 3, !dbg !285 ; line:120 col:41
+  %14 = mul i32 %13, 4, !dbg !286 ; line:120 col:73
+  %15 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !287 ; line:120 col:10
+  call void @llvm.dbg.value(metadata i32 %14, i64 0, metadata !288, metadata !252), !dbg !287 ; var:"indexOffset" !DIExpression() func:"DefaultRT_ClosestHitShader"
+  %16 = call %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32 160, %dx.types.Handle %2), !dbg !271 ; line:121 col:27  ; CreateHandleForLib(Resource)
+  %17 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %16, %dx.types.ResourceProperties { i32 11, i32 0 }), !dbg !271 ; line:121 col:27  ; AnnotateHandle(res,props)  resource: ByteAddressBuffer
+  %RawBufferLoad = call %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32 139, %dx.types.Handle %17, i32 %14, i32 undef, i8 7, i32 4), !dbg !271 ; line:121 col:27  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  call void @llvm.dbg.value(metadata %dx.types.ResRet.i32 %RawBufferLoad, i64 0, metadata !289, metadata !252), !dbg !298 ; var:"indices" !DIExpression() func:"DefaultRT_ClosestHitShader"
+  %18 = extractvalue %dx.types.ResRet.i32 %RawBufferLoad, 0, !dbg !271 ; line:121 col:27
+  %19 = extractvalue %dx.types.ResRet.i32 %RawBufferLoad, 1, !dbg !271 ; line:121 col:27
+  %20 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !298 ; line:121 col:17
+  %21 = call %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32 160, %dx.types.Handle %1), !dbg !270 ; line:124 col:33  ; CreateHandleForLib(Resource)
+  %22 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %21, %dx.types.ResourceProperties { i32 524, i32 24 }), !dbg !270 ; line:124 col:33  ; AnnotateHandle(res,props)  resource: StructuredBuffer<stride=24>
+  %RawBufferLoad33 = call %dx.types.ResRet.f32 @dx.op.rawBufferLoad.f32(i32 139, %dx.types.Handle %22, i32 %18, i32 12, i8 7, i32 4), !dbg !299 ; line:124 col:56  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %23 = extractvalue %dx.types.ResRet.f32 %RawBufferLoad33, 0, !dbg !299 ; line:124 col:56
+  %24 = extractvalue %dx.types.ResRet.f32 %RawBufferLoad33, 1, !dbg !299 ; line:124 col:56
+  %25 = extractvalue %dx.types.ResRet.f32 %RawBufferLoad33, 2, !dbg !299 ; line:124 col:56
+  %26 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !300 ; line:124 col:31
+  call void @llvm.dbg.value(metadata float %23, i64 0, metadata !301, metadata !207), !dbg !302 ; var:"vertexAttribute" !DIExpression(DW_OP_bit_piece, 0, 32) func:"HitAttribute"
+  call void @llvm.dbg.value(metadata float %23, i64 0, metadata !304, metadata !207), !dbg !305 ; var:"vertexNormals" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %24, i64 0, metadata !301, metadata !210), !dbg !302 ; var:"vertexAttribute" !DIExpression(DW_OP_bit_piece, 32, 32) func:"HitAttribute"
+  call void @llvm.dbg.value(metadata float %24, i64 0, metadata !304, metadata !210), !dbg !305 ; var:"vertexNormals" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %25, i64 0, metadata !301, metadata !228), !dbg !302 ; var:"vertexAttribute" !DIExpression(DW_OP_bit_piece, 64, 32) func:"HitAttribute"
+  call void @llvm.dbg.value(metadata float %25, i64 0, metadata !304, metadata !228), !dbg !305 ; var:"vertexNormals" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DefaultRT_ClosestHitShader"
+  %27 = call %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32 160, %dx.types.Handle %1), !dbg !306 ; line:124 col:64  ; CreateHandleForLib(Resource)
+  %28 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %27, %dx.types.ResourceProperties { i32 524, i32 24 }), !dbg !306 ; line:124 col:64  ; AnnotateHandle(res,props)  resource: StructuredBuffer<stride=24>
+  %RawBufferLoad34 = call %dx.types.ResRet.f32 @dx.op.rawBufferLoad.f32(i32 139, %dx.types.Handle %28, i32 %19, i32 12, i8 7, i32 4), !dbg !307 ; line:124 col:87  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %29 = extractvalue %dx.types.ResRet.f32 %RawBufferLoad34, 0, !dbg !307 ; line:124 col:87
+  %30 = extractvalue %dx.types.ResRet.f32 %RawBufferLoad34, 1, !dbg !307 ; line:124 col:87
+  %31 = extractvalue %dx.types.ResRet.f32 %RawBufferLoad34, 2, !dbg !307 ; line:124 col:87
+  %32 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !300 ; line:124 col:31
+  call void @llvm.dbg.value(metadata float %29, i64 0, metadata !301, metadata !229), !dbg !302 ; var:"vertexAttribute" !DIExpression(DW_OP_bit_piece, 96, 32) func:"HitAttribute"
+  call void @llvm.dbg.value(metadata float %29, i64 0, metadata !304, metadata !229), !dbg !305 ; var:"vertexNormals" !DIExpression(DW_OP_bit_piece, 96, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %30, i64 0, metadata !301, metadata !308), !dbg !302 ; var:"vertexAttribute" !DIExpression(DW_OP_bit_piece, 128, 32) func:"HitAttribute"
+  call void @llvm.dbg.value(metadata float %30, i64 0, metadata !304, metadata !308), !dbg !305 ; var:"vertexNormals" !DIExpression(DW_OP_bit_piece, 128, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %31, i64 0, metadata !301, metadata !309), !dbg !302 ; var:"vertexAttribute" !DIExpression(DW_OP_bit_piece, 160, 32) func:"HitAttribute"
+  call void @llvm.dbg.value(metadata float %31, i64 0, metadata !304, metadata !309), !dbg !305 ; var:"vertexNormals" !DIExpression(DW_OP_bit_piece, 160, 32) func:"DefaultRT_ClosestHitShader"
+  %33 = call %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32 160, %dx.types.Handle %1), !dbg !310 ; line:124 col:95  ; CreateHandleForLib(Resource)
+  %34 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %33, %dx.types.ResourceProperties { i32 524, i32 24 }), !dbg !310 ; line:124 col:95  ; AnnotateHandle(res,props)  resource: StructuredBuffer<stride=24>
+  %RawBufferLoad35 = call %dx.types.ResRet.f32 @dx.op.rawBufferLoad.f32(i32 139, %dx.types.Handle %34, i32 undef, i32 12, i8 7, i32 4), !dbg !311 ; line:124 col:118  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %35 = extractvalue %dx.types.ResRet.f32 %RawBufferLoad35, 0, !dbg !311 ; line:124 col:118
+  %36 = extractvalue %dx.types.ResRet.f32 %RawBufferLoad35, 1, !dbg !311 ; line:124 col:118
+  %37 = extractvalue %dx.types.ResRet.f32 %RawBufferLoad35, 2, !dbg !311 ; line:124 col:118
+  %38 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !300 ; line:124 col:31
+  call void @llvm.dbg.value(metadata float %35, i64 0, metadata !301, metadata !312), !dbg !302 ; var:"vertexAttribute" !DIExpression(DW_OP_bit_piece, 192, 32) func:"HitAttribute"
+  call void @llvm.dbg.value(metadata float %35, i64 0, metadata !304, metadata !312), !dbg !305 ; var:"vertexNormals" !DIExpression(DW_OP_bit_piece, 192, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %36, i64 0, metadata !301, metadata !313), !dbg !302 ; var:"vertexAttribute" !DIExpression(DW_OP_bit_piece, 224, 32) func:"HitAttribute"
+  call void @llvm.dbg.value(metadata float %36, i64 0, metadata !304, metadata !313), !dbg !305 ; var:"vertexNormals" !DIExpression(DW_OP_bit_piece, 224, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %37, i64 0, metadata !301, metadata !314), !dbg !302 ; var:"vertexAttribute" !DIExpression(DW_OP_bit_piece, 256, 32) func:"HitAttribute"
+  call void @llvm.dbg.value(metadata float %37, i64 0, metadata !304, metadata !314), !dbg !305 ; var:"vertexNormals" !DIExpression(DW_OP_bit_piece, 256, 32) func:"DefaultRT_ClosestHitShader"
+  %39 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !315 ; line:130 col:29
+  call void @llvm.dbg.declare(metadata %struct.BuiltInTriangleIntersectionAttributes* %attr, metadata !316, metadata !252) #1, !dbg !317 ; var:"attr" !DIExpression() func:"HitAttribute"
+  %40 = getelementptr inbounds %struct.BuiltInTriangleIntersectionAttributes, %struct.BuiltInTriangleIntersectionAttributes* %attr, i32 0, i32 0, !dbg !318 ; line:57 col:14
+  %41 = load <2 x float>, <2 x float>* %40, align 4, !dbg !319 ; line:57 col:9
+  %42 = extractelement <2 x float> %41, i32 0, !dbg !320 ; line:57 col:32
+  %43 = extractelement <2 x float> %41, i32 0, !dbg !320 ; line:57 col:32
+  %44 = extractelement <2 x float> %41, i32 0, !dbg !320 ; line:57 col:32
+  %.i040 = fsub fast float %29, %23, !dbg !321 ; line:57 col:51
+  %.i141 = fsub fast float %30, %24, !dbg !321 ; line:57 col:51
+  %.i242 = fsub fast float %31, %25, !dbg !321 ; line:57 col:51
+  %.i043 = fmul fast float %44, %.i040, !dbg !322 ; line:57 col:29
+  %.i144 = fmul fast float %43, %.i141, !dbg !322 ; line:57 col:29
+  %.i245 = fmul fast float %42, %.i242, !dbg !322 ; line:57 col:29
+  %.i046 = fadd fast float %23, %.i043, !dbg !323 ; line:56 col:31
+  %.i147 = fadd fast float %24, %.i144, !dbg !323 ; line:56 col:31
+  %.i248 = fadd fast float %25, %.i245, !dbg !323 ; line:56 col:31
+  %45 = getelementptr inbounds %struct.BuiltInTriangleIntersectionAttributes, %struct.BuiltInTriangleIntersectionAttributes* %attr, i32 0, i32 0, !dbg !324 ; line:58 col:14
+  %46 = load <2 x float>, <2 x float>* %45, align 4, !dbg !325 ; line:58 col:9
+  %47 = extractelement <2 x float> %46, i32 1, !dbg !326 ; line:58 col:32
+  %48 = extractelement <2 x float> %46, i32 1, !dbg !326 ; line:58 col:32
+  %49 = extractelement <2 x float> %46, i32 1, !dbg !326 ; line:58 col:32
+  %.i049 = fsub fast float %35, %23, !dbg !327 ; line:58 col:51
+  %.i150 = fsub fast float %36, %24, !dbg !327 ; line:58 col:51
+  %.i251 = fsub fast float %37, %25, !dbg !327 ; line:58 col:51
+  %.i052 = fmul fast float %49, %.i049, !dbg !328 ; line:58 col:29
+  %.i153 = fmul fast float %48, %.i150, !dbg !328 ; line:58 col:29
+  %.i254 = fmul fast float %47, %.i251, !dbg !328 ; line:58 col:29
+  %.i055 = fadd fast float %.i046, %.i052, !dbg !329 ; line:57 col:73
+  %.i156 = fadd fast float %.i147, %.i153, !dbg !329 ; line:57 col:73
+  %.i257 = fadd fast float %.i248, %.i254, !dbg !329 ; line:57 col:73
+  %50 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !330 ; line:56 col:5
+  %51 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !331 ; line:130 col:12
+  call void @llvm.dbg.value(metadata float %.i055, i64 0, metadata !332, metadata !207), !dbg !331 ; var:"triangleNormal" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i156, i64 0, metadata !332, metadata !210), !dbg !331 ; var:"triangleNormal" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i257, i64 0, metadata !332, metadata !228), !dbg !331 ; var:"triangleNormal" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DefaultRT_ClosestHitShader"
+  %52 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !333 ; line:132 col:27
+  call void @llvm.dbg.value(metadata float %.i055, i64 0, metadata !334, metadata !207), !dbg !335 ; var:"normal" !DIExpression(DW_OP_bit_piece, 0, 32) func:"CalculateDiffuseLighting"
+  call void @llvm.dbg.value(metadata float %.i156, i64 0, metadata !334, metadata !210), !dbg !335 ; var:"normal" !DIExpression(DW_OP_bit_piece, 32, 32) func:"CalculateDiffuseLighting"
+  call void @llvm.dbg.value(metadata float %.i257, i64 0, metadata !334, metadata !228), !dbg !335 ; var:"normal" !DIExpression(DW_OP_bit_piece, 64, 32) func:"CalculateDiffuseLighting"
+  call void @llvm.dbg.value(metadata float %.i037, i64 0, metadata !337, metadata !207), !dbg !338 ; var:"hitPosition" !DIExpression(DW_OP_bit_piece, 0, 32) func:"CalculateDiffuseLighting"
+  call void @llvm.dbg.value(metadata float %.i138, i64 0, metadata !337, metadata !210), !dbg !338 ; var:"hitPosition" !DIExpression(DW_OP_bit_piece, 32, 32) func:"CalculateDiffuseLighting"
+  call void @llvm.dbg.value(metadata float %.i239, i64 0, metadata !337, metadata !228), !dbg !338 ; var:"hitPosition" !DIExpression(DW_OP_bit_piece, 64, 32) func:"CalculateDiffuseLighting"
+  %53 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %9, i32 5), !dbg !339 ; line:81 col:47  ; CBufferLoadLegacy(handle,regIndex)
+  %54 = extractvalue %dx.types.CBufRet.f32 %53, 0, !dbg !339 ; line:81 col:47
+  %55 = extractvalue %dx.types.CBufRet.f32 %53, 1, !dbg !339 ; line:81 col:47
+  %56 = extractvalue %dx.types.CBufRet.f32 %53, 2, !dbg !339 ; line:81 col:47
+  %.i058 = fsub fast float %54, %.i037, !dbg !340 ; line:81 col:61
+  %.i159 = fsub fast float %55, %.i138, !dbg !340 ; line:81 col:61
+  %.i260 = fsub fast float %56, %.i239, !dbg !340 ; line:81 col:61
+  %57 = call float @dx.op.dot3.f32(i32 55, float %.i058, float %.i159, float %.i260, float %.i058, float %.i159, float %.i260), !dbg !341 ; line:81 col:27  ; Dot3(ax,ay,az,bx,by,bz)
+  %Rsqrt = call float @dx.op.unary.f32(i32 25, float %57), !dbg !341 ; line:81 col:27  ; Rsqrt(value)
+  %.i061 = fmul fast float %.i058, %Rsqrt, !dbg !341 ; line:81 col:27
+  %.i162 = fmul fast float %.i159, %Rsqrt, !dbg !341 ; line:81 col:27
+  %.i263 = fmul fast float %.i260, %Rsqrt, !dbg !341 ; line:81 col:27
+  %58 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !342 ; line:81 col:12
+  call void @llvm.dbg.value(metadata float %.i061, i64 0, metadata !343, metadata !207), !dbg !342 ; var:"pixelToLight" !DIExpression(DW_OP_bit_piece, 0, 32) func:"CalculateDiffuseLighting"
+  call void @llvm.dbg.value(metadata float %.i162, i64 0, metadata !343, metadata !210), !dbg !342 ; var:"pixelToLight" !DIExpression(DW_OP_bit_piece, 32, 32) func:"CalculateDiffuseLighting"
+  call void @llvm.dbg.value(metadata float %.i263, i64 0, metadata !343, metadata !228), !dbg !342 ; var:"pixelToLight" !DIExpression(DW_OP_bit_piece, 64, 32) func:"CalculateDiffuseLighting"
+  %59 = call float @dx.op.dot3.f32(i32 55, float %.i061, float %.i162, float %.i263, float %.i055, float %.i156, float %.i257), !dbg !344 ; line:84 col:29  ; Dot3(ax,ay,az,bx,by,bz)
+  %FMax = call float @dx.op.binary.f32(i32 35, float 0.000000e+00, float %59), !dbg !345 ; line:84 col:19  ; FMax(a,b)
+  %60 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !346 ; line:84 col:11
+  call void @llvm.dbg.value(metadata float %FMax, i64 0, metadata !347, metadata !252), !dbg !346 ; var:"nDotL" !DIExpression() func:"CalculateDiffuseLighting"
+  %61 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %5, i32 0), !dbg !348 ; line:86 col:25  ; CBufferLoadLegacy(handle,regIndex)
+  %62 = extractvalue %dx.types.CBufRet.f32 %61, 0, !dbg !348 ; line:86 col:25
+  %63 = extractvalue %dx.types.CBufRet.f32 %61, 1, !dbg !348 ; line:86 col:25
+  %64 = extractvalue %dx.types.CBufRet.f32 %61, 2, !dbg !348 ; line:86 col:25
+  %65 = extractvalue %dx.types.CBufRet.f32 %61, 3, !dbg !348 ; line:86 col:25
+  %66 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %9, i32 6), !dbg !349 ; line:86 col:44  ; CBufferLoadLegacy(handle,regIndex)
+  %67 = extractvalue %dx.types.CBufRet.f32 %66, 0, !dbg !349 ; line:86 col:44
+  %68 = extractvalue %dx.types.CBufRet.f32 %66, 1, !dbg !349 ; line:86 col:44
+  %69 = extractvalue %dx.types.CBufRet.f32 %66, 2, !dbg !349 ; line:86 col:44
+  %70 = extractvalue %dx.types.CBufRet.f32 %66, 3, !dbg !349 ; line:86 col:44
+  %.i064 = fmul fast float %62, %67, !dbg !350 ; line:86 col:32
+  %.i165 = fmul fast float %63, %68, !dbg !350 ; line:86 col:32
+  %.i266 = fmul fast float %64, %69, !dbg !350 ; line:86 col:32
+  %.i3 = fmul fast float %65, %70, !dbg !350 ; line:86 col:32
+  %.i067 = fmul fast float %.i064, %FMax, !dbg !351 ; line:86 col:62
+  %.i168 = fmul fast float %.i165, %FMax, !dbg !351 ; line:86 col:62
+  %.i269 = fmul fast float %.i266, %FMax, !dbg !351 ; line:86 col:62
+  %.i370 = fmul fast float %.i3, %FMax, !dbg !351 ; line:86 col:62
+  %71 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !352 ; line:86 col:5
+  %72 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !353 ; line:132 col:12
+  call void @llvm.dbg.value(metadata float %.i067, i64 0, metadata !354, metadata !207), !dbg !353 ; var:"diffuseColor" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i168, i64 0, metadata !354, metadata !210), !dbg !353 ; var:"diffuseColor" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i269, i64 0, metadata !354, metadata !228), !dbg !353 ; var:"diffuseColor" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i370, i64 0, metadata !354, metadata !229), !dbg !353 ; var:"diffuseColor" !DIExpression(DW_OP_bit_piece, 96, 32) func:"DefaultRT_ClosestHitShader"
+  %73 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %7, i32 7), !dbg !355 ; line:133 col:30  ; CBufferLoadLegacy(handle,regIndex)
+  %74 = extractvalue %dx.types.CBufRet.f32 %73, 0, !dbg !355 ; line:133 col:30
+  %75 = extractvalue %dx.types.CBufRet.f32 %73, 1, !dbg !355 ; line:133 col:30
+  %76 = extractvalue %dx.types.CBufRet.f32 %73, 2, !dbg !355 ; line:133 col:30
+  %77 = extractvalue %dx.types.CBufRet.f32 %73, 3, !dbg !355 ; line:133 col:30
+  %.i071 = fadd fast float %74, %.i067, !dbg !356 ; line:133 col:48
+  %.i172 = fadd fast float %75, %.i168, !dbg !356 ; line:133 col:48
+  %.i273 = fadd fast float %76, %.i269, !dbg !356 ; line:133 col:48
+  %.i374 = fadd fast float %77, %.i370, !dbg !356 ; line:133 col:48
+  %.upto079 = insertelement <4 x float> undef, float %.i071, i32 0, !dbg !356 ; line:133 col:48
+  %.upto180 = insertelement <4 x float> %.upto079, float %.i172, i32 1, !dbg !356 ; line:133 col:48
+  %.upto2 = insertelement <4 x float> %.upto180, float %.i273, i32 2, !dbg !356 ; line:133 col:48
+  %78 = insertelement <4 x float> %.upto2, float %.i374, i32 3, !dbg !356 ; line:133 col:48
+  %79 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !357 ; line:133 col:12
+  call void @llvm.dbg.value(metadata float %.i071, i64 0, metadata !358, metadata !207), !dbg !357 ; var:"color" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i172, i64 0, metadata !358, metadata !210), !dbg !357 ; var:"color" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i273, i64 0, metadata !358, metadata !228), !dbg !357 ; var:"color" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i374, i64 0, metadata !358, metadata !229), !dbg !357 ; var:"color" !DIExpression(DW_OP_bit_piece, 96, 32) func:"DefaultRT_ClosestHitShader"
+  %80 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !359 ; line:135 col:19
+  call void @llvm.dbg.value(metadata float %.i071, i64 0, metadata !360, metadata !207), !dbg !361 ; var:"payload" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i172, i64 0, metadata !360, metadata !210), !dbg !361 ; var:"payload" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i273, i64 0, metadata !360, metadata !228), !dbg !361 ; var:"payload" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DefaultRT_ClosestHitShader"
+  call void @llvm.dbg.value(metadata float %.i374, i64 0, metadata !360, metadata !229), !dbg !361 ; var:"payload" !DIExpression(DW_OP_bit_piece, 96, 32) func:"DefaultRT_ClosestHitShader"
+  %81 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !362 ; line:136 col:1
+  %82 = getelementptr inbounds %struct.RayPayload, %struct.RayPayload* %payload, i32 0, i32 0, !dbg !362 ; line:136 col:1
+  store <4 x float> %78, <4 x float>* %82, !dbg !362 ; line:136 col:1
+  ret void, !dbg !362 ; line:136 col:1
+}
+
+; Function Attrs: nounwind
+define void @"\01?DefaultRT_MissShader@@YAXURayPayload@@@Z"(%struct.RayPayload* noalias %payload) #1 {
+  %1 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !363 ; line:141 col:12
+  call void @llvm.dbg.value(metadata <4 x float> <float 0.000000e+00, float 0x3FC99999A0000000, float 0x3FD99999A0000000, float 1.000000e+00>, i64 0, metadata !364, metadata !252), !dbg !363 ; var:"background" !DIExpression() func:"DefaultRT_MissShader"
+  %2 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !365 ; line:142 col:19
+  call void @llvm.dbg.value(metadata <4 x float> <float 0.000000e+00, float 0x3FC99999A0000000, float 0x3FD99999A0000000, float 1.000000e+00>, i64 0, metadata !366, metadata !252), !dbg !367 ; var:"payload" !DIExpression() func:"DefaultRT_MissShader"
+  %3 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !368 ; line:143 col:1
+  %4 = getelementptr inbounds %struct.RayPayload, %struct.RayPayload* %payload, i32 0, i32 0, !dbg !368 ; line:143 col:1
+  store <4 x float> <float 0.000000e+00, float 0x3FC99999A0000000, float 0x3FD99999A0000000, float 1.000000e+00>, <4 x float>* %4, !dbg !368 ; line:143 col:1
+  ret void, !dbg !368 ; line:143 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayDirection.f32(i32, i8) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayOrigin.f32(i32, i8) #0
+
+; Function Attrs: nounwind readonly
+declare float @dx.op.rayTCurrent.f32(i32) #2
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.dot3.f32(i32, float, float, float, float, float, float) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.unary.f32(i32, float) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.binary.f32(i32, float, float) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.dispatchRaysDimensions.i32(i32, i8) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.dispatchRaysIndex.i32(i32, i8) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.traceRay.struct.RayPayload(i32, %dx.types.Handle, i32, i32, i32, i32, i32, float, float, float, float, float, float, float, float, %struct.RayPayload*) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.textureStore.f32(i32, %dx.types.Handle, i32, i32, i32, float, float, float, float, i8) #1
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.primitiveIndex.i32(i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32, %dx.types.Handle, i32, i32, i8, i32) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.f32 @dx.op.rawBufferLoad.f32(i32, %dx.types.Handle, i32, i32, i8, i32) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #2
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.tertiary.f32(i32, float, float, float) #0
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @dx.op.annotateHandle(i32, %dx.types.Handle, %dx.types.ResourceProperties) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32, %dx.types.Handle) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.hostlayout.g_sceneCB(i32, %hostlayout.g_sceneCB) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!135, !136}
+!llvm.ident = !{!137}
+!dx.source.contents = !{!138, !139}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!140}
+!dx.source.args = !{!141}
+!dx.version = !{!142}
+!dx.valver = !{!143}
+!dx.shaderModel = !{!144}
+!dx.resources = !{!145}
+!dx.typeAnnotations = !{!158, !186}
+!dx.entryPoints = !{!193, !195, !198, !200}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxcoob 1.7.2212.12 (8c9d92be7)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !16, globals: !72)
+!1 = !DIFile(filename: "repro.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, line: 59, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, line: 59, size: 128, align: 32, elements: !6, templateParams: !12)
+!6 = !{!7, !9, !10, !11}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 59, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 59, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, line: 59, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !5, file: !1, line: 59, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!12 = !{!13, !14}
+!13 = !DITemplateTypeParameter(name: "element", type: !8)
+!14 = !DITemplateValueParameter(name: "element_count", type: !15, value: i32 4)
+!15 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!16 = !{!17, !28, !43, !46, !49, !56, !59}
+!17 = !DISubprogram(name: "HitWorldPosition", linkageName: "\01?HitWorldPosition@@YA?AV?$vector@M$02@@XZ", scope: !1, file: !1, line: 48, type: !18, isLocal: false, isDefinition: true, scopeLine: 49, flags: DIFlagPrototyped, isOptimized: false)
+!18 = !DISubroutineType(types: !19)
+!19 = !{!20}
+!20 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, baseType: !21)
+!21 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, size: 96, align: 32, elements: !22, templateParams: !26)
+!22 = !{!23, !24, !25}
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !21, file: !1, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!24 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !21, file: !1, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!25 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !21, file: !1, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!26 = !{!13, !27}
+!27 = !DITemplateValueParameter(name: "element_count", type: !15, value: i32 3)
+!28 = !DISubprogram(name: "HitAttribute", linkageName: "\01?HitAttribute@@YA?AV?$vector@M$02@@Y02V1@UBuiltInTriangleIntersectionAttributes@@@Z", scope: !1, file: !1, line: 54, type: !29, isLocal: false, isDefinition: true, scopeLine: 55, flags: DIFlagPrototyped, isOptimized: false)
+!29 = !DISubroutineType(types: !30)
+!30 = !{!20, !31, !34}
+!31 = !DICompositeType(tag: DW_TAG_array_type, baseType: !20, size: 288, align: 32, elements: !32)
+!32 = !{!33}
+!33 = !DISubrange(count: 3)
+!34 = !DICompositeType(tag: DW_TAG_structure_type, name: "BuiltInTriangleIntersectionAttributes", file: !1, line: 51, size: 64, align: 32, elements: !35)
+!35 = !{!36}
+!36 = !DIDerivedType(tag: DW_TAG_member, name: "barycentrics", scope: !34, file: !1, line: 51, baseType: !37, size: 64, align: 32)
+!37 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, line: 51, size: 64, align: 32, elements: !38, templateParams: !41)
+!38 = !{!39, !40}
+!39 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !37, file: !1, line: 51, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!40 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !37, file: !1, line: 51, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!41 = !{!13, !42}
+!42 = !DITemplateValueParameter(name: "element_count", type: !15, value: i32 2)
+!43 = !DISubprogram(name: "CalculateDiffuseLighting", linkageName: "\01?CalculateDiffuseLighting@@YA?AV?$vector@M$03@@V?$vector@M$02@@0@Z", scope: !1, file: !1, line: 79, type: !44, isLocal: false, isDefinition: true, scopeLine: 80, flags: DIFlagPrototyped, isOptimized: false)
+!44 = !DISubroutineType(types: !45)
+!45 = !{!4, !20, !20}
+!46 = !DISubprogram(name: "DefaultRT_RayGenShader", linkageName: "\01?DefaultRT_RayGenShader@@YAXXZ", scope: !1, file: !1, line: 90, type: !47, isLocal: false, isDefinition: true, scopeLine: 91, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @"\01?DefaultRT_RayGenShader@@YAXXZ")
+!47 = !DISubroutineType(types: !48)
+!48 = !{null}
+!49 = !DISubprogram(name: "DefaultRT_ClosestHitShader", linkageName: "\01?DefaultRT_ClosestHitShader@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", scope: !1, file: !1, line: 115, type: !50, isLocal: false, isDefinition: true, scopeLine: 116, flags: DIFlagPrototyped, isOptimized: false, function: void (%struct.RayPayload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?DefaultRT_ClosestHitShader@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z")
+!50 = !DISubroutineType(types: !51)
+!51 = !{null, !52, !34}
+!52 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !53)
+!53 = !DICompositeType(tag: DW_TAG_structure_type, name: "RayPayload", file: !1, line: 42, size: 128, align: 32, elements: !54)
+!54 = !{!55}
+!55 = !DIDerivedType(tag: DW_TAG_member, name: "color", scope: !53, file: !1, line: 44, baseType: !4, size: 128, align: 32)
+!56 = !DISubprogram(name: "DefaultRT_MissShader", linkageName: "\01?DefaultRT_MissShader@@YAXURayPayload@@@Z", scope: !1, file: !1, line: 139, type: !57, isLocal: false, isDefinition: true, scopeLine: 140, flags: DIFlagPrototyped, isOptimized: false, function: void (%struct.RayPayload*)* @"\01?DefaultRT_MissShader@@YAXURayPayload@@@Z")
+!57 = !DISubroutineType(types: !58)
+!58 = !{null, !52}
+!59 = !DISubprogram(name: "GenerateCameraRay", linkageName: "\01?GenerateCameraRay@@YAXV?$vector@I$01@@AIAV?$vector@M$02@@1@Z", scope: !1, file: !1, line: 62, type: !60, isLocal: false, isDefinition: true, scopeLine: 63, flags: DIFlagPrototyped, isOptimized: false)
+!60 = !DISubroutineType(types: !61)
+!61 = !{null, !62, !70, !70}
+!62 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint2", file: !1, line: 40, baseType: !63)
+!63 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 2>", file: !1, line: 40, size: 64, align: 32, elements: !64, templateParams: !68)
+!64 = !{!65, !67}
+!65 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !63, file: !1, line: 40, baseType: !66, size: 32, align: 32, flags: DIFlagPublic)
+!66 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!67 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !63, file: !1, line: 40, baseType: !66, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!68 = !{!69, !42}
+!69 = !DITemplateTypeParameter(name: "element", type: !66)
+!70 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !71)
+!71 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !20)
+!72 = !{!73, !75, !79, !81, !118, !120, !128}
+!73 = !DIGlobalVariable(name: "RAY_FLAG_CULL_BACK_FACING_TRIANGLES", scope: !0, file: !1, line: 108, type: !74, isLocal: true, isDefinition: true, variable: i32 16)
+!74 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !66)
+!75 = !DIGlobalVariable(name: "g_rtOutput", linkageName: "\01?g_rtOutput@@3V?$RWTexture2D@V?$vector@M$03@@@@A", scope: !0, file: !1, line: 33, type: !76, isLocal: false, isDefinition: true, variable: %dx.types.Handle* @"\01?g_rtOutput@@3V?$RWTexture2D@V?$vector@M$03@@@@A")
+!76 = !DICompositeType(tag: DW_TAG_class_type, name: "RWTexture2D<vector<float, 4> >", file: !1, line: 33, size: 128, align: 32, elements: !2, templateParams: !77)
+!77 = !{!78}
+!78 = !DITemplateTypeParameter(name: "element", type: !5)
+!79 = !DIGlobalVariable(name: "g_tlas", linkageName: "\01?g_tlas@@3URaytracingAccelerationStructure@@A", scope: !0, file: !1, line: 34, type: !80, isLocal: false, isDefinition: true, variable: %dx.types.Handle* @"\01?g_tlas@@3URaytracingAccelerationStructure@@A")
+!80 = !DICompositeType(tag: DW_TAG_structure_type, name: "RaytracingAccelerationStructure", file: !1, line: 34, size: 32, align: 32, elements: !2)
+!81 = !DIGlobalVariable(name: "g_sceneCB", linkageName: "\01?g_sceneCB@@3U?$ConstantBuffer@USceneConstants@@@@A", scope: !0, file: !1, line: 35, type: !82, isLocal: false, isDefinition: true)
+!82 = !DICompositeType(tag: DW_TAG_structure_type, name: "ConstantBuffer<SceneConstants>", file: !1, line: 35, size: 32, align: 32, elements: !2, templateParams: !83)
+!83 = !{!84}
+!84 = !DITemplateTypeParameter(name: "T", type: !85)
+!85 = !DICompositeType(tag: DW_TAG_structure_type, name: "SceneConstants", file: !86, line: 17, size: 1024, align: 32, elements: !87)
+!86 = !DIFile(filename: "./ShaderShared.h", directory: "")
+!87 = !{!88, !111, !112, !113, !114, !116, !117}
+!88 = !DIDerivedType(tag: DW_TAG_member, name: "projectionViewWorld", scope: !85, file: !86, line: 19, baseType: !89, size: 512, align: 32)
+!89 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4x4", file: !1, line: 35, baseType: !90)
+!90 = !DICompositeType(tag: DW_TAG_class_type, name: "matrix<float, 4, 4>", file: !1, line: 35, size: 512, align: 32, elements: !91, templateParams: !108)
+!91 = !{!92, !93, !94, !95, !96, !97, !98, !99, !100, !101, !102, !103, !104, !105, !106, !107}
+!92 = !DIDerivedType(tag: DW_TAG_member, name: "_11", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!93 = !DIDerivedType(tag: DW_TAG_member, name: "_12", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!94 = !DIDerivedType(tag: DW_TAG_member, name: "_13", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!95 = !DIDerivedType(tag: DW_TAG_member, name: "_14", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!96 = !DIDerivedType(tag: DW_TAG_member, name: "_21", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 128, flags: DIFlagPublic)
+!97 = !DIDerivedType(tag: DW_TAG_member, name: "_22", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 160, flags: DIFlagPublic)
+!98 = !DIDerivedType(tag: DW_TAG_member, name: "_23", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 192, flags: DIFlagPublic)
+!99 = !DIDerivedType(tag: DW_TAG_member, name: "_24", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 224, flags: DIFlagPublic)
+!100 = !DIDerivedType(tag: DW_TAG_member, name: "_31", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 256, flags: DIFlagPublic)
+!101 = !DIDerivedType(tag: DW_TAG_member, name: "_32", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 288, flags: DIFlagPublic)
+!102 = !DIDerivedType(tag: DW_TAG_member, name: "_33", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 320, flags: DIFlagPublic)
+!103 = !DIDerivedType(tag: DW_TAG_member, name: "_34", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 352, flags: DIFlagPublic)
+!104 = !DIDerivedType(tag: DW_TAG_member, name: "_41", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 384, flags: DIFlagPublic)
+!105 = !DIDerivedType(tag: DW_TAG_member, name: "_42", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 416, flags: DIFlagPublic)
+!106 = !DIDerivedType(tag: DW_TAG_member, name: "_43", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 448, flags: DIFlagPublic)
+!107 = !DIDerivedType(tag: DW_TAG_member, name: "_44", scope: !90, file: !1, line: 35, baseType: !8, size: 32, align: 32, offset: 480, flags: DIFlagPublic)
+!108 = !{!13, !109, !110}
+!109 = !DITemplateValueParameter(name: "row_count", type: !15, value: i32 4)
+!110 = !DITemplateValueParameter(name: "col_count", type: !15, value: i32 4)
+!111 = !DIDerivedType(tag: DW_TAG_member, name: "cameraWorldPos", scope: !85, file: !86, line: 20, baseType: !20, size: 96, align: 32, offset: 512)
+!112 = !DIDerivedType(tag: DW_TAG_member, name: "rayMaxLength", scope: !85, file: !86, line: 21, baseType: !8, size: 32, align: 32, offset: 608)
+!113 = !DIDerivedType(tag: DW_TAG_member, name: "lightWorldPos", scope: !85, file: !86, line: 22, baseType: !20, size: 96, align: 32, offset: 640)
+!114 = !DIDerivedType(tag: DW_TAG_member, name: "pad0", scope: !85, file: !86, line: 23, baseType: !115, size: 32, align: 32, offset: 736)
+!115 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 120, baseType: !66)
+!116 = !DIDerivedType(tag: DW_TAG_member, name: "lightDiffuseColor", scope: !85, file: !86, line: 24, baseType: !4, size: 128, align: 32, offset: 768)
+!117 = !DIDerivedType(tag: DW_TAG_member, name: "lightAmbientColor", scope: !85, file: !86, line: 25, baseType: !4, size: 128, align: 32, offset: 896)
+!118 = !DIGlobalVariable(name: "g_indices", linkageName: "\01?g_indices@@3UByteAddressBuffer@@A", scope: !0, file: !1, line: 38, type: !119, isLocal: false, isDefinition: true, variable: %dx.types.Handle* @"\01?g_indices@@3UByteAddressBuffer@@A")
+!119 = !DICompositeType(tag: DW_TAG_structure_type, name: "ByteAddressBuffer", file: !1, line: 38, size: 32, align: 32, elements: !2)
+!120 = !DIGlobalVariable(name: "g_vertices", linkageName: "\01?g_vertices@@3V?$StructuredBuffer@UVertex@@@@A", scope: !0, file: !1, line: 39, type: !121, isLocal: false, isDefinition: true, variable: %dx.types.Handle* @"\01?g_vertices@@3V?$StructuredBuffer@UVertex@@@@A")
+!121 = !DICompositeType(tag: DW_TAG_class_type, name: "StructuredBuffer<Vertex>", file: !1, line: 39, size: 192, align: 32, elements: !2, templateParams: !122)
+!122 = !{!123}
+!123 = !DITemplateTypeParameter(name: "element", type: !124)
+!124 = !DICompositeType(tag: DW_TAG_structure_type, name: "Vertex", file: !86, line: 28, size: 192, align: 32, elements: !125)
+!125 = !{!126, !127}
+!126 = !DIDerivedType(tag: DW_TAG_member, name: "position", scope: !124, file: !86, line: 30, baseType: !20, size: 96, align: 32)
+!127 = !DIDerivedType(tag: DW_TAG_member, name: "normal", scope: !124, file: !86, line: 31, baseType: !20, size: 96, align: 32, offset: 96)
+!128 = !DIGlobalVariable(name: "g_materialCB", linkageName: "\01?g_materialCB@@3U?$ConstantBuffer@UMaterialConstants@@@@A", scope: !0, file: !1, line: 40, type: !129, isLocal: false, isDefinition: true)
+!129 = !DICompositeType(tag: DW_TAG_structure_type, name: "ConstantBuffer<MaterialConstants>", file: !1, line: 40, size: 32, align: 32, elements: !2, templateParams: !130)
+!130 = !{!131}
+!131 = !DITemplateTypeParameter(name: "T", type: !132)
+!132 = !DICompositeType(tag: DW_TAG_structure_type, name: "MaterialConstants", file: !86, line: 34, size: 128, align: 32, elements: !133)
+!133 = !{!134}
+!134 = !DIDerivedType(tag: DW_TAG_member, name: "albedo", scope: !132, file: !86, line: 36, baseType: !4, size: 128, align: 32)
+!135 = !{i32 2, !"Dwarf Version", i32 4}
+!136 = !{i32 2, !"Debug Info Version", i32 3}
+!137 = !{!"dxcoob 1.7.2212.12 (8c9d92be7)"}
+!138 = !{!"repro.hlsl", !"#include \22ShaderShared.h\22\0D\0A\0D\0AGlobalRootSignature DefaultRT_GlobalRootSignature =\0D\0A{\0D\0A    \22RootFlags(0),\22\0D\0A    \22DescriptorTable( UAV( u0 ), SRV( t0 ), CBV( b0 ) )\22   // g_rtOutput, g_tlas, g_sceneCB\0D\0A};\0D\0A\0D\0ALocalRootSignature DefaultRT_LocalRootSignature =\0D\0A{\0D\0A    \22DescriptorTable( SRV( t1, numDescriptors = 2 ) ),\22    // g_indices, g_vertices\0D\0A    \22RootConstants( num32BitConstants = 4, b1 )\22           // g_materialCB (inlined)\0D\0A};\0D\0A\0D\0ATriangleHitGroup DefaultRT_HitGroup =\0D\0A{\0D\0A    \22\22,                             // AnyHit\0D\0A    \22DefaultRT_ClosestHitShader\22    // ClosestHit\0D\0A};\0D\0A\0D\0ARaytracingShaderConfig  DefaultRT_ShaderConfig =\0D\0A{\0D\0A    16,                             // Max payload size (sizeof(RayPayload))\0D\0A    8                               // Max attribute size (sizeof(BuiltInTriangleIntersectionAttributes))\0D\0A};\0D\0A\0D\0ARaytracingPipelineConfig DefaultRT_PipelineConfig =\0D\0A{\0D\0A    1                               // Max trace recursion depth\0D\0A};\0D\0A\0D\0A// Global root signature resources:\0D\0ARWTexture2D<float4> g_rtOutput : register(u0);\0D\0ARaytracingAccelerationStructure g_tlas : register(t0);\0D\0AConstantBuffer<SceneConstants> g_sceneCB : register(b0);\0D\0A\0D\0A// Local root signature resources:\0D\0AByteAddressBuffer g_indices : register(t1);\0D\0AStructuredBuffer<Vertex> g_vertices : register(t2);\0D\0AConstantBuffer<MaterialConstants> g_materialCB : register(b1);\0D\0A\0D\0Astruct RayPayload\0D\0A{\0D\0A    float4 color;\0D\0A};\0D\0A\0D\0A// Retrieve hit world position.\0D\0Afloat3 HitWorldPosition()\0D\0A{\0D\0A    return WorldRayOrigin() + RayTCurrent() * WorldRayDirection();\0D\0A}\0D\0A\0D\0A// Retrieve attribute at a hit position interpolated from vertex attributes using the hit's barycentrics.\0D\0Afloat3 HitAttribute(float3 vertexAttribute[3], BuiltInTriangleIntersectionAttributes attr)\0D\0A{\0D\0A    return vertexAttribute[0] +\0D\0A        attr.barycentrics.x * (vertexAttribute[1] - vertexAttribute[0]) +\0D\0A        attr.barycentrics.y * (vertexAttribute[2] - vertexAttribute[0]);\0D\0A}\0D\0A\0D\0A// Generate a ray in world space for a camera pixel corresponding to an index from the dispatched 2D grid.\0D\0Ainline void GenerateCameraRay(uint2 index, out float3 origin, out float3 direction)\0D\0A{\0D\0A    float2 xy = index + 0.5f; // center in the middle of the pixel.\0D\0A    float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;\0D\0A\0D\0A    // Invert Y for DirectX-style coordinates.\0D\0A    screenPos.y = -screenPos.y;\0D\0A\0D\0A    // Unproject the pixel coordinate into a ray.\0D\0A    float4 world = mul(float4(screenPos, 0, 1), g_sceneCB.projectionViewWorld);\0D\0A\0D\0A    world.xyz /= world.w;\0D\0A    origin = g_sceneCB.cameraWorldPos;\0D\0A    direction = normalize(world.xyz - origin);\0D\0A}\0D\0A\0D\0A// Diffuse lighting calculation.\0D\0Afloat4 CalculateDiffuseLighting(float3 hitPosition, float3 normal)\0D\0A{\0D\0A    float3 pixelToLight = normalize(g_sceneCB.lightWorldPos - hitPosition);\0D\0A\0D\0A    // Diffuse contribution.\0D\0A    float nDotL = max(0.0f, dot(pixelToLight, normal));\0D\0A\0D\0A    return g_materialCB.albedo * g_sceneCB.lightDiffuseColor * nDotL;\0D\0A}\0D\0A\0D\0A[shader(\22raygeneration\22)]\0D\0Avoid DefaultRT_RayGenShader()\0D\0A{\0D\0A    float3 rayDir;\0D\0A    float3 origin;\0D\0A\0D\0A    // Generate a ray for a camera pixel corresponding to an index from the dispatched 2D grid.\0D\0A    GenerateCameraRay(DispatchRaysIndex().xy, origin, rayDir);\0D\0A\0D\0A    // Trace the ray.\0D\0A    // Set the ray's extents.\0D\0A    RayDesc ray;\0D\0A    ray.Origin = origin;\0D\0A    ray.Direction = rayDir;\0D\0A    // Set TMin to a non-zero small value to avoid aliasing issues due to floating - point errors.\0D\0A    // TMin should be kept small to prevent missing geometry at close contact areas.\0D\0A    ray.TMin = 0.001;\0D\0A    ray.TMax = g_sceneCB.rayMaxLength;\0D\0A    RayPayload payload = { float4(0, 0, 0, 0) };\0D\0A    TraceRay(g_tlas, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);\0D\0A\0D\0A    // Write the raytraced color to the output texture.\0D\0A    g_rtOutput[DispatchRaysIndex().xy] = payload.color;\0D\0A}\0D\0A\0D\0A[shader(\22closesthit\22)]\0D\0Avoid DefaultRT_ClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)\0D\0A{\0D\0A    float3 hitPosition = HitWorldPosition();\0D\0A\0D\0A    // Load index buffer\0D\0A    uint indexOffset = PrimitiveIndex() * 3 /* indices per primitive */ * 4 /* 4 bytes per index*/;\0D\0A    const uint3 indices = g_indices.Load3(indexOffset);\0D\0A\0D\0A    // Retrieve corresponding vertex normals for the triangle vertices.\0D\0A    float3 vertexNormals[3] = { g_vertices[indices[0]].normal, g_vertices[indices[1]].normal, g_vertices[indices[3]].normal };\0D\0A    //                                                                                                           ^\0D\0A    //                                                                                                           |\0D\0A    // THIS SHOULD LEAD TO A COMPILER WARNING AT LEAST -----------------------------------------------------------\0D\0A\0D\0A    // Compute the triangle's interpolated normal\0D\0A    float3 triangleNormal = HitAttribute(vertexNormals, attr);\0D\0A\0D\0A    float4 diffuseColor = CalculateDiffuseLighting(hitPosition, triangleNormal);\0D\0A    float4 color = g_sceneCB.lightAmbientColor + diffuseColor;\0D\0A\0D\0A    payload.color = color;\0D\0A}\0D\0A\0D\0A[shader(\22miss\22)]\0D\0Avoid DefaultRT_MissShader(inout RayPayload payload)\0D\0A{\0D\0A    float4 background = float4(0.0f, 0.2f, 0.4f, 1.0f);\0D\0A    payload.color = background;\0D\0A}\0D\0A"}
+!139 = !{!".\5CShaderShared.h", !"//--------------------------------------------------------------------------------------\0D\0A// ShaderShared.h\0D\0A//\0D\0A// Advanced Technology Group (ATG)\0D\0A// Copyright (C) Microsoft Corporation. All rights reserved.\0D\0A//--------------------------------------------------------------------------------------\0D\0A#pragma once\0D\0A\0D\0A#ifdef __cplusplus\0D\0Ausing float4x4 = DirectX::XMMATRIX;\0D\0Ausing float4 = DirectX::XMFLOAT4;\0D\0Ausing float3 = DirectX::XMFLOAT3;\0D\0Ausing float2 = DirectX::XMFLOAT2;\0D\0Ausing uint = uint32_t;\0D\0A#endif\0D\0A\0D\0Astruct SceneConstants\0D\0A{\0D\0A    float4x4    projectionViewWorld;\0D\0A    float3      cameraWorldPos;\0D\0A    float       rayMaxLength;\0D\0A    float3      lightWorldPos;\0D\0A    uint        pad0;\0D\0A    float4      lightDiffuseColor;\0D\0A    float4      lightAmbientColor;\0D\0A};\0D\0A\0D\0Astruct Vertex\0D\0A{\0D\0A    float3      position;\0D\0A    float3      normal;\0D\0A};\0D\0A\0D\0Astruct MaterialConstants\0D\0A{\0D\0A    float4      albedo;\0D\0A};\0D\0A"}
+!140 = !{!"repro.hlsl"}
+!141 = !{!"-E", !"lib.no::entry", !"-T", !"lib_6_6", !"-Zpr", !"-all_resources_bound", !"-Zi", !"-Od", !"-Qembed_debug"}
+!142 = !{i32 1, i32 6}
+!143 = !{i32 1, i32 7}
+!144 = !{!"lib", i32 6, i32 6}
+!145 = !{!146, !152, !155, null}
+!146 = !{!147, !149, !150}
+!147 = !{i32 0, %struct.RaytracingAccelerationStructure* bitcast (%dx.types.Handle* @"\01?g_tlas@@3URaytracingAccelerationStructure@@A" to %struct.RaytracingAccelerationStructure*), !"g_tlas", i32 0, i32 0, i32 1, i32 16, i32 0, !148}
+!148 = !{i32 0, i32 4}
+!149 = !{i32 1, %struct.ByteAddressBuffer* bitcast (%dx.types.Handle* @"\01?g_indices@@3UByteAddressBuffer@@A" to %struct.ByteAddressBuffer*), !"g_indices", i32 0, i32 1, i32 1, i32 11, i32 0, null}
+!150 = !{i32 2, %"class.StructuredBuffer<Vertex>"* bitcast (%dx.types.Handle* @"\01?g_vertices@@3V?$StructuredBuffer@UVertex@@@@A" to %"class.StructuredBuffer<Vertex>"*), !"g_vertices", i32 0, i32 2, i32 1, i32 12, i32 0, !151}
+!151 = !{i32 1, i32 24}
+!152 = !{!153}
+!153 = !{i32 0, %"class.RWTexture2D<vector<float, 4> >"* bitcast (%dx.types.Handle* @"\01?g_rtOutput@@3V?$RWTexture2D@V?$vector@M$03@@@@A" to %"class.RWTexture2D<vector<float, 4> >"*), !"g_rtOutput", i32 0, i32 0, i32 1, i32 2, i1 false, i1 false, i1 false, !154}
+!154 = !{i32 0, i32 9}
+!155 = !{!156, !157}
+!156 = !{i32 0, %hostlayout.g_sceneCB* @g_sceneCB_legacy, !"g_sceneCB", i32 0, i32 0, i32 1, i32 128, null}
+!157 = !{i32 1, %g_materialCB* bitcast (%dx.types.Handle* @g_materialCB to %g_materialCB*), !"g_materialCB", i32 0, i32 1, i32 1, i32 16, null}
+!158 = !{i32 0, %"class.StructuredBuffer<Vertex>" undef, !159, %struct.Vertex undef, !164, %struct.MaterialConstants undef, !167, %struct.BuiltInTriangleIntersectionAttributes undef, !169, %struct.RayPayload undef, !171, %g_materialCB undef, !173, %hostlayout.struct.SceneConstants undef, !175, %hostlayout.g_sceneCB undef, !184}
+!159 = !{i32 28, !160, !161}
+!160 = !{i32 6, !"h", i32 3, i32 0}
+!161 = !{i32 0, !162}
+!162 = !{!163}
+!163 = !{i32 0, %struct.Vertex undef}
+!164 = !{i32 28, !165, !166}
+!165 = !{i32 6, !"position", i32 3, i32 0, i32 7, i32 9}
+!166 = !{i32 6, !"normal", i32 3, i32 16, i32 7, i32 9}
+!167 = !{i32 16, !168}
+!168 = !{i32 6, !"albedo", i32 3, i32 0, i32 7, i32 9}
+!169 = !{i32 8, !170}
+!170 = !{i32 6, !"barycentrics", i32 3, i32 0, i32 7, i32 9}
+!171 = !{i32 16, !172}
+!172 = !{i32 6, !"color", i32 3, i32 0, i32 7, i32 9}
+!173 = !{i32 16, !174}
+!174 = !{i32 6, !"g_materialCB", i32 3, i32 0}
+!175 = !{i32 128, !176, !178, !179, !180, !181, !182, !183}
+!176 = !{i32 6, !"projectionViewWorld", i32 2, !177, i32 3, i32 0, i32 7, i32 9}
+!177 = !{i32 4, i32 4, i32 1}
+!178 = !{i32 6, !"cameraWorldPos", i32 3, i32 64, i32 7, i32 9}
+!179 = !{i32 6, !"rayMaxLength", i32 3, i32 76, i32 7, i32 9}
+!180 = !{i32 6, !"lightWorldPos", i32 3, i32 80, i32 7, i32 9}
+!181 = !{i32 6, !"pad0", i32 3, i32 92, i32 7, i32 5}
+!182 = !{i32 6, !"lightDiffuseColor", i32 3, i32 96, i32 7, i32 9}
+!183 = !{i32 6, !"lightAmbientColor", i32 3, i32 112, i32 7, i32 9}
+!184 = !{i32 128, !185}
+!185 = !{i32 6, !"g_sceneCB", i32 3, i32 0}
+!186 = !{i32 1, void ()* @"\01?DefaultRT_RayGenShader@@YAXXZ", !187, void (%struct.RayPayload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?DefaultRT_ClosestHitShader@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !189, void (%struct.RayPayload*)* @"\01?DefaultRT_MissShader@@YAXURayPayload@@@Z", !192}
+!187 = !{!188}
+!188 = !{i32 1, !2, !2}
+!189 = !{!188, !190, !191}
+!190 = !{i32 2, !2, !2}
+!191 = !{i32 0, !2, !2}
+!192 = !{!188, !190}
+!193 = !{null, !"", null, !145, !194}
+!194 = !{i32 0, i64 65809}
+!195 = !{void (%struct.RayPayload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?DefaultRT_ClosestHitShader@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !"\01?DefaultRT_ClosestHitShader@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", null, null, !196}
+!196 = !{i32 8, i32 10, i32 6, i32 16, i32 7, i32 8, i32 5, !197}
+!197 = !{i32 0}
+!198 = !{void (%struct.RayPayload*)* @"\01?DefaultRT_MissShader@@YAXURayPayload@@@Z", !"\01?DefaultRT_MissShader@@YAXURayPayload@@@Z", null, null, !199}
+!199 = !{i32 8, i32 11, i32 6, i32 16, i32 5, !197}
+!200 = !{void ()* @"\01?DefaultRT_RayGenShader@@YAXXZ", !"\01?DefaultRT_RayGenShader@@YAXXZ", null, null, !201}
+!201 = !{i32 8, i32 7, i32 5, !197}
+!202 = !DILocation(line: 108, column: 5, scope: !46)
+!203 = !DILocation(line: 111, column: 5, scope: !46)
+!204 = !DILocation(line: 96, column: 23, scope: !46)
+!205 = !DILocation(line: 96, column: 5, scope: !46)
+!206 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "index", arg: 1, scope: !59, file: !1, line: 62, type: !62)
+!207 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!208 = !DILocation(line: 62, column: 37, scope: !59, inlinedAt: !209)
+!209 = distinct !DILocation(line: 96, column: 5, scope: !46)
+!210 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!211 = !DILocation(line: 64, column: 17, scope: !59, inlinedAt: !209)
+!212 = !DILocation(line: 64, column: 23, scope: !59, inlinedAt: !209)
+!213 = !DILocation(line: 64, column: 12, scope: !59, inlinedAt: !209)
+!214 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "xy", scope: !59, file: !1, line: 64, type: !215)
+!215 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, line: 64, baseType: !37)
+!216 = !DILocation(line: 65, column: 29, scope: !59, inlinedAt: !209)
+!217 = !DILocation(line: 65, column: 27, scope: !59, inlinedAt: !209)
+!218 = !DILocation(line: 65, column: 57, scope: !59, inlinedAt: !209)
+!219 = !DILocation(line: 65, column: 63, scope: !59, inlinedAt: !209)
+!220 = !DILocation(line: 65, column: 12, scope: !59, inlinedAt: !209)
+!221 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "screenPos", scope: !59, file: !1, line: 65, type: !215)
+!222 = !DILocation(line: 68, column: 19, scope: !59, inlinedAt: !209)
+!223 = !DILocation(line: 68, column: 17, scope: !59, inlinedAt: !209)
+!224 = !DILocation(line: 71, column: 59, scope: !59, inlinedAt: !209)
+!225 = !DILocation(line: 71, column: 20, scope: !59, inlinedAt: !209)
+!226 = !DILocation(line: 71, column: 12, scope: !59, inlinedAt: !209)
+!227 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "world", scope: !59, file: !1, line: 71, type: !4)
+!228 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!229 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!230 = !DILocation(line: 73, column: 15, scope: !59, inlinedAt: !209)
+!231 = !DILocation(line: 74, column: 24, scope: !59, inlinedAt: !209)
+!232 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "origin", scope: !46, file: !1, line: 93, type: !20)
+!233 = !DILocation(line: 93, column: 12, scope: !46)
+!234 = !DILocation(line: 74, column: 12, scope: !59, inlinedAt: !209)
+!235 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "origin", arg: 2, scope: !59, file: !1, line: 62, type: !20)
+!236 = !DILocation(line: 62, column: 55, scope: !59, inlinedAt: !209)
+!237 = !DILocation(line: 75, column: 37, scope: !59, inlinedAt: !209)
+!238 = !DILocation(line: 75, column: 17, scope: !59, inlinedAt: !209)
+!239 = !DILocation(line: 75, column: 15, scope: !59, inlinedAt: !209)
+!240 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "direction", arg: 3, scope: !59, file: !1, line: 62, type: !20)
+!241 = !DILocation(line: 62, column: 74, scope: !59, inlinedAt: !209)
+!242 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "rayDir", scope: !46, file: !1, line: 92, type: !20)
+!243 = !DILocation(line: 92, column: 12, scope: !46)
+!244 = !DILocation(line: 76, column: 1, scope: !59, inlinedAt: !209)
+!245 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "ray", scope: !46, file: !1, line: 100, type: !246)
+!246 = !DICompositeType(tag: DW_TAG_structure_type, name: "RayDesc", file: !1, line: 100, size: 256, align: 32, elements: !247)
+!247 = !{!248, !249, !250, !251}
+!248 = !DIDerivedType(tag: DW_TAG_member, name: "Origin", scope: !246, file: !1, line: 100, baseType: !21, size: 96, align: 32)
+!249 = !DIDerivedType(tag: DW_TAG_member, name: "TMin", scope: !246, file: !1, line: 100, baseType: !8, size: 32, align: 32, offset: 96)
+!250 = !DIDerivedType(tag: DW_TAG_member, name: "Direction", scope: !246, file: !1, line: 100, baseType: !21, size: 96, align: 32, offset: 128)
+!251 = !DIDerivedType(tag: DW_TAG_member, name: "TMax", scope: !246, file: !1, line: 100, baseType: !8, size: 32, align: 32, offset: 224)
+!252 = !DIExpression()
+!253 = !DILocation(line: 100, column: 13, scope: !46)
+!254 = !DILocation(line: 101, column: 9, scope: !46)
+!255 = !DILocation(line: 101, column: 16, scope: !46)
+!256 = !DILocation(line: 102, column: 9, scope: !46)
+!257 = !DILocation(line: 102, column: 19, scope: !46)
+!258 = !DILocation(line: 105, column: 9, scope: !46)
+!259 = !DILocation(line: 105, column: 14, scope: !46)
+!260 = !DILocation(line: 106, column: 26, scope: !46)
+!261 = !DILocation(line: 106, column: 9, scope: !46)
+!262 = !DILocation(line: 106, column: 14, scope: !46)
+!263 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "payload", scope: !46, file: !1, line: 107, type: !53)
+!264 = !DILocation(line: 107, column: 16, scope: !46)
+!265 = !DILocation(line: 107, column: 26, scope: !46)
+!266 = !DILocation(line: 111, column: 50, scope: !46)
+!267 = !DILocation(line: 111, column: 16, scope: !46)
+!268 = !DILocation(line: 111, column: 40, scope: !46)
+!269 = !DILocation(line: 112, column: 1, scope: !46)
+!270 = !DILocation(line: 124, column: 33, scope: !49)
+!271 = !DILocation(line: 121, column: 27, scope: !49)
+!272 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "attr", arg: 2, scope: !49, file: !1, line: 115, type: !34)
+!273 = !DILocation(line: 115, column: 100, scope: !49)
+!274 = !DILocation(line: 117, column: 26, scope: !49)
+!275 = !DILocation(line: 50, column: 12, scope: !17, inlinedAt: !276)
+!276 = distinct !DILocation(line: 117, column: 26, scope: !49)
+!277 = !DILocation(line: 50, column: 31, scope: !17, inlinedAt: !276)
+!278 = !DILocation(line: 50, column: 47, scope: !17, inlinedAt: !276)
+!279 = !DILocation(line: 50, column: 45, scope: !17, inlinedAt: !276)
+!280 = !DILocation(line: 50, column: 29, scope: !17, inlinedAt: !276)
+!281 = !DILocation(line: 50, column: 5, scope: !17, inlinedAt: !276)
+!282 = !DILocation(line: 117, column: 12, scope: !49)
+!283 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "hitPosition", scope: !49, file: !1, line: 117, type: !20)
+!284 = !DILocation(line: 120, column: 24, scope: !49)
+!285 = !DILocation(line: 120, column: 41, scope: !49)
+!286 = !DILocation(line: 120, column: 73, scope: !49)
+!287 = !DILocation(line: 120, column: 10, scope: !49)
+!288 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "indexOffset", scope: !49, file: !1, line: 120, type: !115)
+!289 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "indices", scope: !49, file: !1, line: 121, type: !290)
+!290 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !291)
+!291 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, line: 121, baseType: !292)
+!292 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, line: 121, size: 96, align: 32, elements: !293, templateParams: !297)
+!293 = !{!294, !295, !296}
+!294 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !292, file: !1, line: 121, baseType: !66, size: 32, align: 32, flags: DIFlagPublic)
+!295 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !292, file: !1, line: 121, baseType: !66, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!296 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !292, file: !1, line: 121, baseType: !66, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!297 = !{!69, !27}
+!298 = !DILocation(line: 121, column: 17, scope: !49)
+!299 = !DILocation(line: 124, column: 56, scope: !49)
+!300 = !DILocation(line: 124, column: 31, scope: !49)
+!301 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "vertexAttribute", arg: 1, scope: !28, file: !1, line: 54, type: !31)
+!302 = !DILocation(line: 54, column: 28, scope: !28, inlinedAt: !303)
+!303 = distinct !DILocation(line: 130, column: 29, scope: !49)
+!304 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "vertexNormals", scope: !49, file: !1, line: 124, type: !31)
+!305 = !DILocation(line: 124, column: 12, scope: !49)
+!306 = !DILocation(line: 124, column: 64, scope: !49)
+!307 = !DILocation(line: 124, column: 87, scope: !49)
+!308 = !DIExpression(DW_OP_bit_piece, 128, 32)
+!309 = !DIExpression(DW_OP_bit_piece, 160, 32)
+!310 = !DILocation(line: 124, column: 95, scope: !49)
+!311 = !DILocation(line: 124, column: 118, scope: !49)
+!312 = !DIExpression(DW_OP_bit_piece, 192, 32)
+!313 = !DIExpression(DW_OP_bit_piece, 224, 32)
+!314 = !DIExpression(DW_OP_bit_piece, 256, 32)
+!315 = !DILocation(line: 130, column: 29, scope: !49)
+!316 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "attr", arg: 2, scope: !28, file: !1, line: 54, type: !34)
+!317 = !DILocation(line: 54, column: 86, scope: !28, inlinedAt: !303)
+!318 = !DILocation(line: 57, column: 14, scope: !28, inlinedAt: !303)
+!319 = !DILocation(line: 57, column: 9, scope: !28, inlinedAt: !303)
+!320 = !DILocation(line: 57, column: 32, scope: !28, inlinedAt: !303)
+!321 = !DILocation(line: 57, column: 51, scope: !28, inlinedAt: !303)
+!322 = !DILocation(line: 57, column: 29, scope: !28, inlinedAt: !303)
+!323 = !DILocation(line: 56, column: 31, scope: !28, inlinedAt: !303)
+!324 = !DILocation(line: 58, column: 14, scope: !28, inlinedAt: !303)
+!325 = !DILocation(line: 58, column: 9, scope: !28, inlinedAt: !303)
+!326 = !DILocation(line: 58, column: 32, scope: !28, inlinedAt: !303)
+!327 = !DILocation(line: 58, column: 51, scope: !28, inlinedAt: !303)
+!328 = !DILocation(line: 58, column: 29, scope: !28, inlinedAt: !303)
+!329 = !DILocation(line: 57, column: 73, scope: !28, inlinedAt: !303)
+!330 = !DILocation(line: 56, column: 5, scope: !28, inlinedAt: !303)
+!331 = !DILocation(line: 130, column: 12, scope: !49)
+!332 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "triangleNormal", scope: !49, file: !1, line: 130, type: !20)
+!333 = !DILocation(line: 132, column: 27, scope: !49)
+!334 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "normal", arg: 2, scope: !43, file: !1, line: 79, type: !20)
+!335 = !DILocation(line: 79, column: 60, scope: !43, inlinedAt: !336)
+!336 = distinct !DILocation(line: 132, column: 27, scope: !49)
+!337 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "hitPosition", arg: 1, scope: !43, file: !1, line: 79, type: !20)
+!338 = !DILocation(line: 79, column: 40, scope: !43, inlinedAt: !336)
+!339 = !DILocation(line: 81, column: 47, scope: !43, inlinedAt: !336)
+!340 = !DILocation(line: 81, column: 61, scope: !43, inlinedAt: !336)
+!341 = !DILocation(line: 81, column: 27, scope: !43, inlinedAt: !336)
+!342 = !DILocation(line: 81, column: 12, scope: !43, inlinedAt: !336)
+!343 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "pixelToLight", scope: !43, file: !1, line: 81, type: !20)
+!344 = !DILocation(line: 84, column: 29, scope: !43, inlinedAt: !336)
+!345 = !DILocation(line: 84, column: 19, scope: !43, inlinedAt: !336)
+!346 = !DILocation(line: 84, column: 11, scope: !43, inlinedAt: !336)
+!347 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "nDotL", scope: !43, file: !1, line: 84, type: !8)
+!348 = !DILocation(line: 86, column: 25, scope: !43, inlinedAt: !336)
+!349 = !DILocation(line: 86, column: 44, scope: !43, inlinedAt: !336)
+!350 = !DILocation(line: 86, column: 32, scope: !43, inlinedAt: !336)
+!351 = !DILocation(line: 86, column: 62, scope: !43, inlinedAt: !336)
+!352 = !DILocation(line: 86, column: 5, scope: !43, inlinedAt: !336)
+!353 = !DILocation(line: 132, column: 12, scope: !49)
+!354 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "diffuseColor", scope: !49, file: !1, line: 132, type: !4)
+!355 = !DILocation(line: 133, column: 30, scope: !49)
+!356 = !DILocation(line: 133, column: 48, scope: !49)
+!357 = !DILocation(line: 133, column: 12, scope: !49)
+!358 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "color", scope: !49, file: !1, line: 133, type: !4)
+!359 = !DILocation(line: 135, column: 19, scope: !49)
+!360 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "payload", arg: 1, scope: !49, file: !1, line: 115, type: !53)
+!361 = !DILocation(line: 115, column: 50, scope: !49)
+!362 = !DILocation(line: 136, column: 1, scope: !49)
+!363 = !DILocation(line: 141, column: 12, scope: !56)
+!364 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "background", scope: !56, file: !1, line: 141, type: !4)
+!365 = !DILocation(line: 142, column: 19, scope: !56)
+!366 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "payload", arg: 1, scope: !56, file: !1, line: 139, type: !53)
+!367 = !DILocation(line: 139, column: 44, scope: !56)
+!368 = !DILocation(line: 143, column: 1, scope: !56)
+
+
+--- stderr ---
+warning: no output provided for debug - embedding PDB in shader container.  Use -Qembed_debug to silence this warning.
+
+

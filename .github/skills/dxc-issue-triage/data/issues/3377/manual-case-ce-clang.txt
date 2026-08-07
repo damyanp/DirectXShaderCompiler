@@ -1,0 +1,102 @@
+# manual capture: Compiler Explorer probes, for issue #3377
+# harness:  ce-probe.py   (re-runnable: `python ce-probe.py <compiler-id> <shader> "<args>"`)
+# ran:      2026-08-07
+# NOTE:     hand-driven capture, not a probe of the primary repro. Not scored by match.json.
+#           CE runs RELEASE builds and its DXC panes are Linux builds, so a crash there shows
+#           as a POSIX signal (SIGSEGV = 139), not as a Windows status code.
+#
+# WHY
+# Two decisions rest on this file.
+#
+# 1. The published link (godbolt.txt) carries only the two DXC panes and NO Clang pane.
+#    SKILL.md asks for a Clang pane on old issues where the successor front end may already
+#    have answered the question -- here it has not, and the pane would be 13 errors of noise
+#    about constructs unrelated to the issue. CASE 1 is why.
+#
+# 2. Clang's HLSL front end does NOT reject a semantic on a Texture2D entry-point parameter,
+#    which is a datapoint for @tex3d's and @damyanp's position that this code should not be
+#    accepted. CASE 2 measures that, and CASE 1 is its control: the same flags on the same
+#    compiler do produce diagnostics when there is something it knows how to reject, so
+#    CASE 2's clean exit is a real result and not `-fsyntax-only` doing nothing.
+#    CASE 3 confirms the flags and shader stage work at all on a plainly valid shader.
+#
+# Limits: -fsyntax-only asks a front-end question only, and Clang's HLSL support is
+# incomplete, so CASE 2 says Clang's Sema has no rule against this today -- not that Clang
+# would compile it.
+### CASE 1: repro.hlsl -- why there is no Clang pane 
+### compiler: hlsl_clang_trunk
+### source:   repro.hlsl
+### args:     -T ps_6_0 -E main_fragment -fsyntax-only
+### exit:     1
+[stderr] clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[stderr] clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[stderr] [1m<source>:1:29: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'Filter'[0m
+[stderr]     1 | SamplerState PointSampler { Filter = MIN_MAG_MIP_POINT; AddressU = Clamp; AddressV = Clamp; };[0m
+[stderr]       | [0;1;32m                            ^~~~~~
+[stderr] [0m[1m<source>:1:38: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'MIN_MAG_MIP_POINT'[0m
+[stderr]     1 | SamplerState PointSampler { Filter = MIN_MAG_MIP_POINT; AddressU = Clamp; AddressV = Clamp; };[0m
+[stderr]       | [0;1;32m                                     ^~~~~~~~~~~~~~~~~
+[stderr] [0m[1m<source>:9:2: [0m[0;1;31merror: [0m[1munknown type name 'uniform'[0m
+[stderr]     9 |         uniform float4x4 modelViewProj,[0m
+[stderr]       | [0;1;32m        ^
+[stderr] [0m[1m<source>:9:19: [0m[0;1;31merror: [0m[1mexpected ')'[0m
+[stderr]     9 |         uniform float4x4 modelViewProj,[0m
+[stderr]       | [0;1;32m                         ^
+[stderr] [0m[1m<source>:4:1: [0m[0;1;36mnote: [0mto match this '('[0m
+[stderr]     4 | ([0m
+[stderr]       | [0;1;32m^
+[stderr] [0m[1m<source>:16:2: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'oPosition'; did you mean 'position'?[0m
+[stderr]    16 |         oPosition = mul(modelViewProj, position);[0m
+[stderr]       | [0;1;32m        ^~~~~~~~~
+[stderr] [0m      | [0;32m        position
+[stderr] [0m[1m<source>:5:9: [0m[0;1;36mnote: [0m'position' declared here[0m
+[stderr]     5 |         float4 position : POSITION,[0m
+[stderr]       | [0;1;32m               ^
+[stderr] [0m[1m<source>:16:18: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'modelViewProj'[0m
+[stderr]    16 |         oPosition = mul(modelViewProj, position);[0m
+[stderr]       | [0;1;32m                        ^~~~~~~~~~~~~
+[stderr] [0m[1m<source>:17:2: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'oColor'; did you mean 'color'?[0m
+[stderr]    17 |         oColor = color;[0m
+[stderr]       | [0;1;32m        ^~~~~~
+[stderr] [0m      | [0;32m        color
+[stderr] [0m[1m<source>:6:9: [0m[0;1;36mnote: [0m'color' declared here[0m
+[stderr]     6 |         float4 color    : COLOR,[0m
+[stderr]       | [0;1;32m               ^
+[stderr] [0m[1m<source>:18:2: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'otexCoord'; did you mean 'texCoord'?[0m
+[stderr]    18 |         otexCoord = texCoord;[0m
+[stderr]       | [0;1;32m        ^~~~~~~~~
+[stderr] [0m      | [0;32m        texCoord
+[stderr] [0m[1m<source>:7:9: [0m[0;1;36mnote: [0m'texCoord' declared here[0m
+[stderr]     7 |         float2 texCoord : TEXCOORD0,[0m
+[stderr]       | [0;1;32m               ^
+[stderr] [0m[1m<source>:21:51: [0m[0;1;31merror: [0m[1munknown type name 'uniform'[0m
+[stderr]    21 | float4 main_fragment(float2 texCoord : TEXCOORD0, uniform Texture2D<float4> decal : TEXUNIT0) : SV_Target[0m
+[stderr]       | [0;1;32m                                                  ^
+[stderr] [0m[1m<source>:21:59: [0m[0;1;31merror: [0m[1mparameter name cannot have template arguments[0m
+[stderr]    21 | float4 main_fragment(float2 texCoord : TEXCOORD0, uniform Texture2D<float4> decal : TEXUNIT0) : SV_Target[0m
+[stderr]       | [0;1;32m                                                          ^
+[stderr] [0m[1m<source>:21:77: [0m[0;1;31merror: [0m[1mexpected ')'[0m
+[stderr]    21 | float4 main_fragment(float2 texCoord : TEXCOORD0, uniform Texture2D<float4> decal : TEXUNIT0) : SV_Target[0m
+[stderr]       | [0;1;32m                                                                            ^
+[stderr] [0m[1m<source>:21:21: [0m[0;1;36mnote: [0mto match this '('[0m
+[stderr]    21 | float4 main_fragment(float2 texCoord : TEXCOORD0, uniform Texture2D<float4> decal : TEXUNIT0) : SV_Target[0m
+[stderr]       | [0;1;32m                    ^
+[stderr] [0m[1m<source>:23:9: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'decal'[0m
+[stderr]    23 |         [0;34mreturn[0m decal.Sample(PointSampler, texCoord);[0m
+[stderr]       | [0;1;32m               ^~~~~
+[stderr] [0m[0;1;31merror: [0m[1mmissing entry point definition 'main_fragment'[0m
+[stderr] 13 errors generated.
+### CASE 2: variant-no-uniform.hlsl -- Texture2D param with a semantic, no uniform 
+### compiler: hlsl_clang_trunk
+### source:   variant-no-uniform.hlsl
+### args:     -T ps_6_0 -E main_fragment -fsyntax-only
+### exit:     0
+[stderr] clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[stderr] clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+### CASE 3: control-hello.hlsl -- flags/stage control 
+### compiler: hlsl_clang_trunk
+### source:   control-hello.hlsl
+### args:     -T ps_6_0 -E main_fragment -fsyntax-only
+### exit:     0
+[stderr] clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[stderr] clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m

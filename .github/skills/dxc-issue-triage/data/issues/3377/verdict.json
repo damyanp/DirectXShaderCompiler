@@ -1,0 +1,22 @@
+{
+  "batch": "batch-008",
+  "confidence": "high",
+  "created_at": "2021-01-21T16:41:33Z",
+  "godbolt_url": "https://godbolt.org/z/rqvfvYc93",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (all 20 releases probed linearly, no invalid probes)",
+  "labels": "bug,crash,incorrect-code",
+  "labels_add": "diagnostic, fxc-disagrees",
+  "labels_now": "bug,crash,incorrect-code",
+  "notes_path": "issues/3377/notes.md",
+  "number": 3377,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, SKILL.md step 10, applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still crashes on main and on all 20 releases v1.4.1907-v1.9.2607; in everything tested the trigger is a semantic on a resource-typed entry-point parameter -- no matrix or uniform keyword needed. Both PRs that referenced it (#4538, #4554) were closed unmerged.",
+  "title": "Access violation (silent, no error messages generated) when trying to build pixel shader",
+  "triaged_at": "2026-08-07T16:47:14+00:00",
+  "triaged_by": "claude-opus-4.6 (Copilot CLI)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3377"
+}

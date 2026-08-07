@@ -1,0 +1,39 @@
+Issue #2922 -- "value-to-declare pass not handling pointer case under -O1"
+
+WHAT TO LOOK FOR, and what this link can and cannot show.
+
+This is the PixTest::PixStructAnnotation_FloatN shader, compiled the way PixTest.cpp
+compiles it (as_6_5, /Zi /Qembed_debug, -HV 2018, -enable-16bit-types).
+
+Pane 1  DXC 1.6.2112, -O1   (last release that still had the bug)
+Pane 2  DXC trunk,    -O1   (fixed)
+Pane 3  DXC trunk,    -Od   (the configuration PixTest used to avoid the bug)
+
+Look at the llvm.dbg record for the local variable "p" near the end of @main:
+
+  Pane 3, -Od:        llvm.dbg.declare(metadata %struct.smallPayload.0* %p1, ...)
+  Panes 1 and 2, -O1: llvm.dbg.value  (metadata %struct.smallPayload.0* %p1, ...)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ POINTER operand
+
+That pointer-typed dbg.value is the input DxilDbgValueToDbgDeclare::handleDbgValue used to
+early-return on, dropping the variable, which is what made PixTest fail at -O1.
+
+PANES 1 AND 2 AGREE, AND THAT IS THE POINT. (Their metadata node numbers differ; the
+instruction and its operand types are the same.) The fix -- c0676c7ca, PR #4375, Apr 2022 --
+is inside lib/DxilPIXPasses/, a pass reachable only through IDxcOptimizer. dxc.exe does not
+run it, and Compiler Explorer cannot run it, so NO Compiler Explorer link can show this bug
+being present or absent. This link shows only the precondition: that -O1 really does hand the
+pass a pointer, on both sides of the fix.
+
+The symptom itself was measured out-of-band by running each release's own
+-dxil-dbg-value-to-dbg-declare through dxopt -external; see measure.py and
+manual-case-release-history.txt in the triage directory. Result: fixed between v1.6.2112 and
+v1.7.2207.
+
+No FXC pane: FXC has no shader model 6 and no amplification shaders, so it cannot compile
+this at all. No Clang pane: the defect is in a DXC-only PIX pass, so clang has nothing to say.
+
+(This banner is prepended to the source, and DXC records the whole source verbatim in
+!dx.source.contents -- so any literal IR written here would also appear inside the compiled
+output and confuse a text search over it. That is why the instruction names above are spelled
+without their "call void @" prefix.)

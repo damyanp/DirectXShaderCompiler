@@ -1,0 +1,104 @@
+# manual capture: DXASSERT message, file, line and stack on the ground-truth Debug build
+# compiler: main-debug  (<repo>\build\Debug\bin\dxc.exe)
+# version:  dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+# harness:  assert-stack.cmd   (cdb 10.0.26100.6584, x64)  -- re-runnable
+# ran:      2026-08-07
+# why:      dxc sends DXASSERT text to OutputDebugString and then __debugbreak()s
+#           (include/dxc/Support/Global.h:300), so a plain run shows only
+#           'Internal compiler error: Terminal Error 0x80000003' on stderr with no message,
+#           file or line. The file and line are the whole point here.
+# NOTE:     hand-driven capture, not a probe. Not scored by match.json.
+#           Stacks trimmed by trim-cdb.py; module-load and symbol-path noise removed.
+#
+# CASE 1  repro.hlsl, exactly as filed, with the arguments in cmd.txt. The assert is
+#         DXASSERT(argIdx < endArgIdx, "arg index out of bound") at
+#         lib/Transforms/Scalar/ScalarReplAggregatesHLSL.cpp:4791, in AllocateSemanticIndex.
+#         The frames below match the ones @Dwedit posted in 2021 -- recursive
+#         AllocateSemanticIndex under SROA_Parameter_HLSL::allocateSemanticIndex under
+#         flattenArgument -- so the code path has not moved in five years.
+# CASE 2  variant-minimal.hlsl -- a uniform Texture2D entry-point parameter with a semantic
+#         and nothing else. SAME assert, SAME file, SAME line, SAME frames. This is the
+#         evidence for @damyanp's 2024-07-09 comment that matrices are not involved.
+# CASE 3  control-no-semantic.hlsl -- the repro with only the `: TEXUNIT0` semantic removed.
+#         No trap: the only break is the loader's, and the stack after 'g' shows the process
+#         leaving through exit(). See variant-control-no-semantic-main-debug.txt for the
+#         diagnostic it prints and its exit status (0x80004005).
+# CASE 4  variant-no-uniform.hlsl -- CASE 2 with the `uniform` keyword dropped and nothing
+#         else changed. SAME assert, SAME line 4791, SAME frames, so `uniform` is not part
+#         of the trigger: a semantic on a resource-typed entry-point parameter is enough.
+### CASE 1: repro.hlsl -- the repro, with the arguments in cmd.txt
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T ps_6_0 -E main_fragment repro.hlsl
+(60f0.6cf8): Break instruction exception - code 80000003 (first chance)
+Error: 	!(argIdx < endArgIdx)
+File:
+C:\prj\DirectXShaderCompiler\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
+Func:	AllocateSemanticIndex.
+	arg index out of bound
+(60f0.6cf8): Break instruction exception - code 80000003 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 000000c4`cd783750 00007ff8`5f4dc333     dxcompiler!AllocateSemanticIndex+0x270
+01 000000c4`cd7837e0 00007ff8`5f4dc333     dxcompiler!AllocateSemanticIndex+0x1c3
+02 000000c4`cd783870 00007ff8`5f4dc1da     dxcompiler!AllocateSemanticIndex+0x1c3
+03 000000c4`cd783900 00007ff8`5f4dbf0c     dxcompiler!AllocateSemanticIndex+0x6a
+04 000000c4`cd783990 00007ff8`5f4da32d     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::allocateSemanticIndex+0x2fc
+05 000000c4`cd783b10 00007ff8`5f4d6479     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::flattenArgument+0x21ad
+06 000000c4`cd785140 00007ff8`5f4d4f56     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::createFlattenedFunction+0x4a9
+07 000000c4`cd785f80 00007ff8`619d74e8     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::runOnModule+0x4f6
+08 000000c4`cd786500 00007ff8`619d8325     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+09 000000c4`cd7868b0 00007ff8`619cec6c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+0a 000000c4`cd786960 00007ff8`5f6e4a16     dxcompiler!llvm::legacy::PassManager::run+0x2c
+0b 000000c4`cd7869a0 00007ff8`5f6e1fa8     dxcompiler!`anonymous namespace'::EmitAssemblyHelper::EmitAssembly+0x616
+0c 000000c4`cd786b80 00007ff8`5f6ba201     dxcompiler!clang::EmitBackendOutput+0x158
+0d 000000c4`cd786fd0 00007ff8`60f4d808     dxcompiler!clang::BackendConsumer::HandleTranslationUnit+0x521
+0e 000000c4`cd7871f0 00007ff8`5fa79e3e     dxcompiler!clang::ParseAST+0x608
+0f 000000c4`cd7874c0 00007ff8`5f6b3c55     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+10 000000c4`cd787520 00007ff8`5fa798a8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+11 000000c4`cd787a70 00007ff8`5ec9b7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+### CASE 2: variant-minimal.hlsl -- no matrix, no SamplerState, no second entry point
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T ps_6_0 -E main_fragment variant-minimal.hlsl
+(29dc.c94): Break instruction exception - code 80000003 (first chance)
+Error: 	!(argIdx < endArgIdx)
+File:
+C:\prj\DirectXShaderCompiler\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
+Func:	AllocateSemanticIndex.
+	arg index out of bound
+(29dc.c94): Break instruction exception - code 80000003 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 0000009c`a0b83650 00007ff8`5f4dc333     dxcompiler!AllocateSemanticIndex+0x270
+01 0000009c`a0b836e0 00007ff8`5f4dc333     dxcompiler!AllocateSemanticIndex+0x1c3
+02 0000009c`a0b83770 00007ff8`5f4dc1da     dxcompiler!AllocateSemanticIndex+0x1c3
+03 0000009c`a0b83800 00007ff8`5f4dbf0c     dxcompiler!AllocateSemanticIndex+0x6a
+04 0000009c`a0b83890 00007ff8`5f4da32d     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::allocateSemanticIndex+0x2fc
+05 0000009c`a0b83a10 00007ff8`5f4d6479     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::flattenArgument+0x21ad
+06 0000009c`a0b85040 00007ff8`5f4d4f56     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::createFlattenedFunction+0x4a9
+07 0000009c`a0b85e80 00007ff8`619d74e8     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::runOnModule+0x4f6
+### CASE 3: control-no-semantic.hlsl -- repro minus the semantic; must NOT trap
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T ps_6_0 -E main_fragment control-no-semantic.hlsl
+(189c.7078): Break instruction exception - code 80000003 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 000000cf`b518fd38 00007ff9`06eb180b     ntdll!NtTerminateProcess+0x14
+01 000000cf`b518fd40 00007ff8`71c5219b     KERNEL32!ExitProcessImplementation+0xb
+02 000000cf`b518fd70 00007ff8`71c5214f     ucrtbased!wassert+0x54b
+03 000000cf`b518fda0 00007ff8`71c52456     ucrtbased!wassert+0x4ff
+04 000000cf`b518fe00 00007ff7`f22d8dfb     ucrtbased!exit+0x16
+05 000000cf`b518fe30 00007ff7`f22d8c9e     dxc!__scrt_common_main_seh+0x14b
+06 000000cf`b518fea0 00007ff7`f22d8f3e     dxc!__scrt_common_main+0xe
+07 000000cf`b518fed0 00007ff9`06e9e957     dxc!wmainCRTStartup+0xe
+### CASE 4: variant-no-uniform.hlsl -- same as CASE 2 with the `uniform` keyword dropped
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T ps_6_0 -E main_fragment variant-no-uniform.hlsl
+(4ddc.fa4): Break instruction exception - code 80000003 (first chance)
+Error: 	!(argIdx < endArgIdx)
+File:
+C:\prj\DirectXShaderCompiler\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
+Func:	AllocateSemanticIndex.
+	arg index out of bound
+(4ddc.fa4): Break instruction exception - code 80000003 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 000000cb`4d383ab0 00007ff8`5f4dc333     dxcompiler!AllocateSemanticIndex+0x270
+01 000000cb`4d383b40 00007ff8`5f4dc333     dxcompiler!AllocateSemanticIndex+0x1c3
+02 000000cb`4d383bd0 00007ff8`5f4dc1da     dxcompiler!AllocateSemanticIndex+0x1c3
+03 000000cb`4d383c60 00007ff8`5f4dbf0c     dxcompiler!AllocateSemanticIndex+0x6a
+04 000000cb`4d383cf0 00007ff8`5f4da32d     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::allocateSemanticIndex+0x2fc
+05 000000cb`4d383e70 00007ff8`5f4d6479     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::flattenArgument+0x21ad
+06 000000cb`4d3854a0 00007ff8`5f4d4f56     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::createFlattenedFunction+0x4a9
+07 000000cb`4d3862e0 00007ff8`619d74e8     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::runOnModule+0x4f6

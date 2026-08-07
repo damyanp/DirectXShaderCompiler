@@ -1,0 +1,89 @@
+# Where does DXC's existing out-of-bounds subscript check fire?
+#
+# Each case in case-positions.hlsl is compiled on its own with -D CASE=n against the
+# ground-truth Debug build. Recorded per case: the exact command, the exit status, every
+# error:/warning: line, and whether DXIL was emitted ("; shader hash:" present in stdout).
+#
+# Run by: python probe-positions.py   (writes this file)
+
+# dxc: C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+# version: dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+
+==============================================================================
+CASE 1  uint x = indices[3];                       plain local initializer
+# cmd: dxc -T cs_6_0 -E main -Od -D CASE=1 case-positions.hlsl
+# exit: 0x80004005
+# dxil emitted: no
+case-positions.hlsl:17:20: error: vector element index '3' is out of bounds
+
+==============================================================================
+CASE 2  g_vertices[indices[3]].x                   index of a resource operator[]  (reporter's shape)
+# cmd: dxc -T cs_6_0 -E main -Od -D CASE=2 case-positions.hlsl
+# exit: 0x00000000
+# dxil emitted: yes
+<no error: or warning: line in stdout+stderr>
+
+==============================================================================
+CASE 3  float3 n[3] = { ..., g_vertices[indices[3]] };  same, inside an initializer list
+# cmd: dxc -T cs_6_0 -E main -Od -D CASE=3 case-positions.hlsl
+# exit: 0x00000000
+# dxil emitted: yes
+<no error: or warning: line in stdout+stderr>
+
+==============================================================================
+CASE 4  take(indices[3])                           ordinary function call argument
+# cmd: dxc -T cs_6_0 -E main -Od -D CASE=4 case-positions.hlsl
+# exit: 0x80004005
+# dxil emitted: no
+case-positions.hlsl:29:20: error: vector element index '3' is out of bounds
+
+==============================================================================
+CASE 5  m[3] = 7;                                  assignment left-hand side
+# cmd: dxc -T cs_6_0 -E main -Od -D CASE=5 case-positions.hlsl
+# exit: 0x80004005
+# dxil emitted: no
+case-positions.hlsl:33:5: error: vector element index '3' is out of bounds
+
+==============================================================================
+CASE 6  indices[3] + 1                             arithmetic subexpression
+# cmd: dxc -T cs_6_0 -E main -Od -D CASE=6 case-positions.hlsl
+# exit: 0x80004005
+# dxil emitted: no
+case-positions.hlsl:37:15: error: vector element index '3' is out of bounds
+
+==============================================================================
+CASE 7  indices.w                                  swizzle spelling of the same access
+# cmd: dxc -T cs_6_0 -E main -Od -D CASE=7 case-positions.hlsl
+# exit: 0x80004005
+# dxil emitted: no
+case-positions.hlsl:40:15: error: vector swizzle 'w' is out of bounds
+
+==============================================================================
+CASE 8  g_vertices[a[3]].x                         ARRAY index of a resource operator[]
+# cmd: dxc -T cs_6_0 -E main -Od -D CASE=8 case-positions.hlsl
+# exit: 0x00000000
+# dxil emitted: yes
+<no error: or warning: line in stdout+stderr>
+
+==============================================================================
+CASE 9  uint x = a[3];                             ARRAY, plain local initializer
+# cmd: dxc -T cs_6_0 -E main -Od -D CASE=9 case-positions.hlsl
+# exit: 0x80004005
+# dxil emitted: no
+case-positions.hlsl:48:12: error: array index 3 is out of bounds
+
+==============================================================================
+CASE 10  arr[indices[3]]                            index of a plain array subscript
+# cmd: dxc -T cs_6_0 -E main -Od -D CASE=10 case-positions.hlsl
+# exit: 0x80004005
+# dxil emitted: no
+error: validation errors
+case-positions.hlsl:53:7: error: Instructions should not read uninitialized value.
+
+==============================================================================
+CASE 11  indices[indices[3]]                        index of a vector subscript
+# cmd: dxc -T cs_6_0 -E main -Od -D CASE=11 case-positions.hlsl
+# exit: 0x80004005
+# dxil emitted: no
+error: validation errors
+case-positions.hlsl:56:15: error: Access to out-of-bounds memory is disallowed.

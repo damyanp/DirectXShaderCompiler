@@ -524,6 +524,45 @@ check("bisect stub mirrors execute()'s signature",
       str(_inspect.signature(triage.execute)))
 
 
+# --- cmd.txt is a Windows command line, not a POSIX one --------------------
+# `shlex.split` is POSIX-mode, where `\` escapes the next character. Every DXC
+# path on Windows is spelled with it, so `-I inc\sub` silently became
+# `-I incsub` -- a probe that compiled the wrong thing and still looked fine in
+# the capture. Quoting must keep working; only the escape is disabled.
+for desc, line, want in [
+    ("a backslash path separator survives the split",
+     r"-T ps_6_0 -I inc\sub repro.hlsl",
+     ["-T", "ps_6_0", "-I", r"inc\sub", "repro.hlsl"]),
+    ("a rooted Windows path survives the split",
+     r"-Fo C:\out\a.dxo repro.hlsl",
+     ["-Fo", r"C:\out\a.dxo", "repro.hlsl"]),
+    ("quoting still groups a spaced filename",
+     '-T ps_6_0 "my repro.hlsl"',
+     ["-T", "ps_6_0", "my repro.hlsl"]),
+    ("an ordinary line is unchanged",
+     "-T ps_6_0 -E main -Od repro.hlsl",
+     ["-T", "ps_6_0", "-E", "main", "-Od", "repro.hlsl"]),
+]:
+    check(desc, triage.split_cmd(line), want)
+
+# --- `run` must not pick a compiler for you --------------------------------
+# Measured on #2923: the symptom lives in a PIX pass `dxc.exe` never runs, so
+# the issue is registered against a harness compiler. `run` with no --compiler
+# fell back to `main-debug`, scored a plausible `no-repro`, and contradicted the
+# repro rows already on disk. The existing captures name the right answer.
+_gt = _tf.mkdtemp()
+triage.issue_dir = lambda n: _gt
+check("no captures means no opinion", triage.ground_truth_compiler(1), None)
+open(_os.path.join(_gt, "out-main-debug-pix.txt"), "w").close()
+open(_os.path.join(_gt, "out-v1.6.2104.txt"), "w").close()
+check("release captures do not count as a ground-truth compiler",
+      triage.ground_truth_compiler(1), "main-debug-pix")
+open(_os.path.join(_gt, "out-main-debug.txt"), "w").close()
+check("two candidates means no opinion, so the default stands",
+      triage.ground_truth_compiler(1), None)
+triage.issue_dir = lambda n: _tmp
+
+
 # --- the overview staleness gate -------------------------------------------
 #
 # `reports/overview.md` is generated, so the only way it goes wrong is by not

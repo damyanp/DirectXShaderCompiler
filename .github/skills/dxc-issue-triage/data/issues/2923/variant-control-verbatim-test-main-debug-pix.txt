@@ -1,0 +1,52 @@
+# compiler: main-debug-pix
+# exe: <triage>/issues/2923/run-2923.cmd
+# ran: 2026-08-07T16:10:25+00:00
+# cmd: control-no-subroutine.hlsl -Od
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-verbatim-test (control-no-subroutine.hlsl)
+# expect: no-match
+
+$ dxc control-no-subroutine.hlsl -Od
+[exe] <triage>/issues/2923/run-2923.cmd
+[exit] 0
+--- stdout ---
+# shader: control-no-subroutine.hlsl    optimization: -Od
+# (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
+
+$ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
+$ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
+2736 bytes written to control-no-subroutine-Od.ildb.bc
+$ dxopt  -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+                                                      InstructionRange: 0 17 main as
+
+InstructionCount:17
+$ opt -S -o=control-no-subroutine-Od.annotated.ll control-no-subroutine-Od.annotated.bc
+$ python check-2923.py control-no-subroutine-Od.annotated.ll -Od
+
+=== PIX virtual-register report: control-no-subroutine-Od.annotated.ll (-Od) ===
+llvm.dbg.declare call sites: 1, attributed to an annotated alloca: 1
+allocas carrying !pix-alloca-reg: 1
+  %p1    %struct.smallPayload.0       regs[0..5] base=0 count=6
+         declares: p [DW_TAG_auto_variable src-line 15] !DIExpression()
+         writes  -> registers: 0,1,2,3,4,5
+
+source variables described by alloca registers:
+  var !40 "p" [DW_TAG_auto_variable src-line 15]: 1 alloca range(s), declared registers [0, 1, 2, 3, 4, 5], written registers [0, 1, 2, 3, 4, 5]
+
+PixTest.cpp TestStructAnnotationCase emulation:
+  OffsetAndSizes.size() : expected 1   actual 1   ok
+  AllocaWrites.size()   : expected 6   actual 6   ok
+  ValidateAllocaWrite(0): expected regBase+index == 0, actual 0+0 == 0 ok
+  ValidateAllocaWrite(1): expected regBase+index == 1, actual 0+1 == 1 ok
+  ValidateAllocaWrite(2): expected regBase+index == 2, actual 0+2 == 2 ok
+  ValidateAllocaWrite(3): expected regBase+index == 3, actual 0+3 == 3 ok
+  ValidateAllocaWrite(4): expected regBase+index == 4, actual 0+4 == 4 ok
+  ValidateAllocaWrite(5): expected regBase+index == 5, actual 0+5 == 5 ok
+
+PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
+
+--- stderr ---
+

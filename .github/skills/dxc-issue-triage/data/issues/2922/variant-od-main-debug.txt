@@ -1,0 +1,151 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T15:44:44+00:00
+# cmd: -T as_6_5 -E main /Zi /Qembed_debug -Od -HV 2018 -enable-16bit-types repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: od (repro.hlsl)
+# expect: no-match
+
+$ dxc -T as_6_5 -E main /Zi /Qembed_debug -Od -HV 2018 -enable-16bit-types repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 58f0a6577e2c067dd9ef50706644b1ee.pdb
+; shader hash: 58f0a6577e2c067dd9ef50706644b1ee
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Amplification Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.smallPayload.0 = type { [2 x float] }
+
+@dx.nothing.a = internal constant [1 x i32] zeroinitializer
+
+define void @main() {
+entry:
+  %p1 = alloca %struct.smallPayload.0
+  call void @llvm.dbg.declare(metadata %struct.smallPayload.0* %p1, metadata !37, metadata !41), !dbg !42 ; var:"p" !DIExpression() func:"main"
+  %0 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !43 ; line:11 col:10
+  %1 = getelementptr inbounds %struct.smallPayload.0, %struct.smallPayload.0* %p1, i32 0, i32 0, i32 0, !dbg !43 ; line:11 col:10
+  store float 1.000000e+00, float* %1, !dbg !43 ; line:11 col:10
+  %2 = getelementptr inbounds %struct.smallPayload.0, %struct.smallPayload.0* %p1, i32 0, i32 0, i32 1, !dbg !43 ; line:11 col:10
+  store float 2.000000e+00, float* %2, !dbg !43 ; line:11 col:10
+  call void @dx.op.dispatchMesh.struct.smallPayload.0(i32 173, i32 1, i32 1, i32 1, %struct.smallPayload.0* %p1), !dbg !44 ; line:12 col:5  ; DispatchMesh(threadGroupCountX,threadGroupCountY,threadGroupCountZ,payload)
+  %3 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !45 ; line:13 col:1
+  ret void, !dbg !45 ; line:13 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.dispatchMesh.struct.smallPayload.0(i32, i32, i32, i32, %struct.smallPayload.0*) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!18, !19}
+!llvm.ident = !{!20}
+!dx.source.contents = !{!21}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!22}
+!dx.source.args = !{!23}
+!dx.version = !{!24}
+!dx.valver = !{!25}
+!dx.shaderModel = !{!26}
+!dx.typeAnnotations = !{!27, !30}
+!dx.entryPoints = !{!33}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.5433 (triage, ab5400907)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !14)
+!1 = !DIFile(filename: "repro.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, line: 10, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, line: 10, size: 64, align: 32, elements: !6, templateParams: !10)
+!6 = !{!7, !9}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 10, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 10, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !{!11, !12}
+!11 = !DITemplateTypeParameter(name: "element", type: !8)
+!12 = !DITemplateValueParameter(name: "element_count", type: !13, value: i32 2)
+!13 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!14 = !{!15}
+!15 = !DISubprogram(name: "main", scope: !1, file: !1, line: 8, type: !16, isLocal: false, isDefinition: true, scopeLine: 9, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!16 = !DISubroutineType(types: !17)
+!17 = !{null}
+!18 = !{i32 2, !"Dwarf Version", i32 4}
+!19 = !{i32 2, !"Debug Info Version", i32 3}
+!20 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!21 = !{!"repro.hlsl", !"struct smallPayload\0D\0A{\0D\0A    float2 f2;\0D\0A};\0D\0A\0D\0A\0D\0A[numthreads(1, 1, 1)]\0D\0Avoid main()\0D\0A{\0D\0A    smallPayload p;\0D\0A    p.f2 = float2(1,2);\0D\0A    DispatchMesh(1, 1, 1, p);\0D\0A}\0D\0A"}
+!22 = !{!"repro.hlsl"}
+!23 = !{!"-E", !"main", !"-T", !"as_6_5", !"/Zi", !"/Qembed_debug", !"-Od", !"-HV", !"2018", !"-enable-16bit-types"}
+!24 = !{i32 1, i32 5}
+!25 = !{i32 1, i32 10}
+!26 = !{!"as", i32 6, i32 5}
+!27 = !{i32 0, %struct.smallPayload.0 undef, !28}
+!28 = !{i32 0, !29}
+!29 = !{i32 6, !"f2", i32 3, i32 0, i32 7, i32 9}
+!30 = !{i32 1, void ()* @main, !31}
+!31 = !{!32}
+!32 = !{i32 1, !2, !2}
+!33 = !{void ()* @main, !"main", null, null, !34}
+!34 = !{i32 0, i64 8388609, i32 10, !35}
+!35 = !{!36, i32 8}
+!36 = !{i32 1, i32 1, i32 1}
+!37 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "p", scope: !15, file: !1, line: 10, type: !38)
+!38 = !DICompositeType(tag: DW_TAG_structure_type, name: "smallPayload", file: !1, line: 1, size: 64, align: 32, elements: !39)
+!39 = !{!40}
+!40 = !DIDerivedType(tag: DW_TAG_member, name: "f2", scope: !38, file: !1, line: 3, baseType: !4, size: 64, align: 32)
+!41 = !DIExpression()
+!42 = !DILocation(line: 10, column: 18, scope: !15)
+!43 = !DILocation(line: 11, column: 10, scope: !15)
+!44 = !DILocation(line: 12, column: 5, scope: !15)
+!45 = !DILocation(line: 13, column: 1, scope: !15)
+
+
+--- stderr ---
+

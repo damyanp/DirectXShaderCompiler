@@ -1,0 +1,118 @@
+# Compiler Explorer results for #3693, probed via the CE compile API.
+# CE runs Linux Release builds; it corroborates the local Debug build, never overrules it.
+# Written by ce-probe.py -- rerun it to re-derive this file.
+
+##############################################################################
+# SOURCE case-compute.hlsl
+#   g_vertices[indices[3]] -- the reporter's shape: out-of-bounds subscript as the index operand of another subscript
+
+==============================================================================
+# compiler: fxc_10_0_19041
+# args: /T cs_5_0 /E main /Od
+# exit: 1
+  | <source>(16,27-36): error X3504: array index out of bounds
+  | compilation failed; no code produced
+  # asm lines: 1
+
+==============================================================================
+# compiler: dxc_1_6_2112
+# args: -T cs_6_0 -E main -Od
+# exit: 0
+  | warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+  A %3 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %g_vertices_texture_structbuf, i32 undef, i32 0), !dbg !53 ; line:16 col:16  ; BufferLoad(srv,index,wot)
+  # asm lines: 154
+
+==============================================================================
+# compiler: dxc_trunk
+# args: -T cs_6_0 -E main -Od
+# exit: 0
+  | <no diagnostic>
+  A %3 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %g_vertices_texture_structbuf, i32 undef, i32 0), !dbg !53 ; line:16 col:16  ; BufferLoad(srv,index,wot)
+  # asm lines: 171
+
+==============================================================================
+# compiler: hlsl_clang_trunk
+# args: -T cs_6_0 -E main
+# exit: 0
+  | clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+  A %4 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %1, i32 poison, i32 0), !dbg !227
+  # asm lines: 357
+
+##############################################################################
+# SOURCE case-compute-hoisted.hlsl
+#   uint oob = indices[3]; -- the same access in a plain local initializer
+
+==============================================================================
+# compiler: fxc_10_0_19041
+# args: /T cs_5_0 /E main /Od
+# exit: 1
+  | <source>(13,20-29): error X3504: array index out of bounds
+  | compilation failed; no code produced
+  # asm lines: 1
+
+==============================================================================
+# compiler: dxc_1_6_2112
+# args: -T cs_6_0 -E main -Od
+# exit: 5
+  | <source>:13:28: error: vector element index '3' is out of bounds
+  |   const uint oob = indices[3];
+  |                            ^
+  # asm lines: 1
+
+==============================================================================
+# compiler: dxc_trunk
+# args: -T cs_6_0 -E main -Od
+# exit: 5
+  | <source>:13:28: error: vector element index '3' is out of bounds
+  |   const uint oob = indices[3];
+  |                            ^
+  # asm lines: 1
+
+==============================================================================
+# compiler: hlsl_clang_trunk
+# args: -T cs_6_0 -E main
+# exit: 0
+  | clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+  A %4 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %1, i32 poison, i32 0), !dbg !229
+  # asm lines: 359
+
+##############################################################################
+# SOURCE case-compute-swizzle.hlsl
+#   indices.w -- CONTROL: the swizzle spelling of the same out-of-bounds element
+
+==============================================================================
+# compiler: fxc_10_0_19041
+# args: /T cs_5_0 /E main /Od
+# exit: 1
+  | <source>(13,27-35): error X3018: invalid subscript 'w'
+  | compilation failed; no code produced
+  # asm lines: 1
+
+==============================================================================
+# compiler: dxc_1_6_2112
+# args: -T cs_6_0 -E main -Od
+# exit: 5
+  | <source>:13:35: error: vector swizzle 'w' is out of bounds
+  |   g_out[tid] = g_vertices[indices.w];
+  |                                   ^
+  # asm lines: 1
+
+==============================================================================
+# compiler: dxc_trunk
+# args: -T cs_6_0 -E main -Od
+# exit: 5
+  | <source>:13:35: error: vector swizzle 'w' is out of bounds
+  |   g_out[tid] = g_vertices[indices.w];
+  |                                   ^
+  # asm lines: 1
+
+==============================================================================
+# compiler: hlsl_clang_trunk
+# args: -T cs_6_0 -E main
+# exit: 1
+  | clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+  | [1m<source>:13:34: [0m[0;1;31merror: [0m[1mvector component access exceeds type 'const uint3' (aka 'const vector<uint, 3>')[0m
+  |    13 |   g_out[tid] = g_vertices[indices.w];[0m
+  |       | [0;1;32m                                 ^~
+  | [0m1 error generated.
+  # asm lines: 1

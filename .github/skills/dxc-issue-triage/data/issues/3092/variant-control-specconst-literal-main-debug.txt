@@ -1,0 +1,63 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T15:29:21+00:00
+# cmd: -T cs_6_0 -E main -spirv control-specconst-literal.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-specconst-literal (control-specconst-literal.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main -spirv control-specconst-literal.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 21
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %gl_GlobalInvocationID
+               OpExecutionMode %main LocalSize 4 1 1
+               OpSource HLSL 600
+               OpName %TGSIZE_X "TGSIZE_X"
+               OpName %type_RWStructuredBuffer_uint "type.RWStructuredBuffer.uint"
+               OpName %Out "Out"
+               OpName %main "main"
+               OpDecorate %TGSIZE_X SpecId 1
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %Out DescriptorSet 0
+               OpDecorate %Out Binding 0
+               OpDecorate %_runtimearr_uint ArrayStride 4
+               OpMemberDecorate %type_RWStructuredBuffer_uint 0 Offset 0
+               OpDecorate %type_RWStructuredBuffer_uint BufferBlock
+       %uint = OpTypeInt 32 0
+   %TGSIZE_X = OpSpecConstant %uint 4
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+%_runtimearr_uint = OpTypeRuntimeArray %uint
+%type_RWStructuredBuffer_uint = OpTypeStruct %_runtimearr_uint
+%_ptr_Uniform_type_RWStructuredBuffer_uint = OpTypePointer Uniform %type_RWStructuredBuffer_uint
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+       %void = OpTypeVoid
+         %14 = OpTypeFunction %void
+%_ptr_Uniform_uint = OpTypePointer Uniform %uint
+        %Out = OpVariable %_ptr_Uniform_type_RWStructuredBuffer_uint Uniform
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+       %main = OpFunction %void None %14
+         %16 = OpLabel
+         %17 = OpLoad %v3uint %gl_GlobalInvocationID
+         %18 = OpCompositeExtract %uint %17 0
+         %19 = OpIMul %uint %18 %TGSIZE_X
+         %20 = OpAccessChain %_ptr_Uniform_uint %Out %int_0 %18
+               OpStore %20 %19
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+
