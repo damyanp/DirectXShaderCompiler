@@ -1,0 +1,23 @@
+{
+  "batch": "batch-004",
+  "confidence": "high",
+  "created_at": "2019-05-15T18:49:19Z",
+  "expected_symptom": "dxc fails internally (assert / access violation / fatal error) compiling a shader whose [numthreads] argument is a static const uint; a well-formed diagnostic is not the symptom",
+  "godbolt_url": "https://godbolt.org/z/dGK17oobT",
+  "history": "never-repro'd-in-releases -- NOT a fix: all 20 release binaries are Release builds with asserts compiled out (NDEBUG), so they cannot show this symptom; still asserts on Debug main (eff900d54)",
+  "labels": "bug",
+  "labels_add": "crash",
+  "labels_now": "bug",
+  "notes_path": "data\\issues\\2191\\notes.md",
+  "number": 2191,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Assert still fires on Debug main (eff900d54): assert(MaybeODRUseExprs.empty() && 'Leftover expressions for odr-use checking'), SemaDecl.cpp:11156 in Sema::ActOnFinishFunctionBody, exit 0xE0000001. Not [numthreads]-specific -- [maxvertexcount] with an identifier argument asserts identically; both route through ValidateAttributeIntArg. Needs an empty function body: referencing the constant in the body suppresses it (workaround). All 20 releases v1.4.1907..v1.9.2607 compile it cleanly with the right thread-group size (!{i32 8, i32 8, i32 1}) -- because asserts are compiled out of Release builds, NOT because it was fixed.",
+  "title": "Assert when a static const uint is used with [numthreads]",
+  "triaged_at": "2026-08-07T01:59:16+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "eff900d5",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/2191"
+}

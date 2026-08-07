@@ -1,0 +1,61 @@
+# self-check for issue 2188   (generated 2026-08-06T18:22:01)
+
+## 1. required artefacts present
+ok    expected.md
+ok    repro.hlsl
+ok    cmd.txt
+ok    match.json
+ok    notes.md
+ok    comment.md
+ok    verdict.json
+ok    issue.json
+ok    godbolt.txt
+ok    godbolt-note.txt
+ok    method-notes.md
+
+## 2. a captured output file for every compiler probed
+ok    21 probes captured (main-debug + 20 releases) -- found 21
+ok    every out-*.txt records an exit code -- 0 without
+ok    no truncated/empty captures -- 0 suspiciously small
+
+## 3. a captured output file for every variant, each with a declared expectation
+ok    7 variant captures -- found 7
+ok    variant-array-only-main-debug.txt declares an expectation -- # expect: match
+ok    variant-braced-init-main-debug.txt declares an expectation -- # expect: match
+ok    variant-control-inlined-main-debug.txt declares an expectation -- # expect: no-match
+ok    variant-hv2021-main-debug.txt declares an expectation -- # expect: match
+ok    variant-numthreads-only-main-debug.txt declares an expectation -- # expect: match
+ok    variant-scalar-array-main-debug.txt declares an expectation -- # expect: no-match
+ok    variant-scalar-numthreads-main-debug.txt declares an expectation -- # expect: no-match
+ok    each variant .hlsl has a capture -- 5 standalone + control-inlined.hlsl + an -args run = 7 captures
+
+## 4. claims in notes.md / comment.md that must be backed by a file
+ok    exit 2147500037 (E_FAIL) -- out-main-debug.txt
+ok    'variable length arrays' diagnostic -- out-main-debug.txt
+ok    'numthreads attribute requires an integer constant' -- out-main-debug.txt
+ok    'Group size of 0' warning -- out-main-debug.txt
+ok    VLA error in all 21 probes -- 21/21
+ok    numthreads error in all 21 probes -- 21/21
+ok    'Group size of 0' absent before v1.8.2403 -- present in: out-main-debug.txt, out-v1.8.2403.1.txt, out-v1.8.2403.2.txt, out-v1.8.2403.txt, out-v1.8.2405.txt, out-v1.8.2407.txt, out-v1.8.2502.txt, out-v1.8.2505.1.txt, out-v1.8.2505.txt, out-v1.9.2602.24.txt, out-v1.9.2602.txt, out-v1.9.2607.txt
+ok    control compiles clean -- variant-control-inlined-main-debug.txt
+ok    scalar array bound compiles -- variant-scalar-array-main-debug.txt
+ok    scalar numthreads compiles -- variant-scalar-numthreads-main-debug.txt
+ok    brace-init still fails -- variant-braced-init-main-debug.txt
+ok    -HV 2021 still fails -- variant-hv2021-main-debug.txt
+ok    FXC folds to dcl_thread_group 8, 8, 1 -- manual-case-fxc.txt
+ok    FXC version recorded -- manual-case-fxc.txt
+ok    clang 'not a constant expression' note -- manual-case-ce.txt
+ok    clang control compiles on CE -- manual-case-ce-control-link.txt
+ok    source citations captured -- manual-case-source.txt
+
+## 5. Compiler Explorer link recorded (step 7)
+ok    verdict.json carries godbolt_url -- https://godbolt.org/z/nvqTPYffM
+ok    verdict.json carries the full snapshot -- 19 fields
+ok    verdict.json.status -- repros
+ok    verdict.json.repro_quality -- partial
+ok    verdict.json.history -- always-repro'd
+ok    verdict.json.confidence -- high
+ok    verdict.json.suggested_action -- still-valid-keep-open
+ok    verdict.json.triaged_with_commit -- eff900d5
+ok    verdict.json.labels_now -- bug,fxc-disagrees
+ok    verdict.json.labels_add -- type-system, hlsl-next

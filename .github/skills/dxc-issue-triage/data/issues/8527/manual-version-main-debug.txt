@@ -1,0 +1,23 @@
+# hand-captured measurement -- ground-truth compiler identity
+# ran: 2026-08-07T01:22:13Z
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+
+SKILL.md requires confirming the ground-truth build reports the expected commit before
+trusting any result. This was checked at the start of the session but the output was not
+written down at the time; captured here so the check is reproducible.
+
+Expected (from the brief): a clean Debug build of main at commit eff900d5, reporting
+1.9.0.15422 (main, eff900d54).
+
+$ dxc --version
+--------------------------------------------------------------------
+dxcompiler.dll: 1.10(5422-eff900d5)(1.9.0.15422) - 1.9.0.15422 (main, eff900d54)
+--------------------------------------------------------------------
+
+Matches. The same string is independently corroborated inside the compiler's own output:
+the DXIL emitted by the clean matching-case control carries
+  !0 = !{!"dxc(private) 1.9.0.15422 (main, eff900d54)"}
+at variant-control-samecase-main-debug.txt:105 and
+variant-ifndef-guard-main-debug.txt:105 -- i.e. the binary that produced every
+main-debug measurement in this directory is the one named above.

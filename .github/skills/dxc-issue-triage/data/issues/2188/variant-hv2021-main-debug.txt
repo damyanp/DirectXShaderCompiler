@@ -1,0 +1,34 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T01:01:41+00:00
+# cmd: -T cs_6_0 -E csMain -HV 2021 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: hv2021 (repro.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E csMain -HV 2021 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:10:27: error: variable length arrays are not supported in HLSL
+groupshared float4      S1[cThread];
+                          ^
+repro.hlsl:12:2: error: 'numthreads' attribute requires an integer constant
+[numthreads(c2Thread.x, c2Thread.y, 1)]
+ ^          ~~~~~~~~~~
+repro.hlsl:12:2: error: 'numthreads' attribute requires an integer constant
+[numthreads(c2Thread.x, c2Thread.y, 1)]
+ ^                      ~~~~~~~~~~
+repro.hlsl:12:2: warning: Group size of 0 (0 * 0 * 1) is outside of valid range [1..1024] - attribute will be ignored [-Wignored-attributes]
+[numthreads(c2Thread.x, c2Thread.y, 1)]
+ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+repro.hlsl:13:6: error: compute entry point must have a valid numthreads attribute
+void csMain(uint i : SV_GroupIndex)
+     ^
+
+

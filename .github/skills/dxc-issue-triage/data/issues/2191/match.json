@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "The reported symptom is an assert -- the issue title is the entire symptom statement and no assert message, stack or build config was ever quoted. Signature-independent by design (SKILL.md step 4): a Debug build traps the assert (0x80000003) where a Release build of the same defect would take an access violation or a bad-cast E_FAIL, so any text marker would score one build clean. Note dxc returns E_FAIL (0x80004005) for ordinary diagnosed errors on Windows, so 'nonzero exit' is emphatically NOT the test here -- the current behaviour is exactly such a diagnosed error and a nonzero_exit predicate would call it a crash. CONTROL: control-literal.hlsl (same shader, [numthreads(8,8,1)] written as literals) must compile cleanly and not match; see variant-literal-*.txt."
+}

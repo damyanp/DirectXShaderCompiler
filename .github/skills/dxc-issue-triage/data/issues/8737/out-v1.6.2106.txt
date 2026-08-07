@@ -1,0 +1,18 @@
+# compiler: v1.6.2106
+# exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+# ran: 2026-08-07T01:07:59+00:00
+# cmd: -T ps_6_7 -E PSMain repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+
+$ dxc -T ps_6_7 -E PSMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: invalid profile ps_6_7
+
+

@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T00:58:36+00:00
+# cmd: -T cs_6_0 -E csMain variant-array-only.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: array-only (variant-array-only.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E csMain variant-array-only.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-array-only.hlsl:9:27: error: variable length arrays are not supported in HLSL
+groupshared float4      S1[cThread];
+                          ^
+
+

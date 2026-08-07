@@ -1,0 +1,54 @@
+# manual capture: Compiler Explorer results, queried via the CE API
+# link:    https://godbolt.org/z/dGK17oobT  (verified: HTTP 200, three panes,
+#          dxc_1_6_2112 / dxc_trunk / hlsl_clang_assertions_trunk, all -T cs_6_0 -E main)
+# ran:     2026-08-06T18:09:10.5245416-07:00
+# why:     CE runs RELEASE builds of DXC and has no assertions-enabled DXC, so it
+#          cannot show this issue's symptom. It is here to show (a) that shipping
+#          DXC compiles the construct correctly and (b) what the assertions build
+#          of the successor HLSL front end does. Corroboration, never an overrule.
+# NOTE:    hand-driven capture, not a probe. Not scored by match.json.
+#
+# Reproduce with (PowerShell):
+#   $b = @{ source='<hlsl>'; options=@{ userArguments='-T cs_6_0 -E main' } } | ConvertTo-Json -Depth 6
+#   Invoke-RestMethod -Uri https://godbolt.org/api/compiler/<id>/compile -Method Post -Body $b -ContentType application/json
+
+==============================================================================
+REPRO   (static const in [numthreads])  --  dxc_1_6_2112
+exit: 0
+stderr: warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+numthreads evidence: !15 = !{!"/app/example.hlsl", !"static const uint eight = 8;\0A[numthreads(eight, 8, 1)]\0Avoid main() {}"} / !25 = !{i32 4, !26} / !26 = !{i32 8, i32 8, i32 1}
+
+==============================================================================
+REPRO   (static const in [numthreads])  --  dxc_trunk
+exit: 0
+stderr: (empty)
+numthreads evidence: ; NumThreads=(8,8,1) / !15 = !{!"/app/example.hlsl", !"static const uint eight = 8;\0A[numthreads(eight, 8, 1)]\0Avoid main() {}"} / !25 = !{i32 4, !26} / !26 = !{i32 8, i32 8, i32 1}
+
+==============================================================================
+REPRO   (static const in [numthreads])  --  hlsl_clang_assertions_trunk
+exit: 0
+stderr: clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+numthreads evidence: !3 = !{!"/app/example.hlsl", !"static const uint eight = 8;\0A[numthreads(eight, 8, 1)]\0Avoid main() {}"} / !11 = !{i32 4, !12} / !12 = !{i32 8, i32 8, i32 1}
+
+==============================================================================
+CONTROL (literal [numthreads(8,8,1)])  --  dxc_1_6_2112
+exit: 0
+stderr: warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+numthreads evidence: !15 = !{!"/app/example.hlsl", !"static const uint eight = 8;\0A[numthreads(8, 8, 1)]\0Avoid main() {}"} / !25 = !{i32 4, !26} / !26 = !{i32 8, i32 8, i32 1}
+
+==============================================================================
+CONTROL (literal [numthreads(8,8,1)])  --  dxc_trunk
+exit: 0
+stderr: (empty)
+numthreads evidence: ; NumThreads=(8,8,1) / !15 = !{!"/app/example.hlsl", !"static const uint eight = 8;\0A[numthreads(8, 8, 1)]\0Avoid main() {}"} / !25 = !{i32 4, !26} / !26 = !{i32 8, i32 8, i32 1}
+
+==============================================================================
+CONTROL (literal [numthreads(8,8,1)])  --  hlsl_clang_assertions_trunk
+exit: 0
+stderr: clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+numthreads evidence: !3 = !{!"/app/example.hlsl", !"static const uint eight = 8;\0A[numthreads(8, 8, 1)]\0Avoid main() {}"} / !11 = !{i32 4, !12} / !12 = !{i32 8, i32 8, i32 1}
+

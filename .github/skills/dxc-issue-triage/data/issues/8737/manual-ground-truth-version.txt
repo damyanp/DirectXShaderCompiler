@@ -1,0 +1,32 @@
+# manual measurement -- not a triage.py run; not scored by any predicate
+# purpose: SKILL.md requires verifying the ground-truth compiler identity before
+#          trusting any result. notes.md quotes this version; this is its backing file.
+# captured: 2026-08-06T18:23:20-07:00
+
+$ git -C <repo> rev-parse HEAD
+f8220ace460990a29bdf2a4436cdb454ede32181
+
+$ build\Debug\bin\dxc.exe --version
+dxcompiler.dll: 1.10(5422-eff900d5)(1.9.0.15422) - 1.9.0.15422 (main, eff900d54)
+
+[exit] 0
+
+--- provenance of the source-line citations in notes.md ---
+The working tree HEAD is NOT eff900d5, so this is worth pinning down: notes.md cites
+line numbers in DXIL.rst / HLOperationLower.cpp / DxilValidation.cpp / ErrorHandling.cpp /
+gen_intrin_main.txt read from the working tree, while the binary was built at eff900d5.
+
+$ git log -1 --format='%H %ci %s' eff900d5
+eff900d5480cf8f5fe5da59d797f598a8c12cb5d 2026-08-04 13:54:06 -0600 [Validaton][Infra] Print errors in source order (#8730)
+
+$ git log -1 --format='%H %ci %s' HEAD    (branch: triage)
+f8220ace460990a29bdf2a4436cdb454ede32181 2026-08-06 17:47:46 -0700 Update issue triage data and improve caching mechanism
+
+$ git merge-base --is-ancestor eff900d5 HEAD  -> exit 0 (eff900d5 IS an ancestor of HEAD)
+
+$ git diff --name-only eff900d5..HEAD  | grouped by area
+  triage-workspace   316
+
+All 316 changed files are triage-workspace data; NO compiler source changed between the
+built commit and the tree the citations were read from. The line numbers are therefore
+valid at eff900d5, and --triaged-with-commit eff900d5 describes the binary accurately.

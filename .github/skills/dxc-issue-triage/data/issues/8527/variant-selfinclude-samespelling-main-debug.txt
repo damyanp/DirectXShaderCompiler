@@ -1,0 +1,29 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T01:12:20+00:00
+# cmd: -T cs_6_0 -E main selfsame.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: selfinclude-samespelling (selfsame.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main selfsame.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+selfsame.hlsl:8:9: warning: #pragma once in main file
+#pragma once
+        ^
+In file included from ./selfsame.hlsl:14:
+./selfsame.hlsl:10:8: error: redefinition of 'Foo'
+struct Foo { float4 m_scale; };
+       ^
+./selfsame.hlsl:10:8: note: previous definition is here
+struct Foo { float4 m_scale; };
+       ^
+
+

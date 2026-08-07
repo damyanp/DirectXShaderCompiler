@@ -1,0 +1,31 @@
+# manual case: filesystem case-sensitivity of the directory holding the repro
+# ran: 2026-08-07T00:59:10Z
+# why: #8527 is only meaningful on a case-insensitive filesystem. Windows 10+
+#      supports a PER-DIRECTORY case-sensitivity flag, so this must be measured,
+#      not assumed, before any claim about what the repro demonstrates.
+# shell: PowerShell
+
+$ (Get-Location).Path
+<triage>\data\issues\8527
+
+$ fsutil file queryCaseSensitiveInfo .
+Case sensitive attribute on directory <triage>\data\issues\8527 is disabled.
+
+$ (Get-Volume -FilePath .).FileSystem
+NTFS
+
+$ [IO.Directory]::GetFiles('.', 'cs_*ragma.hlsli')   # the ONE real name on disk
+cs_pragma.hlsli
+
+$ [IO.File]::Exists('cs_Pragma.hlsli')   # capital P; resolves anyway -> case-insensitive
+True
+
+$ (New-Object IO.FileInfo (Join-Path (pwd) 'cs_Pragma.hlsli')).Length   # opens, same file, same size
+56
+$ (New-Object IO.FileInfo (Join-Path (pwd) 'cs_pragma.hlsli')).Length
+56
+
+# Conclusion: NTFS with per-directory case sensitivity DISABLED. Exactly one file
+# named cs_pragma.hlsli exists; the spelling cs_Pragma.hlsli opens that same file.
+# Everything below in out-*.txt / variant-*.txt is therefore a WINDOWS result. On a
+# case-sensitive filesystem the same repro would fail with 'file not found' instead.

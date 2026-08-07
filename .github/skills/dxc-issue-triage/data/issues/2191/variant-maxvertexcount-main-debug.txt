@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T01:04:41+00:00
+# cmd: -T gs_6_0 -E main variant-maxvertexcount.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: maxvertexcount (variant-maxvertexcount.hlsl)
+# expect: match
+
+$ dxc -T gs_6_0 -E main variant-maxvertexcount.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

@@ -1,0 +1,27 @@
+// What to look for
+//
+// #2191 reports an ASSERT. Compiler Explorer runs Release builds of DXC, where
+// asserts are compiled out (include/llvm/llvm_assert/assert.h: `#ifdef NDEBUG
+// #define assert(_Expression) ((void)0)`), so every DXC pane below compiles this
+// cleanly. That clean compile is NOT evidence the bug is gone.
+//
+// On a Debug build of main (1.9.0.15422, eff900d54) the same input dies with
+//   Internal compiler error: LLVM Assert          (exit 0xE0000001)
+//   assert(MaybeODRUseExprs.empty() && "Leftover expressions for odr-use checking")
+//   tools/clang/lib/Sema/SemaDecl.cpp(11156), in clang::Sema::ActOnFinishFunctionBody
+//
+// So the two things worth reading here are:
+//
+//   1. DXC panes: the compile SUCCEEDS and the metadata says NumThreads=(8,8,1)
+//      (look for `!{i32 8, i32 8, i32 1}`, or NumThreads in the comment header).
+//      The `static const uint` was resolved correctly -- shipping DXC accepts
+//      this construct and always has, back to v1.4.1907. Release users are
+//      unaffected; the defect is confined to assert-enabled builds.
+//
+//   2. Clang (assertions trunk): CE has no assertions-enabled DXC, but it does
+//      carry an assertions build of the successor HLSL front end. That pane is
+//      the closest available answer to "does an assert-enabled compiler still
+//      trip on this?"
+//
+// The empty function body is load-bearing, not laziness: any full expression in
+// the body drains the bookkeeping the assert checks, and the assert stops firing.

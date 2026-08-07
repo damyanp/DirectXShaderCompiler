@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T01:15:34+00:00
+# cmd: -T ps_6_0 -E ps_main -HV 2016 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: hv2016 (repro.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E ps_main -HV 2016 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+note: at '%13 = call double @dx.op.dot3.f64(i32 55, double %10, double %11, double %12, double 1.000000e+00, double 1.000000e+00, double 1.000000e+00)' in block '#0' of function 'ps_main'.
+Validation failed.
+
+
+

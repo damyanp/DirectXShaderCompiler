@@ -1,0 +1,25 @@
+# manual capture -- not a probe, not scored by match.json
+#
+# Ground-truth compiler identity, captured verbatim. SKILL.md requires verifying
+# that dxc reports the expected commit before trusting any result; this is that
+# verification, recorded rather than merely performed.
+
+$ <repo>\build\Debug\bin\dxc.exe --version
+dxcompiler.dll: 1.10(5422-eff900d5)(1.9.0.15422) - 1.9.0.15422 (main, eff900d54)
+[exit] 0
+
+Expected per the triage brief: 1.9.0.15422 (main, eff900d54)   -- MATCHES.
+
+Binary identity (so a stranger can tell whether they have the same build):
+  dxc.exe          7296000 bytes, mtime 2026-08-05 21:21:41Z
+  dxcompiler.dll   75968000 bytes, mtime 2026-08-05 21:21:37Z
+  sha256 dxcompiler.dll  0E2DF92C53B31B679128FA5BD050BBE0D6B74827425BAE1B75C267384E3E571D
+
+Corroboration: the same string appears in DXIL emitted by this binary and captured
+by triage.py run -- see variant-odr-used-main-debug.txt line 87:
+  !0 = !{!"dxc(private) 1.9.0.15422 (main, eff900d54)"}
+so the identity is attested by the tool-captured evidence too, not only by this file.
+
+Note: build/Release/bin/dxc.exe also exists in this tree but is a DIFFERENT, dirty,
+feature-branch build (1.9.0.5393, damyanp/fix-resource-struct-zero-init, dc2088b20-dirty).
+It was deliberately NOT used for any measurement in this triage.

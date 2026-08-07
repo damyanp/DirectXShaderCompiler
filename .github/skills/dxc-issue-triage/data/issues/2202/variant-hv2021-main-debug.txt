@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T01:15:35+00:00
+# cmd: -T ps_6_0 -E ps_main -HV 2021 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: hv2021 (repro.hlsl)
+# expect: invalid-probe
+
+$ dxc -T ps_6_0 -E ps_main -HV 2021 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:11:33: error: condition for short-circuiting ternary operator must be scalar, for non-scalar types use 'select'
+        float3 r = dot(frac( p ) < 0.5 ? 150.0 : 100.0, 1).xxx;
+                       ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+                       select(frac(p) < 0.5, 150., 100.)
+
+

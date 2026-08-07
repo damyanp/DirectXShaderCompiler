@@ -1,0 +1,79 @@
+# manual measurement -- not a triage.py run; not scored by any predicate
+# purpose: notes.md/comment.md publish a Compiler Explorer link and claim all three panes
+#          compile with exit 0 and show 2dMS + `i32 undef` c2 + both textureStoreSample
+#          calls. This file is the backing evidence for that claim.
+# captured: 2026-08-06T18:27:11-07:00
+# link:     https://godbolt.org/z/ea91a6vnj
+# source:   data\issues\8737\repro-implicit-sample.hlsl  (as recorded in godbolt-source.txt)
+# args:     -T ps_6_7 -E PSMain
+
+$ GET https://godbolt.org/z/ea91a6vnj  ->  HTTP 200  (shortlink resolves)
+
+==============================================================================
+pane: dxc_1_7_2207   [exit] 0
+==============================================================================
+--- stderr ---
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+--- checks ---
+  [PASS] resource table shows a 2dMS (non-array) UAV
+  [PASS] atomicBinOp present
+  [PASS] atomicBinOp c2 is `i32 undef`
+  [PASS] two textureStoreSample CALL sites (declare line excluded)
+--- the lines those checks read ---
+  ; tex                                   UAV     u32        2dMS      U0             u0     1
+  %tex_UAV_2dMS = call %dx.types.Handle @dx.op.createHandleFromBinding(i32 217, %dx.types.ResBind { i32 0, i32 0, i32 0, i8 1 }, i32 0, i1 false), !dbg !54 ; line:32 col:5  ; CreateHandleFromBinding(bind,index,nonUniformIndex)
+  %4 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %tex_UAV_2dMS, %dx.types.ResourceProperties { i32 4099, i32 131333 }), !dbg !63 ; line:21 col:20  ; AnnotateHandle(res,props)  resource: RWTexture2DMS<U32>
+  %AtomicUMax = call i32 @dx.op.atomicBinOp.i32(i32 78, %dx.types.Handle %4, i32 7, i32 %2, i32 %3, i32 undef, i32 -559038737), !dbg !64 ; line:21 col:5  ; AtomicBinOp(handle,atomicOp,offset0,offset1,offset2,newValue)
+  %5 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %tex_UAV_2dMS, %dx.types.ResourceProperties { i32 4099, i32 131333 }), !dbg !67 ; line:29 col:5  ; AnnotateHandle(res,props)  resource: RWTexture2DMS<U32>
+  call void @dx.op.textureStoreSample.i32(i32 225, %dx.types.Handle %5, i32 %2, i32 %3, i32 undef, i32 -559038737, i32 -559038737, i32 -559038737, i32 -559038737, i8 15, i32 0), !dbg !68 ; line:29 col:19  ; TextureStoreSample(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask,sampleIdx)
+  %6 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %tex_UAV_2dMS, %dx.types.ResourceProperties { i32 4099, i32 131333 }), !dbg !54 ; line:32 col:5  ; AnnotateHandle(res,props)  resource: RWTexture2DMS<U32>
+  call void @dx.op.textureStoreSample.i32(i32 225, %dx.types.Handle %6, i32 %2, i32 %3, i32 undef, i32 -559038737, i32 -559038737, i32 -559038737, i32 -559038737, i8 15, i32 %1), !dbg !54 ; line:32 col:5  ; TextureStoreSample(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask,sampleIdx)
+  declare i32 @dx.op.atomicBinOp.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32) #1
+  declare void @dx.op.textureStoreSample.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32, i8, i32) #1
+
+==============================================================================
+pane: dxc_1_10_2605_24   [exit] 0
+==============================================================================
+--- stderr ---
+(empty)
+--- checks ---
+  [PASS] resource table shows a 2dMS (non-array) UAV
+  [PASS] atomicBinOp present
+  [PASS] atomicBinOp c2 is `i32 undef`
+  [PASS] two textureStoreSample CALL sites (declare line excluded)
+--- the lines those checks read ---
+  ; tex                                   UAV     u32        2dMS      U0             u0     1
+  %tex_UAV_2dMS = call %dx.types.Handle @dx.op.createHandleFromBinding(i32 217, %dx.types.ResBind { i32 0, i32 0, i32 0, i8 1 }, i32 0, i1 false), !dbg !55 ; line:32 col:5  ; CreateHandleFromBinding(bind,index,nonUniformIndex)
+  %4 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %tex_UAV_2dMS, %dx.types.ResourceProperties { i32 4099, i32 131333 }), !dbg !64 ; line:21 col:20  ; AnnotateHandle(res,props)  resource: RWTexture2DMS<U32>
+  %AtomicUMax = call i32 @dx.op.atomicBinOp.i32(i32 78, %dx.types.Handle %4, i32 7, i32 %2, i32 %3, i32 undef, i32 -559038737), !dbg !65 ; line:21 col:5  ; AtomicBinOp(handle,atomicOp,offset0,offset1,offset2,newValue)
+  %5 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %tex_UAV_2dMS, %dx.types.ResourceProperties { i32 4099, i32 131333 }), !dbg !68 ; line:29 col:5  ; AnnotateHandle(res,props)  resource: RWTexture2DMS<U32>
+  call void @dx.op.textureStoreSample.i32(i32 225, %dx.types.Handle %5, i32 %2, i32 %3, i32 undef, i32 -559038737, i32 -559038737, i32 -559038737, i32 -559038737, i8 15, i32 0), !dbg !69 ; line:29 col:19  ; TextureStoreSample(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask,sampleIdx)
+  %6 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %tex_UAV_2dMS, %dx.types.ResourceProperties { i32 4099, i32 131333 }), !dbg !55 ; line:32 col:5  ; AnnotateHandle(res,props)  resource: RWTexture2DMS<U32>
+  call void @dx.op.textureStoreSample.i32(i32 225, %dx.types.Handle %6, i32 %2, i32 %3, i32 undef, i32 -559038737, i32 -559038737, i32 -559038737, i32 -559038737, i8 15, i32 %1), !dbg !55 ; line:32 col:5  ; TextureStoreSample(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask,sampleIdx)
+  declare i32 @dx.op.atomicBinOp.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32) #1
+  declare void @dx.op.textureStoreSample.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32, i8, i32) #1
+
+==============================================================================
+pane: dxc_trunk   [exit] 0
+==============================================================================
+--- stderr ---
+(empty)
+--- checks ---
+  [PASS] resource table shows a 2dMS (non-array) UAV
+  [PASS] atomicBinOp present
+  [PASS] atomicBinOp c2 is `i32 undef`
+  [PASS] two textureStoreSample CALL sites (declare line excluded)
+--- the lines those checks read ---
+  ; tex                                   UAV     u32        2dMS      U0             u0     1
+  %tex_UAV_2dMS = call %dx.types.Handle @dx.op.createHandleFromBinding(i32 217, %dx.types.ResBind { i32 0, i32 0, i32 0, i8 1 }, i32 0, i1 false), !dbg !55 ; line:32 col:5  ; CreateHandleFromBinding(bind,index,nonUniformIndex)
+  %4 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %tex_UAV_2dMS, %dx.types.ResourceProperties { i32 4099, i32 131333 }), !dbg !64 ; line:21 col:20  ; AnnotateHandle(res,props)  resource: RWTexture2DMS<U32>
+  %AtomicUMax = call i32 @dx.op.atomicBinOp.i32(i32 78, %dx.types.Handle %4, i32 7, i32 %2, i32 %3, i32 undef, i32 -559038737), !dbg !65 ; line:21 col:5  ; AtomicBinOp(handle,atomicOp,offset0,offset1,offset2,newValue)
+  %5 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %tex_UAV_2dMS, %dx.types.ResourceProperties { i32 4099, i32 131333 }), !dbg !68 ; line:29 col:5  ; AnnotateHandle(res,props)  resource: RWTexture2DMS<U32>
+  call void @dx.op.textureStoreSample.i32(i32 225, %dx.types.Handle %5, i32 %2, i32 %3, i32 undef, i32 -559038737, i32 -559038737, i32 -559038737, i32 -559038737, i8 15, i32 0), !dbg !69 ; line:29 col:19  ; TextureStoreSample(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask,sampleIdx)
+  %6 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %tex_UAV_2dMS, %dx.types.ResourceProperties { i32 4099, i32 131333 }), !dbg !55 ; line:32 col:5  ; AnnotateHandle(res,props)  resource: RWTexture2DMS<U32>
+  call void @dx.op.textureStoreSample.i32(i32 225, %dx.types.Handle %6, i32 %2, i32 %3, i32 undef, i32 -559038737, i32 -559038737, i32 -559038737, i32 -559038737, i8 15, i32 %1), !dbg !55 ; line:32 col:5  ; TextureStoreSample(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask,sampleIdx)
+  declare i32 @dx.op.atomicBinOp.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32) #1
+  declare void @dx.op.textureStoreSample.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32, i8, i32) #1
+

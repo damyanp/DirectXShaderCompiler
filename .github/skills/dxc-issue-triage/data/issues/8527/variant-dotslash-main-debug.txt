@@ -1,0 +1,27 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T00:59:54+00:00
+# cmd: -T cs_6_0 -E main dotslash.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: dotslash (dotslash.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main dotslash.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+In file included from dotslash.hlsl:5:
+In file included from ./includeB-dotslash.hlsli:3:
+././cs_pragma.hlsli:3:8: error: redefinition of 'Foo'
+struct Foo
+       ^
+./cs_pragma.hlsli:3:8: note: previous definition is here
+struct Foo
+       ^
+
+

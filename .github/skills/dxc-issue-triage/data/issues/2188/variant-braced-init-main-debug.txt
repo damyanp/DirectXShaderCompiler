@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T01:08:12+00:00
+# cmd: -T cs_6_0 -E csMain variant-braced-init.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: braced-init (variant-braced-init.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E csMain variant-braced-init.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-braced-init.hlsl:9:27: error: variable length arrays are not supported in HLSL
+groupshared float4      S1[c2Thread.x * c2Thread.y];
+                          ^
+
+

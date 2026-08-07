@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Secondary predicate, used only on labelled variants -- never as the primary probe, because overwriting out-<compiler>.txt with a second --match would replace the primary predicate's captured probes (reindex re-scores each out-*.txt using the 'match:' recorded in its own header). This asserts the OTHER signature the same input produces: v1.8.2403 does not diagnose the illegal DXIL op at all, it dies with an access violation (0xC0000005, 'Internal compiler error: access violation. Attempted to read from address 0x00000000000000B0'). That release was the one 'no-repro' in the linear scan, and scoring it clean would have reported a fix window that never existed. internal_failure is the right kind here per SKILL.md: it tests the structured-exception status codes rather than the message text, so it stays correct across builds. Declared expectations: match on v1.8.2403, no-match on v1.8.2403.1 (the revert) and on main-debug."
+}

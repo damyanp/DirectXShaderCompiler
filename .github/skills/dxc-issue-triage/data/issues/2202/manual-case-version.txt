@@ -1,0 +1,47 @@
+# Ground-truth compiler identity for #2202, captured rather than quoted from memory.
+# SKILL.md requires verifying the version string before trusting any result.
+# ran: 
+2026-08-07T01:17:56.6475185Z
+
+compiler id : main-debug
+exe         : <repo>/build/Debug/bin/dxc.exe
+
+$ dxc --version   [exit 0]
+dxcompiler.dll: 1.10(5422-eff900d5)(1.9.0.15422) - 1.9.0.15422 (main, eff900d54)
+
+=> Names branch 'main' and commit eff900d54, matching the ground truth the triage
+   brief specifies (1.9.0.15422 (main, eff900d54) at eff900d5). The compiler is correct.
+
+-------------------------------------------------------------------------------
+NOTE: the working tree's HEAD is NOT the commit the compiler was built from.
+-------------------------------------------------------------------------------
+
+$ git rev-parse HEAD
+  f8220ace460990a29bdf2a4436cdb454ede32181
+
+$ git log --format='%h %s' eff900d5..HEAD    (3 commits)
+  f8220ace4 Update issue triage data and improve caching mechanism
+  25140bec7 Implement comprehensive updates to the DXC issue triage system
+  67ac4434c Add triage notes & skill
+
+This is benign, and I checked rather than assuming:
+
+  * eff900d5 is a real commit and IS an ancestor of HEAD
+    (git merge-base --is-ancestor eff900d5 HEAD -> exit 0).
+    eff900d5480cf8f5 = '[Validaton][Infra] Print errors in source order (#8730)'.
+
+  * All 3 commits since the build are confined to .github/skills/dxc-issue-triage/
+    (316 files, all under that path; none elsewhere). They are the triage
+    workspace's own commits, not compiler changes. Files touched outside the
+    triage workspace: 
+(none)
+
+
+  * The two DXC source files I cite in notes.md are byte-identical between
+    eff900d5 and HEAD, so reading them from the working tree is sound:
+      git diff --stat eff900d5 HEAD -- utils/hct/hctdb.py utils/hct/gen_intrin_main.txt
+      => 
+(empty: identical)
+
+Conclusion: the measured binary is the specified ground truth, and the source
+citations in notes.md describe the same code that binary was built from.

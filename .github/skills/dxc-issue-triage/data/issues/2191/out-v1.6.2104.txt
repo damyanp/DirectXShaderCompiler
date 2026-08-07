@@ -1,0 +1,63 @@
+# compiler: v1.6.2104
+# exe: <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+# ran: 2026-08-07T01:05:40+00:00
+# cmd: -T cs_6_0 -E main repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-rejected.json
+# verdict: no-repro
+
+$ dxc -T cs_6_0 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: 14fe4a3354f5527e45dc483d51dded97
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @main() {
+  ret void
+}
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.entryPoints = !{!4}
+
+!0 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 6}
+!3 = !{!"cs", i32 6, i32 0}
+!4 = !{void ()* @main, !"main", null, null, !5}
+!5 = !{i32 4, !6}
+!6 = !{i32 8, i32 8, i32 1}
+
+
+--- stderr ---
+

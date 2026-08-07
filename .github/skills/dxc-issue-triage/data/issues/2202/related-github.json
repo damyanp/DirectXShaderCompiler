@@ -1,0 +1,83 @@
+{
+  "_about": "GitHub records cited in notes.md / comment.md for #2202, captured at triage time so every claim about PRs, releases and related issues is checkable from this directory alone. Read-only 'gh view' calls.",
+  "_captured_at": "2026-08-07T01:15:56.2486058Z",
+  "pr_6302": {
+    "body": "Replace assert on illegal DXIL op with return illegal value. Check the illegal cases in validation.\r\n\r\nFixes #6168",
+    "closedAt": "2024-02-20T19:07:16Z",
+    "mergedAt": "2024-02-20T19:07:16Z",
+    "number": 6302,
+    "state": "MERGED",
+    "title": "Fix crash in DXIL.dll caused by illegal DXIL intrinsic."
+  },
+  "pr_6342": {
+    "body": "Replace assert on illegal DXIL op with return illegal value. Check the illegal cases in validation.\r\n\r\nFixes #6168\r\n\r\n(cherry picked from commit 5dee81ce1d38acf5410d40516047d45b3b0d1317)",
+    "closedAt": "2024-02-22T00:07:25Z",
+    "mergedAt": "2024-02-22T00:07:24Z",
+    "number": 6342,
+    "state": "MERGED",
+    "title": "Fix crash in DXIL.dll caused by illegal DXIL intrinsic. (#6302)"
+  },
+  "pr_6418": {
+    "body": "This file deleted with conflicts from subsequent changes:\r\n  tools/clang/test/LitDXILValidation/illegalDXILOp.ll\r\n\r\nThis reverts commit 487080f6eb0c74999f2c09fc0cf3951fb9e0b447.\r\n\r\nFixes #6419.",
+    "closedAt": "2024-03-14T20:06:06Z",
+    "mergedAt": "2024-03-14T20:06:06Z",
+    "number": 6418,
+    "state": "MERGED",
+    "title": "Revert \"Fix crash in DXIL.dll caused by illegal DXIL intrinsic. (#6302) (#6342)\""
+  },
+  "pr_6543": {
+    "body": "This change removes the IsOverloadLegal check in OP::GetOpFunc.\r\n\r\nIt will permit the generation of illegal DXIL operations. Subsequently, the validation should catch these illegal DXIL operations if they are not optimized later in SimplifyDxilCall.\r\n\r\n\r\nFixes #6410",
+    "closedAt": "2024-04-26T20:52:46Z",
+    "mergedAt": "2024-04-26T20:52:46Z",
+    "number": 6543,
+    "state": "MERGED",
+    "title": "[DxilOp] Allow generation of illegal DXIL operations."
+  },
+  "pr_2636": {
+    "body": "Fixes #2432 ",
+    "closedAt": "2023-07-08T18:30:38Z",
+    "mergedAt": null,
+    "number": 2636,
+    "state": "CLOSED",
+    "title": "Fix bug in implicit cast involving literal float expressions"
+  },
+  "issue_2432": {
+    "closedAt": "2024-06-12T17:28:25Z",
+    "number": 2432,
+    "state": "CLOSED",
+    "title": "Unintentional conversion to double precision"
+  },
+  "issue_8208": {
+    "closedAt": null,
+    "number": 8208,
+    "state": "OPEN",
+    "title": "[DirectX] Performing a `mul` between two double vectors produces invalid DXIL"
+  },
+  "issue_6168": {
+    "closedAt": "2024-02-20T19:07:17Z",
+    "number": 6168,
+    "state": "CLOSED",
+    "title": "DXIL.dll crashes on intrinsics that are not defined for a known shader model"
+  },
+  "issue_6410": {
+    "closedAt": "2024-04-26T20:52:47Z",
+    "number": 6410,
+    "state": "CLOSED",
+    "title": "[DXIL] Null pointer exception due to `double` floating-point literals in `fmod` intrinsic"
+  },
+  "release_v1.8.2403.1": {
+    "body": "This is a Patch Release for the March 2024 DirectX Compiler.\r\n\r\nIssue #6410 was reported, where using literal arguments in the `fmod` intrinsic would crash the compiler.  This patch fixes the issue by reverting the commit that introduced the regression.\r\n\r\nThis DX compiler release is also available as a NuGet package [Microsoft.Direct3D.DXC](https://www.nuget.org/packages/Microsoft.Direct3D.DXC/1.8.2403.21).\r\n\r\n## What's Changed\r\n* Revert \"Fix crash in DXIL.dll caused by illegal DXIL intrinsic. (#6302) (#6342)\" by @tex3d in https://github.com/microsoft/DirectXShaderCompiler/pull/6418\r\n\r\n**Full Changelog**: https://github.com/microsoft/DirectXShaderCompiler/compare/v1.8.2403...v1.8.2403.1\r\n\r\n## Versioning Note\r\n\r\nThis release version is considered `v1.8.2403.1`, and the commit is tagged as such.  However, versioning for binaries and the NuGet package will have a different patch version number.  This is expected at this time.\r\n\r\nThe main dxc executable and `dxcompiler.dll` have version `1.8.2403.36`, and the `DXIL.dll` and NuGet package have version `1.8.2403.21`.",
+    "name": "DX Compiler Release for March 2024 - Patch 1",
+    "publishedAt": "2024-03-22T19:00:41Z",
+    "tagName": "v1.8.2403.1"
+  },
+  "attachment_test_txt": {
+    "url": "https://github.com/microsoft/DirectXShaderCompiler/files/3206906/test.txt",
+    "note": "reporter's original attachment; still downloads; copied verbatim to repro.hlsl"
+  },
+  "godbolt_from_llvm_beanz_2024": {
+    "url": "https://godbolt.org/z/e54rbcoPn",
+    "note": "resolved via https://godbolt.org/api/shortlinkinfo/e54rbcoPn; same source, confirms -HV 2018 was needed in 2024 too",
+    "options": "-T ps_6_7 -HV 2018"
+  }
+}

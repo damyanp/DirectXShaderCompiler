@@ -13,25 +13,32 @@
 
 ## Summary
 
-SPIR-V printf heap corruption. Crash (STATUS_HEAP_CORRUPTION 0xC0000374) confined to v1.6.2104
-and v1.6.2106; clean from v1.6.2112 through v1.9.2607. v1.4.1907 is unprobeable (no SPIR-V).
+SPIR-V printf heap corruption. A captured repeated-run set observed
+`STATUS_HEAP_CORRUPTION` (`0xC0000374`) in 33/40 v1.6.2104 runs and 28/40
+v1.6.2106 runs. v1.5.2010 and v1.6.2112 were each clean in 30/30 runs, and every
+later release probe through v1.9.2607 was clean. v1.4.1907 is unprobeable because
+that binary has no SPIR-V codegen.
 
-**Nondeterministic**: measured 68-82% of runs in the affected releases. Single-run probes are
-therefore unsound - a live `--repeat 10` probe of v1.6.2106 needed 4 attempts before the crash
-appeared. Current builds clean over 110 runs (55 on `main` Debug, 55 on the v1.9.2607 release
-binary; both ps_6_0 as reported and cs_6_0). Output inspected on `main`: DebugPrintf import,
-six OpStrings, six matching OpExtInst calls.
+The failure is nondeterministic, so a single clean run does not rule it out.
+v1.9.2607 was clean in 55/55 release-binary runs, split across `cs_6_0` (30) and
+the originally reported `ps_6_0` (25). Current `main` Debug was also clean in
+55/55, though that carries less weight because the reporter's local Debug build
+also worked. Output inspected on `main` has the DebugPrintf import, six
+`OpString`s, and six matching `OpExtInst` calls with the expected operands.
 
-**Not a SPIR-V-lowering bug.** The reported stack is BumpPtrAllocator slab teardown under
-Sema::BuildOverloadedCallExpr - the front end. The `-fcgl -Vd` in the original report was
-avoiding an unrelated spirv-tools crash (KhronosGroup/SPIRV-Tools#4219, fixed by #4280, merged
-2021-05-13, the day after this was filed). Those flags were dropped from cmd.txt; all four flag
-combinations crash at similar rates at v1.6.2104/v1.6.2106, so they were not masking this.
-Original preserved as cmd-as-filed.txt.
+The report's retail-heap stack detected the bad free during
+`Sema::BuildOverloadedCallExpr`, before SPIR-V legalization; that identifies the
+detection point, not necessarily the original write. The report used
+`-fcgl -Vd` to avoid the separate KhronosGroup/SPIRV-Tools#4219 crash, fixed by
+KhronosGroup/SPIRV-Tools#4280 on 2021-05-13. The current command omits both flags
+so legalization and validation run. In the captured affected-release matrix,
+every one of the four flag combinations reproduced repeatedly, so the flags did
+not suppress this crash. `cmd-as-filed.txt` preserves the original command.
 
-Confidence raised medium -> high once the per-run failure rate was measured: against a ~70%
-rate, 55 consecutive clean release-binary runs is a real result. Residual risk is only latent
-corruption visible under page heap, which needs elevation and was not run.
+Confidence is high because the first clean boundary release was 30/30 and the
+latest release binary was 55/55 under the current command. The reporter's more
+sensitive Application Verifier/page-heap check was not repeated because the
+shell was not elevated, so latent corruption remains a limitation.
 
 ## Labels
 
@@ -70,7 +77,9 @@ corruption visible under page heap, which needs elevation and was not run.
 - `expected.md` - symptom pinned down before running anything
 - `repro.hlsl` - exact source tested
 - `cmd.txt` - exact command line
-- `match.json` - symptom predicate, with its control documented
+- `match.json` - symptom predicate and rationale
 - `out-<compiler>.txt` - captured output per compiler
+- `manual-case-repeat-measurements.txt` - every repeated attempt backing the quoted rates
+- `external-spirv-tools-4219.json` - captured upstream issue and merged-fix metadata
+- `method-notes.md` - parallel-batch tooling finding
 - `comment.md` - draft comment (NOT posted)
-

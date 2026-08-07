@@ -1,0 +1,7 @@
+# Departs from the report in one way, recorded in cmd-as-filed.txt:
+#   -T cs_6_6  ->  -T cs_6_0
+# The defect is in include handling and is independent of the shader model, but no
+# release before v1.6.2112 accepts cs_6_6, so at cs_6_6 every older release is an
+# `invalid profile` rejection -- an invalid probe that fakes a regression.
+# The reporter's verbatim main at -T cs_6_6 is captured as variant-as-filed-*.txt.
+-T cs_6_0 -E main repro.hlsl

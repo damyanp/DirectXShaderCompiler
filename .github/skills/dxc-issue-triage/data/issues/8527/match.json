@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "redefinition of 'Foo'",
+  "note": "Positive predicate on the reported diagnostic. `#pragma once` in cs_pragma.hlsli must suppress the second inclusion; when it does not, the struct is declared twice and clang's err_redefinition fires. Deliberately NOT nonzero_exit: on a case-SENSITIVE filesystem this same input fails with \"'cs_Pragma.hlsli' file not found\", which is also non-zero and also E_FAIL, so an exit-code predicate would score an entirely different behaviour as a reproduction. Deliberately NOT internal_failure: nothing here is crash-shaped. Negative control: control-samecase.hlsl is byte-identical in structure but spells the header in matching case; it must NOT match, which is what shows the predicate measures the case bug rather than double inclusion in general."
+}

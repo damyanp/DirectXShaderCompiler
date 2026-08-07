@@ -1,0 +1,23 @@
+{
+  "batch": "batch-004",
+  "confidence": "high",
+  "created_at": "2019-05-22T10:20:26Z",
+  "expected_symptom": "DXIL validation rejects the module dxc produced: 'DXIL intrinsic overload must be valid', exit 0x80004005. Not a crash.",
+  "godbolt_url": "https://godbolt.org/z/v7WofnW4f",
+  "history": "always-repro'd v1.4.1907..v1.9.2607 (v1.8.2403 crashes 0xC0000005 on it instead of diagnosing it -- PR #6302/#6342, reverted in v1.8.2403.1)",
+  "labels": "bug",
+  "labels_add": "type-system, fxc-disagrees, diagnostic",
+  "labels_now": "bug",
+  "notes_path": "data\\issues\\2202\\notes.md",
+  "number": 2202,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Repros on main (eff900d5) and every release v1.4.1907..v1.9.2607. Must be compiled -HV 2018: at today's default -HV 2021 the front end rejects the vector-condition '?:' before codegen, so the validator never runs and it falsely looks fixed. -Vd shows codegen, not the validator, is at fault: the compile succeeds and emits 'call double @dx.op.dot3.f64', but hctdb declares Dot3 with overloads 'hf' (half/float only), so the validator is correct and -Vd just yields DXIL no runtime accepts. Literal-float ternary resolves to double; HLSL declares dot over 'numeric' (includes double), DXIL cannot express it. FXC compiles the same source in float. The reporter's second ask (no line number) was fixed in v1.6.2104. Same DXIL-level gap as open #8208 (mul on double4 -> dot4.f64).",
+  "title": "Validation error \"DXIL intrinsic overload must be valid\"",
+  "triaged_at": "2026-08-07T01:59:16+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "eff900d5",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/2202"
+}

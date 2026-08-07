@@ -1,0 +1,8 @@
+  publishing control-inlined.hlsl (not repro.hlsl) for #2188
+#2188: dxc -T cs_6_0 -E csMain repro.hlsl
+  CE args: -T cs_6_0 -E csMain
+  fxc_10_0_19041     exit=0  Microsoft (R) Direct3D Shader Compiler 10.1
+  dxc_1_6_2112       exit=0  warning: DXIL.dll not found.  Resulting DXIL will not be signed for us
+  dxc_trunk          exit=0  ;
+  hlsl_clang_trunk   exit=0  clang: [0;1;35mwarning: [0m[1margument unused during compilation: '
+  link: https://godbolt.org/z/6EaKfvf5z

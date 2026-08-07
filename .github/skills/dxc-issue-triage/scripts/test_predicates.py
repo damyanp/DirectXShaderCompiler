@@ -124,10 +124,10 @@ def fake_runs(verdicts):
     calls = {"n": 0}
 
     def stub(issue, compiler, match_file="match.json", record=True, repeat=1,
-             shader=None, label=None, args=None, expect=None):
+             shader=None, label=None, args=None, expect=None, force=False):
         if repeat > 1:
             return _real_execute(issue, compiler, match_file, record, repeat,
-                                 shader, label, args, expect)
+                                 shader, label, args, expect, force)
         v = seq[min(calls["n"], len(seq) - 1)]
         calls["n"] += 1
         return {"compiler": compiler, "exit": 0 if v == "no-repro" else 1,
@@ -240,8 +240,97 @@ for desc, expect, verdict, want in [
     ("identity control that matches is fine", "match", "repro", False),
     ("identity control that stops matching is a violation", "match", "no-repro", True),
     ("no declared expectation cannot be violated", None, "repro", False),
+    # An invalid probe is not a clean run: it is a run that never happened.
+    # Measured on #8527, whose as-filed control was rejected for using cs_6_6
+    # on a release that predates it and quietly satisfied `--expect no-match`,
+    # so the reindex re-check that exists to catch exactly this said nothing.
+    ("invalid probe does NOT satisfy no-match", "no-match", "invalid-probe", True),
+    ("invalid probe does not satisfy match", "match", "invalid-probe", True),
+    ("an expected invalid probe is fine", "invalid-probe", "invalid-probe", False),
+    ("an expected invalid probe that compiles is a violation",
+     "invalid-probe", "no-repro", True),
+    ("an expected invalid probe that reproduces is a violation",
+     "invalid-probe", "repro", True),
 ]:
     check(desc, triage.expectation_violated(expect, verdict), want)
+
+# --- a probe is identified by its predicate, not just by its compiler ------
+# Two predicates over the same release are two measurements. Deriving the
+# filename from the compiler alone made the second overwrite the first;
+# measured on #2191, which lost 20 of 21 primary-predicate captures.
+for desc, args, want in [
+    ("the default predicate keeps the bare name",
+     ("d", "v1.8.2403", "match.json", None), "out-v1.8.2403.txt"),
+    ("a second predicate gets its own slot",
+     ("d", "v1.8.2403", "match-rejected.json", None),
+     "out-v1.8.2403--match-rejected.txt"),
+    ("labelled variants follow the same rule",
+     ("d", "main-debug", "match.json", "scalar"),
+     "variant-scalar-main-debug.txt"),
+    ("a labelled variant under a second predicate cannot collide",
+     ("d", "main-debug", "match-rejected.json", "scalar"),
+     "variant-scalar-main-debug--match-rejected.txt"),
+]:
+    check(desc, _os.path.basename(triage.probe_path(*args)), want)
+
+check("two predicates over one release cannot share a path",
+      triage.probe_path("d", "v1.8.2403", "match.json") !=
+      triage.probe_path("d", "v1.8.2403", "match-rejected.json"), True)
+
+# --- a crashed probe measured nothing --------------------------------------
+# Measured on #2202: v1.8.2403 access-violates on the repro. Scoring that as a
+# clean run erases a defect at a release boundary someone will act on.
+_write_pred({"kind": "contains", "value": "never appears in this text"})
+for desc, text, rc, want in [
+    ("an access violation is not a clean run", "", 0xC0000005, "invalid-probe"),
+    ("an assert is not a clean run", "", 0xE0000001, "invalid-probe"),
+    ("an ordinary clean compile still scores no-repro",
+     "; shader hash: abc", 0, "no-repro"),
+    ("an ordinary diagnostic still scores no-repro",
+     "error: expected ';' after expression", 1, "no-repro"),
+]:
+    check(desc, triage.classify(1877, text, rc, False), want)
+
+# The forward-in-time version of the feature-absence trap: a NEWER compiler
+# rejecting an OLDER repro because the default language version moved.
+check("today's -HV 2021 rejecting a 2019 repro is an invalid probe",
+      triage.classify(1877, "error: for non-scalar types use 'select'", 1, False),
+      "invalid-probe")
+
+# A crash the predicate is looking FOR must still score as a reproduction --
+# the guard above must not swallow the symptom it exists to find.
+_write_pred({"kind": "internal_failure"})
+check("a crash the predicate wants is still a reproduction",
+      triage.classify(1877, "", 0xC0000005, False), "repro")
+
+# --- a capture is never silently overwritten by a different predicate ------
+# The reason #2191 lost 20 of 21 primary probes. probe_path() now separates
+# them, but a --force or a renamed predicate could still land on an existing
+# file, so the writer refuses rather than trusting the path scheme alone.
+_stale = _os.path.join(_tmp, "out-v1.4.1907.txt")
+with open(_stale, "w") as fh:
+    fh.write("# compiler: v1.4.1907\n# exit: 0\n# match: match-rejected.json\n"
+             "# verdict: no-repro\n\nolder measurement\n")
+try:
+    triage.execute(1877, "v1.4.1907", "match.json", record=True)
+    check("refuses to overwrite a capture scored by another predicate",
+          "no error", "SystemExit")
+except SystemExit as e:
+    check("refuses to overwrite a capture scored by another predicate",
+          "--label" in str(e) and "--force" in str(e), True)
+except Exception:
+    check("refuses to overwrite a capture scored by another predicate",
+          "wrong exception", "SystemExit")
+
+# `# verdict:` is derived, so restamping it must move that line and no other.
+check("restamp moves only the named field",
+      triage.restamp(_stale, "verdict", "invalid-probe"), True)
+_m, _t = triage.read_out(_stale)
+check("restamp leaves the measurement alone",
+      (_m["verdict"], _m["exit"], _m["match"], _t.strip()),
+      ("invalid-probe", "0", "match-rejected.json", "older measurement"))
+check("restamp reports an absent field rather than inventing one",
+      triage.restamp(_stale, "expect", "no-match"), False)
 
 # The bisect stub stands in for execute(); if their signatures drift, the stub
 # silently stops modelling the thing under test.

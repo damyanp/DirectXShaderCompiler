@@ -664,13 +664,37 @@ def classify(issue, text, rc, timed_out, match_file="match.json"):
     # the compiler never reached the code under test -- but it looks exactly
     # like one, so a linear scan reports a transition that never happened and a
     # binary search invents a regression.
+    # The same trap also fires FORWARDS in time, which every marker above
+    # misses because they all mean "you used something that does not exist
+    # yet". A *newer* compiler can reject an *older* repro because the default
+    # language version moved under it. Measured on #2202, filed in 2019 with no
+    # -HV: at today's default -HV 2021 the front end rejects `bool3 ? a : b`
+    # before codegen, so the DXIL validator the issue is about never runs --
+    # and the probe scores as a clean run, faking a fix in whichever release
+    # changed the default. Only diagnostics that have actually been observed
+    # doing this belong here; guessing at them would silently discard evidence.
     unsupported = re.search(
         r"(?i)invalid profile|unsupported profile|unrecognized (?:argument|option)|"
         r"unknown argument|is not supported|requires shader model|"
         r"CodeGen not available|recompile with -D|"
         r"use of undeclared identifier|unknown type name|"
-        r"no member named|no matching function for call to", text)
+        r"no member named|no matching function for call to|"
+        r"for non-scalar types use 'select'", text)
     if verdict == "no-repro" and unsupported:
+        return "invalid-probe"
+
+    # A probe that CRASHED measured nothing about the reported symptom, and
+    # scoring it as a clean run is the most dangerous direction of error: it
+    # erases a defect rather than inventing one, at exactly the point where the
+    # output is a release boundary someone will act on. Measured on #2202:
+    # v1.8.2403 access-violates (0xC0000005) on the repro instead of diagnosing
+    # it, and scored `no-repro` -- the one release strictly worse than the
+    # reported symptom, recorded as the absence of a problem. A `--linear` scan
+    # duly reported a fix window that does not exist.
+    #
+    # Note this cannot fire when the crash IS the symptom: an internal_failure
+    # predicate scores that probe `repro`, never `no-repro`.
+    if verdict == "no-repro" and is_internal_failure(text, rc, timed_out):
         return "invalid-probe"
 
     # Absence-based predicates ("the symptom is that X is MISSING") are
@@ -685,8 +709,51 @@ def classify(issue, text, rc, timed_out, match_file="match.json"):
     return verdict
 
 
+def probe_path(d, compiler, match_file="match.json", label=None):
+    """Where a probe's output is filed.
+
+    The predicate is part of the identity of a probe, not just of its header.
+    SKILL.md step 4 tells you to add a second `match-*.json` and bisect each
+    separately -- but with the name derived from the compiler alone, the second
+    bisection silently overwrote the first predicate's entire release history,
+    file for file, with no warning and nothing left in the tree to say it had
+    happened. Measured on #2191, where 20 of 21 primary probes were replaced;
+    #2188 declined to run a second predicate at all because of it, and #2202
+    worked around it with labels. Three of five workers in one batch hit the
+    same edge, so it is not an exotic path.
+
+    The default predicate keeps the bare name, so nothing already committed
+    moves; a non-default one gets its own slot and cannot collide.
+    """
+    stem = os.path.splitext(os.path.basename(match_file))[0]
+    suffix = "" if match_file == "match.json" else f"--{stem}"
+    base = f"variant-{label}-{compiler}" if label else f"out-{compiler}"
+    return os.path.join(d, f"{base}{suffix}.txt")
+
+
+def stamp_repeat(path, attempts, hits):
+    """Record a --repeat aggregate in the surviving capture's header.
+
+    Without this the only record of "2 of 3 runs showed it" is a `runs` row
+    whose `cmd` is `(see single runs)` and which has no backing file, so
+    `reindex` -- which rebuilds runs from captures -- destroys it permanently.
+    For an intermittent defect that aggregate is the whole finding.
+    """
+    if attempts <= 1 or not (path and os.path.isfile(path)):
+        return
+    with open(path, encoding="utf-8") as f:
+        lines = f.readlines()
+    lines = [ln for ln in lines if not ln.startswith(("# attempts:", "# hits:"))]
+    for i, ln in enumerate(lines):
+        if ln.startswith("# verdict:"):
+            lines[i + 1:i + 1] = [f"# attempts: {attempts}\n", f"# hits: {hits}\n"]
+            break
+    with open(path, "w", encoding="utf-8") as f:
+        f.writelines(lines)
+
+
 def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
-            shader=None, label=None, args=None, expect=None):
+            shader=None, label=None, args=None, expect=None, force=False):
     """Run an issue's repro and classify the result.
 
     `repeat` runs the whole command list several times and reports the symptom
@@ -702,7 +769,8 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
         attempts, seen = [], []
         for i in range(repeat):
             r = execute(issue, compiler, match_file, record=False, repeat=1,
-                        shader=shader, label=label, args=args, expect=expect)
+                        shader=shader, label=label, args=args, expect=expect,
+                        force=True)
             attempts.append(r)
             seen.append(r["verdict"])
             if r["verdict"] == "repro":
@@ -715,6 +783,12 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
                     attempts[0])
         best = dict(best)
         best["attempts"], best["hits"] = len(attempts), hits
+        # The hit rate IS the evidence for a nondeterministic bug, and until
+        # now it lived only in the `runs` row -- which `reindex` rebuilds from
+        # files and therefore cannot restore. Stamp it into the surviving
+        # capture's header so a rebuild is lossless and a stranger reading the
+        # file can see how many attempts stand behind it.
+        stamp_repeat(best["output"], len(attempts), hits)
         if record:
             c = con()
             c.execute("INSERT INTO runs (issue_number, compiler, cmd, exit_code,"
@@ -727,6 +801,23 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
         return best
 
     d = issue_dir(issue)
+    out_path = probe_path(d, compiler, match_file, label)
+    # Refuse to replace a capture that measured a different question, and do it
+    # before running anything: the check is a header read, and a guard that
+    # only fires after a two-minute Debug compile is one people learn to skip.
+    # The filename now carries the predicate, so this can only fire when a
+    # predicate is renamed or a label is reused across predicates -- but that
+    # is exactly the case where the overwrite is silent and unrecoverable,
+    # because the two probes may not even share a command line.
+    if os.path.isfile(out_path) and not force:
+        prior = read_out(out_path)[0].get("match", "match.json")
+        if prior != match_file:
+            sys.exit(
+                f"refusing to overwrite {os.path.basename(out_path)}: it was "
+                f"captured under {prior}, this run scores {match_file}. "
+                f"A probe of a different predicate is a different measurement "
+                f"-- give it its own --label, or pass --force if you really "
+                f"mean to discard the old one.")
     exe = resolve_compiler(compiler)
     cmd_path = os.path.join(d, "cmd.txt")
     if args:
@@ -773,8 +864,6 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
     # captured from one that was only ever run by hand.
     subject = shader or next(
         (t for t in cmds[0].split() if t.lower().endswith(".hlsl")), "?")
-    out_path = os.path.join(
-        d, f"variant-{label}-{compiler}.txt" if label else f"out-{compiler}.txt")
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(f"# compiler: {compiler}\n# exe: {display_exe(exe)}\n"
                 f"# ran: {now()}\n# cmd: {' ; '.join(cmds)}\n"
@@ -808,9 +897,19 @@ def expectation_violated(expect, verdict):
     match: it is the same shader declared column_major, so identical DXIL is
     what proves the row_major attribute is ignored. Warning on a match alone
     would call that finding a bug.
+
+    `invalid-probe` is a third answer and satisfies neither: `no-match` claims
+    the compiler ran the test and the symptom was absent, and a probe that
+    never compiled the repro has not shown that. Found on #8527, where a
+    deliberate `error: invalid profile cs_6_6` demonstration passed as a clean
+    `no-match` -- the same "an absence predicate is satisfied by a failed
+    parse" class the runner already guards elsewhere. Declare `--expect
+    invalid-probe` when *that* is the claim.
     """
-    if expect not in ("match", "no-match"):
+    if expect not in ("match", "no-match", "invalid-probe"):
         return False
+    if expect == "invalid-probe" or verdict == "invalid-probe":
+        return verdict != expect
     return (verdict == "repro") != (expect == "match")
 
 
@@ -822,7 +921,8 @@ def cmd_run(a):
         sys.exit("--shader/--args need --label, so the output is filed as a "
                  "variant rather than overwriting the repro's probe")
     r = execute(a.issue, a.compiler, a.match, repeat=a.repeat,
-                shader=a.shader, label=a.label, args=a.args, expect=a.expect)
+                shader=a.shader, label=a.label, args=a.args, expect=a.expect,
+                force=getattr(a, "force", False))
     extra = ""
     if r.get("attempts", 1) > 1:
         extra = f" [{r['hits']}/{r['attempts']} runs showed it]"
@@ -838,6 +938,45 @@ def cmd_run(a):
               "on reindex.")
     if a.show:
         print("\n" + r["text"])
+
+
+# Statuses that exist only in an assert-enabled build. Every release binary is
+# a Release build, where `assert` is `((void)0)` under NDEBUG, so a symptom
+# that manifests only as one of these is structurally unobservable in all of
+# them -- they are valid probes of a question they cannot answer.
+ASSERT_ONLY_STATUS = frozenset((0x80000003, 0xE0000001))
+
+
+def warn_release_blind(issue, state):
+    """Warn when "no release shows it" is an artefact of NDEBUG, not a fix.
+
+    Measured on #2191: the symptom is an `assert` in Sema, so the Debug ground
+    truth exits 0xE0000001 while all 20 release binaries compile the repro
+    successfully and emit correct DXIL. `bisect` duly reported
+    `never-repro'd-in-releases`, which reads as "no shipped compiler ever had
+    this bug" and is one short step from "it was never real".
+
+    SKILL.md warns about NDEBUG once, in the *ground-truth build* section, and
+    never carries it forward to the release axis -- where the whole bisection
+    runs on Release binaries. This is the carry-forward.
+    """
+    if not state.startswith("never-repro"):
+        return
+    gt = os.path.join(issue_dir(issue), "out-main-debug.txt")
+    if not os.path.isfile(gt):
+        return
+    meta = read_out(gt)[0]
+    try:
+        rc = int(meta.get("exit", "")) & 0xFFFFFFFF
+    except ValueError:
+        return
+    if meta.get("verdict") == "repro" and rc in ASSERT_ONLY_STATUS:
+        print(f"\nWARNING: the ground-truth probe failed with 0x{rc:08X}, a status "
+              f"only an assert-enabled build produces. Release binaries have "
+              f"asserts compiled out (NDEBUG), so they CANNOT show this symptom "
+              f"and this result is not evidence of a fix. Say so in --history; "
+              f"\"never-repro'd-in-releases\" alone will be read as \"never real\".",
+              file=sys.stderr)
 
 
 def cmd_bisect(a):
@@ -885,8 +1024,9 @@ def cmd_bisect(a):
                 runs.append((tag, v))
         note = f" ({skipped} release(s) skipped as unprobeable)" if skipped else ""
         if len(runs) == 1:
-            print(f"\nresult: {'always' if runs[0][1] else 'never'}-repro'd "
-                  f"across {usable[0][0]}..{usable[-1][0]}{note}")
+            state = f"{'always' if runs[0][1] else 'never'}-repro'd"
+            print(f"\nresult: {state} across {usable[0][0]}..{usable[-1][0]}{note}")
+            warn_release_blind(a.issue, state)
         else:
             print("\nresult: non-monotonic history" + note + ", transitions at " +
                   ", ".join(f"{t} -> {'repro' if v else 'no-repro'}"
@@ -910,6 +1050,7 @@ def cmd_bisect(a):
     if oldest == newest:
         state = "always-repro'd" if oldest else "never-repro'd-in-releases"
         print(f"\nresult: {state} across {rels[0]}..{rels[-1]}")
+        warn_release_blind(a.issue, state)
         return
 
     # Invariant: rels[lo] behaves like `oldest`, rels[hi] like `newest`.
@@ -1249,7 +1390,7 @@ def cmd_verdict(a):
     write_verdict_json(a.issue)
 
 
-def audit_issue(d, number, rec):
+def audit_issue(d, number, rec, collated=True):
     """Report artifacts a completed triage should have left behind.
 
     The other two reindex checks re-verify evidence that *exists*. This one
@@ -1262,6 +1403,13 @@ def audit_issue(d, number, rec):
     #3038 published a control result whose output was never captured, and the
     mandatory independent review ran on all three batches while leaving nothing
     on disk to prove it.
+
+    `collated=False` is the per-issue worker's view: step 10's review is a
+    *batch* step performed by a different model, so a correctly-executed worker
+    session cannot satisfy it and reporting it as a gap teaches the worker that
+    audit output is noise. It is listed separately there instead. Four of five
+    workers in batch 004 independently reported this, and the fix is to make
+    the reachable-clean state reachable, not to let anyone fill the field in.
     """
     gaps = []
     has = lambda f: os.path.isfile(os.path.join(d, f))
@@ -1318,7 +1466,7 @@ def audit_issue(d, number, rec):
         gaps.append("no notes.md (step 11)")
     if not has("comment.md"):
         gaps.append("no comment.md (step 9)")
-    if not rec.get("reviewed_by"):
+    if not rec.get("reviewed_by") and collated:
         gaps.append("verdict.json has no reviewed_by -- the independent "
                     "review is mandatory and left no trace (step 10)")
     if not rec.get("triaged_by"):
@@ -1327,6 +1475,116 @@ def audit_issue(d, number, rec):
         gaps.append("neither a Compiler Explorer link nor a recorded reason "
                     "for skipping one (step 7)")
     return gaps
+
+
+def cmd_audit(a):
+    """Read-only completeness check for one issue, or for all of them.
+
+    Exists because the only way to get `audit_issue` used to be `reindex`,
+    which begins `DELETE FROM issues; DELETE FROM runs;` and rebuilds from
+    whatever is on disk at that instant. Under the parallel per-issue model
+    that is a shared-state write: in batch 004 every one of five workers ran it
+    as instructed, and two had their own in-flight rows -- title, labels, and a
+    published Compiler Explorer link -- deleted by a peer.
+
+    This touches no tables at all, so a worker can run it as often as they
+    like. It is the check they actually wanted.
+    """
+    numbers = [a.issue] if a.issue else sorted(
+        int(n) for n in os.listdir(ISSUES) if n.isdigit()) \
+        if os.path.isdir(ISSUES) else []
+    total = 0
+    for number in numbers:
+        d = issue_dir(number)
+        if not os.path.isdir(d):
+            sys.exit(f"no evidence directory for #{number}")
+        vpath = os.path.join(d, "verdict.json")
+        rec = {}
+        if os.path.isfile(vpath):
+            with open(vpath, encoding="utf-8") as f:
+                rec = json.load(f)
+        gaps = audit_issue(d, number, rec, collated=a.collated)
+        for g in gaps:
+            print(f"#{number}: {g}")
+        total += len(gaps)
+        if rec and not rec.get("reviewed_by") and not a.collated:
+            print(f"#{number}: pending collation -- no reviewed_by yet (step 10 "
+                  f"is a batch step; do not fill it in yourself)")
+    if not total:
+        print(f"no missing evidence in {len(numbers)} issue(s)")
+    return 1 if total else 0
+
+
+def restamp(path, field, value):
+    """Rewrite one derived header field in a capture, leaving the rest alone.
+
+    `# verdict:` is not a measurement -- it is `classify()` applied to the
+    text below it. When the predicate code improves, every archived header
+    derived under the old code disagrees, and `reindex` says so. That report is
+    the point of the command, but without a way to ACCEPT a correction it never
+    clears, and a permanent list of known-stale lines is where the next real
+    disagreement goes to hide.
+
+    Only the named field moves. The command line, exit status and captured
+    output are what was actually observed and are never touched here.
+    """
+    with open(path, encoding="utf-8") as f:
+        lines = f.readlines()
+    for i, ln in enumerate(lines):
+        if ln.startswith(f"# {field}:"):
+            lines[i] = f"# {field}: {value}\n"
+            break
+    else:
+        return False
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.writelines(lines)
+    return True
+
+
+def cmd_expect(a):
+    """Correct a capture's declared expectation, and nothing else.
+
+    When a predicate improves, declarations made under the old one become
+    wrong, and `reindex` reports them -- which is the system working. But the
+    only way to answer used to be re-running the compiler (destroying the
+    archived measurement, possibly against a different build) or hand-editing
+    the header (unauditable, and one slip from editing `# exit:`).
+
+    An expectation is an assertion by the analyst, not a measurement, so it is
+    legitimate to revise it in place. This rewrites the `# expect:` line and
+    refuses to touch anything else, then re-scores the untouched output so the
+    correction is checked rather than asserted.
+    """
+    d = issue_dir(a.issue)
+    path = os.path.join(d, a.capture)
+    if not os.path.isfile(path):
+        sys.exit(f"no such capture: {path}")
+    meta, text = read_out(path)
+    if "exit" not in meta:
+        sys.exit(f"{a.capture} has no recorded exit status; it is not a capture")
+
+    mf = meta.get("match", "match.json")
+    rc = None if meta["exit"] in ("None", "TIMEOUT") else int(meta["exit"])
+    v = classify(a.issue, text, rc, meta.get("timed_out") == "1", mf)
+    if expectation_violated(a.expect, v):
+        sys.exit(f"refusing: {a.capture} scores {v!r}, so declaring "
+                 f"{a.expect!r} would be false on the next reindex")
+
+    with open(path, encoding="utf-8") as f:
+        lines = f.readlines()
+    for i, ln in enumerate(lines):
+        if ln.startswith("# expect:"):
+            was = ln.split(":", 1)[1].strip()
+            lines[i] = f"# expect: {a.expect}\n"
+            break
+    else:
+        sys.exit(f"{a.capture} has no `# expect:` line; re-run it with --expect")
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.writelines(lines)
+    print(f"#{a.issue} {a.capture}: expect {was} -> {a.expect} "
+          f"(scores {v}; measurement untouched)")
+    if a.why:
+        print(f"  reason: {a.why} -- put this in notes.md too")
 
 
 def cmd_reindex(a):
@@ -1341,12 +1599,22 @@ def cmd_reindex(a):
     would have surfaced here automatically, across every past batch, for free.
     """
     c = con()
+    # The rebuild reads `issues` from verdict.json alone, so every column
+    # written by another subcommand and not mirrored there -- title, url,
+    # created_at and labels from `fetch`, godbolt_url from `godbolt` -- used to
+    # be silently dropped. That is not hypothetical: #2191 reached collation
+    # with a NULL title, and `render_comments.py` selects on `batch`, so the
+    # issue would have been left out of its own batch report. Snapshot the
+    # rows, and put back anything the rebuild leaves empty.
+    keep = {r["number"]: {k: r[k] for k in r.keys()
+                          if k != "number" and r[k] is not None}
+            for r in c.execute("SELECT * FROM issues")}
     if a.reset:
         c.executescript("DELETE FROM issues; DELETE FROM runs;")
         c.commit()
 
     issues = runs = 0
-    changed, stale, gaps = [], [], []
+    changed, stale, gaps, preserved, accepted = [], [], [], [], []
     for name in sorted(os.listdir(ISSUES)) if os.path.isdir(ISSUES) else []:
         d = os.path.join(ISSUES, name)
         vpath = os.path.join(d, "verdict.json")
@@ -1367,6 +1635,22 @@ def cmd_reindex(a):
             continue
         else:
             number = int(name)
+
+        # Put back anything the rebuild left NULL that the database had. An
+        # in-flight issue with no verdict.json keeps its row instead of
+        # vanishing, and a verdict.json that never captured `fetch`'s fields
+        # stops silently discarding them on every rebuild.
+        row = c.execute("SELECT * FROM issues WHERE number = ?",
+                        (number,)).fetchone()
+        restored = {k: v for k, v in keep.get(number, {}).items()
+                    if row is None or row[k] is None}
+        if restored:
+            c.execute("INSERT OR IGNORE INTO issues (number) VALUES (?)",
+                      (number,))
+            c.execute(
+                f"UPDATE issues SET {', '.join(f'{k} = ?' for k in restored)}"
+                " WHERE number = ?", list(restored.values()) + [number])
+            preserved.append(f"#{number}: {', '.join(sorted(restored))}")
 
         for g in audit_issue(d, number, rec):
             gaps.append(f"#{number}: {g}")
@@ -1424,17 +1708,35 @@ def cmd_reindex(a):
             else:
                 verdict = classify(number, text, rc, to, match_file)
                 if a.verify and meta.get("verdict") and meta["verdict"] != verdict:
-                    changed.append(f"#{number} {meta['compiler']}: "
-                                   f"{meta['verdict']} -> {verdict}")
+                    if a.accept:
+                        restamp(path, "verdict", verdict)
+                        accepted.append(f"#{number} {meta['compiler']}: "
+                                        f"{meta['verdict']} -> {verdict}")
+                    else:
+                        changed.append(f"#{number} {meta['compiler']}: "
+                                       f"{meta['verdict']} -> {verdict}")
+            # A --repeat aggregate is stamped into the header (see
+            # stamp_repeat), so the hit rate survives a rebuild instead of
+            # living only in a row no file backs.
+            note = match_file
+            if meta.get("attempts"):
+                note = (f"{match_file} ({meta.get('hits', '?')}/"
+                        f"{meta['attempts']} runs)")
             c.execute("INSERT INTO runs (issue_number, compiler, cmd, exit_code,"
                       " timed_out, output_path, verdict, note, ran_at)"
                       " VALUES (?,?,?,?,?,?,?,?,?)",
                       (number, meta.get("compiler", out[4:-4]),
                        meta.get("cmd", ""), rc, int(to), path, verdict,
-                       match_file, meta.get("ran", "")))
+                       note, meta.get("ran", "")))
             runs += 1
     c.commit()
     print(f"reindexed {issues} issue(s) and {runs} run(s) from {ROOT}")
+    if preserved:
+        print("\nfields kept from the database because verdict.json does not "
+              "carry them (record them with `verdict --<field> ...` or the "
+              "next rebuild on a fresh clone will not have them):")
+        for line in preserved:
+            print(f"  {line}")
     if stale:
         print("\nprobes captured with a command cmd.txt no longer specifies:")
         for line in stale:
@@ -1443,11 +1745,18 @@ def cmd_reindex(a):
         print("\nverdicts that today's predicate code scores differently:")
         for line in changed:
             print(f"  {line}")
+        print("  (investigate each one; re-run with --accept to restamp the "
+              "headers once you are satisfied the new scoring is right)")
+    if accepted:
+        print("\nheaders restamped to today's scoring (measurements untouched; "
+              "say why in the batch report):")
+        for line in accepted:
+            print(f"  {line}")
     if gaps:
         print("\nevidence a completed triage should have left behind:")
         for line in gaps:
             print(f"  {line}")
-    if not (stale or changed or gaps):
+    if not (stale or changed or gaps or preserved):
         print("every probe re-scores as captured, none are stale, and no "
               "issue is missing required evidence")
 
@@ -1483,14 +1792,52 @@ def main():
     sub.add_parser("init").set_defaults(func=cmd_init)
 
     s = sub.add_parser("reindex", help="rebuild the local database from the "
-                                       "committed evidence tree")
+                                       "committed evidence tree. COLLATION "
+                                       "ONLY: it rewrites shared state, so it "
+                                       "is unsafe while other sessions are "
+                                       "writing -- use `audit` per issue")
+    # `--reset` used to be declared `action="store_true", default=True`, which
+    # is a flag that cannot be turned off by its own name: a bare `reindex`
+    # always took the destructive path. Every worker in batch 004 ran it as
+    # instructed and two lost in-flight rows to a peer. The rebuild is still
+    # the default -- re-scoring every probe is the point of the command -- but
+    # it no longer pretends to be optional, and it no longer discards columns
+    # verdict.json does not carry.
     s.add_argument("--reset", action="store_true", default=True,
-                   help="clear issues and runs first (default)")
-    s.add_argument("--no-reset", dest="reset", action="store_false")
+                   help=argparse.SUPPRESS)
+    s.add_argument("--no-reset", dest="reset", action="store_false",
+                   help="add to the existing rows instead of rebuilding them; "
+                        "duplicates run rows, so rarely what you want")
     s.add_argument("--verify", action="store_true", default=True,
                    help="report probes today's predicate code scores "
                         "differently than the run that captured them (default)")
+    s.add_argument("--accept", action="store_true",
+                   help="restamp those `# verdict:` headers to today's "
+                        "scoring. The verdict is derived from the captured "
+                        "text, so this loses nothing -- but do it only after "
+                        "checking each change, and record it in the report")
     s.set_defaults(func=cmd_reindex)
+
+    s = sub.add_parser("audit", help="read-only completeness check over the "
+                                     "evidence tree; touches no tables, so it "
+                                     "is safe to run while other sessions are "
+                                     "working")
+    s.add_argument("--issue", type=int, help="check one issue (default: all)")
+    s.add_argument("--collated", action="store_true",
+                   help="also require reviewed_by -- step 10 is a batch step, "
+                        "so this is collation's view, not a worker's")
+    s.set_defaults(func=cmd_audit)
+
+    s = sub.add_parser("expect", help="revise a capture's declared expectation "
+                                      "after a predicate change; refuses if "
+                                      "the new declaration would be false")
+    s.add_argument("--issue", type=int, required=True)
+    s.add_argument("--capture", required=True,
+                   help="the out-*.txt or variant-*.txt file to correct")
+    s.add_argument("--expect", required=True,
+                   choices=["match", "no-match", "invalid-probe"])
+    s.add_argument("--why", help="one line on why the old declaration was wrong")
+    s.set_defaults(func=cmd_expect)
 
     s = sub.add_parser("catalog")
     s.add_argument("--seed-from", help="path to an existing dxc_releases tree")
@@ -1525,9 +1872,14 @@ def main():
     s.add_argument("--args", help="replace the arguments entirely, for a "
                                   "variant that changes shader stage and so "
                                   "cannot reuse the repro's command")
-    s.add_argument("--expect", choices=["match", "no-match"],
+    s.add_argument("--expect", choices=["match", "no-match", "invalid-probe"],
                    help="what this control must do. Recorded in the output "
-                        "header and re-checked on every reindex")
+                        "header and re-checked on every reindex. "
+                        "`invalid-probe` is for a control that is expected to "
+                        "be rejected before it reaches the code under test")
+    s.add_argument("--force", action="store_true",
+                   help="overwrite a capture that was scored with a different "
+                        "predicate; prefer --label, which keeps both")
     s.set_defaults(func=cmd_run)
 
     s = sub.add_parser("bisect")

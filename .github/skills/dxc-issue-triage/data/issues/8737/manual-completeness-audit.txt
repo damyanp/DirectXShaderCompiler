@@ -1,0 +1,120 @@
+# by-hand completeness audit -- replaces `triage.py reindex`, which the orchestrator
+# withdrew for parallel batches (its --reset default deletes other workers' in-flight
+# database rows). Regenerate with:  python selfcheck.py  and  python rescore.py
+# Both are read-only; rescore.py asserts the shared database is byte-identical.
+# captured: 
+2026-08-06T18:33:03-07:00
+
+###############  1. selfcheck.py -- deliverables and claim backing  ###############
+
+by-hand completeness check for #8737
+======================================================================
+  capture verdicts: invalid-probe=5, no-repro=7, repro=34
+  ICE probed on 21 compilers; silent case on 16
+  silent case not probed on: v1.4.1907, v1.5.2010, v1.6.2104, v1.6.2106, v1.6.2112   <- expected: the pre-SM6.7 releases + n/a
+======================================================================
+  [PASS] deliverable present: expected.md
+  [PASS] deliverable present: cmd.txt
+  [PASS] deliverable present: notes.md
+  [PASS] deliverable present: comment.md
+  [PASS] deliverable present: match.json
+  [PASS] repro file(s) present: 7 .hlsl
+  [PASS] cmd.txt is a single invocation: '-T ps_6_7 -E PSMain repro.hlsl'
+  [PASS] cmd.txt names an existing repro: repro.hlsl
+  [PASS] cmd.txt probes captured: 21 (out-*.txt)
+  [PASS] variant/control probes captured: 25 (variant-*.txt)
+  [PASS] every capture carries an exit code (46 checked)
+  [PASS] no capture is stale w.r.t. cmd.txt
+  [PASS] ground-truth compiler probed for the ICE
+  [PASS] ground-truth compiler probed for the silent case
+  [PASS] verdict.json present
+  [PASS] verdict.json has status
+  [PASS] verdict.json has repro_quality
+  [PASS] verdict.json has history
+  [PASS] verdict.json has confidence
+  [PASS] verdict.json has suggested_action
+  [PASS] verdict.json has summary
+  [PASS] verdict.json has notes_path
+  [PASS] verdict.json has triaged_with_commit
+  [PASS] verdict.json has triaged_by
+  [PASS] verdict.json has godbolt_url
+  [PASS] verdict.json has labels_now
+  [PASS] verdict.json has labels_add
+  [PASS] verdict.json has labels_remove
+  [PASS] verdict.json has title
+  [PASS] verdict.json has url
+  [PASS] verdict.json has batch
+  [PASS] verdict.json has NO reviewed_by (correct: step 10 is deferred to collation)
+  [PASS] verdict.json notes_path resolves: issues/8737/notes.md
+  [PASS] every file notes.md cites exists (24 cited)
+  [PASS] hand measurement captured: manual-ground-truth-version.txt
+  [PASS] hand measurement captured: manual-source-citations.txt
+  [PASS] hand measurement captured: manual-testsuite-search.txt
+  [PASS] hand measurement captured: manual-godbolt-verification.txt
+  [PASS] hand measurement captured: manual-godbolt-rejected-panes.txt
+  [PASS] ground-truth capture shows the expected build (main, eff900d54)
+  [PASS] no failing check in the CE verification capture
+  [PASS] all 3 CE panes captured with exit 0
+  [PASS] CE capture is for the published link
+======================================================================
+43 passed, 0 failed
+
+###############  2. rescore.py -- every capture re-scored  ###############
+
+re-scoring 46 captures for #8737 with triage.py's own classify()
+=========================================================================================================
+capture                                          predicate              expect     scores      
+---------------------------------------------------------------------------------------------------------
+out-main-debug.txt                               match.json             -          repro       
+out-v1.4.1907.txt                                match.json             -          invalid-probe 
+out-v1.5.2010.txt                                match.json             -          invalid-probe 
+out-v1.6.2104.txt                                match.json             -          invalid-probe 
+out-v1.6.2106.txt                                match.json             -          invalid-probe 
+out-v1.6.2112.txt                                match.json             -          invalid-probe 
+out-v1.7.2207.txt                                match.json             -          repro       
+out-v1.7.2212.1.txt                              match.json             -          repro       
+out-v1.7.2212.txt                                match.json             -          repro       
+out-v1.7.2308.txt                                match.json             -          repro       
+out-v1.8.2403.1.txt                              match.json             -          repro       
+out-v1.8.2403.2.txt                              match.json             -          repro       
+out-v1.8.2403.txt                                match.json             -          repro       
+out-v1.8.2405.txt                                match.json             -          repro       
+out-v1.8.2407.txt                                match.json             -          repro       
+out-v1.8.2502.txt                                match.json             -          repro       
+out-v1.8.2505.1.txt                              match.json             -          repro       
+out-v1.8.2505.txt                                match.json             -          repro       
+out-v1.9.2602.24.txt                             match.json             -          repro       
+out-v1.9.2602.txt                                match.json             -          repro       
+out-v1.9.2607.txt                                match.json             -          repro       
+variant-const-sample-atomic-main-debug.txt       match.json             match      repro       
+variant-control-rwtexture2d-main-debug.txt       match-silent-ub.json   no-match   no-repro    
+variant-control-sample-store-main-debug.txt      match.json             no-match   no-repro    
+variant-diagnosed-error-not-ice-main-debug.txt   match.json             no-match   no-repro    
+variant-full-container-validated-main-debug.txt  match.json             no-match   no-repro    
+variant-implicit-sample-noice-main-debug.txt     match.json             no-match   no-repro    
+variant-msarray-explicit-main-debug.txt          match.json             match      repro       
+variant-msarray-implicit-main-debug.txt          match.json             no-match   no-repro    
+variant-msarray-implicit-ub-main-debug.txt       match-silent-ub.json   no-match   no-repro    
+variant-silent-ub-main-debug.txt                 match-silent-ub.json   match      repro       
+variant-silent-ub-v1.7.2207.txt                  match-silent-ub.json   match      repro       
+variant-silent-ub-v1.7.2212.1.txt                match-silent-ub.json   match      repro       
+variant-silent-ub-v1.7.2212.txt                  match-silent-ub.json   match      repro       
+variant-silent-ub-v1.7.2308.txt                  match-silent-ub.json   match      repro       
+variant-silent-ub-v1.8.2403.1.txt                match-silent-ub.json   match      repro       
+variant-silent-ub-v1.8.2403.2.txt                match-silent-ub.json   match      repro       
+variant-silent-ub-v1.8.2403.txt                  match-silent-ub.json   match      repro       
+variant-silent-ub-v1.8.2405.txt                  match-silent-ub.json   match      repro       
+variant-silent-ub-v1.8.2407.txt                  match-silent-ub.json   match      repro       
+variant-silent-ub-v1.8.2502.txt                  match-silent-ub.json   match      repro       
+variant-silent-ub-v1.8.2505.1.txt                match-silent-ub.json   match      repro       
+variant-silent-ub-v1.8.2505.txt                  match-silent-ub.json   match      repro       
+variant-silent-ub-v1.9.2602.24.txt               match-silent-ub.json   match      repro       
+variant-silent-ub-v1.9.2602.txt                  match-silent-ub.json   match      repro       
+variant-silent-ub-v1.9.2607.txt                  match-silent-ub.json   match      repro       
+=========================================================================================================
+database:                <cache>\triage.db
+database byte-identical: True   (sha256 c0b9fe425a6b -> c0b9fe425a6b)
+
+no drift, no violated expectations.
+
+selfcheck.py exit=0   rescore.py exit=0   (0 = clean)

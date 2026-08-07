@@ -60,6 +60,13 @@ Two rules make the parallelism safe:
   have already written, and concurrent edits collide. Method observations go in
   `issues/<nnnn>/method-notes.md`; collation promotes them. Single writer. Verify it held —
   `git status` on `scripts/` and `SKILL.md` after the parallel phase should be empty.
+- **The database is shared state too, and `reindex` rewrites all of it.** It opens
+  `DELETE FROM issues; DELETE FROM runs;` and rebuilds from whatever is on disk at that
+  instant, so a worker running it mid-batch deletes rows its peers are still writing. In batch
+  004 all five workers ran it — it was the only completeness check available — and #2191 lost
+  its title, url, created_at and `batch`, which would have dropped it from its own report. Use
+  **`triage.py audit --issue <n>`** instead: same completeness check, reads no tables and
+  writes none. `reindex` is collation's command.
 - **Collation runs `reindex` before writing anything.** Because probes are re-scored rather
   than restored, any lesson promoted during collation is applied retroactively to every issue
   in the batch — including the ones triaged before it was learned. That is what buys back the
@@ -94,8 +101,15 @@ isolation — it is the one place cross-issue context can leak back in. Give it:
 - the ground-truth compiler id, and the reminder to verify `dxc --version`;
 - the boundary: it writes only `data/issues/<nnnn>/`, and records method observations in
   `method-notes.md` rather than editing `SKILL.md` or `triage.py`;
+- the check it may run: `triage.py audit --issue <n>`. **Not `reindex`** — that rewrites the
+  whole database and will delete peers' rows;
 - the stop condition: verdict recorded and draft written, or a clear statement of what blocked
   it. `inconclusive` is a real outcome; a forced verdict is not.
+
+Two things belong to the batch, not the issue, so tell the worker not to attempt them:
+`reviewed_by` (step 10 runs once over all the drafts) and any cross-issue claim. A worker that
+finds itself wanting to say "this is the same as #NNNN" should say so in `method-notes.md` and
+leave the draft silent; collation is where that judgement can actually be checked.
 
 A subagent is weaker isolation than a real session: it shares the working directory, and it
 returns its findings into the orchestrator's context rather than only to disk. The first is
@@ -118,6 +132,22 @@ evidence a completed triage should have left behind.
 It cannot check reasoning. It will not tell you a repro is unfaithful to the issue, that the
 predicate tests the wrong thing, or that a verdict misreads its own output. That is what the
 human gate and the blind test are for.
+
+It also cannot check what it cannot see. The rebuild reads `issues` from `verdict.json`
+alone, so any column written by another subcommand — `title`, `url`, `created_at`, `labels`
+from `fetch`; `godbolt_url` from `godbolt` — is reconstructed from nothing. It now carries
+those forward from the previous rows and prints what it kept, but a field that lives only in
+the database is one fresh clone away from being lost. When `reindex` reports fields kept,
+write them into `verdict.json` with `verdict --<field>`.
+
+**Disagreements have to be closed, not accumulated.** When a predicate improves, every header
+scored under the old code disagrees, and a permanent list of known-stale lines is where the
+next real disagreement hides. Investigate each one, then `reindex --accept` to restamp the
+`# verdict:` headers — the verdict is derived from the captured text, so nothing is lost.
+For a control whose *declared* expectation is what went stale, use
+`triage.py expect --issue N --capture <file> --expect <value>`, which rewrites that one line
+and refuses if the new declaration would itself be false. Neither command touches a
+measurement. Never hand-edit a capture: `# exit:` and the output below it are observations.
 
 ### Test reproducibility, don't assume it
 
@@ -321,10 +351,19 @@ Add `"invert": true` to negate.
 | success | 0 | no |
 | input file not found | 1 | no |
 | syntax error, invalid profile, **DXIL validation failure** | 0x80004005 (E_FAIL) | **no** |
-| assert fires (Debug) | 0x80000003 | yes |
+| `llvm::cast<X>()` type mismatch | 0x80004005 (E_FAIL) | **yes — text only** |
+| assert fires (Debug) | 0x80000003, or 0xE0000001 | yes |
 | access violation | 0xC0000005 | yes |
 | `llvm_unreachable` / `report_fatal_error` | 0xE0000002 / 0xE0000003 | yes |
 | killed by signal (Linux/CE) | 139, 134 | yes |
+
+> Two rows fight each other, and both are measured. A bad `llvm::cast` throws
+> `hlsl::Exception(DXC_E_LLVM_CAST_ERROR, …)` (`lib/Support/ErrorHandling.cpp`), which the
+> driver reports as **E_FAIL — the same status as a syntax error** (#8737). It is the one
+> internal failure the exit code cannot distinguish, which is why `is_internal_failure` also
+> carries text markers. Conversely #2191's assert exits **0xE0000001**, not 0x80000003,
+> because it too arrives as a C++ exception rather than a trap. Do not infer either direction
+> from the exit code alone.
 
 > Unrecognised `/`-style flags are **silently ignored** — `/ZZZNONSENSE` exits 0. Never infer
 > that a flag was honoured from a clean exit; make it fail (point it at a missing file) to
@@ -339,7 +378,12 @@ Add `"invert": true` to negate.
 **An issue may need more than one predicate.** When the reported symptom differs from current
 behaviour, add e.g. `match-crash.json` and bisect each separately. That is how you distinguish
 "this was fixed" from "this changed shape but is still broken" — a distinction that collapses
-into a misleading single verdict otherwise.
+into a misleading single verdict otherwise. Each predicate's probes get their own filenames
+(`out-<compiler>--<predicate>.txt`), so the two histories sit side by side; until batch 004
+they did not, and #2191's second bisection overwrote 20 of the first's 21 captures with
+nothing in the tree to say it had happened. The runner now refuses an overwrite that would
+cross predicates, but the shape of the trap is general: **a probe is identified by its
+question, not just by the compiler that answered it.**
 
 **One defect can have two signatures — compose predicates with `any_of` / `all_of`.** A bug
 whose Release manifestation differs from its Debug one needs a disjunction, or whichever build
@@ -449,7 +493,8 @@ release binaries and repeat the run; a single clean pass is not evidence of a fi
 > `--repeat` runs the repro up to N times and reports the symptom if *any* run shows it,
 > short-circuiting on the first sighting so a reproducing release stays cheap.
 >
-> Measured on #3768, whose heap corruption fires on 68–82% of runs in the affected releases:
+> Measured on #3768, whose heap corruption fires on 70–82% of runs in the affected releases
+> (33/40 at v1.6.2104, 28/40 at v1.6.2106, counted in `issues/3768/`'s repeated-run capture):
 > a one-shot probe calls a *reproducing* release clean roughly a quarter of the time. During a
 > linear scan that does not just add noise, it **invents release boundaries that do not
 > exist** — an unlucky probe looks exactly like a fix.
@@ -458,6 +503,16 @@ release binaries and repeat the run; a single clean pass is not evidence of a fi
 > nothing until you know the per-run hit rate: at ~70%, thirty consecutive clean runs has
 > probability ~2e-15, so it is a real finding rather than an absence of one. Measure the rate
 > on a known-bad release first, then quote it.
+>
+> **A rate you quote must be countable from a file in the issue directory.** #3768's draft
+> carried "68–82%" for three batches with no capture behind it: the aggregate lived only in
+> the database, a `reindex` discarded it, and the figure became unfalsifiable — provably so,
+> since the committed `notes.md` said 110 clean runs where `verdict.json` said 105 and nothing
+> on disk could settle which was right. Re-measuring gave 70–82%, close enough that nobody
+> would have caught the drift by eye. `run --repeat` now stamps the rate into the capture
+> header, but a hand-run matrix must be written out as `manual-case-*.txt` with every attempt's
+> command and exit status, and the draft must cite counts (`33/40`) rather than a percentage
+> a reader cannot re-derive.
 >
 > Reach for it whenever the reporter says "intermittent", "sometimes", "flaky", or names heap
 > corruption, uninitialised memory, ASLR or threading. Do not use it as a blanket default —
@@ -505,6 +560,29 @@ across issues.
 > rejected the input would have "reproduced" it perfectly. The runner now reclassifies such a
 > probe as `invalid-probe` when the compile also failed. Prefer a positive predicate where one
 > exists, and always confirm the probe actually emitted DXIL.
+
+> **A crashed probe measured nothing.** A release that access-violates on the repro did not
+> observe the reported symptom; it failed before it could. Scored as `no-repro` that is the
+> most dangerous direction of error — it erases a defect at exactly the release boundary
+> someone will act on. Measured on #2202: v1.8.2403 answers
+> `Internal compiler error: access violation` and a `--linear` scan duly reported a fix window
+> that does not exist. Now classified `invalid-probe`, unless the crash *is* what the predicate
+> is looking for.
+
+> **The feature-absence trap also runs forwards in time.** Every marker above means "you used
+> something that does not exist yet"; the mirror image is a *newer* compiler rejecting an
+> *older* repro because a default moved under it. Measured on #2202, filed in 2019 with no
+> `-HV`: at today's default `-HV 2021` the front end rejects `bool3 ? a : b` before codegen, so
+> the validator the issue is about never runs and the bug looks fixed on `main`. **Pin the
+> language version of any repro older than the current default**, and treat "reproduces on
+> every old release but not on `main`" as a claim to check rather than a fix to celebrate.
+
+> **`never-repro'd-in-releases` is only a finding if a release could have shown the symptom.**
+> An assert-only defect cannot appear in a release build at all: `assert.h` compiles asserts
+> out under `NDEBUG`, so 20 clean releases are a property of the build configuration, not of
+> the code. Measured on #2191, where the ground-truth Debug build exits `0xE0000001` and every
+> release exits 0 with correct DXIL. `bisect` now warns when those two facts coincide. Say
+> "silent by construction", not "fixed", and do not suggest closing.
 
 > **Binary search assumes the symptom is monotonic. Fix-then-revert issues are not.** With a
 > non-monotonic history, binary search returns an arbitrary boundary — and when both endpoints
@@ -620,6 +698,19 @@ Three limits, all of which bound how much the link can be trusted:
 | CE runs **Release** builds | Debug-only asserts look clean. CE corroborates the local build, never overrules it |
 | CE's oldest DXC is **1.6.2112** | Cannot date a fix older than that; use `bisect` for history |
 | CE is **single-file** | Multi-file repros are partial at best; say so in the notes |
+
+> **Do not fold a multi-file repro into one file without a control.** The obvious device for
+> #8527 — a header that includes *itself* under a different spelling — appears to reproduce the
+> `#pragma once` failure. It does not: the same construction with a *matching* spelling fails
+> identically, because clang ignores `#pragma once` in the main file. The fold measured a
+> different rule. **Whenever a repro is transformed to fit CE, run the transformation on a case
+> that is known-good and confirm it still passes.** If it does not, the transformation is the
+> subject and the issue is not.
+
+> **When CE cannot show the symptom at all, say so in the comment.** #2191 is a Debug-only
+> assert and CE ships no assertions-enabled DXC, so the link shows three compilers succeeding.
+> Published bare, that reads as "cannot reproduce". It is still worth publishing — it is the
+> evidence that release builds are unaffected — but only with the limitation stated beside it.
 
 `dxc_trunk` is a rolling build and is not reproducible over time. It can even vary between
 runs of the same input — #1768 alternates between `SIGSEGV` and a bad-cast error. Do not pin
@@ -767,6 +858,20 @@ the escaping is CRT and shell argv splitting generally, not a `cmd.exe` quirk; `
 only the harness that reproduced it faithfully. Concision pressure pulls toward attributing a
 general behaviour to whatever specific thing the sentence already mentions. Re-read every
 accepted rewrite against the evidence, not just against the original wording.
+
+**Its most valuable output is not the cuts. It is the arithmetic.** A concision reviewer reads
+every claim looking for words to remove, which makes it check quantifiers and counts that a
+domain reader skims. In batch 004 it caught three factual errors that no amount of domain
+expertise would have surfaced: "the third error" where the file has four; "every release back
+to v1.4.1907" where `bisect` short-circuited after two endpoints; "with other atomics" where
+exactly one other atomic was tried. **Give it the evidence files, not just the drafts** — it
+cannot check a count it cannot see, and these are the corrections worth the whole exercise.
+Treat any bare numeral or universal quantifier it queries as guilty until re-counted.
+
+Under the parallel model the reviewer is also the **only** reader who sees all five drafts, so
+it is the first place a house style can be enforced. Note what it cannot do: it does not know
+that two issues are related, because nothing in a draft says so. Cross-issue claims are
+collation's job and must be settled before the review, not after.
 
 ### 11. Write it up
 

@@ -1,0 +1,19 @@
+# manual measurement -- not a triage.py run; not scored by any predicate
+# purpose: notes.md claims 'searching the test suite finds no test combining RWTexture2DMS
+#          with Interlocked'. That is an absence claim and needs its search shown.
+# captured: 2026-08-06T18:25:05-07:00
+
+A. Files under tools/clang/test mentioning RWTexture2DMS (any form):
+  tools\clang\test\CodeGenDXIL\hlsl\intrinsics\buffer-typed-store.hlsl
+  tools\clang\test\CodeGenDXIL\hlsl\intrinsics\buffer-typed-store.ll
+  tools\clang\test\HLSL\rewriter\indexing-operator_noerr.hlsl
+  tools\clang\test\HLSLFileCheck\d3dreflect\rdat_mintarget\sm67_writeablemsaa_global.hlsl
+  tools\clang\test\HLSLFileCheck\d3dreflect\rdat_mintarget\sm67_writeablemsaa.hlsl
+  tools\clang\test\HLSLFileCheck\hlsl\objects\RWTexture\rwtexture2dms.hlsl
+  tools\clang\test\HLSLFileCheck\hlsl\types\conversions\indexing-operator_Mod.hlsl
+  tools\clang\test\SemaHLSL\indexing-operator.hlsl
+  -> total: 8 file(s)
+
+B. Of those, files that ALSO mention Interlocked:
+  (none)
+  -> total: 0 file(s)

@@ -1,6 +1,5 @@
-# The issue as filed used "-fcgl -Vd" to dodge a spirv-tools crash that would
-# have confused the report. That workaround is obsolete: current dxc compiles
-# this with full legalization and validation, and all six DebugPrintf calls
-# survive with correct operands. Removing it also exercises strictly more code,
-# so the repro is now run without it. cmd-as-filed.txt keeps the original.
+# The issue as filed used "-fcgl -Vd" to avoid a separate SPIRV-Tools crash.
+# That upstream crash is fixed, and current DXC compiles this test with
+# legalization and validation enabled. The repro therefore omits both flags;
+# cmd-as-filed.txt preserves the original command.
 -T cs_6_0 -E main -spirv repro.hlsl

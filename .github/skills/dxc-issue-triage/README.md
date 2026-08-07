@@ -64,15 +64,33 @@ filed".
 
 In an `out-*.txt` header, `# verdict:` is per-probe, not per-issue, and has two further
 values: `invalid-probe` means that compiler never actually ran the repro — it rejected the
-profile, a flag, or a language feature that did not exist yet — so it is evidence of nothing
-and is trimmed from history searches. `unscored` means the issue has no symptom predicate:
-#3150 is a specification gap with nothing to reproduce, but its evidence still records two
-compiler-measurable claims.
+profile, a flag, or a language feature that did not exist yet; or it crashed before reaching
+the code under test — so it is evidence of nothing and is trimmed from history searches.
+`unscored` means the issue has no symptom predicate: #3150 is a specification gap with
+nothing to reproduce, but its evidence still records two compiler-measurable claims.
+
+`out-<compiler>--<predicate>.txt` is a probe of the same release under a *second* predicate
+(`match-crash.json` and friends). The predicate is part of a probe's identity, so the two
+histories are filed separately and the runner refuses to overwrite one with the other.
 
 A `variant-*.txt` file is a control or a translated variant, never a probe of the primary
 repro. Its `# expect:` header records what it must do — `no-match` for a known-good input the
-predicate must not fire on, `match` for an identity control where sameness is the finding —
-and `reindex` re-checks it on every run.
+predicate must not fire on, `match` for an identity control where sameness is the finding,
+`invalid-probe` for one that is *meant* to be rejected before it reaches the code under test
+— and `reindex` re-checks it on every run.
+
+## Who may run what
+
+`reindex` rebuilds the whole database: it deletes `issues` and `runs` and reconstructs them
+from disk. That makes it **a collation-only command** — run it while per-issue sessions are
+working and it will delete rows they are still writing. For the completeness check on its
+own, use `triage.py audit [--issue N]`, which reads no tables and writes none.
+
+Two commands revise recorded judgements without touching a measurement, and nothing else may:
+`reindex --accept` restamps `# verdict:` headers that today's predicate code scores
+differently, and `triage.py expect --issue N --capture F --expect V` revises a control's
+declared expectation, refusing if the new declaration would itself be false. `# cmd:`,
+`# exit:` and the captured output are observations; hand-editing them is falsification.
 
 ## Reproducibility check
 

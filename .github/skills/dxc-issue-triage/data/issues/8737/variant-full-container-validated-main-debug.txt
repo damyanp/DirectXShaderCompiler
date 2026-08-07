@@ -1,0 +1,18 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T01:07:06+00:00
+# cmd: -T ps_6_7 -E PSMain -Fo NUL repro-implicit-sample.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: full-container-validated (repro-implicit-sample.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_7 -E PSMain -Fo NUL repro-implicit-sample.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

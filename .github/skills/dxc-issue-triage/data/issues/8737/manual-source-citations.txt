@@ -1,0 +1,171 @@
+# manual measurement -- not a triage.py run; not scored by any predicate
+# purpose: notes.md and comment.md make five claims about DXC's source. This file quotes
+#          each cited range verbatim so a stranger can check them without guessing.
+#          Line numbers valid at eff900d5 (see manual-ground-truth-version.txt).
+# captured: 2026-08-06T18:24:17-07:00
+
+==============================================================================
+1. docs/DXIL.rst:1876-1887 -- AtomicBinOp 'Valid resource type' table.
+   CLAIM: Texture2DMS / Texture2DMSArray are NOT listed.
+==============================================================================
+ 1870:       i32,                  ; coordinate c1
+ 1871:       i32,                  ; coordinate c2
+ 1872:       i32)                  ; new value
+ 1873: 
+ 1874: The call respects SM5.1 OOB and alignment rules.
+ 1875: 
+ 1876: =================== =====================================================
+ 1877: Valid resource type # of active coordinates
+ 1878: =================== =====================================================
+ 1879: RWTexture1D         1 (c0)
+ 1880: RWTexture1DArray    2 (c0, c1 = array slice)
+ 1881: RWTexture2D         2 (c0, c1)
+ 1882: RWTexture2DArray    3 (c0, c1, c2 = array slice)
+ 1883: RWTexture3D         3 (c0, c1, c2)
+ 1884: RWTypedBuffer       1 (c0 in elements)
+ 1885: RWRawBuffer         1 (c0 in bytes)
+ 1886: RWStructuredBuffer  2 (c0 in elements, c1 - byte offset into the element)
+ 1887: =================== =====================================================
+ 1888: 
+ 1889: AtomicBinOp subsumes corresponding DXBC atomic operations that do not return the old value in memory. The driver compiler is free to specialize the corresponding GPU instruction if the return value is unused.
+ 1890: 
+ 1891: AtomicCompareExchange
+ 1892: ~~~~~~~~~~~~~~~~~~~~~
+ 1893: 
+
+==============================================================================
+2. lib/HLSL/HLOperationLower.cpp:4906-4949 -- TranslateAtomicBinaryOperation.
+   CLAIM: all 3 coords init to undefI, filled only as far as the address vector
+          reaches; no multisample branch, so no path can supply a sample index.
+==============================================================================
+ 4906: void TranslateAtomicBinaryOperation(AtomicHelper &helper,
+ 4907:                                     DXIL::AtomicBinOpCode atomicOp,
+ 4908:                                     IRBuilder<> &Builder, hlsl::OP *hlslOP) {
+ 4909:   Value *handle = helper.handle;
+ 4910:   Value *addr = helper.addr;
+ 4911:   Value *val = helper.value;
+ 4912:   Type *Ty = helper.operationType;
+ 4913:   Type *valTy = val->getType();
+ 4914: 
+ 4915:   Value *undefI = UndefValue::get(Type::getInt32Ty(Ty->getContext()));
+ 4916: 
+ 4917:   Function *dxilAtomic = hlslOP->GetOpFunc(helper.opcode, Ty->getScalarType());
+ 4918:   Value *opArg = hlslOP->GetU32Const(static_cast<unsigned>(helper.opcode));
+ 4919:   Value *atomicOpArg = hlslOP->GetU32Const(static_cast<unsigned>(atomicOp));
+ 4920: 
+ 4921:   if (Ty != valTy)
+ 4922:     val = Builder.CreateBitCast(val, Ty);
+ 4923: 
+ 4924:   Value *args[] = {opArg,  handle, atomicOpArg,
+ 4925:                    undefI, undefI, undefI, // coordinates
+ 4926:                    val};
+ 4927: 
+ 4928:   // Setup coordinates.
+ 4929:   if (addr->getType()->isVectorTy()) {
+ 4930:     unsigned vectorNumElements = addr->getType()->getVectorNumElements();
+ 4931:     DXASSERT(vectorNumElements <= 3, "up to 3 elements for atomic binary op");
+ 4932:     assert(vectorNumElements <= 3);
+ 4933:     for (unsigned i = 0; i < vectorNumElements; i++) {
+ 4934:       Value *Elt = Builder.CreateExtractElement(addr, i);
+ 4935:       args[DXIL::OperandIndex::kAtomicBinOpCoord0OpIdx + i] = Elt;
+ 4936:     }
+ 4937:   } else
+ 4938:     args[DXIL::OperandIndex::kAtomicBinOpCoord0OpIdx] = addr;
+ 4939: 
+ 4940:   // Set offset for structured buffer.
+ 4941:   if (helper.offset)
+ 4942:     args[DXIL::OperandIndex::kAtomicBinOpCoord1OpIdx] = helper.offset;
+ 4943: 
+ 4944:   Value *origVal =
+ 4945:       Builder.CreateCall(dxilAtomic, args, hlslOP->GetAtomicOpName(atomicOp));
+ 4946:   if (helper.originalValue) {
+ 4947:     if (Ty != valTy)
+ 4948:       origVal = Builder.CreateBitCast(origVal, valTy);
+ 4949:     Builder.CreateStore(origVal, helper.originalValue);
+ 4950:   }
+
+==============================================================================
+3. lib/DxilValidation/DxilValidation.cpp:2412-2424 -- validator's AtomicBinOp case.
+   CLAIM: checks overload type + that the handle is a UAV; does NOT check resource kind.
+==============================================================================
+ 2406:     Value *HitObject = CI->getArgOperand(1);
+ 2407:     if (isa<UndefValue>(HitObject))
+ 2408:       ValCtx.EmitInstrError(CI, ValidationRule::InstrUndefHitObject);
+ 2409:     break;
+ 2410:   }
+ 2411: 
+ 2412:   case DXIL::OpCode::AtomicBinOp:
+ 2413:   case DXIL::OpCode::AtomicCompareExchange: {
+ 2414:     Type *pOverloadType = OP::GetOverloadType(Opcode, CI->getCalledFunction());
+ 2415:     if ((pOverloadType->isIntegerTy(64)) && !pSM->IsSM66Plus())
+ 2416:       ValCtx.EmitInstrFormatError(
+ 2417:           CI, ValidationRule::SmOpcodeInInvalidFunction,
+ 2418:           {"64-bit atomic operations", "Shader Model 6.6+"});
+ 2419:     Value *Handle = CI->getOperand(DXIL::OperandIndex::kAtomicBinOpHandleOpIdx);
+ 2420:     if (!isa<CallInst>(Handle) ||
+ 2421:         ValCtx.GetResourceFromVal(Handle).getResourceClass() !=
+ 2422:             DXIL::ResourceClass::UAV)
+ 2423:       ValCtx.EmitInstrError(CI, ValidationRule::InstrAtomicIntrinNonUAV);
+ 2424:   } break;
+ 2425:   case DXIL::OpCode::CreateHandle:
+ 2426:     if (ValCtx.isLibProfile) {
+ 2427:       ValCtx.EmitInstrFormatError(CI, ValidationRule::SmOpcodeInInvalidFunction,
+ 2428:                                   {"CreateHandle", "non-library targets"});
+ 2429:     }
+ 2430:     // CreateHandle should not be used in SM 6.6 and above:
+ 2431:     if (DXIL::CompareVersions(ValCtx.m_DxilMajor, ValCtx.m_DxilMinor, 1, 5) >
+
+==============================================================================
+4. lib/Support/ErrorHandling.cpp:143 -- llvm_cast_assert_internal.
+   CLAIM: a failed llvm::cast<> THROWS hlsl::Exception rather than asserting, so the
+          ICE exits E_FAIL identically in Debug and Release.
+==============================================================================
+  130:     OS << msg << "\n";
+  131:   OS << "UNREACHABLE executed";
+  132:   if (file)
+  133:     OS << " at " << file << ":" << line;
+  134:   OS << "!\n";
+  135: #ifndef LLVM_ON_WIN32 // HLSL Change - unwind if necessary, but don't terminate the process
+  136:   dbgs() << OS.str();
+  137:   abort();
+  138: #else
+  139:   throw hlsl::Exception(DXC_E_LLVM_UNREACHABLE, OS.str());
+  140: #endif
+  141: }
+  142: 
+  143: void llvm::llvm_cast_assert_internal(const char *func) {
+  144:   throw hlsl::Exception(DXC_E_LLVM_CAST_ERROR, std::string(func) + "<X>() argument of incompatible type!\n");
+  145: }
+  146: 
+  147: static void bindingsErrorHandler(void *user_data, const std::string& reason,
+  148:                                  bool gen_crash_diag) {
+  149:   LLVMFatalErrorHandler handler =
+  150:       LLVM_EXTENSION reinterpret_cast<LLVMFatalErrorHandler>(user_data);
+  151:   handler(reason.c_str());
+
+==============================================================================
+5. utils/hct/gen_intrin_main.txt:927-934 -- RWTexture2DMSMethods.
+   CLAIM: declares only GetDimensions / GetSamplePosition / Load -- no interlocked
+          method, so both forms in the issue reach the FREE InterlockedMax overload
+          and Sema never inspects the resource kind.
+==============================================================================
+  922: void [[]] GetDimensions(out float_like width, out $type1 height, out $type1 elements) : resinfo_o;
+  923: $classT [[ro]] Load(in int<3> x) : rwtex2d_load_array;
+  924: $classT [[]] Load(in int<3> x, out uint_only status) : rwtex2d_load_array_s;
+  925: } namespace
+  926: 
+  927: namespace RWTexture2DMSMethods {
+  928: 
+  929: void [[]] GetDimensions(out uint_only width, out $type1 height, out $type2 samples);
+  930: void [[]] GetDimensions(out float_like width, out $type1 height, out $type2 samples);
+  931: float_like<2> [[ro]] GetSamplePosition(in int s);
+  932: $classT [[ro]] Load(in int<2> x, in int s);
+  933: $classT [[]] Load(in int<2> x, in int s, out uint_only status);
+  934: } namespace
+  935: 
+  936: namespace RWTexture2DMSArrayMethods {
+  937: 
+  938: void [[]] GetDimensions(out uint_only width, out $type1 height, out $type1 elements, out $type1 samples);
+  939: void [[]] GetDimensions(out float_like width, out $type1 height, out $type1 elements, out $type1 samples);
+  940: float_like<2> [[ro]] GetSamplePosition(in int s);
+  941: $classT [[ro]] Load(in int<3> x, in int s);

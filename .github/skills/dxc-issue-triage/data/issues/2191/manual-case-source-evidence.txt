@@ -1,0 +1,88 @@
+# manual capture: source-level corroboration for #2191
+# ran: 2026-08-06T18:12:18.9926728-07:00
+# NOTE: hand-driven capture, not a probe. Not scored by match.json.
+
+=== 0. Source provenance ===================================================
+The ground-truth binary reports commit eff900d54; the checkout HEAD has moved
+on. Checked before quoting any source:
+  $ git log -1 --format='%H %ad %s' --date=short eff900d54
+    eff900d5480cf8f5fe5da59d797f598a8c12cb5d 2026-08-04 [Validaton][Infra] Print errors in source order (#8730)
+  $ git rev-parse HEAD                     -> f8220ace460990a29bdf2a4436cdb454ede32181
+  $ git merge-base --is-ancestor eff900d54 HEAD   -> rc=0 (0 = built commit is an ancestor)
+  $ git diff --stat eff900d54 HEAD -- <the four files quoted below>
+    (no output -- the files are byte-identical at both commits)
+  $ git status --porcelain -- tools include lib   -> (clean)
+So the excerpts below are the source the ground-truth binary was built from.
+
+=== 1. The assert, in source ===============================================
+$ sed -n '11151,11157p' tools/clang/lib/Sema/SemaDecl.cpp
+    assert(ExprCleanupObjects.size() ==
+               ExprEvalContexts.back().NumCleanupObjects &&
+           "Leftover temporaries in function");
+    assert(!ExprNeedsCleanups && "Unaccounted cleanups in function");
+    assert(MaybeODRUseExprs.empty() &&
+           "Leftover expressions for odr-use checking");
+  }
+
+Reached via ValidateAttributeIntArg, which for an identifier argument looks up
+the VarDecl and constant-folds it -- tools/clang/lib/Sema/SemaHLSL.cpp:13858ff,
+shared by [numthreads] (14817-14819), [maxvertexcount] and 26 others -- see section 4.
+
+=== 2. Why Release binaries cannot show it =================================
+$ sed -n '25,29p' include/llvm/llvm_assert/assert.h
+#ifdef NDEBUG
+
+#define assert(_Expression) ((void)0)
+
+#else /* NDEBUG */
+
+And the assert path itself never touches stderr -- lib/Support/assert.cpp:
+  OutputDebugFormatA(...); RaiseException(STATUS_LLVM_ASSERT, 0, 0, 0);
+  (STATUS_LLVM_ASSERT = 0xE0000001, include/llvm/llvm_assert/assert.h:21)
+
+Consistent with the NDEBUG definition, the assert's message string is present
+in the Debug dxcompiler.dll and absent from Release ones (findstr /M; rc=0 is
+found, rc=1 is not found):
+  rc=0  build\Debug\bin\dxcompiler.dll (main-debug ground truth)
+  rc=1  release v1.9.2607 bin\x64\dxcompiler.dll
+  rc=1  release v1.4.1907 dxcompiler.dll
+Caveat: absence of the string is corroboration, not proof -- a build could also
+use LLVM_ASSERTIONS_NO_STRINGS. The load-bearing evidence is the NDEBUG
+definition above plus the observed exit 0 from all 20 releases.
+
+=== 3. Age of the assert and of the code path that reaches it =============
+$ git log --format='%h %ad %s' --date=short -S 'Leftover expressions for odr-use checking' -- tools/clang/lib/Sema/SemaDecl.cpp
+  6ee4074a4 2016-12-28 first commit
+$ git log --format='%h %ad %s' --date=short -S 'For case arg is constant variable' -- tools/clang/lib/Sema/SemaHLSL.cpp
+  6ee4074a4 2016-12-28 first commit
+
+Both the assert and ValidateAttributeIntArg's identifier-argument branch are
+unchanged since the repository's first public commit (2016-12-28), 2.4 years
+before this issue was filed. That shows the code was never revised; it is not
+by itself proof that the assert fired in 2019 -- surrounding code could have
+changed. No Debug build older than the ground truth was tested (rebuilding the
+compiler is out of scope for this triage).
+
+=== 4. How many attributes reach ValidateAttributeIntArg ==================
+Counted by walking tools/clang/lib/Sema/SemaHLSL.cpp and attributing each
+ValidateAttributeIntArg(S, A, ...) call to the enclosing case AttributeList::AT_*:
+
+  distinct attributes: 28
+  AT_HLSLGroupSharedLimit, AT_HLSLInstance, AT_HLSLMaxVertexCount,
+  AT_HLSLNodeArraySize, AT_HLSLNodeDispatchGrid, AT_HLSLNodeId,
+  AT_HLSLNodeLocalRootArgumentsTableIndex, AT_HLSLNodeMaxDispatchGrid,
+  AT_HLSLNodeMaxRecursionDepth, AT_HLSLNodeShareInputOf, AT_HLSLNumThreads,
+  AT_HLSLOutputControlPoints, AT_VKBinding, AT_VKCapabilityExt, AT_VKConstantId,
+  AT_VKCounterBinding, AT_VKDecorateExt, AT_VKDecorateStringExt,
+  AT_VKExtBuiltinInput, AT_VKExtBuiltinOutput, AT_VKIndex,
+  AT_VKInputAttachmentIndex, AT_VKInstructionExt, AT_VKLocation, AT_VKOffset,
+  AT_VKSpvExecutionMode, AT_VKStorageClassExt, AT_VKTypeDefExt
+
+Only two of the 28 were tested here ([numthreads] and [maxvertexcount]); the count
+says how many share the code path, not how many were observed to assert.
+
+$ pwsh -c '$lines = Get-Content tools\clang\lib\Sema\SemaHLSL.cpp; $cur=$null; $set=@{};
+     for($i=0;$i -lt $lines.Count;$i++){
+       if($lines[$i] -match ''case AttributeList::(AT_\w+)''){ $cur=$Matches[1] }
+       if($lines[$i] -match ''ValidateAttributeIntArg\(S, A'' -and $cur){ $set[$cur]=$true } }
+     $set.Count; ($set.Keys | Sort-Object) -join '', '''

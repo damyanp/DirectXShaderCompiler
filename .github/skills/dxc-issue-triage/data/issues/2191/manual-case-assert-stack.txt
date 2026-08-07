@@ -1,0 +1,97 @@
+# manual capture: assert message + stack, for the primary repro and for a variant
+# compiler: main-debug  (<repo>\build\Debug\bin\dxc.exe)
+# version:  1.9.0.15422 (main, eff900d54)
+# harness:  assert-stack.cmd   (cdb 10.0.26100.6584, x64)  -- re-runnable
+# ran:      2026-08-06T18:09:47.4773444-07:00
+# why:      dxc sends assert text to OutputDebugString, not stderr, so a plain run
+#           shows only "Internal compiler error: LLVM Assert" and exit 0xE0000001.
+#           See lib/Support/assert.cpp (llvm_assert -> OutputDebugFormatA ->
+#           RaiseException(STATUS_LLVM_ASSERT)) and include/llvm/llvm_assert/assert.h.
+# NOTE:     hand-driven capture, not a probe. Not scored by match.json.
+#
+# CASE 1 is repro.hlsl with the exact arguments in cmd.txt.
+# CASE 2 is variant-maxvertexcount.hlsl (-T gs_6_0), a different attribute reaching
+#        the same helper -- it shows the defect is not [numthreads]-specific.
+### CASE 1: repro.hlsl (-T cs_6_0 -E main) -- the issue as filed
+   AllowParallelInitializationOfLocalRepositories : true
+Microsoft (R) Windows Debugger Version 10.0.26100.6584 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T cs_6_0 -E main repro.hlsl
+(4ad4.7e64): Break instruction exception - code 80000003 (first chance)
+ntdll!LdrpDoDebuggerBreak+0x35:
+00007ff9`0867d7bd cc              int     3
+0:000> cdb: Reading initial command 'sxe -c "kn 30;q" e0000001;g;q'
+Error: assert(MaybeODRUseExprs.empty() && "Leftover expressions for odr-use checking")
+File:
+<repo>\tools\clang\lib\Sema\SemaDecl.cpp(11156)
+Func:	clang::Sema::ActOnFinishFunctionBody
+(4ad4.7e64): Unknown exception - code e0000001 (first chance)
+*** WARNING: Unable to verify checksum for <repo>\build\Debug\bin\dxcompiler.dll
+ # Child-SP          RetAddr               Call Site
+00 000000ee`0ff84e50 00007ff8`2e201731     KERNELBASE!RaiseException+0x8a
+01 000000ee`0ff84f50 00007ff8`2ea3c0dd     dxcompiler!llvm_assert+0x51
+02 000000ee`0ff84f90 00007ff8`2ea3aeab     dxcompiler!clang::Sema::ActOnFinishFunctionBody+0x121d
+03 000000ee`0ff85570 00007ff8`2fca23cb     dxcompiler!clang::Sema::ActOnFinishFunctionBody+0x2b
+04 000000ee`0ff855a0 00007ff8`2fc075f3     dxcompiler!clang::Parser::ParseFunctionStatementBody+0x33b
+05 000000ee`0ff85760 00007ff8`2fc2a75d     dxcompiler!clang::Parser::ParseFunctionDefinition+0x1123
+06 000000ee`0ff85cf0 00007ff8`2fc064a4     dxcompiler!clang::Parser::ParseDeclGroup+0xd2d
+07 000000ee`0ff86dc0 00007ff8`2fc05e44     dxcompiler!clang::Parser::ParseDeclOrFunctionDefInternal+0x604
+08 000000ee`0ff86f60 00007ff8`2fc057a1     dxcompiler!clang::Parser::ParseDeclarationOrFunctionDefinition+0xe4
+09 000000ee`0ff87210 00007ff8`2fbff78f     dxcompiler!clang::Parser::ParseExternalDeclaration+0x1241
+0a 000000ee`0ff87620 00007ff8`2fbfc4d7     dxcompiler!clang::Parser::ParseTopLevelDecl+0x62f
+0b 000000ee`0ff877a0 00007ff8`2e729e3e     dxcompiler!clang::ParseAST+0x3e7
+0c 000000ee`0ff87a70 00007ff8`2e363c55     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+0d 000000ee`0ff87ad0 00007ff8`2e7298a8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+0e 000000ee`0ff88020 00007ff8`2d94b7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+0f 000000ee`0ff88090 00007ff8`2d92bb80     dxcompiler!DxcCompiler::Compile+0x41a2
+10 000000ee`0ff8c8d0 00007ff8`2d92d3d8     dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+11 000000ee`0ff8dfe0 00007ff8`2d94ec2e     dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+*** WARNING: Unable to verify checksum for dxc.exe
+12 000000ee`0ff8e060 00007ff6`7b88f65d     dxcompiler!hlsl::DxcCompilerAdapter::Compile+0xce
+13 000000ee`0ff8e0f0 00007ff6`7b88a06e     dxc!DxcContext::Compile+0xe2d
+14 000000ee`0ff8ecc0 00007ff6`7b888ebc     dxc!dxc::main+0xa1e
+15 000000ee`0ff8fd90 00007ff6`7bb98ca9     dxc!wmain+0x1c
+16 000000ee`0ff8fdc0 00007ff6`7bb98bc2     dxc!invoke_main+0x39
+17 000000ee`0ff8fe10 00007ff6`7bb98a7e     dxc!__scrt_common_main_seh+0x132
+18 000000ee`0ff8fe80 00007ff6`7bb98d1e     dxc!__scrt_common_main+0xe
+19 000000ee`0ff8feb0 00007ff9`06e9e957     dxc!wmainCRTStartup+0xe
+1a 000000ee`0ff8fee0 00007ff9`0860ad6c     KERNEL32!BaseThreadInitThunk+0x17
+1b 000000ee`0ff8ff10 00000000`00000000     ntdll!RtlUserThreadStart+0x2c
+quit:
+Debugger exiting...
+### CASE 2: variant-maxvertexcount.hlsl (-T gs_6_0 -E main) -- a different attribute
+   AllowParallelInitializationOfLocalRepositories : true
+Microsoft (R) Windows Debugger Version 10.0.26100.6584 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T gs_6_0 -E main variant-maxvertexcount.hlsl
+(8108.8254): Break instruction exception - code 80000003 (first chance)
+ntdll!LdrpDoDebuggerBreak+0x35:
+00007ff9`0867d7bd cc              int     3
+0:000> cdb: Reading initial command 'sxe -c "kn 12;q" e0000001;g;q'
+Error: assert(MaybeODRUseExprs.empty() && "Leftover expressions for odr-use checking")
+File:
+<repo>\tools\clang\lib\Sema\SemaDecl.cpp(11156)
+Func:	clang::Sema::ActOnFinishFunctionBody
+(8108.8254): Unknown exception - code e0000001 (first chance)
+*** WARNING: Unable to verify checksum for <repo>\build\Debug\bin\dxcompiler.dll
+ # Child-SP          RetAddr               Call Site
+00 000000de`8cd84a00 00007ff8`2e201731     KERNELBASE!RaiseException+0x8a
+01 000000de`8cd84b00 00007ff8`2ea3c0dd     dxcompiler!llvm_assert+0x51
+02 000000de`8cd84b40 00007ff8`2ea3aeab     dxcompiler!clang::Sema::ActOnFinishFunctionBody+0x121d
+03 000000de`8cd85120 00007ff8`2fca23cb     dxcompiler!clang::Sema::ActOnFinishFunctionBody+0x2b
+04 000000de`8cd85150 00007ff8`2fc075f3     dxcompiler!clang::Parser::ParseFunctionStatementBody+0x33b
+05 000000de`8cd85310 00007ff8`2fc2a75d     dxcompiler!clang::Parser::ParseFunctionDefinition+0x1123
+06 000000de`8cd858a0 00007ff8`2fc064a4     dxcompiler!clang::Parser::ParseDeclGroup+0xd2d
+07 000000de`8cd86970 00007ff8`2fc05e44     dxcompiler!clang::Parser::ParseDeclOrFunctionDefInternal+0x604
+08 000000de`8cd86b10 00007ff8`2fc057a1     dxcompiler!clang::Parser::ParseDeclarationOrFunctionDefinition+0xe4
+09 000000de`8cd86dc0 00007ff8`2fbff78f     dxcompiler!clang::Parser::ParseExternalDeclaration+0x1241
+0a 000000de`8cd871d0 00007ff8`2fbfc4d7     dxcompiler!clang::Parser::ParseTopLevelDecl+0x62f
+0b 000000de`8cd87350 00007ff8`2e729e3e     dxcompiler!clang::ParseAST+0x3e7
+0c 000000de`8cd87620 00007ff8`2e363c55     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+0d 000000de`8cd87680 00007ff8`2e7298a8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+0e 000000de`8cd87bd0 00007ff8`2d94b7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+0f 000000de`8cd87c40 00007ff8`2d92bb80     dxcompiler!DxcCompiler::Compile+0x41a2
+10 000000de`8cd8c480 00007ff8`2d92d3d8     dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+11 000000de`8cd8db90 00007ff8`2d94ec2e     dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+quit:
+Debugger exiting...

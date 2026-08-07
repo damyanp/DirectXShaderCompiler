@@ -1,0 +1,285 @@
+# Compiler Explorer panes for https://godbolt.org/z/v7WofnW4f
+# Captured by calling the CE compile API with the same annotated source the
+# shortlink carries, so the link's claims are checkable from this file alone.
+# Not a probe of the local repro: CE runs Linux RELEASE builds.
+
+========================================================================
+compiler: dxc_1_6_2112
+args: -T ps_6_0 -E ps_main -HV 2018
+exit: 5  crashed: False
+------------------------------------------------------------------------
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+error: validation errors
+<source>:43:13: error: DXIL intrinsic overload must be valid.
+note: at '%13 = call double @dx.op.dot3.f64(i32 55, double %10, double %11, double %12, double 1.000000e+00, double 1.000000e+00, double 1.000000e+00)' in block '#0' of function 'ps_main'.
+Validation failed.
+
+
+<Compilation failed>
+
+========================================================================
+compiler: dxc_trunk
+args: -T ps_6_0 -E ps_main -HV 2018
+exit: 5  crashed: False
+------------------------------------------------------------------------
+error: validation errors
+<source>:43:13: error: DXIL intrinsic overload must be valid.
+note: at '%13 = call double @dx.op.dot3.f64(i32 55, double %10, double %11, double %12, double 1.000000e+00, double 1.000000e+00, double 1.000000e+00)' in block '#0' of function 'ps_main'.
+Validation failed.
+
+
+<Compilation failed>
+
+========================================================================
+compiler: dxc_trunk
+args: -T ps_6_0 -E ps_main -HV 2018 -Vd
+exit: 0  crashed: False
+------------------------------------------------------------------------
+;
+; Note: shader requires additional functionality:
+;       Double-precision floating point
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; POS                      0   xyz         0     NONE   float   xyz 
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader debug name: 3a05dfc7956e6ed4b56e532da6fdf98a.pdb
+; shader hash: 3a05dfc7956e6ed4b56e532da6fdf98a
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 1
+; SigOutputElements: 1
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 1
+; SigOutputVectors[0]: 1
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: ps_main
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; POS                      0                 linear       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 3, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0, 1, 2 }
+;   output 1 depends on inputs: { 0, 1, 2 }
+;   output 2 depends on inputs: { 0, 1, 2 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @ps_main() {
+  %1 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 undef), !dbg !51 ; line:33 col:23  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !52, metadata !53), !dbg !51 ; var:"p" !DIExpression(DW_OP_bit_piece, 0, 32) func:"ps_main"
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 undef), !dbg !51 ; line:33 col:23  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !52, metadata !54), !dbg !51 ; var:"p" !DIExpression(DW_OP_bit_piece, 32, 32) func:"ps_main"
+  %3 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 undef), !dbg !51 ; line:33 col:23  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !52, metadata !53), !dbg !51 ; var:"p" !DIExpression(DW_OP_bit_piece, 0, 32) func:"ps_main"
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !52, metadata !54), !dbg !51 ; var:"p" !DIExpression(DW_OP_bit_piece, 32, 32) func:"ps_main"
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !52, metadata !55), !dbg !51 ; var:"p" !DIExpression(DW_OP_bit_piece, 64, 32) func:"ps_main"
+  %Frc = call float @dx.op.unary.f32(i32 22, float %1), !dbg !56 ; line:43 col:17  ; Frc(value)
+  %Frc1 = call float @dx.op.unary.f32(i32 22, float %2), !dbg !56 ; line:43 col:17  ; Frc(value)
+  %Frc2 = call float @dx.op.unary.f32(i32 22, float %3), !dbg !56 ; line:43 col:17  ; Frc(value)
+  %.i0 = fcmp fast olt float %Frc, 5.000000e-01, !dbg !57 ; line:43 col:27
+  %.i1 = fcmp fast olt float %Frc1, 5.000000e-01, !dbg !57 ; line:43 col:27
+  %.i2 = fcmp fast olt float %Frc2, 5.000000e-01, !dbg !57 ; line:43 col:27
+  %.i03 = select i1 %.i0, double 1.500000e+02, double 1.000000e+02, !dbg !56 ; line:43 col:17
+  %.i14 = select i1 %.i1, double 1.500000e+02, double 1.000000e+02, !dbg !56 ; line:43 col:17
+  %.i25 = select i1 %.i2, double 1.500000e+02, double 1.000000e+02, !dbg !56 ; line:43 col:17
+  %4 = call double @dx.op.dot3.f64(i32 55, double %.i03, double %.i14, double %.i25, double 1.000000e+00, double 1.000000e+00, double 1.000000e+00), !dbg !58 ; line:43 col:13  ; Dot3(ax,ay,az,bx,by,bz)
+  %.i06 = fptrunc double %4 to float, !dbg !58 ; line:43 col:13
+  call void @llvm.dbg.value(metadata float %.i06, i64 0, metadata !59, metadata !53), !dbg !60 ; var:"r" !DIExpression(DW_OP_bit_piece, 0, 32) func:"ps_main"
+  call void @llvm.dbg.value(metadata float %.i06, i64 0, metadata !59, metadata !54), !dbg !60 ; var:"r" !DIExpression(DW_OP_bit_piece, 32, 32) func:"ps_main"
+  call void @llvm.dbg.value(metadata float %.i06, i64 0, metadata !59, metadata !55), !dbg !60 ; var:"r" !DIExpression(DW_OP_bit_piece, 64, 32) func:"ps_main"
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %.i06), !dbg !61 ; line:47 col:2  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %.i06), !dbg !61 ; line:47 col:2  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %.i06), !dbg !61 ; line:47 col:2  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float 1.000000e+00), !dbg !61 ; line:47 col:2  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !61 ; line:47 col:2
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind readnone
+declare double @dx.op.dot3.f64(i32, double, double, double, double, double, double) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.unary.f32(i32, float) #0
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!28, !29}
+!llvm.ident = !{!30}
+!dx.source.contents = !{!31}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!32}
+!dx.source.args = !{!33}
+!dx.version = !{!34}
+!dx.valver = !{!35}
+!dx.shaderModel = !{!36}
+!dx.typeAnnotations = !{!37}
+!dx.viewIdState = !{!40}
+!dx.entryPoints = !{!41}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 32dd9cfc)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !16)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, size: 128, align: 32, elements: !6, templateParams: !12)
+!6 = !{!7, !9, !10, !11}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !5, file: !1, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!12 = !{!13, !14}
+!13 = !DITemplateTypeParameter(name: "element", type: !8)
+!14 = !DITemplateValueParameter(name: "element_count", type: !15, value: i32 4)
+!15 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!16 = !{!17}
+!17 = !DISubprogram(name: "ps_main", scope: !1, file: !1, line: 33, type: !18, isLocal: false, isDefinition: true, scopeLine: 34, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @ps_main)
+!18 = !DISubroutineType(types: !19)
+!19 = !{!4, !20}
+!20 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, baseType: !21)
+!21 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, size: 96, align: 32, elements: !22, templateParams: !26)
+!22 = !{!23, !24, !25}
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !21, file: !1, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!24 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !21, file: !1, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!25 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !21, file: !1, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!26 = !{!13, !27}
+!27 = !DITemplateValueParameter(name: "element_count", type: !15, value: i32 3)
+!28 = !{i32 2, !"Dwarf Version", i32 4}
+!29 = !{i32 2, !"Debug Info Version", i32 3}
+!30 = !{!"dxc(private) 1.9.0.10001 (main, 32dd9cfc)"}
+!31 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// The reporter's shader from issue #2202, compiled at -HV 2018 (the HLSL version dxc\0A// defaulted to when this was filed in 2019; at today's default -HV 2021 the front end\0A// rejects the vector-condition `?:` before codegen runs, so the bug is never reached).\0A//\0A// What to look for, pane by pane:\0A//\0A//   dxc_1_6_2112  and  dxc_trunk (plain)\0A//       Both fail identically:\0A//         error: DXIL intrinsic overload must be valid.\0A//         note: at '... call double @dx.op.dot3.f64(i32 55, ...)'\0A//       The bug is unchanged between CE's oldest DXC and trunk.\0A//\0A//   dxc_trunk with -Vd  (validation disabled)\0A//       This is the one that shows the actual defect rather than its symptom.\0A//       The compile SUCCEEDS and emits:\0A//         %10 = select i1 %7, double 1.500000e+02, double 1.000000e+02\0A//         %13 = call double @dx.op.dot3.f64(i32 55, double %10, ...)\0A//       DXIL's Dot3 op is declared with overloads \22hf\22 -- half and float only\0A//       (utils/hct/hctdb.py). There is no f64 Dot3, so the validator is correct\0A//       to reject this module: -Vd does not work around the bug, it just ships\0A//       DXIL no runtime will accept. The defect is that codegen produced it.\0A//\0A//   fxc_10_0_19041 (/T ps_5_0)\0A//       Contrast: FXC compiles the same source without complaint. It does not\0A//       promote the literal-float ternary to double.\0A//\0A// Root cause visible in the -Vd pane: `frac(p) < 0.5 ? 150.0 : 100.0` resolves to\0A// double, so `dot` picks its double overload -- which HLSL has (gen_intrin_main.txt\0A// declares dot over `numeric`) but DXIL cannot express.\0A//==========================================================================//\0A\0Afloat4 ps_main(float3 p : POS) : SV_Target0\0A{\0A#if 0\0A\09// Works\0A\09float3 t = frac( p ) < 0.5 ? 150.0 : 100.0;\0A\09float3 r = dot(t, 1).xxx;\0A#endif\0A\0A#if 1\0A\09// Validation error\0A\09float3 r = dot(frac( p ) < 0.5 ? 150.0 : 100.0, 1).xxx;\0A#endif\0A\0A\0A\09return float4(r, 1.0f);\0A}\0A"}
+!32 = !{!"/app/example.hlsl"}
+!33 = !{!"-E", !"ps_main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug", !"-HV", !"2018", !"-Vd"}
+!34 = !{i32 1, i32 0}
+!35 = !{i32 1, i32 10}
+!36 = !{!"ps", i32 6, i32 0}
+!37 = !{i32 1, void ()* @ps_main, !38}
+!38 = !{!39}
+!39 = !{i32 0, !2, !2}
+!40 = !{[5 x i32] [i32 3, i32 4, i32 7, i32 7, i32 7]}
+!41 = !{void ()* @ps_main, !"ps_main", !42, null, !50}
+!42 = !{!43, !47, null}
+!43 = !{!44}
+!44 = !{i32 0, !"POS", i8 9, i8 0, !45, i8 2, i32 1, i8 3, i32 0, i8 0, !46}
+!45 = !{i32 0}
+!46 = !{i32 3, i32 7}
+!47 = !{!48}
+!48 = !{i32 0, !"SV_Target", i8 9, i8 16, !45, i8 0, i32 1, i8 4, i32 0, i8 0, !49}
+!49 = !{i32 3, i32 15}
+!50 = !{i32 0, i64 4}
+!51 = !DILocation(line: 33, column: 23, scope: !17)
+!52 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "p", arg: 1, scope: !17, file: !1, line: 33, type: !20)
+!53 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!54 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!55 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!56 = !DILocation(line: 43, column: 17, scope: !17)
+!57 = !DILocation(line: 43, column: 27, scope: !17)
+!58 = !DILocation(line: 43, column: 13, scope: !17)
+!59 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "r", scope: !17, file: !1, line: 43, type: !20)
+!60 = !DILocation(line: 43, column: 9, scope: !17)
+!61 = !DILocation(line: 47, column: 2, scope: !17)
+
+========================================================================
+compiler: fxc_10_0_19041
+args: /T ps_5_0 /E ps_main
+exit: 0  crashed: False
+------------------------------------------------------------------------
+Microsoft (R) Direct3D Shader Compiler 10.1
+Copyright (C) 2013 Microsoft. All rights reserved.
+
+compilation code save succeeded; see C:\Windows\TEMP\compiler-explorer-compilerIkTXmP\output.s
+//
+// Generated by Microsoft (R) HLSL Shader Compiler 10.1
+//
+//
+//
+// Input signature:
+//
+// Name                 Index   Mask Register SysValue  Format   Used
+// -------------------- ----- ------ -------- -------- ------- ------
+// POS                      0   xyz         0     NONE   float   xyz 
+//
+//
+// Output signature:
+//
+// Name                 Index   Mask Register SysValue  Format   Used
+// -------------------- ----- ------ -------- -------- ------- ------
+// SV_Target                0   xyzw        0   TARGET   float   xyzw
+//
+ps_5_0
+dcl_globalFlags refactoringAllowed
+dcl_input_ps linear v0.xyz
+dcl_output o0.xyzw
+dcl_temps 1
+//
+// Initial variable locations:
+//   v0.x <- p.x; v0.y <- p.y; v0.z <- p.z; 
+//   o0.x <- <ps_main return value>.x; o0.y <- <ps_main return value>.y; o0.z <- <ps_main return value>.z; o0.w <- <ps_main return value>.w
+//
+#line 43 "C:\Windows\TEMP\compiler-explorer-compilerIkTXmP\example.hlsl"
+frc r0.xyz, v0.xyzx
+lt r0.xyz, r0.xyzx, l(0.500000, 0.500000, 0.500000, 0.000000)
+movc r0.xyz, r0.xyzx, l(150.000000,150.000000,150.000000,0), l(100.000000,100.000000,100.000000,0)
+dp3 o0.xyz, r0.xyzx, l(1.000000, 1.000000, 1.000000, 0.000000)
+
+#line 47
+mov o0.w, l(1.000000)
+ret 
+// Approximately 6 instruction slots used
+

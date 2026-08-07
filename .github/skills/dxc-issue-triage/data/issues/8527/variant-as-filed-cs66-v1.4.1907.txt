@@ -1,0 +1,20 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T01:23:39+00:00
+# cmd: -T cs_6_6 -E main as-filed.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# variant: as-filed-cs66 (as-filed.hlsl)
+# expect: invalid-probe
+
+$ dxc -T cs_6_6 -E main as-filed.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: invalid profile cs_6_6
+
+

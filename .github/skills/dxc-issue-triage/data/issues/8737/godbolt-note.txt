@@ -1,0 +1,23 @@
+#8737 -- atomics on RWTexture2DMS. This is the reporter's shader verbatim.
+Compiled as: -T ps_6_7 -E PSMain
+
+WHAT TO LOOK FOR -- every DXC pane compiles this with exit 0 and no diagnostic.
+In the DXIL, compare the atomic against the two stores immediately below it:
+
+  atomicBinOp(handle, atomicOp, offset0, offset1, offset2, newValue)
+      ... i32 %3, i32 %4, i32 undef, i32 -559038737
+                          ^^^^^^^^^ no sample index exists for this op
+  textureStoreSample(srv, coord0, coord1, coord2, v0..v3, mask, sampleIdx)
+      ... i32 %3, i32 %4, i32 undef, ..., i8 15, i32 0    <- sample 0
+      ... i32 %3, i32 %4, i32 undef, ..., i8 15, i32 %2   <- sample s
+
+SM 6.7 added textureStoreSample so a store can carry a sample index. atomicBinOp
+got no such variant, and DXIL.rst's "Valid resource type" table for AtomicBinOp
+does not list Texture2DMS or Texture2DMSArray at all. The resource-binding table
+above confirms the UAV is `2dMS`. Compiling an atomic against it anyway is what
+this issue is about.
+
+The second symptom is not visible here because it aborts the compile: uncomment
+  // InterlockedMax(tex.sample[input.s][input.uv], value, old_val);
+and comment out the InterlockedMax above it, and every DXC pane answers
+  error: llvm::cast<X>() argument of incompatible type!

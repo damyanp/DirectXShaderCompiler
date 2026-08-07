@@ -1,0 +1,27 @@
+What to look for
+================
+
+microsoft/DirectXShaderCompiler#2188 -- a `static const` vector's components are not a
+compile-time constant in DXC, but are in FXC.
+
+  FXC (cs_5_0)   compiles, and folds it: look for `dcl_thread_group 8, 8, 1`.
+  DXC (cs_6_0)   two errors, on two different constructs, from the same cause:
+                   variable length arrays are not supported in HLSL      <- S1[cThread]
+                   'numthreads' attribute requires an integer constant   <- c2Thread.x/.y
+                 dxc_trunk adds "Group size of 0 (0 * 0 * 1)" -- the attribute
+                 evaluates the unfoldable arguments as 0.
+
+The scalar forms are *accepted* by DXC, so this is specific to reading a component of a
+const vector, not to `static const`:
+
+    static const uint  n = 64;        groupshared float4 S1[n];      // DXC: OK
+    static const uint2 c = uint2(8,8); groupshared float4 S1[c.x*c.y]; // DXC: error
+
+DXC's own test suite records the divergence as expected behaviour --
+tools/clang/test/SemaHLSL/const-expr.hlsl:
+    // Note: here dxc is different from fxc, where a const integral vector can be
+    // used in ICE.  It would be desirable to have this supported.
+    float arr_vc_One[vc_One.x];  /* expected-error {{variable length arrays are not
+                                    supported in HLSL}} fxc-pass {{}} */
+
+Unchanged in every release from v1.4.1907 (2019-07) to v1.9.2607 (2026-07).

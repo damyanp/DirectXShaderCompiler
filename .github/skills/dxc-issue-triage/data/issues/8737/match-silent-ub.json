@@ -1,0 +1,11 @@
+{
+  "kind": "all_of",
+  "note": "Issue #8737 symptom A -- the 'silent UB' half -- scored against repro-implicit-sample.hlsl (the reporter's file verbatim), NOT against cmd.txt's repro.hlsl, which is the ICE case. Four conjuncts, each doing distinct work. (1) the compile SUCCEEDED: this is the conjunct a fix trips, because the outcome the reporter asks for is a rejection, and it also stops the absence-style conjunct (4) being satisfied for free by a release that never parsed the shader (SKILL.md's #1877 trap). (2) the bound UAV is a NON-array multisampled texture (`2dMS` in DXC's resource-binding comment table; \\b excludes `2dMSArray`, which is a materially different case -- see notes.md -- and is probed separately). (3) an atomicBinOp is emitted whose THIRD coordinate operand is literally `undef`: the call is (opcode, handle, atomicOp, c0, c1, c2, newValue), so `i32 undef, i32 <newValue>)` pins c2. (4) no diagnostic mentioning a sample index, multisampling, an atomic or Interlocked -- this is what makes the word 'silent' in the issue title falsifiable. It is deliberately narrower than 'no warning at all' so that an unrelated warning (e.g. a release binary's 'DXIL.dll not found ...' signing warning) cannot fake a fix. Conjuncts (2)+(3) together are what discriminate: an `undef` c2 alone ALSO matches a perfectly correct RWTexture2D atomic, where c2 is unused by design (DXIL.rst lists RWTexture2D as 2 active coordinates). control-rwtexture2d-atomic.hlsl is that case, captured with --expect no-match."
+  ,
+  "value": [
+    { "kind": "nonzero_exit", "invert": true },
+    { "kind": "regex", "value": "(?m)^;\\s+\\S+\\s+UAV\\s+\\S+\\s+2dMS\\b(?!Array)" },
+    { "kind": "regex", "value": "@dx\\.op\\.atomicBinOp\\.[a-z0-9]+\\(i32 78,[^)]*, i32 undef, i32 [^,)]+\\)" },
+    { "kind": "not_regex", "value": "(?i)(error|warning)[^\\n]*(sample index|multisample|multi-sample|atomic|Interlocked)" }
+  ]
+}

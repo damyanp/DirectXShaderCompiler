@@ -1,0 +1,27 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T01:02:40+00:00
+# cmd: -T cs_6_6 -E main as-filed.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: as-filed (as-filed.hlsl)
+# expect: match
+
+$ dxc -T cs_6_6 -E main as-filed.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+In file included from as-filed.hlsl:4:
+In file included from ./includeB.hlsli:3:
+./cs_Pragma.hlsli:3:8: error: redefinition of 'Foo'
+struct Foo
+       ^
+./cs_pragma.hlsli:3:8: note: previous definition is here
+struct Foo
+       ^
+
+

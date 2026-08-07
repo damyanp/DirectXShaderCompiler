@@ -1,0 +1,60 @@
+# manual measurement -- not a triage.py run; not scored by any predicate
+# purpose: notes.md explains why the Compiler Explorer link carries no Clang pane and no
+#          RGA pane, quoting diagnostics from both. Those were hand-observed. This file
+#          re-runs each probe so the negative decisions are backed by evidence too.
+# captured: 2026-08-06T18:27:36-07:00
+# source:   data\issues\8737\repro-implicit-sample.hlsl
+
+==============================================================================
+compiler: hlsl_clang_trunk
+args:     -T ps_6_7 -E PSMain
+why:      notes.md: no Clang pane -- RWTexture2DMS does not exist in the new front end
+[exit] 1
+==============================================================================
+--- stderr ---
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:9:1: [0m[0;1;31merror: [0m[1mno template named 'RWTexture2DMS'; did you mean 'RWTexture2D'?[0m
+    9 | RWTexture2DMS<uint, [0;32m2[0m> tex;[0m
+      | [0;1;32m^~~~~~~~~~~~~
+[0m      | [0;32mRWTexture2D
+[0m[0;1;36mnote: [0m'RWTexture2D' declared here[0m
+[1m<source>:9:1: [0m[0;1;31merror: [0m[1mtoo many template arguments for class template 'RWTexture2D'[0m
+    9 | RWTexture2DMS<uint, [0;32m2[0m> tex;[0m
+      | [0;1;32m^                   ~~
+[0m[0;1;36mnote: [0mtemplate declaration from hidden source: template <typename element_type = vector<float, 4>> requires __is_typed_resource_element_compatible<element_type> class RWTexture2D[0m
+[1m<source>:11:30: [0m[0;1;31merror: [0m[1mattribute 'SV_Target' only applies to a field or parameter of type 'float/float1/float2/float3/float4'[0m
+   11 | uint PSMain(PSInput input) : SV_Target0[0m
+      | [0;1;32m                             ^
+[0m3 errors generated.
+
+==============================================================================
+compiler: rga290_dxctrunk
+args:     -T ps_6_7 -E PSMain
+why:      notes.md: no RGA pane -- CE's RGA compiles for Vulkan, not DX12
+[exit] 5
+==============================================================================
+--- stderr ---
+fatal error: generated SPIR-V is invalid: [VUID-StandaloneSpirv-UniformConstant-04655] UniformConstant OpVariable <id> '7[%tex]' has illegal type.
+Variables identified with the UniformConstant storage class are used only as handles to refer to opaque resources. Such variables must be typed as OpTypeImage, OpTypeSampler, OpTypeSampledImage, OpTypeAccelerationStructureKHR, or an array of one of these types.
+  %tex = OpVariable %_ptr_UniformConstant_RWTexture2DMS UniformConstant
+
+note: please file a bug report on https://github.com/Microsoft/DirectXShaderCompiler/issues with source code if possible
+
+==============================================================================
+compiler: rga290_dxctrunk
+args:     -T ps_6_7 -E PSMain -s dx12
+why:      notes.md: -s dx12 is forwarded to dxc and rejected
+[exit] 1
+==============================================================================
+--- stderr ---
+dxc failed : Unknown argument: '-s'
+
+==============================================================================
+compiler: rga290_dxctrunk
+args:     -T ps_6_7 -E PSMain --dx12
+why:      notes.md: --dx12 is forwarded to dxc and rejected
+[exit] 1
+==============================================================================
+--- stderr ---
+dxc failed : Unknown argument: '--dx12'
+

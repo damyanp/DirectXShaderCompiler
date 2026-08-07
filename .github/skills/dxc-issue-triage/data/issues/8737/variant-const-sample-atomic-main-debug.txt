@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T01:10:58+00:00
+# cmd: -T ps_6_7 -E PSMain const-sample-atomic.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: const-sample-atomic (const-sample-atomic.hlsl)
+# expect: match
+
+$ dxc -T ps_6_7 -E PSMain const-sample-atomic.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: llvm::cast<X>() argument of incompatible type!
+
+
+
+

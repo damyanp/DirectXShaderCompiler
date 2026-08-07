@@ -1,0 +1,28 @@
+# Derived from the out-<tag>.txt probes in this directory -- regenerate by
+# grepping each for the validator message. Command in every case is the
+# cmd.txt line: -T ps_6_0 -E ps_main -HV 2018 repro.hlsl
+#
+# Answers the reporter's SECOND complaint: "didn't get any line number or
+# anything". It gained one in v1.6.2104 and has had one ever since.
+
+v1.4.1907      exit=2147500037  at 0x1e216e8f720 inside block #0 of function ps_main DXIL intrinsic overload must be valid
+v1.5.2010      exit=2147500037  Function: ps_main: error: DXIL intrinsic overload must be valid. Use /Zi for source location.
+v1.6.2104      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.6.2106      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.6.2112      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.7.2207      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.7.2212      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.7.2212.1    exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.7.2308      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.8.2403      exit=3221225477  Internal compiler error: access violation. Attempted to read from address 0x00000000000000B0
+v1.8.2403.1    exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.8.2403.2    exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.8.2405      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.8.2407      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.8.2502      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.8.2505      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.8.2505.1    exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.9.2602      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.9.2602.24   exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+v1.9.2607      exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.
+main-debug     exit=2147500037  repro.hlsl:11:13: error: DXIL intrinsic overload must be valid.

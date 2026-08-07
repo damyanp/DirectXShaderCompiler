@@ -1,0 +1,29 @@
+The reporter's shader from issue #2202, compiled at -HV 2018 (the HLSL version dxc
+defaulted to when this was filed in 2019; at today's default -HV 2021 the front end
+rejects the vector-condition `?:` before codegen runs, so the bug is never reached).
+
+What to look for, pane by pane:
+
+  dxc_1_6_2112  and  dxc_trunk (plain)
+      Both fail identically:
+        error: DXIL intrinsic overload must be valid.
+        note: at '... call double @dx.op.dot3.f64(i32 55, ...)'
+      The bug is unchanged between CE's oldest DXC and trunk.
+
+  dxc_trunk with -Vd  (validation disabled)
+      This is the one that shows the actual defect rather than its symptom.
+      The compile SUCCEEDS and emits:
+        %10 = select i1 %7, double 1.500000e+02, double 1.000000e+02
+        %13 = call double @dx.op.dot3.f64(i32 55, double %10, ...)
+      DXIL's Dot3 op is declared with overloads "hf" -- half and float only
+      (utils/hct/hctdb.py). There is no f64 Dot3, so the validator is correct
+      to reject this module: -Vd does not work around the bug, it just ships
+      DXIL no runtime will accept. The defect is that codegen produced it.
+
+  fxc_10_0_19041 (/T ps_5_0)
+      Contrast: FXC compiles the same source without complaint. It does not
+      promote the literal-float ternary to double.
+
+Root cause visible in the -Vd pane: `frac(p) < 0.5 ? 150.0 : 100.0` resolves to
+double, so `dot` picks its double overload -- which HLSL has (gen_intrin_main.txt
+declares dot over `numeric`) but DXIL cannot express.

@@ -1,0 +1,63 @@
+# manual case: Compiler Explorer probe of the single-file device, AND THE CONTROL
+#              THAT INVALIDATED IT. No CE link is published for #8527.
+# ran: 2026-08-07T01:14:02+00:00
+# platform: Compiler Explorer -- Linux, Release builds
+#
+# The device (example.hlsl) has the file include itself as "./example.hlsl", a
+# different spelling of the path the driver was given, and it does emit
+# `error: redefinition of 'Foo'` on every DXC pane. That looked like #8527 shown
+# in one file, on a case-SENSITIVE filesystem.
+#
+# It is not. The control below is the identical construction with a MATCHING
+# spelling ("example.hlsl"), and it produces the SAME error -- so the device is
+# measuring clang's documented rule that `#pragma once` is ignored in the main
+# file (-Wpragma-once-outside-header), not #8527. The same control run against
+# the local ground truth is variant-selfinclude-samespelling-main-debug.txt.
+#
+# Consequence: this directory contains NO valid measurement of #8527 on a
+# case-sensitive filesystem. hlsl_clang_trunk is shown for completeness and is
+# subject to exactly the same objection.
+
+$ dxc_1_6_2112       -T cs_6_0 -E main   source: example.hlsl  (./example.hlsl -- DIFFERENT spelling)
+[exit] 5  internal_failure=False
+<source>:13:9: warning: #pragma once in main file
+/app/./example.hlsl:15:8: error: redefinition of 'Foo'
+<source>:15:8: note: previous definition is here
+<Compilation failed>
+
+$ dxc_trunk          -T cs_6_0 -E main   source: example.hlsl  (./example.hlsl -- DIFFERENT spelling)
+[exit] 5  internal_failure=False
+<source>:13:9: warning: #pragma once in main file
+/app/./example.hlsl:15:8: error: redefinition of 'Foo'
+<source>:15:8: note: previous definition is here
+<Compilation failed>
+
+$ hlsl_clang_trunk   -T cs_6_0 -E main   source: example.hlsl  (./example.hlsl -- DIFFERENT spelling)
+[exit] 1  internal_failure=False
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:13:9: [0m[0;1;35mwarning: [0m[1m#pragma once in main file [-Wpragma-once-outside-header][0m
+[1m/app/./example.hlsl:15:8: [0m[0;1;31merror: [0m[1mredefinition of 'Foo'[0m
+[0m[1m<source>:19:10: [0m[0;1;36mnote: [0m'<source>' included multiple times, additional include site here[0m
+<Compilation failed>
+
+$ dxc_1_6_2112       -T cs_6_0 -E main   source: selfsame.hlsl (example.hlsl   -- SAME spelling, CONTROL)
+[exit] 5  internal_failure=False
+<source>:8:9: warning: #pragma once in main file
+<source>:10:8: error: redefinition of 'Foo'
+<source>:10:8: note: previous definition is here
+<Compilation failed>
+
+$ dxc_trunk          -T cs_6_0 -E main   source: selfsame.hlsl (example.hlsl   -- SAME spelling, CONTROL)
+[exit] 5  internal_failure=False
+<source>:8:9: warning: #pragma once in main file
+<source>:10:8: error: redefinition of 'Foo'
+<source>:10:8: note: previous definition is here
+<Compilation failed>
+
+$ hlsl_clang_trunk   -T cs_6_0 -E main   source: selfsame.hlsl (example.hlsl   -- SAME spelling, CONTROL)
+[exit] 1  internal_failure=False
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:8:9: [0m[0;1;35mwarning: [0m[1m#pragma once in main file [-Wpragma-once-outside-header][0m
+[1m<source>:10:8: [0m[0;1;31merror: [0m[1mredefinition of 'Foo'[0m
+[0m[1m<source>:14:10: [0m[0;1;36mnote: [0m'<source>' included multiple times, additional include site here[0m
+<Compilation failed>

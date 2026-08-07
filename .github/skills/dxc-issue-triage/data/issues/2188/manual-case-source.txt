@@ -1,0 +1,106 @@
+# in-repo source corroboration for issue 2188
+#
+# All excerpts are pinned to the commit the ground-truth compiler was built from,
+# eff900d54, NOT to the working tree (HEAD has since moved to f8220ace4).
+# Reproduce any block with:  git show eff900d5:<path> | sed -n '<a>,<b>p'
+#
+# eff900d54  2026-08-04  [Validaton][Infra] Print errors in source order (#8730)
+
+==============================================================================
+tools/clang/test/SemaHLSL/const-expr.hlsl : 362-383
+  -- DXC's own test codifies the divergence: the scalar case is accepted (365-366), the vector-component case is an expected-error with fxc-pass (379-382). A fix must update these.
+==============================================================================
+   362: 
+   363:   static const uint sc_One = 1;
+   364:   static const uint sc_Two = uint(sc_One) + 1;
+   365:   float arr_sc_One[sc_One];
+   366:   float arr_sc_Two[sc_Two];
+   367: 
+   368:   // Vector ints.
+   369:   static uint1 v_One = 1;
+   370:   static uint1 v_Two = uint1(v_One) + 1;
+   371:   float arr_v_One[v_One];    /* expected-error {{size of array has non-integer type 'uint1'}} fxc-error {{X3058: array dimensions must be literal scalar expressions}} */
+   372:   float arr_v_Two[v_Two];    /* expected-error {{size of array has non-integer type 'uint1'}} fxc-error {{X3058: array dimensions must be literal scalar expressions}} */
+   373: 
+   374:   static const uint1 vc_One = 1;
+   375:   static const uint1 vc_Two = uint1(vc_One) + 1;
+   376:   float arr_vc_One[vc_One];  /* expected-error {{size of array has non-integer type 'uint1'}} fxc-error {{X3058: array dimensions must be literal scalar expressions}} */
+   377:   float arr_vc_Two[vc_Two];  /* expected-error {{size of array has non-integer type 'uint1'}} fxc-error {{X3058: array dimensions must be literal scalar expressions}} */
+   378: 
+   379:   // Note: here dxc is different from fxc, where a const integral vector can be used in ICE.
+   380:   // It would be desirable to have this supported.
+   381:   float arr_vc_One[vc_One.x];  /* expected-error {{variable length arrays are not supported in HLSL}} fxc-pass {{}} */
+   382:   float arr_vc_Two[vc_Two.x];  /* expected-error {{variable length arrays are not supported in HLSL}} fxc-pass {{}} */
+   383: }
+
+==============================================================================
+tools/clang/test/SemaHLSL/attributes.hlsl : 653-662
+  -- same divergence recorded for an attribute argument, [maxvertexcount (sc_count4.w)]
+==============================================================================
+   653: void maxvertexcount_valid3(triangle GSVertex v[3], inout TriangleStream<GSVertex> stream)
+   654: { stream.Append(v[0]); }
+   655: 
+   656: static const int4 sc_count4 = int4(3,6,9,12);
+   657: 
+   658: // The following passes fxc, but fails clang.
+   659: [maxvertexcount (sc_count4.w)]          /* expected-error {{'maxvertexcount' attribute requires an integer constant}} fxc-pass {{}} */
+   660: 
+   661: /*verify-ast
+   662:   HLSLMaxVertexCountAttr <col:2, col:29> 0
+
+==============================================================================
+tools/clang/lib/Sema/SemaType.cpp : 2138-2150
+  -- err_hlsl_vla -- where the array bound in the repro is rejected
+==============================================================================
+  2138: 
+  2139:     T = Context.getConstantArrayType(T, ConstVal, ASM, Quals);
+  2140:   }
+  2141: 
+  2142:   // HLSL Change Starts
+  2143:   if (getLangOpts().HLSL && T->isVariableArrayType()) {
+  2144:     Diag(Loc, diag::err_hlsl_vla);
+  2145:     return QualType();
+  2146:   }
+  2147:   // HLSL Change Stops
+  2148: 
+  2149:   // OpenCL v1.2 s6.9.d: variable length arrays are not supported.
+  2150:   if (getLangOpts().OpenCL && T->isVariableArrayType()) {
+
+==============================================================================
+tools/clang/lib/Sema/SemaHLSL.cpp : 13884-13900
+  -- ValidateAttributeIntArg: isCXX11ConstantExpr fails, returns 0, so numthreads computes a group size of 0
+==============================================================================
+ 13884:       E = Attr.getArgAsExpr(index);
+ 13885: 
+ 13886:     clang::APValue ArgNum;
+ 13887:     bool displayError = false;
+ 13888:     if (E->isTypeDependent() || E->isValueDependent() ||
+ 13889:         !E->isCXX11ConstantExpr(S.Context, &ArgNum)) {
+ 13890:       displayError = true;
+ 13891:     } else {
+ 13892:       if (ArgNum.isInt()) {
+ 13893:         value = ArgNum.getInt().getSExtValue();
+ 13894:         if (!(E->getType()->isIntegralOrEnumerationType()) || value < 0) {
+ 13895:           S.Diag(Attr.getLoc(), diag::warn_hlsl_attribute_expects_uint_literal)
+ 13896:               << Attr.getName();
+ 13897:         }
+ 13898:       } else if (ArgNum.isFloat()) {
+ 13899:         llvm::APSInt floatInt;
+ 13900:         bool isPrecise;
+
+==============================================================================
+tools/clang/lib/Sema/SemaHLSL.cpp : 14812-14822
+  -- AT_HLSLNumThreads calls ValidateAttributeIntArg for each of X/Y/Z
+==============================================================================
+ 14812:     declAttr = ::new (S.Context) HLSLMaxTessFactorAttr(
+ 14813:         A.getRange(), S.Context, ValidateAttributeFloatArg(S, A),
+ 14814:         A.getAttributeSpellingListIndex());
+ 14815:     break;
+ 14816:   case AttributeList::AT_HLSLNumThreads: {
+ 14817:     int X = ValidateAttributeIntArg(S, A, 0);
+ 14818:     int Y = ValidateAttributeIntArg(S, A, 1);
+ 14819:     int Z = ValidateAttributeIntArg(S, A, 2);
+ 14820:     int N = X * Y * Z;
+ 14821:     if (N > 0 && N <= 1024) {
+ 14822:       auto numThreads = ::new (S.Context) HLSLNumThreadsAttr(
+

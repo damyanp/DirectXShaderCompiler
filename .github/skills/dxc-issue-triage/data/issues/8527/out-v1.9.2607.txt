@@ -1,0 +1,25 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-07T01:04:30+00:00
+# cmd: -T cs_6_0 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+In file included from repro.hlsl:6:
+In file included from ./includeB.hlsli:3:
+./cs_Pragma.hlsli:3:8: error: redefinition of 'Foo'
+struct Foo
+       ^
+./cs_pragma.hlsli:3:8: note: previous definition is here
+struct Foo
+       ^
+
+

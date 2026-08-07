@@ -1,0 +1,17 @@
+# compiler: v1.8.2403
+# exe: <cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe
+# ran: 2026-08-07T01:01:22+00:00
+# cmd: -T ps_6_0 -E ps_main -HV 2018 repro.hlsl
+# exit: 3221225477
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+
+$ dxc -T ps_6_0 -E ps_main -HV 2018 repro.hlsl
+[exe] <cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe
+[exit] 3221225477
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: access violation. Attempted to read from address 0x00000000000000B0
+

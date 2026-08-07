@@ -1,0 +1,23 @@
+# compiler: v1.5.2010
+# exe: <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+# ran: 2026-08-07T01:01:18+00:00
+# cmd: -T ps_6_0 -E ps_main -HV 2018 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E ps_main -HV 2018 repro.hlsl
+[exe] <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+Function: ps_main: error: DXIL intrinsic overload must be valid. Use /Zi for source location.
+note: at '%13 = call double @dx.op.dot3.f64(i32 55, double %10, double %11, double %12, double 1.000000e+00, double 1.000000e+00, double 1.000000e+00)' in block '#0' of function 'ps_main'.
+Validation failed.
+
+
+

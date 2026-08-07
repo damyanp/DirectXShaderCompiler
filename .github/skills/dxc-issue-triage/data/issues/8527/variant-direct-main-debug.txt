@@ -1,0 +1,26 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T01:00:15+00:00
+# cmd: -T cs_6_0 -E main direct.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: direct (direct.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main direct.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+In file included from direct.hlsl:4:
+./cs_Pragma.hlsli:3:8: error: redefinition of 'Foo'
+struct Foo
+       ^
+./cs_pragma.hlsli:3:8: note: previous definition is here
+struct Foo
+       ^
+
+

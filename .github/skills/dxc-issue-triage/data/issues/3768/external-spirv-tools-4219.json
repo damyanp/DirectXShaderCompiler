@@ -1,0 +1,18 @@
+{
+  "captured_at": "2026-08-07T01:01:14.9710627Z",
+  "issue": {
+    "closedAt": "2021-05-13T17:19:56Z",
+    "number": 4219,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "spirv-opt: Crash with debugPrintfEXT()",
+    "url": "https://github.com/KhronosGroup/SPIRV-Tools/issues/4219"
+  },
+  "fix_pull_request": {
+    "mergedAt": "2021-05-13T17:19:56Z",
+    "number": 4280,
+    "state": "MERGED",
+    "title": "Fix crash when optimizing shaders with DebugPrintf",
+    "url": "https://github.com/KhronosGroup/SPIRV-Tools/pull/4280"
+  }
+}

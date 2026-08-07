@@ -1,0 +1,23 @@
+{
+  "batch": "batch-004",
+  "confidence": "high",
+  "created_at": "2026-06-08T09:41:24Z",
+  "godbolt_skip": "no valid single-file demonstration exists. The repro needs a header plus two includers and CE is single-file; CE also runs Linux, where the reported case-mismatched name does not exist. The obvious fold -- a file including itself under a different spelling of its own path -- was built, run on CE and REJECTED: the identical construction with a matching spelling fails the same way, so it measures clang's documented 'pragma once is ignored in the main file' rule, not this defect. Evidence: manual-case-godbolt.txt, variant-selfinclude-samespelling-main-debug.txt.",
+  "history": "always-repro'd",
+  "labels": "bug,needs-triage",
+  "labels_add": "usability, check-in-clang",
+  "labels_now": "bug,needs-triage",
+  "labels_remove": "needs-triage",
+  "notes_path": "data\\issues\\8527\\notes.md",
+  "number": 8527,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (1.9.0.15422, eff900d54) and on every release v1.4.1907..v1.9.2607; not a regression. Title understates it: not case folding -- #pragma once is keyed on the path AS SPELLED, so './x.hlsli' vs 'x.hlsli' fails identically with the case held constant. DxcArgsFileSystemImpl::TryFindOrOpen matches includes by wcscmp on the spelled name and GetFileInformationByHandle reports the slot handle as the file index, so FileManager's UniqueID dedup sees two files. Matching-case control compiles clean; #ifndef guards are an effective workaround. Measured on Windows/NTFS only. No CE link: multi-file repro, and the single-file fold measures clang's pragma-once-in-main-file rule instead.",
+  "title": "pragma once is case sensitive",
+  "triaged_at": "2026-08-07T01:59:16+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
+  "triaged_with_commit": "eff900d5",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/8527"
+}

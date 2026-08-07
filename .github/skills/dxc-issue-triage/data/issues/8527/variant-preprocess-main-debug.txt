@@ -1,0 +1,18 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T01:04:20+00:00
+# cmd: -T cs_6_0 -E main -P -Fi preprocessed-repro.i repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: preprocess (repro.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main -P -Fi preprocessed-repro.i repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

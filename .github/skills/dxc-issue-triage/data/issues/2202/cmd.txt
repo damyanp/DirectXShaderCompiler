@@ -1,0 +1,18 @@
+# Departs from the command as filed -- see cmd-as-filed.txt.
+#
+# The reporter ran `dxc -E ps_main -T ps_6_0 test.hlsl` with no -HV, so the repro was
+# compiled with the HLSL 2018 semantics dxc defaulted to in 2019. dxc's default -HV has
+# since moved to 2021, under which `bool3 ? float : float` is rejected in the front end
+# ("condition for short-circuiting ternary operator must be scalar, for non-scalar types
+# use 'select'"). That rejection happens before codegen, so the DXIL validator never runs
+# and the probe is evidence of nothing -- but it exits E_FAIL with no predicate match, so
+# it scores as a clean run and would fake a "fixed in <whichever release changed the
+# default>" verdict. This is the invalid-probe trap of SKILL.md step 6, pointing forwards
+# instead of backwards.
+#
+# Pinning -HV 2018 holds the language semantics constant across the whole release range,
+# which is what makes a history search mean anything. It is also what llvm-beanz used when
+# he re-confirmed the bug on 2024-06-11 (https://godbolt.org/z/e54rbcoPn, -T ps_6_7
+# -HV 2018). The as-filed command's current behaviour is captured separately as
+# variant-hv-default-main-debug.txt.
+-T ps_6_0 -E ps_main -HV 2018 repro.hlsl

@@ -17,19 +17,19 @@ release puts the failure in a narrow window:
 (v1.4.1907 can't be probed — that build has no SPIR-V codegen.) `0xC0000374` is consistent with
 the corruption Application Verifier reported.
 
-**The crash is intermittent, as you suspected.** In the affected releases it fires on 27/40 runs
-at v1.6.2104 and 33/40 at v1.6.2106, so a single clean run there would not rule it out. The
-v1.9.2607 release binary was clean in 55/55 runs (`ps_6_0` as originally reported, and
-`cs_6_0`). A `main` Debug build was also clean in 55/55, though your local Debug build worked
-too, so that configuration proves less. Output was inspected on current `main`: the DebugPrintf
-import, six `OpString`s and six matching `OpExtInst` calls, as expected.
+**The crash is intermittent, as you suspected.** In a captured repeated-run set it fired on
+33/40 runs at v1.6.2104 and 28/40 at v1.6.2106, so a single clean run there would not rule it
+out. The v1.9.2607 release binary was clean in 55/55 runs (`ps_6_0` as originally reported,
+and `cs_6_0`). A `main` Debug build was also clean in 55/55, though your local Debug build
+worked too, so that configuration proves less. Output was inspected on current `main`: the
+DebugPrintf import, six `OpString`s and six matching `OpExtInst` calls, as expected.
 
-**The `-fcgl -Vd` flags are no longer needed for this test case**, and the 110 current-build runs
-above omit them, so legalization and validation actually run. The SPIRV-Tools crash they were
-avoiding (KhronosGroup/SPIRV-Tools#4219) was fixed by KhronosGroup/SPIRV-Tools#4280, merged the
-day after you filed this. They also do not appear to have been masking anything here: at
-v1.6.2104 and v1.6.2106, all four combinations (`-fcgl -Vd`, each alone, and neither) crash at
-similar rates.
+**The `-fcgl -Vd` flags are no longer needed for this test case**, and the 110 clean runs on
+`main` Debug and v1.9.2607 above omit them, so legalization and validation actually run. The
+SPIRV-Tools crash they were avoiding (KhronosGroup/SPIRV-Tools#4219) was fixed by
+KhronosGroup/SPIRV-Tools#4280, merged the day after you filed this. The flags also did not
+suppress this crash: at v1.6.2104 and v1.6.2106, all four combinations (`-fcgl -Vd`, each
+alone, and neither) reproduced it repeatedly.
 
 Current test case: https://godbolt.org/z/e5KT1E6W9 — Compiler Explorer's oldest DXC is 1.6.2112,
 already past the affected window, so it can only show current behaviour.
