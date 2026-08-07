@@ -1479,7 +1479,7 @@ static const char LoadStoreDescriptorShader[] = R"(
   RWByteAddressBuffer Input : register(u0);
   RWByteAddressBuffer Output : register(u1);
 
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -1544,7 +1544,7 @@ void DxilConf_SM610_LinAlg::LoadStoreDescriptor_Wave_16x16_F16() {
   Params.Use = MatrixUse::A;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runLoadStoreDescriptor(D3DDevice, DxcSupport, Params, VerboseLogging);
 }
@@ -1552,7 +1552,7 @@ void DxilConf_SM610_LinAlg::LoadStoreDescriptor_Wave_16x16_F16() {
 static const char SplatStoreShader[] = R"(
   RWByteAddressBuffer Output : register(u0);
 
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -1606,7 +1606,7 @@ void DxilConf_SM610_LinAlg::SplatStore_Wave_16x16_F16() {
   Params.Use = MatrixUse::Accumulator;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runSplatStore(D3DDevice, DxcSupport, Params, 42.0f, VerboseLogging);
 }
@@ -1617,7 +1617,7 @@ static const char AccumulateDescriptorShader[] = R"(
   ByteAddressBuffer Input : register(t0);
   RWByteAddressBuffer Output : register(u1);
 
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -1682,7 +1682,7 @@ void DxilConf_SM610_LinAlg::AccumulateDescriptor_Wave_16x16_F16() {
   Params.Use = MatrixUse::Accumulator;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runAccumulateDescriptor(D3DDevice, DxcSupport, Params, 12, VerboseLogging);
 }
@@ -1697,7 +1697,7 @@ static const char ElementAccessShader[] = R"(
     return (coord.x * N_DIM + coord.y) * ELEM_SIZE;
   }
 
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   [numthreads(NUMTHREADS, 1, 1)]
   void main(uint threadID : SV_GroupIndex) {
     if (GetGroupWaveIndex() != 0)
@@ -1785,7 +1785,7 @@ void DxilConf_SM610_LinAlg::ElementAccess_Wave_16x16_F16() {
   Params.Use = MatrixUse::Accumulator;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runElementAccess(D3DDevice, DxcSupport, Params, VerboseLogging);
 }
@@ -1794,7 +1794,7 @@ static const char ElementSetShader[] = R"(
   RWByteAddressBuffer Input : register(u0);
   RWByteAddressBuffer Output : register(u1);
 
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -1865,7 +1865,7 @@ void DxilConf_SM610_LinAlg::ElementSet_Wave_16x16_F16() {
   Params.Use = MatrixUse::Accumulator;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runElementSet(D3DDevice, DxcSupport, Params, VerboseLogging);
 }
@@ -1877,7 +1877,7 @@ static const char CopyConvertShader[] = R"(
   #ifdef FORCED_WAVE_SIZE
   [WaveSize(FORCED_WAVE_SIZE)]
   #else
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   #endif
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
@@ -1982,7 +1982,7 @@ static HRESULT queryCopyConvertSupport(ID3D12Device *Device,
     Destination.N = Params.M;
   }
 
-  for (UINT WaveSize = 4; WaveSize <= 64; WaveSize *= 2) {
+  for (UINT WaveSize = 4; WaveSize <= 128; WaveSize *= 2) {
     if (WaveSize < WaveOptions.WaveLaneCountMin ||
         WaveSize > WaveOptions.WaveLaneCountMax)
       continue;
@@ -2011,7 +2011,7 @@ static HRESULT queryCopyConvertSupport(ID3D12Device *Device,
   }
 
   hlsl_test::LogCommentFmt(
-      L"No MatrixConstruction query within shader WaveSize(4,64) supports "
+      L"No MatrixConstruction query within shader WaveSize(4,128) supports "
       L"CopyConvert source=%ux%u and destination=%ux%u",
       Params.M, Params.N, Destination.M, Destination.N);
   return S_OK;
@@ -2107,7 +2107,7 @@ void DxilConf_SM610_LinAlg::CopyConvert_Wave_16x16_F16() {
   Params.Use = MatrixUse::A;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runCopyConvert(D3DDevice, DxcSupport, Params, VerboseLogging,
                  /*Transpose=*/false);
@@ -2121,7 +2121,7 @@ void DxilConf_SM610_LinAlg::CopyConvert_Wave_16x16_F16_Transpose() {
   Params.Use = MatrixUse::A;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runCopyConvert(D3DDevice, DxcSupport, Params, VerboseLogging,
                  /*Transpose=*/true);
@@ -2135,7 +2135,7 @@ void DxilConf_SM610_LinAlg::CopyConvert_Wave_4x8_F32_Transpose() {
   Params.Use = MatrixUse::A;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = false;
 
   bool Supported;
@@ -2163,7 +2163,7 @@ static const char MatMatMulShader[] = R"(
 
   RWByteAddressBuffer Output : register(u0);
 
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -2229,7 +2229,7 @@ void DxilConf_SM610_LinAlg::MatMatMul_Wave_16x16x16_F16() {
   Params.N = 16;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runMatMatMul(D3DDevice, DxcSupport, Params, VerboseLogging, /*K=*/16,
                /*AFill=*/2.0f, /*BFill=*/3.0f);
@@ -2242,7 +2242,7 @@ static const char MatMatMulAccumShader[] = R"(
 
   RWByteAddressBuffer Output : register(u0);
 
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -2313,7 +2313,7 @@ void DxilConf_SM610_LinAlg::MatMatMulAccum_Wave_16x16x16_F16() {
   Params.N = 16;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runMatMatMulAccum(D3DDevice, DxcSupport, Params, VerboseLogging, /*K=*/16,
                     /*AFill=*/2.0f, /*BFill=*/3.0f, /*CFill=*/4.0f);
@@ -2325,7 +2325,7 @@ static const char MatAccumShader[] = R"(
 
   RWByteAddressBuffer Output : register(u0);
 
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -2386,7 +2386,7 @@ void DxilConf_SM610_LinAlg::MatAccum_Wave_16x16_F16() {
   Params.N = 16;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runMatAccum(D3DDevice, DxcSupport, Params, VerboseLogging,
               /*LHSFill=*/2.0f, /*RHSFill=*/3.0f);
@@ -2917,7 +2917,7 @@ static const char LoadMemoryShader[] = R"(
 
   #define ELEM_PER_THREAD (M_DIM * N_DIM / NUMTHREADS)
 
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   [numthreads(NUMTHREADS, 1, 1)]
   void main(uint threadID : SV_GroupIndex) {
     for (uint I = 0; I < ELEM_PER_THREAD; ++I) {
@@ -2986,7 +2986,7 @@ void DxilConf_SM610_LinAlg::LoadMemory_Wave_16x16_F16() {
   Params.Use = MatrixUse::A;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runLoadMemory(D3DDevice, DxcSupport, Params, VerboseLogging);
 }
@@ -2995,7 +2995,7 @@ static const char StoreMemoryShader[] = R"(
   RWByteAddressBuffer Output : register(u0);
   groupshared ELEM_TYPE GsData[M_DIM * N_DIM];
 
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -3055,7 +3055,7 @@ void DxilConf_SM610_LinAlg::StoreMemory_Wave_16x16_F16() {
   Params.Use = MatrixUse::A;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runStoreMemory(D3DDevice, DxcSupport, Params, VerboseLogging,
                  /*FillValue=*/7.0f);
@@ -3067,7 +3067,7 @@ static const char AccumulateMemoryShader[] = R"(
 
   #define ELEM_PER_THREAD (M_DIM * N_DIM / NUMTHREADS)
 
-  [WaveSize(4, 64)]
+  [WaveSize(4, 128)]
   [numthreads(NUMTHREADS, 1, 1)]
   void main(uint threadID : SV_GroupIndex) {
     ELEM_TYPE fill = FILL_VALUE;
@@ -3135,7 +3135,7 @@ void DxilConf_SM610_LinAlg::AccumulateMemory_Wave_16x16_F16() {
   Params.Use = MatrixUse::Accumulator;
   Params.Scope = MatrixScope::Wave;
   Params.Layout = MatrixLayout::RowMajor;
-  Params.NumThreads = 64;
+  Params.NumThreads = 128;
   Params.Enable16Bit = true;
   runAccumulateMemory(D3DDevice, DxcSupport, Params, VerboseLogging,
                       /*FillValue=*/7.0f);
