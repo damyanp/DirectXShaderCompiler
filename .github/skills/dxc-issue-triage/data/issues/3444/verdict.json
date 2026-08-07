@@ -13,6 +13,7 @@
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
   "summary": "Float-typed SV_DispatchThreadID hits a bad llvm::cast. Never fixed in any release; severity softened from silent access violation (v1.4-v1.6.2104) to a caught internal error, but the leaked cast<X>() text is still not a real diagnostic. Issue title is REFUTED: float, float2, float3 and float4 all fail identically; uint3 control compiles clean.",
+  "text_stale": "Title claims float2/float3/float4 work. None of them do -- wrong since 2021.",
   "title": "[DXIL] Decorating CS float argument with SV_DispatchThreadID semantic crashes the compiler (float2, float3 and float4 works)",
   "triaged_at": "2026-08-06T05:00:56+00:00",
   "triaged_by": "claude-opus-5 (Copilot CLI)",

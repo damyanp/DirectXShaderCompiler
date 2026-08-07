@@ -901,6 +901,11 @@ python triage.py verdict --issue <N> --status repros --repro-quality complete \
   --triaged-by "<model>" --reviewed-by "<reviewer model>"
 ```
 
+Add `--text-stale "<what is stale>"` whenever the issue's title or body no longer describes
+what the compiler does. Record it here rather than only in `notes.md`: it is the finding a
+maintainer can act on immediately, and `overview.md` sorts it to the top of its tier and
+quotes the text. A finding left in prose reaches nobody who is not already reading that issue.
+
 `--triaged-with-commit` records which compiler was measured; `--triaged-by` and
 `--reviewed-by` record who did the measuring and who checked the write-up. Record all three.
 A verdict is weighed differently depending on which model produced it, and step 10's review is
@@ -928,13 +933,40 @@ python scripts/render_comments.py <batch>     # e.g. 002
 
 Re-run it after **every** edit to a `comment.md`.
 
-Flag prominently any issue whose **text no longer matches its behaviour**. These are the
-highest-value findings: the defect is real, but anyone spot-checking against the description
-will wrongly conclude "cannot reproduce". This includes the **title**: #3444 has claimed since
-2021 that `float2`/`float3`/`float4` work, and none of them do.
+Flag prominently any issue whose **text no longer matches its behaviour**, and record it with
+`verdict --text-stale "<what is stale>"` so it reaches the cross-batch overview instead of
+living only in this report's prose. These are the highest-value findings: the defect is real,
+but anyone spot-checking against the description will wrongly conclude "cannot reproduce".
+This includes the **title**: #3444 has claimed since 2021 that `float2`/`float3`/`float4`
+work, and none of them do.
 
 Always state the sampling bias. Verdicts from the oldest issues do not generalise to the
 backlog.
+
+## Cross-batch overview
+
+`reports/overview.md` is the standing answer to "what should we do next?" across every issue
+triaged so far. **Regenerate it at the end of every batch — it is the last step:**
+
+```bash
+python scripts/triage.py reindex        # rebuild the db from the evidence
+python scripts/render_overview.py       # then regenerate the overview
+```
+
+It is generated entirely from `triage.db`, which `reindex` rebuilds from the committed
+`verdict.json` files, so it cannot drift from the evidence and **must never be hand-edited**.
+If a row is wrong, fix the verdict and re-run; an edit made in the file is lost on the next
+batch and, worse, silently disagrees with the artifacts until then.
+
+Ordering is by **what action is available**, not by severity — the two come apart, and
+severity is already in the issue's labels. An always-reproducing crash is worse than a stale
+title but needs no decision: it is open, labelled, and waiting on a fix rather than on triage.
+So `close-fixed` sorts first, `needs-human-judgement` second, and `still-valid-keep-open` last,
+because its triage conclusion is "nothing to do here". Within a tier, issues carrying a
+proposed title or label change sort above those with none, for the same reason.
+
+Adding a new suggested action means adding it to `TIERS` in `render_overview.py`; anything
+unrecognised falls through to the last tier rather than disappearing.
 
 ## Useful queries
 

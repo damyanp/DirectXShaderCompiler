@@ -8,14 +8,37 @@ repro, does it still reproduce, and when did that change?**
 ## Layout
 
 ```
-scripts/            triage.py, test_predicates.py, render_comments.py
+scripts/            triage.py, test_predicates.py, render_comments.py,
+                    render_overview.py
 data/issues/<nnnn>/ the evidence for one issue
-data/reports/       one report per batch
+data/reports/       overview.md, plus one report per batch
 .cache/             compilers and the database -- gitignored, regenerable
 ```
 
 Everything under `data/` is committed. That is the point: a verdict nobody can re-check is
 just an assertion, and these verdicts are the input to closing or keeping issues open.
+
+## Start here: `data/reports/overview.md`
+
+Every issue triaged so far, **ordered by what a maintainer can act on** — closable first,
+then decisions that are blocked on a person, and confirmed-still-broken last. It links each
+issue to its draft comment, notes and Compiler Explorer repro.
+
+It is **generated**, never hand-edited:
+
+```bash
+python scripts/triage.py reindex        # db <- committed verdict.json files
+python scripts/render_overview.py       # overview.md <- db
+```
+
+Both run at the end of a batch. `triage.py audit` fails if `overview.md` is older than the
+newest `verdict.json`, so a forgotten regeneration is caught rather than shipped — a stale
+overview is a well-formed document that quietly omits a whole batch, which is exactly the
+kind of error nobody notices.
+
+Ordering is by available action, not severity. The two come apart: an always-reproducing
+crash is worse than a stale title, but it is already open and labelled and is waiting on a
+fix, not on triage. Severity lives in the issue's labels; this report answers "what next?".
 
 ## Files in an issue directory
 
@@ -61,6 +84,13 @@ when it was measured is part of the evidence.
 each side of a transition. **The floor is v1.4.1907** — the oldest release shipping a usable
 `dxc` — so `always-repro'd` means "for as long as it is possible to check", not "since it was
 filed".
+
+`text_stale` is set when the issue's own title or body no longer describes what the compiler
+does — #3444 has claimed since 2021 that `float2`/`float3`/`float4` work, and none of them
+do. It is a field rather than a remark in `notes.md` because it is the class of finding that
+most needs to surface: the defect is real, but anyone spot-checking the issue against its own
+description concludes "cannot reproduce". `overview.md` sorts these to the top of their tier,
+since editing a title is an action available immediately on an otherwise unactionable issue.
 
 In an `out-*.txt` header, `# verdict:` is per-probe, not per-issue, and has two further
 values: `invalid-probe` means that compiler never actually ran the repro — it rejected the

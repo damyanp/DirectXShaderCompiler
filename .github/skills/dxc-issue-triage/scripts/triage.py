@@ -36,7 +36,6 @@ import sys
 import time
 import zipfile
 from datetime import datetime, timezone
-
 REPO = "microsoft/DirectXShaderCompiler"
 
 # Two roots, deliberately separate.
@@ -138,6 +137,12 @@ ISSUE_FIELDS = [
     # is read differently depending on which model produced it, and step 10's
     # independent review is unverifiable if nothing records that it happened.
     "triaged_by", "reviewed_by",
+    # Set when the issue's own title or body no longer describes what the
+    # compiler does. The batch reports call these the highest-value findings,
+    # because anyone spot-checking the issue against its description wrongly
+    # concludes "cannot reproduce" while the defect is real. Free text: say
+    # what is stale, so the overview can quote it rather than just flag it.
+    "text_stale",
 ]
 
 # Columns added after the first release of this script. Applied on connect so
@@ -145,7 +150,7 @@ ISSUE_FIELDS = [
 MIGRATIONS = {"issues": {
     "godbolt_url": "TEXT", "godbolt_skip": "TEXT", "labels_now": "TEXT",
     "labels_add": "TEXT", "labels_remove": "TEXT",
-    "triaged_by": "TEXT", "reviewed_by": "TEXT",
+    "triaged_by": "TEXT", "reviewed_by": "TEXT", "text_stale": "TEXT",
 }}
 
 
@@ -1510,9 +1515,41 @@ def cmd_audit(a):
         if rec and not rec.get("reviewed_by") and not a.collated:
             print(f"#{number}: pending collation -- no reviewed_by yet (step 10 "
                   f"is a batch step; do not fill it in yourself)")
+    if not a.issue:
+        total += audit_overview()
     if not total:
         print(f"no missing evidence in {len(numbers)} issue(s)")
     return 1 if total else 0
+
+
+def audit_overview():
+    """Report a `reports/overview.md` older than the evidence it summarises.
+
+    The overview is the cross-batch answer to "what do we do next?", and it is
+    generated, so the only way it goes wrong is by not being regenerated. That
+    failure is invisible -- a stale overview is a well-formed document that
+    quietly omits the newest batch. Comparing mtimes catches it without
+    re-rendering, and a whole-batch audit is exactly when it matters.
+    """
+    overview = os.path.join(REPORTS, "overview.md")
+    if not os.path.isdir(ISSUES):
+        return 0
+    verdicts = [os.path.join(ISSUES, n, "verdict.json")
+                for n in os.listdir(ISSUES) if n.isdigit()]
+    verdicts = [p for p in verdicts if os.path.isfile(p)]
+    if not verdicts:
+        return 0
+    newest = max(verdicts, key=os.path.getmtime)
+    if not os.path.exists(overview):
+        print("reports/overview.md is missing -- run "
+              "`python scripts/render_overview.py`")
+        return 1
+    if os.path.getmtime(overview) < os.path.getmtime(newest):
+        rel = os.path.relpath(newest, ISSUES).replace(os.sep, "/")
+        print(f"reports/overview.md is older than {rel} -- regenerate it with "
+              f"`python scripts/render_overview.py`")
+        return 1
+    return 0
 
 
 def restamp(path, field, value):
@@ -1940,7 +1977,13 @@ def main():
     # precisely its job, and after a fresh clone that is the normal state.
     if a.cmd not in ("init", "reindex") and not os.path.exists(DB):
         sys.exit(f"no workspace at {ROOT}; run 'triage.py init' first")
-    a.func(a)
+    # A command's return value becomes the process exit status, so a check can
+    # be used as a gate. `audit` is the one that needs it: it reports missing
+    # evidence and a stale overview, and a reviewer wiring it into a script
+    # would otherwise see a clean exit no matter what it printed. Bools are
+    # excluded deliberately -- `True` is an int and would exit 1.
+    rc = a.func(a)
+    sys.exit(rc if isinstance(rc, int) and not isinstance(rc, bool) else 0)
 
 
 if __name__ == "__main__":

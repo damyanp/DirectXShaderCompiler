@@ -16,6 +16,7 @@
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
   "summary": "Unsized array param: no X3072 diagnostic, call silently dropped, empty main() emitted. Reported 2018 crash is absent from every shipping release - issue text is stale.",
+  "text_stale": "Reported as an assert; the assert is gone and the current defect is silent wrong codegen (empty main, undef stores). Title and body describe a symptom that no longer occurs.",
   "title": "Array as parameter of function",
   "triaged_at": "2026-08-06T03:20:32+00:00",
   "triaged_by": "claude-opus-5 (Copilot CLI)",

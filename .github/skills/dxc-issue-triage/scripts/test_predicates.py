@@ -339,6 +339,46 @@ check("bisect stub mirrors execute()'s signature",
       str(_inspect.signature(fake_runs([])[0])),
       str(_inspect.signature(triage.execute)))
 
+
+# --- the overview staleness gate -------------------------------------------
+#
+# `reports/overview.md` is generated, so the only way it goes wrong is by not
+# being regenerated after a batch. `audit_overview` is what catches that, and a
+# guard that never fires is worse than none -- it reads as reassurance. These
+# drive it through all three states against a temporary tree.
+def _overview_state(tmp, overview_age=None, with_verdict=True):
+    """Run audit_overview() against a throwaway ISSUES/REPORTS pair."""
+    issues, reports = os.path.join(tmp, "issues"), os.path.join(tmp, "reports")
+    os.makedirs(os.path.join(issues, "1234"), exist_ok=True)
+    os.makedirs(reports, exist_ok=True)
+    vpath = os.path.join(issues, "1234", "verdict.json")
+    if with_verdict:
+        with open(vpath, "w", encoding="utf-8") as f:
+            json.dump({"number": 1234}, f)
+    opath = os.path.join(reports, "overview.md")
+    if overview_age is not None:
+        with open(opath, "w", encoding="utf-8") as f:
+            f.write("# overview\n")
+        # Negative age == older than the verdict; positive == newer.
+        os.utime(opath, (os.path.getmtime(vpath) + overview_age,) * 2)
+    old = triage.ISSUES, triage.REPORTS
+    triage.ISSUES, triage.REPORTS = issues, reports
+    try:
+        return triage.audit_overview()
+    finally:
+        triage.ISSUES, triage.REPORTS = old
+
+
+with tempfile.TemporaryDirectory() as _t:
+    check("a missing overview is reported",
+          _overview_state(os.path.join(_t, "a")), 1)
+    check("an overview older than a verdict is reported",
+          _overview_state(os.path.join(_t, "b"), overview_age=-10), 1)
+    check("an overview newer than every verdict is accepted",
+          _overview_state(os.path.join(_t, "c"), overview_age=+10), 0)
+    check("no verdicts means nothing to be stale against",
+          _overview_state(os.path.join(_t, "d"), with_verdict=False), 0)
+
 print()
 if FAILURES:
     print(f"{len(FAILURES)} FAILURE(S)")

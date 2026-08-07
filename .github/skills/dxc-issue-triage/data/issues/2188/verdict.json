@@ -14,6 +14,7 @@
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
   "summary": "Still fails on main (1.9.0.15422, eff900d54) and in all 20 releases v1.4.1907..v1.9.2607, with the reported two errors. Root cause is narrower than the title: a component read of a const vector is not a constant expression (a const scalar is), so both the groupshared array bound and the [numthreads] arguments fail from one cause. FXC 10.1 compiles all cases and folds to dcl_thread_group 8,8,1; clang-dxc shares the gap. Codified in DXC's own tests (const-expr.hlsl:379-382, attributes.hlsl:659) as 'fxc-pass' / expected-error.",
+  "text_stale": "Title blames 'static const int'; static const scalars work. The trigger is reading a component of a const vector (c2Thread.x), which is narrower and differently worded.",
   "title": "fxc.exe vs dxc.exe:  \"static const int\" use as compile time constant",
   "triaged_at": "2026-08-07T01:59:16+00:00",
   "triaged_by": "claude-opus-5",
