@@ -1,0 +1,57 @@
+# compiler: v1.8.2505
+# exe: <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+# ran: 2026-08-07T03:28:57+00:00
+# cmd: -T lib_6_9 control-hello.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-hello (control-hello.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_9 control-hello.hlsl
+[exe] <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+; shader hash: 292f7e87b5d3061da7ea7e64b3f29eda
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+; Function Attrs: nounwind readnone
+define void @"\01?RayGen@@YAXXZ"() #0 {
+  ret void
+}
+
+attributes #0 = { nounwind readnone }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!1}
+!dx.shaderModel = !{!2}
+!dx.typeAnnotations = !{!3}
+!dx.entryPoints = !{!7, !8}
+
+!0 = !{!"dxcoob 1.8.2505.28 (9efbb6c32)"}
+!1 = !{i32 1, i32 9}
+!2 = !{!"lib", i32 6, i32 9}
+!3 = !{i32 1, void ()* @"\01?RayGen@@YAXXZ", !4}
+!4 = !{!5}
+!5 = !{i32 1, !6, !6}
+!6 = !{}
+!7 = !{null, !"", null, null, null}
+!8 = !{void ()* @"\01?RayGen@@YAXXZ", !"\01?RayGen@@YAXXZ", null, null, !9}
+!9 = !{i32 8, i32 7, i32 5, !10}
+!10 = !{i32 0}
+
+
+--- stderr ---
+

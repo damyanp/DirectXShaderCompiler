@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:34:47+00:00
+# cmd: -T cs_6_6 -E main -spirv control-phi-image-no-heap.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-invalid-spirv.json
+# verdict: repro
+# variant: phi-image-no-heap (control-phi-image-no-heap.hlsl)
+# expect: match
+
+$ dxc -T cs_6_6 -E main -spirv control-phi-image-no-heap.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+fatal error: generated SPIR-V is invalid: Result type cannot be OpTypeImage
+  %33 = OpPhi %type_2d_image %26 %24 %32 %31
+
+note: please file a bug report on https://github.com/Microsoft/DirectXShaderCompiler/issues with source code if possible
+
+

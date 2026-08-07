@@ -1,0 +1,23 @@
+{
+  "batch": "005",
+  "confidence": "high",
+  "created_at": "2019-10-17T14:22:32Z",
+  "expected_symptom": "dxc rejects an array bound derived from a static const value via a float-to-integer conversion with 'error: variable length arrays are not supported in HLSL'; FXC compiles the same code",
+  "godbolt_url": "https://godbolt.org/z/Yzd9KjcaG",
+  "history": "always-repro'd",
+  "labels": "bug,fxc-disagrees",
+  "labels_add": "diagnostic",
+  "labels_now": "bug,fxc-disagrees",
+  "notes_path": "issues/2530/notes.md",
+  "number": 2530,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Both cases in the body still fail on main (ab5400907). Case 1 fails on all 20 releases v1.4.1907..v1.9.2607 (linear scan); case 2 fails at both endpoints. FXC 10.1 compiles both. The bound is not an integer constant expression under the C++03 ICE rules DXC inherited from clang: CheckICE accepts an explicit cast only when its operand is a FloatingLiteral, so uint(<static const float>) is non-ICE, BuildArrayType makes a VariableArrayType and SemaType.cpp:2143 emits err_hlsl_vla. Case 2 is the same rule one level out via checkInitIsICE. float array[uint(1.0f)] and a static const uint bound both compile; dropping the cast instead gives err_array_size_non_int, a different path. clang's HLSL front end rejects both too, naming the constant-expression rule. Resolution is a language decision.",
+  "title": "Array bound with static const variable",
+  "triaged_at": "2026-08-07T04:21:55+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/2530"
+}

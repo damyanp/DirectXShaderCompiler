@@ -1,0 +1,28 @@
+What to look for -- microsoft/DirectXShaderCompiler#8732
+
+#8732 reports a SILENT miscompile: under -fspv-use-descriptor-heap a variable
+holding a bound resource on one path and a ResourceDescriptorHeap descriptor on
+another has ALL its uses re-lowered through the heap, dropping the bound
+resource from the module. That lowering lives in PR #8517, which is NOT merged.
+So do not read a clean compile here as "fixed" -- and do not read the errors
+below as the reported bug either. Three panes, three different things:
+
+  1. DXC 1.9.2607 (newest release that knows the flag) -- FAILS, loudly:
+       fatal error: generated SPIR-V is invalid:
+       [VUID-StandaloneSpirv-OpTypeImage-06924] Cannot store to OpTypeImage...
+     Interlocked* needs OpImageTexelPointer, which needs a pointer to an image
+     VARIABLE; a heap descriptor is an SSA value, so DXC stores it into a
+     Function image variable, and storing to an image object is illegal SPIR-V.
+     Every release before 1.9.2607 answers "Unknown argument" instead.
+
+  2. DXC trunk, same arguments -- same failure. Nothing silent is happening.
+
+  3. DXC trunk with -Vd (validation off) -- this is the evidence pane. Read the
+     disassembly and check that "%boundTex = OpVariable" is still there, that
+     both descriptors are stored into the same "OpVariable ... Function" image
+     variable, and that OpImageTexelPointer takes THAT variable, not the
+     OpUntypedAccessChainKHR. Last store wins, so trunk's module is
+     semantically what the shader asked for. It is only illegal, not wrong.
+
+CE runs Release builds and cannot show a Debug-only assert; it also cannot show
+the reported defect at all, because the code that would cause it is unmerged.

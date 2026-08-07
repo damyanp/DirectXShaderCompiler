@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "no matching member function for call to 'Sample'"
+    },
+    {
+      "kind": "regex",
+      "value": "requires 3 arguments, but 2 were provided"
+    },
+    {
+      "kind": "not_regex",
+      "value": "(?i)no known conversion|no viable conversion|SamplerComparisonState"
+    }
+  ],
+  "note": "The symptom is a DIAGNOSTIC, not a crash and not an exit code. On Windows dxc returns E_FAIL (0x80004005) for every ordinary diagnosed error, so `nonzero_exit` would match a correct rejection just as readily as the bug; it is deliberately not used. The three clauses are the three things the issue reports, in order: (1) the call is rejected with the generic overload-set error; (2) the notes the user is given are about ARITY -- `requires 3 arguments, but 2 were provided` -- which is not the mistake that was made; (3) nothing anywhere names the real problem, the SamplerComparisonState->SamplerState conversion on argument 1, and the 2-argument candidate the user meant is not listed at all. Clause 3 is the defect; clauses 1 and 2 are required because an absence clause on its own is satisfied for free by any compile that never reached overload resolution (SKILL.md step 6). Clause 2's exact arity wording is what makes the predicate discriminate: it must not fire on a call that fails for a genuinely reported reason. CONTROLS, both captured: variant-control-correct-sampler-main-debug.txt is control-correct-sampler.hlsl, the identical shader with `SamplerState samp` -- a known-good input that compiles, expect no-match; variant-control-arity-main-debug.txt is control-arity.hlsl, `tex.Sample(samp)` with the CORRECT sampler type, which fails overload resolution for a reason the compiler states correctly and completely -- it satisfies clauses 1 and 3 and is rejected only by clause 2, expect no-match. The second control is the load-bearing one: without clause 2 the predicate would score correct diagnostic behaviour as the bug. Note that this predicate contains a not_regex and so `_is_absence_predicate` is true for it, which means a matching probe is demoted to invalid-probe if the output also carries an unsupported-feature marker; none of #3055's probes does, and every one was checked by hand against its captured text (manual-case-classifier-branches.txt). See method-notes.md."
+}

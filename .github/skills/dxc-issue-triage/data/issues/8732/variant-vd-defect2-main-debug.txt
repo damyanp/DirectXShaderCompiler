@@ -1,0 +1,91 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:24:09+00:00
+# cmd: -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv -Vd defect2.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: vd-defect2 (defect2.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv -Vd defect2.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.6
+; Generator: Google spiregg; 0
+; Bound: 35
+; Schema: 0
+               OpCapability DescriptorHeapEXT
+               OpCapability Shader
+               OpExtension "SPV_EXT_descriptor_heap"
+               OpExtension "SPV_KHR_untyped_pointers"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %gl_GlobalInvocationID %outputBytes %boundTex %resource_heap
+               OpExecutionMode %main LocalSize 1 1 1
+               OpSource HLSL 660
+               OpName %type_RWByteAddressBuffer "type.RWByteAddressBuffer"
+               OpName %outputBytes "outputBytes"
+               OpName %type_2d_image "type.2d.image"
+               OpName %boundTex "boundTex"
+               OpName %type_untyped_pointer "type.untyped.pointer"
+               OpName %resource_heap "resource_heap"
+               OpName %main "main"
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %resource_heap BuiltIn ResourceHeapEXT
+               OpDecorate %outputBytes DescriptorSet 0
+               OpDecorate %outputBytes Binding 0
+               OpDecorate %boundTex DescriptorSet 0
+               OpDecorate %boundTex Binding 1
+               OpDecorate %_runtimearr_uint ArrayStride 4
+               OpMemberDecorate %type_RWByteAddressBuffer 0 Offset 0
+               OpDecorate %type_RWByteAddressBuffer Block
+       %uint = OpTypeInt 32 0
+     %uint_2 = OpConstant %uint 2
+     %uint_0 = OpConstant %uint 0
+%_runtimearr_uint = OpTypeRuntimeArray %uint
+%type_RWByteAddressBuffer = OpTypeStruct %_runtimearr_uint
+%_ptr_StorageBuffer_type_RWByteAddressBuffer = OpTypePointer StorageBuffer %type_RWByteAddressBuffer
+%type_2d_image = OpTypeImage %uint 2D 2 0 0 2 R32ui
+%_ptr_UniformConstant_type_2d_image = OpTypePointer UniformConstant %type_2d_image
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+%type_untyped_pointer = OpTypeUntypedPointerKHR UniformConstant
+       %void = OpTypeVoid
+         %18 = OpTypeFunction %void
+%_ptr_Function_type_2d_image = OpTypePointer Function %type_2d_image
+%_runtimearr_type_2d_image = OpTypeRuntimeArray %type_2d_image
+     %v2uint = OpTypeVector %uint 2
+%_ptr_Image_uint = OpTypePointer Image %uint
+     %uint_1 = OpConstant %uint 1
+%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
+%outputBytes = OpVariable %_ptr_StorageBuffer_type_RWByteAddressBuffer StorageBuffer
+   %boundTex = OpVariable %_ptr_UniformConstant_type_2d_image UniformConstant
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+%resource_heap = OpUntypedVariableKHR %type_untyped_pointer UniformConstant
+       %main = OpFunction %void None %18
+         %25 = OpLabel
+         %26 = OpVariable %_ptr_Function_type_2d_image Function
+         %27 = OpLoad %v3uint %gl_GlobalInvocationID
+         %28 = OpUntypedAccessChainKHR %type_untyped_pointer %_runtimearr_type_2d_image %resource_heap %uint_2
+         %29 = OpLoad %type_2d_image %28
+               OpStore %26 %29
+         %30 = OpLoad %type_2d_image %boundTex
+               OpStore %26 %30
+         %31 = OpVectorShuffle %v2uint %27 %27 0 1
+         %32 = OpImageTexelPointer %_ptr_Image_uint %26 %31 %uint_0
+         %33 = OpAtomicIAdd %uint %32 %uint_1 %uint_0 %uint_2
+         %34 = OpAccessChain %_ptr_StorageBuffer_uint %outputBytes %uint_0 %uint_0
+               OpStore %34 %33
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+defect2.hlsl:9:31: warning: SPV_EXT_descriptor_heap support is incomplete.
+    RWTexture2D<uint> mixed = ResourceDescriptorHeap[2];
+                              ^
+
+

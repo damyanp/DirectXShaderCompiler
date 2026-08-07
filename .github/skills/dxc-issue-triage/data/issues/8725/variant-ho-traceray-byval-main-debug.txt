@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:23:14+00:00
+# cmd: -T lib_6_9 variant-hitobject-traceray-byval.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: ho-traceray-byval (variant-hitobject-traceray-byval.hlsl)
+# expect: match
+
+$ dxc -T lib_6_9 variant-hitobject-traceray-byval.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

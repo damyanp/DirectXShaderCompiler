@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "no matching function for call to 'clamp'"
+    },
+    {
+      "kind": "not_regex",
+      "value": "(?i)no known conversion|no viable conversion"
+    }
+  ],
+  "note": "NOT a predicate for #3055. This is the predicate a triager would write for the free-INTRINSIC-FUNCTION sibling of #3055 -- the #2693 / #818 path -- and it exists only to measure the runner's invalid-probe classifier against a diagnostic-shaped symptom. dxc emits `note: candidate function not viable: no known conversion from 'SamplerComparisonState' to 'vector<float, 1>' for 2nd argument` for probe-freefn-good-diagnostic.hlsl, so clause 2 fails and the CORRECT score is `no-match`: the diagnostic is good, which for a diagnostic-quality issue is exactly what a FIX looks like. The runner returns `invalid-probe` instead, because the output contains `no matching function for call to`, one of classify()'s unsupported-feature markers (scripts/triage.py:681-689). READ THE `# expect: invalid-probe` HEADER CAREFULLY: it asserts only what the runner RETURNS, and is the finding itself. It does NOT carry the meaning the --expect option documents (\"expected to be rejected before it reaches the code under test\") -- dxc compiled this shader and completed overload resolution. There is no --expect value for \"the classifier is expected to get this wrong\", which is part of the finding. If the classifier is ever fixed, reindex will flag this line; that is correct, and the right response is to retire this probe. See method-notes.md."
+}

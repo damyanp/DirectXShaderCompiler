@@ -1,0 +1,17 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T03:25:16+00:00
+# cmd: -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match-invalid-spirv.json
+# verdict: invalid-probe
+
+$ dxc -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-fspv-use-descriptor-heap'
+

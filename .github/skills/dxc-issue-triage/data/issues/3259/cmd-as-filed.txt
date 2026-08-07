@@ -1,0 +1,1 @@
+-T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug repro.hlsl

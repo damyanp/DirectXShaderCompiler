@@ -1,0 +1,79 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-07T03:29:07+00:00
+# cmd: -T lib_6_9 control-inout.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-inout (control-inout.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_9 control-inout.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+; shader hash: 87de3b6423cbaf087ca654c22a46cc49
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.Payload = type { float }
+%dx.types.HitObject = type { i8* }
+
+; Function Attrs: nounwind
+define void @"\01?RayGen@@YAXXZ"() #0 {
+  %1 = alloca %struct.Payload, align 8
+  %2 = call %dx.types.HitObject @dx.op.hitObject_MakeMiss(i32 265, i32 0, i32 0, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00)  ; HitObject_MakeMiss(RayFlags,MissShaderIndex,Origin_X,Origin_Y,Origin_Z,TMin,Direction_X,Direction_Y,Direction_Z,TMax)
+  %3 = getelementptr inbounds %struct.Payload, %struct.Payload* %1, i32 0, i32 0
+  store float 0.000000e+00, float* %3, align 8
+  call void @dx.op.hitObject_Invoke.struct.Payload(i32 267, %dx.types.HitObject %2, %struct.Payload* nonnull %1)  ; HitObject_Invoke(hitObject,payload)
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.hitObject_Invoke.struct.Payload(i32, %dx.types.HitObject, %struct.Payload*) #0
+
+; Function Attrs: nounwind readnone
+declare %dx.types.HitObject @dx.op.hitObject_MakeMiss(i32, i32, i32, float, float, float, float, float, float, float, float) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!1}
+!dx.shaderModel = !{!2}
+!dx.typeAnnotations = !{!3, !6}
+!dx.dxrPayloadAnnotations = !{!10}
+!dx.entryPoints = !{!13, !14}
+
+!0 = !{!"dxc(private) 1.9.0.5402 (0d3ee6b55-dirty)"}
+!1 = !{i32 1, i32 9}
+!2 = !{!"lib", i32 6, i32 9}
+!3 = !{i32 0, %struct.Payload undef, !4}
+!4 = !{i32 4, !5}
+!5 = !{i32 6, !"value", i32 3, i32 0, i32 7, i32 9}
+!6 = !{i32 1, void ()* @"\01?RayGen@@YAXXZ", !7}
+!7 = !{!8}
+!8 = !{i32 1, !9, !9}
+!9 = !{}
+!10 = !{i32 0, %struct.Payload undef, !11}
+!11 = !{!12}
+!12 = !{i32 0, i32 819}
+!13 = !{null, !"", null, null, null}
+!14 = !{void ()* @"\01?RayGen@@YAXXZ", !"\01?RayGen@@YAXXZ", null, null, !15}
+!15 = !{i32 8, i32 7, i32 5, !16}
+!16 = !{i32 0}
+
+
+--- stderr ---
+

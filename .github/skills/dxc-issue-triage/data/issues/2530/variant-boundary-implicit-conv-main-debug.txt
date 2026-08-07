@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:14:42+00:00
+# cmd: -T ps_6_0 -E main boundary-implicit-conv.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: boundary-implicit-conv (boundary-implicit-conv.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main boundary-implicit-conv.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+boundary-implicit-conv.hlsl:10:17: error: size of array has non-integer type 'float'
+    float array[ARRAY_SIZE] = { 1.0f };
+                ^~~~~~~~~~
+
+

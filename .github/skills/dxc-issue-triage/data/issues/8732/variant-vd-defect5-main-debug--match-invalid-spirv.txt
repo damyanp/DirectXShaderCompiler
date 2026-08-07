@@ -1,0 +1,94 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:24:09+00:00
+# cmd: -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv -Vd defect5.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-invalid-spirv.json
+# verdict: no-repro
+# variant: vd-defect5 (defect5.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv -Vd defect5.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.6
+; Generator: Google spiregg; 0
+; Bound: 39
+; Schema: 0
+               OpCapability DescriptorHeapEXT
+               OpCapability Shader
+               OpExtension "SPV_EXT_descriptor_heap"
+               OpExtension "SPV_KHR_untyped_pointers"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %gl_GlobalInvocationID %outputBytes %resource_heap
+               OpExecutionMode %main LocalSize 1 1 1
+               OpSource HLSL 660
+               OpName %type_RWByteAddressBuffer "type.RWByteAddressBuffer"
+               OpName %outputBytes "outputBytes"
+               OpName %type_untyped_pointer "type.untyped.pointer"
+               OpName %resource_heap "resource_heap"
+               OpName %main "main"
+               OpName %type_2d_image "type.2d.image"
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %resource_heap BuiltIn ResourceHeapEXT
+               OpDecorate %outputBytes DescriptorSet 0
+               OpDecorate %outputBytes Binding 0
+               OpDecorate %_runtimearr_uint ArrayStride 4
+               OpMemberDecorate %type_RWByteAddressBuffer 0 Offset 0
+               OpDecorate %type_RWByteAddressBuffer Block
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+       %uint = OpTypeInt 32 0
+     %uint_0 = OpConstant %uint 0
+     %uint_1 = OpConstant %uint 1
+     %v2uint = OpTypeVector %uint 2
+         %15 = OpConstantComposite %v2uint %uint_0 %uint_0
+%_runtimearr_uint = OpTypeRuntimeArray %uint
+%type_RWByteAddressBuffer = OpTypeStruct %_runtimearr_uint
+%_ptr_StorageBuffer_type_RWByteAddressBuffer = OpTypePointer StorageBuffer %type_RWByteAddressBuffer
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+%type_untyped_pointer = OpTypeUntypedPointerKHR UniformConstant
+       %void = OpTypeVoid
+         %20 = OpTypeFunction %void
+%type_2d_image = OpTypeImage %uint 2D 2 0 0 2 R32ui
+%_ptr_Function_type_2d_image = OpTypePointer Function %type_2d_image
+       %bool = OpTypeBool
+%_runtimearr_type_2d_image = OpTypeRuntimeArray %type_2d_image
+%_ptr_Image_uint = OpTypePointer Image %uint
+%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
+%outputBytes = OpVariable %_ptr_StorageBuffer_type_RWByteAddressBuffer StorageBuffer
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+%resource_heap = OpUntypedVariableKHR %type_untyped_pointer UniformConstant
+%_ptr_Input_uint = OpTypePointer Input %uint
+       %main = OpFunction %void None %20
+         %27 = OpLabel
+         %28 = OpVariable %_ptr_Function_type_2d_image Function
+         %29 = OpAccessChain %_ptr_Input_uint %gl_GlobalInvocationID %int_0
+         %30 = OpLoad %uint %29
+         %31 = OpIEqual %bool %30 %uint_0
+               OpSelectionMerge %32 None
+               OpBranchConditional %31 %33 %32
+         %33 = OpLabel
+         %34 = OpUntypedAccessChainKHR %type_untyped_pointer %_runtimearr_type_2d_image %resource_heap %uint_1
+         %35 = OpLoad %type_2d_image %34
+               OpStore %28 %35
+               OpBranch %32
+         %32 = OpLabel
+         %36 = OpImageTexelPointer %_ptr_Image_uint %28 %15 %uint_0
+         %37 = OpAtomicIAdd %uint %36 %uint_1 %uint_0 %uint_1
+         %38 = OpAccessChain %_ptr_StorageBuffer_uint %outputBytes %uint_0 %uint_0
+               OpStore %38 %37
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+defect5.hlsl:11:17: warning: SPV_EXT_descriptor_heap support is incomplete.
+        mixed = ResourceDescriptorHeap[1];
+                ^
+
+

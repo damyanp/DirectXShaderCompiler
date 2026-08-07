@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:29:43+00:00
+# cmd: -T ps_6_0 -E main probe-freefn-good-diagnostic.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-methodology-freefn.json
+# verdict: no-repro
+# variant: methodology-freefn (probe-freefn-good-diagnostic.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main probe-freefn-good-diagnostic.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+probe-freefn-good-diagnostic.hlsl:16:10: error: no matching function for call to 'clamp'
+  return clamp(coord, samp, 1).xyxy;
+         ^~~~~
+probe-freefn-good-diagnostic.hlsl:16:10: note: candidate function not viable: no known conversion from 'SamplerComparisonState' to 'vector<float, 1>' for 2nd argument
+  return clamp(coord, samp, 1).xyxy;
+         ^            ~~~~
+
+

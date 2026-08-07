@@ -1,0 +1,20 @@
+// What to look for: this shader is INVALID -- an amplification-shader payload may not
+// contain a resource -- so the expected result is a clean error diagnostic.
+//
+// Instead both DXC panes die inside the compiler. Check the compiler's exit status,
+// not the (empty) output: on Windows this is an access violation reading address 0
+// (0xC0000005); on Compiler Explorer's Linux builds it is a segmentation fault. Either
+// way no diagnostic is produced and no DXIL is emitted.
+//
+// dxc 1.6.2112 is the oldest DXC on Compiler Explorer. Locally, every release from
+// v1.5.2010 (the first shipping as_6_5) through v1.9.2607 fails the same way, so the
+// window CE can show is the tail of a history that has never been clean.
+//
+// Compiler Explorer builds are Release builds. The assert that names the issue --
+// DXASSERT_NOMSG(Ty) in hlsl::dxilutil::WrapInArrayTypes, called from
+// TranslatePtrIfUsedByLoweredFn -- is compiled out here, so CE cannot show it. What CE
+// does show is that removing the assert does not remove the bug: the same null type
+// reaches the allocation and faults. CE corroborates the local Debug build; it does not
+// overrule it.
+//
+// Control: change "Texture2D<float4> texture;" to "uint value;" and it compiles cleanly.

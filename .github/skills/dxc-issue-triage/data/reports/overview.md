@@ -4,7 +4,7 @@
 
 # DXC issue triage — overview
 
-**20 issues triaged** across 4 batches (001, 002, 003, 004). Ordered by what a maintainer can act on, most actionable first.
+**25 issues triaged** across 5 batches (001, 002, 003, 004, 005). Ordered by what a maintainer can act on, most actionable first.
 
 Nothing here has been applied. No issue has been edited, commented on, closed or relabelled; every recommendation is a proposal, and every draft comment is unposted.
 
@@ -13,19 +13,22 @@ Nothing here has been applied. No issue has been edited, commented on, closed or
 | Action | Issues |
 | --- | ---: |
 | [Ready to close](#ready-to-close) | 2 |
-| [Needs a maintainer decision](#needs-a-maintainer-decision) | 1 |
+| [Needs a maintainer decision](#needs-a-maintainer-decision) | 2 |
 | [Reclassify](#reclassify) | 2 |
-| [Confirmed still broken (keep open)](#confirmed-still-broken-keep-open) | 15 |
-| **Total** | **20** |
+| [Confirmed still broken (keep open)](#confirmed-still-broken-keep-open) | 19 |
+| **Total** | **25** |
 
-**5 issues no longer say what they do.** These are the highest-value findings in the set: the defect is real, but anyone spot-checking the issue against its own description concludes "cannot reproduce". Fixing the title is a cheap, immediate action on an otherwise unactionable issue.
+**8 issues no longer say what they do.** These are the highest-value findings in the set: the defect is real, but anyone spot-checking the issue against its own description concludes "cannot reproduce". Fixing the title is a cheap, immediate action on an otherwise unactionable issue.
 
 | # | What is stale |
 | --- | --- |
 | [#1702](https://github.com/microsoft/DirectXShaderCompiler/issues/1702) | Reported as an assert; the assert is gone and the current defect is silent wrong codegen (empty main, undef stores). Title and body describe a symptom that no longer occurs. |
 | [#2188](https://github.com/microsoft/DirectXShaderCompiler/issues/2188) | Title blames 'static const int'; static const scalars work. The trigger is reading a component of a const vector (c2Thread.x), which is narrower and differently worded. |
+| [#3055](https://github.com/microsoft/DirectXShaderCompiler/issues/3055) | Not the title or body -- the thread. llvm-beanz commented 2023-07-14 'This compiles successfully now', and the body was then edited 2023-09-27, so the correction sits above the report it appears to correct. A reader going top-down concludes the issue is fixed; it reproduces byte-identically from v1.4.1907 to main. The comment is about a DIFFERENT thing (the shader now compiles because a valid overload was substituted); the filed complaint is that the diagnostic never names the sampler-type mismatch, and that is unchanged. |
 | [#3444](https://github.com/microsoft/DirectXShaderCompiler/issues/3444) | Title claims float2/float3/float4 work. None of them do -- wrong since 2021. |
 | [#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527) | Title says 'case sensitive'. Case is not the mechanism: #pragma once keys on the path as spelled, so './x' vs '././x' fails with case held constant. The real scope is wider than the title. |
+| [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725) | Title scopes this to 'passing a payload by value to HitObject::Invoke'. Measured: dx::HitObject::TraceRay fails identically, and a mutable static payload passed straight to Invoke fails with no by-value parameter and no user function at all. So the title's 'by value' is one instance of a wider trigger -- an object-method intrinsic with an inout record parameter called with an argument whose address is not provably non-aliasing -- stated as a lead; only Invoke and TraceRay were measured. |
+| [#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732) | Title says 'silent miscompilation or ICE', but the body's own Actual Behavior section says all four filed defects are now diagnosed at compile time and defect 4 no longer ICEs -- only the heap-only conditional case is still described as silent. Neither state is reachable from main: the issue is filed against the unmerged branch of PR #8517 and says so only in passing, so anyone checking it against main or any release sees a loud validation error and concludes it cannot be reproduced. |
 | [#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737) | Title says 'silent UB or ICE'; understates it. The silent case emits a DXIL atomic with i32 undef where the sample index belongs, and that container passes validation. |
 
 ## Ready to close
@@ -56,7 +59,17 @@ SPIR-V printf heap corruption. A captured repeated-run set reproduced STATUS_HEA
 
 | # | Title | Status | History | Conf. | Repro | CE | Artifacts |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| [#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732) | [SPIR-V] SPV_EXT_descriptor_heap mixed bound/heap aliasing causes silent miscompilation or ICE ⚠️ | inconclusive | unmeasurable -- only v1.9.2607 of the 20 releases in the bis | high | partial | [bcn4zoTdM](https://godbolt.org/z/bcn4zoTdM) | [draft](../issues/8732/comment.md) · [notes](../issues/8732/notes.md) · [expected](../issues/8732/expected.md) · [method](../issues/8732/method-notes.md) |
 | [#3150](https://github.com/microsoft/DirectXShaderCompiler/issues/3150) | Unspecified behavior from new-to-DXIL sdiv instruction | not-compiler-verifiable | n/a | high | prose-only | n/a | [draft](../issues/3150/comment.md) · [notes](../issues/3150/notes.md) · [expected](../issues/3150/expected.md) |
+
+**[#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732) — [SPIR-V] SPV_EXT_descriptor_heap mixed bound/heap aliasing causes silent miscompilation or ICE**  
+<sub>batch 005 · triaged against `ab5400907` · drafted by `claude-opus-4.5 (GitHub Copilot CLI)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
+
+Filed against the unmerged branch of PR #8517; the VarDecl alias map it blames does not exist on main (zero occurrences of descriptorHeapImageAliasVars, createDescriptorHeapIndexVar, diagnoseDescriptorHeapAliasMixing et al). On main at ab5400907 all five cases fail loudly instead of silently: defects 1-3 and the still-undiagnosed heap-only conditional die on 'generated SPIR-V is invalid: [VUID-StandaloneSpirv-OpTypeImage-06924] Cannot store to OpTypeImage', defect 4 on 'UAV support not implemented with non-emulated heaps'. Re-run with -Vd the module is semantically correct -- both descriptors store into one Function image variable, last store wins, %boundTex preserved -- so main is illegal, not wrong; Interlocked* on a heap-loaded texture is simply unsupported there (a heap-only control with no bound resource fails identically). v1.9.2607 matches main exactly. Separately, the reporter's documented workaround (separate variables) compiles on v1.9.2607 but now fails on main with the UniformConstant ArrayStride rule newly enforced by the SPIRV-Tools 1c336172 bump (ec2ba18da), tracked as #8740 -- so every shader here that actually indexes ResourceDescriptorHeap fails validation on main today, though a control that sets -fspv-use-descriptor-heap without indexing the heap still compiles.
+
+> ⚠️ **Issue text is stale.** Title says 'silent miscompilation or ICE', but the body's own Actual Behavior section says all four filed defects are now diagnosed at compile time and defect 4 no longer ICEs -- only the heap-only conditional case is still described as silent. Neither state is reachable from main: the issue is filed against the unmerged branch of PR #8517 and says so only in passing, so anyone checking it against main or any release sees a loud validation error and concludes it cannot be reproduced.
+
+*Labels:* add `correctness`.
 
 **[#3150](https://github.com/microsoft/DirectXShaderCompiler/issues/3150) — Unspecified behavior from new-to-DXIL sdiv instruction**  
 <sub>batch 003 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
@@ -100,8 +113,10 @@ No FXC-X3663-equivalent diagnostic for barrier in varying flow control; feature 
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | [#1702](https://github.com/microsoft/DirectXShaderCompiler/issues/1702) | Array as parameter of function ⚠️ | repros | always-repro'd | high | complete | [Tfe5d4fGW](https://godbolt.org/z/Tfe5d4fGW) | [draft](../issues/1702/comment.md) · [notes](../issues/1702/notes.md) · [expected](../issues/1702/expected.md) |
 | [#2188](https://github.com/microsoft/DirectXShaderCompiler/issues/2188) | fxc.exe vs dxc.exe: "static const int" use as compile time constant ⚠️ | repros | always-repro'd | high | partial | [nvqTPYffM](https://godbolt.org/z/nvqTPYffM) | [draft](../issues/2188/comment.md) · [notes](../issues/2188/notes.md) · [expected](../issues/2188/expected.md) · [method](../issues/2188/method-notes.md) |
+| [#3055](https://github.com/microsoft/DirectXShaderCompiler/issues/3055) | Improve error reporting for intrinsic methods with type mismatched arguments ⚠️ | repros | always-repro'd (v1.4.1907..v1.9.2607, all 20 releases probed | high | complete | [M7e5Yrr36](https://godbolt.org/z/M7e5Yrr36) | [draft](../issues/3055/comment.md) · [notes](../issues/3055/notes.md) · [expected](../issues/3055/expected.md) · [method](../issues/3055/method-notes.md) |
 | [#3444](https://github.com/microsoft/DirectXShaderCompiler/issues/3444) | [DXIL] Decorating CS float argument with SV_DispatchThreadID semantic crashes the compiler (float2, float3 and float4 works) ⚠️ | repros | always-repro'd | high | complete | [d6jG8Yjrr](https://godbolt.org/z/d6jG8Yjrr) | [draft](../issues/3444/comment.md) · [notes](../issues/3444/notes.md) · [expected](../issues/3444/expected.md) |
 | [#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527) | pragma once is case sensitive ⚠️ | repros | always-repro'd | high | complete | n/a | [draft](../issues/8527/comment.md) · [notes](../issues/8527/notes.md) · [expected](../issues/8527/expected.md) · [method](../issues/8527/method-notes.md) |
+| [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725) | [SER] Passing a payload by value to HitObject::Invoke asserts in CodeGen ⚠️ | repros | always-repro'd across v1.8.2505..v1.9.2607 (15 older release | high | complete | [Eo8YbKs5n](https://godbolt.org/z/Eo8YbKs5n) | [draft](../issues/8725/comment.md) · [notes](../issues/8725/notes.md) · [expected](../issues/8725/expected.md) · [method](../issues/8725/method-notes.md) |
 | [#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737) | Atomics on RWTexture2DMS result in silent UB or ICE ⚠️ | repros | always-repro'd (v1.7.2207..v1.9.2607; 5 older releases preda | high | complete | [ea91a6vnj](https://godbolt.org/z/ea91a6vnj) | [draft](../issues/8737/comment.md) · [notes](../issues/8737/notes.md) · [expected](../issues/8737/expected.md) · [method](../issues/8737/method-notes.md) |
 | [#708](https://github.com/microsoft/DirectXShaderCompiler/issues/708) | RegisterOffset is being ignored from RegisterAssignment | repros | always-repro'd | high | agent-constructed | [MsfE6b1v8](https://godbolt.org/z/MsfE6b1v8) | — |
 | [#1768](https://github.com/microsoft/DirectXShaderCompiler/issues/1768) | Arrays of structs in GS OutputStreams are not supported | repros | always-repro'd | high | complete | [b66vK5EPx](https://godbolt.org/z/b66vK5EPx) | [draft](../issues/1768/comment.md) · [notes](../issues/1768/notes.md) · [expected](../issues/1768/expected.md) |
@@ -110,8 +125,10 @@ No FXC-X3663-equivalent diagnostic for barrier in varying flow control; feature 
 | [#2191](https://github.com/microsoft/DirectXShaderCompiler/issues/2191) | Assert when a static const uint is used with [numthreads] | repros | never-repro'd-in-releases -- NOT a fix: all 20 release binar | high | complete | [dGK17oobT](https://godbolt.org/z/dGK17oobT) | [draft](../issues/2191/comment.md) · [notes](../issues/2191/notes.md) · [expected](../issues/2191/expected.md) · [method](../issues/2191/method-notes.md) |
 | [#2202](https://github.com/microsoft/DirectXShaderCompiler/issues/2202) | Validation error "DXIL intrinsic overload must be valid" | repros | always-repro'd v1.4.1907..v1.9.2607 (v1.8.2403 crashes 0xC00 | high | complete | [v7WofnW4f](https://godbolt.org/z/v7WofnW4f) | [draft](../issues/2202/comment.md) · [notes](../issues/2202/notes.md) · [expected](../issues/2202/expected.md) · [method](../issues/2202/method-notes.md) |
 | [#2427](https://github.com/microsoft/DirectXShaderCompiler/issues/2427) | Compiler fails on quoted folder parameters finishing with '\\' | repros | always-repro'd | high | complete | n/a | [draft](../issues/2427/comment.md) · [notes](../issues/2427/notes.md) · [expected](../issues/2427/expected.md) |
+| [#2530](https://github.com/microsoft/DirectXShaderCompiler/issues/2530) | Array bound with static const variable | repros | always-repro'd | high | complete | [Yzd9KjcaG](https://godbolt.org/z/Yzd9KjcaG) | [draft](../issues/2530/comment.md) · [notes](../issues/2530/notes.md) · [expected](../issues/2530/expected.md) · [method](../issues/2530/method-notes.md) |
 | [#3009](https://github.com/microsoft/DirectXShaderCompiler/issues/3009) | dxc silently passes uninitialized value as undef | repros | always-repro'd | high | complete | [5bdo83bTY](https://godbolt.org/z/5bdo83bTY) | [draft](../issues/3009/comment.md) · [notes](../issues/3009/notes.md) · [expected](../issues/3009/expected.md) |
 | [#3048](https://github.com/microsoft/DirectXShaderCompiler/issues/3048) | Casting subclass to parent of three class heirarchy causes crashes | repros | always-repro'd | high | complete | [1o5Exs9YP](https://godbolt.org/z/1o5Exs9YP) | [draft](../issues/3048/comment.md) · [notes](../issues/3048/notes.md) · [expected](../issues/3048/expected.md) |
+| [#3259](https://github.com/microsoft/DirectXShaderCompiler/issues/3259) | Crash in TranslatePtrIfUsedByLoweredFn | repros | always-repro'd across v1.5.2010..v1.9.2607 (19 releases); v1 | high | complete | [8rxodd943](https://godbolt.org/z/8rxodd943) | [draft](../issues/3259/comment.md) · [notes](../issues/3259/notes.md) · [expected](../issues/3259/expected.md) · [method](../issues/3259/method-notes.md) |
 | [#3873](https://github.com/microsoft/DirectXShaderCompiler/issues/3873) | Infinite loop related to struct inheritance and empty struct | repros | always-repro'd | high | complete | [6z6j7Ma36](https://godbolt.org/z/6z6j7Ma36) | [draft](../issues/3873/comment.md) · [notes](../issues/3873/notes.md) · [expected](../issues/3873/expected.md) |
 
 **[#1702](https://github.com/microsoft/DirectXShaderCompiler/issues/1702) — Array as parameter of function**  
@@ -132,6 +149,15 @@ Still fails on main (1.9.0.15422, eff900d54) and in all 20 releases v1.4.1907..v
 
 *Labels:* add `type-system`, `hlsl-next`.
 
+**[#3055](https://github.com/microsoft/DirectXShaderCompiler/issues/3055) — Improve error reporting for intrinsic methods with type mismatched arguments**  
+<sub>batch 005 · triaged against `ab5400907` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
+
+Intrinsic-method overload resolution reports only argument-COUNT mismatches; the argument-TYPE mismatch note is elided, so tex.Sample(SamplerComparisonState, float2) lists only the 3/4/5-argument overloads and never mentions the sampler type. The 2-argument candidate the user meant is the one suppressed. Unchanged v1.4.1907..main. Source: MatchArguments computes badArgIdx (SemaHLSL.cpp:5396) and the caller discards it (11364-11369), returning a bare TDK_NonDeducedMismatch (11456) whose note SemaOverload.cpp:9355-9360 elides by an explicit HLSL Change. Not specific to Sample -- GatherRed is identical. FXC lists the candidate signatures showing SamplerState; hlsl_clang_trunk already emits 'no known conversion from SamplerComparisonState to hlsl::SamplerState for 1st argument'. Note the issue body was edited 2023-09-27, after the 2023-07-14 comment saying it compiles.
+
+> ⚠️ **Issue text is stale.** Not the title or body -- the thread. llvm-beanz commented 2023-07-14 'This compiles successfully now', and the body was then edited 2023-09-27, so the correction sits above the report it appears to correct. A reader going top-down concludes the issue is fixed; it reproduces byte-identically from v1.4.1907 to main. The comment is about a DIFFERENT thing (the shader now compiles because a valid overload was substituted); the filed complaint is that the diagnostic never names the sampler-type mismatch, and that is unchanged.
+
+*Labels:* add `fxc-disagrees`, `usability`.
+
 **[#3444](https://github.com/microsoft/DirectXShaderCompiler/issues/3444) — [DXIL] Decorating CS float argument with SV_DispatchThreadID semantic crashes the compiler (float2, float3 and float4 works)**  
 <sub>batch 002 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
 
@@ -151,6 +177,15 @@ Reproduces on main (1.9.0.15422, eff900d54) and on every release v1.4.1907..v1.9
 *Labels:* add `usability`, `check-in-clang`; remove `needs-triage`.
 
 *No Compiler Explorer link:* no valid single-file demonstration exists. The repro needs a header plus two includers and CE is single-file; CE also runs Linux, where the reported case-mismatched name does not exist. The obvious fold -- a file including itself under a different spelling of its own path -- was built, run on CE and REJECTED: the identical construction with a matching spelling fails the same way, so it measures clang's documented 'pragma once is ignored in the main file' rule, not this defect. Evidence: manual-case-godbolt.txt, variant-selfinclude-samespelling-main-debug.txt.
+
+**[#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725) — [SER] Passing a payload by value to HitObject::Invoke asserts in CodeGen**  
+<sub>batch 005 · triaged against `ab5400907` · drafted by `claude-opus-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
+
+Confirmed on main (1.9.0.5433, ab5400907) and on all 5 releases that can compile lib_6_9. Passing a payload to dx::HitObject::Invoke through an in (by-value) parameter asserts at CGCall.cpp:2962 (reference binding to unmaterialized r-value), then emits 'bitcast %struct.Payload %v to %struct.Payload*' which release builds turn into a DXIL validation failure. Cause: AddHLSLIntrinsicMethod (SemaHLSL.cpp:6334-6340) makes every inout parameter of an object-method intrinsic an lvalue reference, with no record-type guard, unlike AddHLSLIntrinsicFunction (SemaHLSL.cpp:2123-2135); combined with the copy-in/copy-out temporary from EmitHLSLOutParamConversionInit the CGCall invariant breaks. Scope is wider than the title: dx::HitObject::TraceRay fails identically and a mutable static payload fails with no by-value parameter at all. Never worked; 15 older releases cannot express lib_6_9.
+
+> ⚠️ **Issue text is stale.** Title scopes this to 'passing a payload by value to HitObject::Invoke'. Measured: dx::HitObject::TraceRay fails identically, and a mutable static payload passed straight to Invoke fails with no by-value parameter and no user function at all. So the title's 'by value' is one instance of a wider trigger -- an object-method intrinsic with an inout record parameter called with an argument whose address is not provably non-aliasing -- stated as a lead; only Invoke and TraceRay were measured.
+
+*Labels:* add `crash`, `incorrect-code`, `diagnostic`, `sm6.9`; remove `needs-triage`.
 
 **[#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737) — Atomics on RWTexture2DMS result in silent UB or ICE**  
 <sub>batch 004 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
@@ -212,6 +247,13 @@ Command line still fails, but correctly so: the trailing backslash escapes the q
 
 *No Compiler Explorer link:* command-line quoting issue: the defect is in how the shell/CRT splits argv before dxc runs. Compiler Explorer takes arguments as a pre-split list, so it structurally cannot demonstrate this.
 
+**[#2530](https://github.com/microsoft/DirectXShaderCompiler/issues/2530) — Array bound with static const variable**  
+<sub>batch 005 · triaged against `ab5400907` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
+
+Both cases in the body still fail on main (ab5400907). Case 1 fails on all 20 releases v1.4.1907..v1.9.2607 (linear scan); case 2 fails at both endpoints. FXC 10.1 compiles both. The bound is not an integer constant expression under the C++03 ICE rules DXC inherited from clang: CheckICE accepts an explicit cast only when its operand is a FloatingLiteral, so uint(<static const float>) is non-ICE, BuildArrayType makes a VariableArrayType and SemaType.cpp:2143 emits err_hlsl_vla. Case 2 is the same rule one level out via checkInitIsICE. float array[uint(1.0f)] and a static const uint bound both compile; dropping the cast instead gives err_array_size_non_int, a different path. clang's HLSL front end rejects both too, naming the constant-expression rule. Resolution is a language decision.
+
+*Labels:* add `diagnostic`.
+
 **[#3009](https://github.com/microsoft/DirectXShaderCompiler/issues/3009) — dxc silently passes uninitialized value as undef**  
 <sub>batch 002 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
 
@@ -226,6 +268,13 @@ Derived-to-base conversion crashes codegen (LLVM assert, 0xE0000001, in CGMSHLSL
 
 *Labels:* add `type-system`; remove `check-in-clang`.
 
+**[#3259](https://github.com/microsoft/DirectXShaderCompiler/issues/3259) — Crash in TranslatePtrIfUsedByLoweredFn**  
+<sub>batch 005 · triaged against `ab5400907` · drafted by `claude-opus-4.6` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
+
+Still crashes on Debug main (ab5400907): DXASSERT_NOMSG(Ty) at lib/DXIL/DxilUtil.cpp:877 in hlsl::dxilutil::WrapInArrayTypes, called from TranslatePtrIfUsedByLoweredFn (the frame in the title), exit 0x80000003. Root cause is unchanged from the reporter's 2020 diagnosis: GetLoweredUDT returns nullptr for a struct with an embedded object type (HLLowerUDT.cpp:67, and :72 for nested structs), ScalarReplAggregatesHLSL.cpp:426 does not check it, so the null reaches WrapInArrayTypes at :436. Not Debug-only: DXASSERT_NOMSG is a no-op under NDEBUG (Global.h:369) and the null type flows on to Builder.CreateAlloca at :450, so all 19 releases that support as_6_5 (v1.5.2010, released three weeks before this was filed, through v1.9.2607) access-violate reading address 0. v1.5.2010 crashes with empty stderr. Compiler Explorer's dxc_1_6_2112 and dxc_trunk both SIGSEGV. Any HLSL object type triggers it (SamplerState too) at any nesting depth; a uint payload compiles cleanly. Confined to DispatchMesh's payload operand -- IsPtrUsedByLoweredFn (ScalarReplAggregatesHLSL.cpp:310) has TraceRay/ReportHit/CallShader commented out under a TODO.
+
+*Labels:* add `incorrect-code`.
+
 **[#3873](https://github.com/microsoft/DirectXShaderCompiler/issues/3873) — Infinite loop related to struct inheritance and empty struct**  
 <sub>batch 002 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
 
@@ -236,9 +285,9 @@ Empty-struct inheritance hangs the compiler. Release builds spin unbounded (stil
 
 ## Provenance and limits
 
-- Ground truth is a **Debug** build of `main` (2 commits across batches). Debug matters: many older issues are asserts, which a Release build compiles out.
+- Ground truth is a **Debug** build of `main` (3 commits across batches). Debug matters: many older issues are asserts, which a Release build compiles out.
 - **The release bisection floor is v1.4.1907** (2019-07), the oldest release shipping a usable `dxc`. For issues filed before it, "always reproduced" means "for as long as it is possible to check". SPIR-V issues have a higher floor still.
 - **Compiler Explorer runs Release builds**, so a Debug-only assert looks clean there. CE corroborates the local build; it never overrules it. `dxc_trunk` is a rolling build and is not reproducible over time.
 - **Sampling is deliberately unrepresentative.** Batches over-weight the oldest issues, so the verdict distribution here does not generalise to the backlog.
 
-Per-batch reports, including the method findings that changed how later batches were run: [batch 001](batch-001.md), [batch 002](batch-002.md), [batch 003](batch-003.md), [batch 004](batch-004.md).
+Per-batch reports, including the method findings that changed how later batches were run: [batch 001](batch-001.md), [batch 002](batch-002.md), [batch 003](batch-003.md), [batch 004](batch-004.md), [batch 005](batch-005.md).

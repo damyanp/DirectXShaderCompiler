@@ -1,0 +1,72 @@
+# manual case: which branch of triage.py's invalid-probe classifier fires, per capture
+#
+# Not a dxc invocation. This re-derives, from the captures already on disk, the
+# intermediate values inside scripts/triage.py's `classify()` so that the
+# invalid-probe finding in method-notes.md can be re-checked without re-reading
+# the classifier's control flow by eye.
+#
+# Read-only: it imports scripts/triage.py and calls matches(),
+# _is_absence_predicate() and classify(). Nothing is written.
+#
+# Columns:
+#   raw     -- what the predicate alone says: matches() -> repro | no-repro
+#   absPred -- _is_absence_predicate(), i.e. can the "repro" branch demote?
+#   marker  -- the substring of the output matched by classify()'s `unsupported`
+#              regex, or "-" for none
+#   final   -- classify()'s answer, which is what lands in the "# verdict:" header
+#
+# Branches in scripts/triage.py::classify() (line numbers at commit ab5400907):
+#   A  line 688  verdict == "no-repro" and unsupported                  -> invalid-probe
+#   B  line 703  verdict == "no-repro" and is_internal_failure(...)      -> invalid-probe
+#   C  line 713  verdict == "repro" and _is_absence_predicate(...)
+#                and (unsupported or is_internal_failure(...))           -> invalid-probe
+
+# ran: 2026-08-07, from .github/skills/dxc-issue-triage
+# cmd (PowerShell here-string piped to python -):
+#
+#   import sys, os, re
+#   sys.path.insert(0, os.path.join("scripts"))
+#   import triage as T
+#   UNSUP = (r"(?i)invalid profile|unsupported profile|unrecognized (?:argument|option)|"
+#            r"unknown argument|is not supported|requires shader model|"
+#            r"CodeGen not available|recompile with -D|"
+#            r"use of undeclared identifier|unknown type name|"
+#            r"no member named|no matching function for call to|"
+#            r"for non-scalar types use 'select'")
+#   cases = [("out-main-debug.txt", "match.json"), ...]
+#   d = T.issue_dir(3055)
+#   for f, mf in cases:
+#       meta, text = T.read_out(os.path.join(d, f))
+#       rc = int(meta["exit"]) & 0xFFFFFFFF
+#       raw  = "repro" if T.matches(3055, text, rc, False, mf) else "no-repro"
+#       absp = T._is_absence_predicate(3055, mf)
+#       m    = re.search(UNSUP, text)
+#       fin  = T.classify(3055, text, rc, False, mf)
+#       print(f, raw, absp, m.group(0) if m else "-", fin)
+
+capture                                                        raw       absPred  marker                           final
+out-main-debug.txt                                             repro     True     -                                repro
+variant-gatherred-main-debug--match-gatherred.txt              repro     True     -                                repro
+variant-methodology-freefn-main-debug--match-methodology-freefn.txt no-repro  True     no matching function for call to invalid-probe
+variant-methodology-arity-main-debug--match-methodology-arity.txt repro     True     use of undeclared identifier     invalid-probe
+variant-control-arity-main-debug.txt                           no-repro  True     -                                no-repro
+variant-control-correct-sampler-main-debug.txt                  no-repro  True     -                                no-repro
+
+# Reading of the table:
+#
+# Rows 1-2 and 5-6 are #3055's own probes and controls. None of their output
+# carries a marker, so `final` == `raw` throughout and the classifier is inert
+# for this issue. That is the negative result: #3055's verdict is not affected.
+#
+# Row 3 is branch A. dxc compiled the shader, ran overload resolution, and
+# emitted a COMPLETE and CORRECT diagnostic naming the failed conversion. For a
+# diagnostic-quality issue that is precisely what a FIX looks like, and it is
+# recorded as "this compiler never ran the repro".
+#
+# Row 4 is branch C. dxc emitted the reported symptom -- the predicate matched --
+# and the probe is still discarded, because the symptom text IS a marker.
+#
+# The dependence is on one word. Row 1's message is "no matching MEMBER function
+# for call to"; the marker is "no matching function for call to". Delete the word
+# "member" -- which is what dxc prints for a free intrinsic, row 3 -- and #3055's
+# own ground-truth probe becomes invalid-probe.

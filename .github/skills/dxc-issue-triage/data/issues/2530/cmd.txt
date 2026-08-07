@@ -1,0 +1,7 @@
+# microsoft/DirectXShaderCompiler#2530
+# Case 1 from the issue body. The reporter names no profile or flags; SV_Target
+# fixes the stage as pixel, and ps_6_0 is the oldest SM6 pixel profile, so every
+# release back to the v1.4.1907 floor can actually run it (SKILL.md step 6).
+# Language version deliberately left at each compiler's default -- that is what
+# the reporter ran. variant-hv2016-* pins -HV 2016 to show it does not matter.
+-T ps_6_0 -E main repro.hlsl

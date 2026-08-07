@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "no matching member function for call to 'GatherRed'"
+    },
+    {
+      "kind": "regex",
+      "value": "requires 3 arguments, but 2 were provided"
+    },
+    {
+      "kind": "not_regex",
+      "value": "(?i)no known conversion|no viable conversion|SamplerComparisonState"
+    }
+  ],
+  "note": "match.json transposed from Texture2D::Sample to Texture2D::GatherRed, to test whether the defect is specific to one intrinsic method or is a property of the intrinsic-method overload-resolution path as the issue title claims. Scores variant-gatherred.hlsl only; the primary repro does not call GatherRed and is not probed with this."
+}

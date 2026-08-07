@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:23:16+00:00
+# cmd: -T lib_6_9 -disable-payload-qualifiers variant-nopaq.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: nopaq (variant-nopaq.hlsl)
+# expect: match
+
+$ dxc -T lib_6_9 -disable-payload-qualifiers variant-nopaq.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

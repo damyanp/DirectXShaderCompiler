@@ -1,0 +1,20 @@
+# compiler: v1.8.2502
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe
+# ran: 2026-08-07T03:28:57+00:00
+# cmd: -T lib_6_9 control-hello.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# variant: control-hello (control-hello.hlsl)
+# expect: invalid-probe
+
+$ dxc -T lib_6_9 control-hello.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: invalid profile lib_6_9
+
+

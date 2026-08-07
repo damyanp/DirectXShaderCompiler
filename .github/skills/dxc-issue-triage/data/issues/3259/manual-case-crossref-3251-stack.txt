@@ -1,0 +1,48 @@
+# manual case: assert identity for the #3259 <-> #3251 duplicate question (collation, batch 005)
+# why manual: DXASSERT text goes to OutputDebugString, so it is not on stderr;
+#   only a debugger sees which assert fired. variant-crossref-3251-main-debug.txt
+#   records the plain run (exit 0x80000003) and cannot tell the two apart.
+# harness: same incantation as assert-stack.cmd -- cdb -c "g;kn N;q"
+# re-run (from this directory):
+#   cdb -c "g;kn 20;q" <repo>/build/Debug/bin/dxc.exe -T as_6_5 -E main crossref-3251-cbuffer-payload.hlsl
+# compiler: main-debug, dxcompiler.dll 1.9.0.5433 (triage, ab5400907)
+# finding: #3251's payload contains no HLSL object type, so GetLoweredUDT does not
+#   return nullptr and #3259's path is never entered. It traps in a different assert,
+#   in a different pass, in a different file. Related, NOT a duplicate.
+# captured: 2026-08-06T20:59:56Z
+=== #3251's repro (crossref-3251-cbuffer-payload.hlsl) under cdb ===
+Error: 	!(0)
+File:
+Func:	`anonymous-namespace'::TranslateCBAddressUserLegacy.
+00 000000b1`c3983860 00007ff8`2deaed46     dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x1087
+01 000000b1`c3983f10 00007ff8`2dead8e4     dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x1416
+02 000000b1`c39845c0 00007ff8`2deaedec     dxcompiler!`anonymous namespace'::TranslateCBGepLegacy+0x1304
+03 000000b1`c3984ce0 00007ff8`2deaef54     dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x14bc
+04 000000b1`c3985390 00007ff8`2deb302f     dxcompiler!`anonymous namespace'::TranslateCBOperationsLegacy+0x114
+05 000000b1`c3985440 00007ff8`2deb3625     dxcompiler!TranslateHLSubscript+0xef
+06 000000b1`c3985610 00007ff8`2deb43e5     dxcompiler!TranslateSubscriptOperation+0xf5
+07 000000b1`c39856d0 00007ff8`2de811f0     dxcompiler!TranslateHLBuiltinOperation+0x845
+08 000000b1`c3985a50 00007ff8`2ddd2297     dxcompiler!hlsl::TranslateBuiltinOperations+0x290
+09 000000b1`c3985e80 00007ff8`2ddd1339     dxcompiler!`anonymous namespace'::DxilGenerationPass::GenerateDxilOperations+0x1b7
+0a 000000b1`c3985fc0 00007ff8`306874e8     dxcompiler!`anonymous namespace'::DxilGenerationPass::runOnModule+0x509
+0b 000000b1`c3986940 00007ff8`30688325     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+0c 000000b1`c3986cf0 00007ff8`3067ec6c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+0d 000000b1`c3986da0 00007ff8`2e394a16     dxcompiler!llvm::legacy::PassManager::run+0x2c
+0e 000000b1`c3986de0 00007ff8`2e391fa8     dxcompiler!`anonymous namespace'::EmitAssemblyHelper::EmitAssembly+0x616
+0f 000000b1`c3986fc0 00007ff8`2e36a201     dxcompiler!clang::EmitBackendOutput+0x158
+10 000000b1`c3987410 00007ff8`2fbfd808     dxcompiler!clang::BackendConsumer::HandleTranslationUnit+0x521
+11 000000b1`c3987630 00007ff8`2e729e3e     dxcompiler!clang::ParseAST+0x608
+12 000000b1`c3987900 00007ff8`2e363c55     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+13 000000b1`c3987960 00007ff8`2e7298a8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+14 000000b1`c3987eb0 00007ff8`2d94b7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+15 000000b1`c3987f20 00007ff8`2d92bb80     dxcompiler!DxcCompiler::Compile+0x41a2
+16 000000b1`c398c760 00007ff8`2d92d3d8     dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+17 000000b1`c398de70 00007ff8`2d94ec2e     dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+18 000000b1`c398def0 00007ff6`3cd2f65d     dxcompiler!hlsl::DxcCompilerAdapter::Compile+0xce
+19 000000b1`c398df80 00007ff6`3cd2a06e     dxc!DxcContext::Compile+0xe2d
+1a 000000b1`c398eb50 00007ff6`3cd28ebc     dxc!dxc::main+0xa1e
+1b 000000b1`c398fc20 00007ff6`3d038ec9     dxc!wmain+0x1c
+1c 000000b1`c398fc50 00007ff6`3d038de2     dxc!invoke_main+0x39
+1d 000000b1`c398fca0 00007ff6`3d038c9e     dxc!__scrt_common_main_seh+0x132
+1e 000000b1`c398fd10 00007ff6`3d038f3e     dxc!__scrt_common_main+0xe
+1f 000000b1`c398fd40 00007ff9`06e9e957     dxc!wmainCRTStartup+0xe

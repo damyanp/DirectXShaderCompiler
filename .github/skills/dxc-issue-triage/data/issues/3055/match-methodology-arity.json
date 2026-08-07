@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "use of undeclared identifier 'clamp'"
+    },
+    {
+      "kind": "not_regex",
+      "value": "(?i)no known conversion|requires [0-9]+ arguments"
+    }
+  ],
+  "note": "NOT a predicate for #3055. A methodology probe: this is the predicate a triager would write for the hypothetical-but-plausible issue 'dxc answers a wrong-arity call to the intrinsic clamp with `use of undeclared identifier`, which is both wrong and useless'. The symptom really is present in probe-arity-undeclared.hlsl and the CORRECT score is `repro` -- the predicate does match. The runner returns `invalid-probe` anyway, because this predicate contains a not_regex, so _is_absence_predicate() is true (scripts/triage.py:684), and the reported diagnostic is character-for-character one of classify()'s unsupported-feature markers (triage.py:713). This is the catastrophic direction: the ground-truth probe is discarded, and bisect then exits `no release could run this repro; retarget it at a profile/flag set the releases support` (triage.py cmd_bisect), misattributing the cause to the repro's profile. READ THE `# expect: invalid-probe` HEADER CAREFULLY: it asserts only what the runner RETURNS, and is the finding itself. It does NOT carry the meaning the --expect option documents (\"expected to be rejected before it reaches the code under test\") -- dxc compiled this shader and diagnosed it. If the classifier is ever fixed, reindex will flag this line; that is correct, and the right response is to retire this probe. See method-notes.md."
+}

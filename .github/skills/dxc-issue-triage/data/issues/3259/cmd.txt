@@ -1,0 +1,12 @@
+# The issue names "as_6_5, /Zi -enable-16bit-types /Qembed_debug". Those flags are
+# incidental debug-info settings, not part of the defect: the repro fails identically
+# without them on the ground-truth Debug build. variant-as-filed-*.txt captures the
+# filed configuration for comparison.
+#
+# They are dropped here because every extra flag is another way an older release could
+# reject the input and score as an invalid probe rather than as a clean run -- SKILL.md
+# step 6: target the oldest profile and flag set that still shows the symptom.
+# as_6_5 cannot be lowered further: DispatchMesh/amplification shaders are Shader Model 6.5.
+#
+# cmd-as-filed.txt preserves the original command.
+-T as_6_5 -E main repro.hlsl

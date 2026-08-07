@@ -1,0 +1,30 @@
+DXC issue #2530 -- Array bound with static const variable
+https://github.com/microsoft/DirectXShaderCompiler/issues/2530
+
+WHAT TO LOOK FOR
+
+Compare the FXC pane against the two DXC panes. Same shader, and an
+array bound whose value is 1.
+
+FXC (ps_5_0) accepts it and emits a shader.
+
+Both DXC versions reject it:
+
+    error: variable length arrays are not supported in HLSL
+
+The bound is knowable at compile time -- it is the constant 1 with a
+float-to-uint conversion in front of it. DXC inherits clang's C++03
+integer-constant-expression rules, which accept a cast applied to a
+float *literal* but not one applied to a const float *variable*, so
+uint(ARRAY_SIZE) is not a constant expression and the declaration
+becomes a variable-length array.
+
+Two one-line edits show where the line is drawn, neither of which
+changes the array or its size:
+
+    float array[uint(1.0f)]        compiles -- operand is a literal
+    static const uint ARRAY_SIZE   compiles -- no conversion at all
+
+The issue body's second case, static const uint N = (uint)ARRAY_SIZE
+used as the bound, fails the same way: N's initializer is not a
+constant expression, so N cannot be used in one either.

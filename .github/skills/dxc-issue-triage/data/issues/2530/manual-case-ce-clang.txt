@@ -1,0 +1,85 @@
+# manual case: clang HLSL front end on Compiler Explorer (hlsl_clang_trunk)
+# why manual: not a dxc invocation, so triage.py run cannot capture it.
+# harness: ce-probe.py, which calls triage.py's own ce_compile.
+# re-run:
+#   python ce-probe.py hlsl_clang_trunk repro.hlsl "-T ps_6_0 -E main -fsyntax-only -fno-color-diagnostics"
+#
+# WHY -fsyntax-only, AND THE CONTROL THAT FORCED IT (SKILL.md step 7):
+#   clang's DXIL backend cannot yet lower a pixel shader writing SV_Target, so
+#   without -fsyntax-only EVERY shader here fails -- including the known-good
+#   control. Case 4 below is that control run without the flag: it fails with
+#   "Unsupported intrinsic llvm.dx.store.output.v4f32 for DXIL lowering", which
+#   has nothing to do with #2530. Case 3 is the same control WITH the flag and
+#   exits 0, so under -fsyntax-only the difference between the repro and the
+#   control does survive, and the clang diagnostic in cases 1 and 2 is about
+#   the constant expression rather than about the shader stage.
+# why -fno-color-diagnostics: CE returns ANSI-coloured text, which is
+#   unreadable once captured to a file. It changes no compile result -- case 1
+#   was first captured without it and is character-identical otherwise.
+# expect: 1 error, 2 error, 3 clean (exit 0), 4 error-for-an-unrelated-reason
+# note: hlsl_clang_trunk is a rolling build; treat the wording as current, not
+#   as a fixed property of clang.
+# captured: 2026-08-06T20:20:29Z
+
+=== case 1: the repro (issue case 1) ===
+$ [compiler-explorer] hlsl_clang_trunk -T ps_6_0 -E main -fsyntax-only -fno-color-diagnostics  (repro.hlsl)
+[exit] 1
+--- output ---
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-S' [-Wunused-command-line-argument]
+<source>:7:17: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]
+    7 |     float array[uint(ARRAY_SIZE)] = { 1.0f };
+      |                 ^~~~~~~~~~~~~~~~
+<source>:7:22: note: read of non-constexpr variable 'ARRAY_SIZE' is not allowed in a constant expression
+    7 |     float array[uint(ARRAY_SIZE)] = { 1.0f };
+      |                      ^
+<source>:3:20: note: declared here
+    3 | static const float ARRAY_SIZE = 1;
+      |                    ^
+<source>:7:16: error: variable length arrays are not supported for the current target
+    7 |     float array[uint(ARRAY_SIZE)] = { 1.0f };
+      |                ^
+<source>:7:11: warning: variable length array folded to constant array as an extension [-Wgnu-folding-constant]
+    7 |     float array[uint(ARRAY_SIZE)] = { 1.0f };
+      |           ^
+2 warnings and 1 error generated.
+<Compilation failed>
+
+=== case 2: issue case 2 ===
+$ [compiler-explorer] hlsl_clang_trunk -T ps_6_0 -E main -fsyntax-only -fno-color-diagnostics  (case2.hlsl)
+[exit] 1
+--- output ---
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-S' [-Wunused-command-line-argument]
+<source>:9:17: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]
+    9 |     float array[ARRAY_SIZE_UINT] = { 1.0f };
+      |                 ^~~~~~~~~~~~~~~
+<source>:9:17: note: initializer of 'ARRAY_SIZE_UINT' is not a constant expression
+<source>:5:19: note: declared here
+    5 | static const uint ARRAY_SIZE_UINT = (uint)ARRAY_SIZE;
+      |                   ^
+<source>:9:16: error: variable length arrays are not supported for the current target
+    9 |     float array[ARRAY_SIZE_UINT] = { 1.0f };
+      |                ^
+<source>:9:11: warning: variable length array folded to constant array as an extension [-Wgnu-folding-constant]
+    9 |     float array[ARRAY_SIZE_UINT] = { 1.0f };
+      |           ^
+2 warnings and 1 error generated.
+<Compilation failed>
+
+=== case 3: CONTROL, known-good shader, same flags -- must be clean ===
+$ [compiler-explorer] hlsl_clang_trunk -T ps_6_0 -E main -fsyntax-only -fno-color-diagnostics  (control-uint-bound.hlsl)
+[exit] 0
+--- output ---
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-S' [-Wunused-command-line-argument]
+<No output file>
+
+=== case 4: same CONTROL without -fsyntax-only -- shows why the flag is needed ===
+$ [compiler-explorer] hlsl_clang_trunk -T ps_6_0 -E main -fno-color-diagnostics  (control-uint-bound.hlsl)
+[exit] 1
+--- output ---
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+error: Unsupported intrinsic llvm.dx.store.output.v4f32 for DXIL lowering
+1 error generated.
+<Compilation failed>

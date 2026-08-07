@@ -1,0 +1,12 @@
+{
+  "kind": "any_of",
+  "value": [
+    { "kind": "internal_failure" },
+    { "kind": "all_of",
+      "value": [
+        { "kind": "contains", "value": "Instructions must be of an allowed type" },
+        { "kind": "contains", "value": "unreachable" }
+      ] }
+  ],
+  "note": "#8725 is one defect with two build-dependent signatures, and the issue body documents both, so the predicate is a disjunction (SKILL.md step 4, measured on #3873). (a) internal_failure: an assert-enabled build traps -- the reporter quotes assert(castIsValid(op, S, Ty) && \"Invalid cast!\") under CodeGenFunction::EmitCall. Deliberately NOT keyed to that text: under NDEBUG the assert does not exist, so a text predicate would score every release build clean and manufacture a 'fixed' verdict. (b) the Release face: with the assert compiled out the invalid bitcast survives into DXIL and the DXIL validator rejects it -- 'Instructions must be of an allowed type' at an 'unreachable'. Every catalogued release binary is a Release build, so without (b) a release that HAS SER support but miscompiles the repro would score no-repro, which is the false-clean direction. NOT nonzero_exit: dxc exits E_FAIL (0x80004005) for ordinary diagnosed errors, and the fix this issue asks for is exactly such an error -- a Sema diagnostic must score no-repro. CONTROLS: control-inout.hlsl (the reporter's own workaround, `inout Payload p`) and control-hello.hlsl (a trivial lib_6_9 shader with no SER) must both score no-repro; see variant-control-inout-*.txt and variant-control-hello-*.txt."
+}

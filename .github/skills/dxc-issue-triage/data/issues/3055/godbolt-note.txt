@@ -1,0 +1,31 @@
+What to look for -- DXC issue #3055, "Improve error reporting for intrinsic
+methods with type mismatched arguments".
+
+The call below is invalid, and correctly rejected: Texture2D::Sample takes a
+SamplerState, and this passes a SamplerComparisonState. The issue is about the
+message, not the rejection.
+
+DXC panes (1.6.2112 and trunk) -- every note is about the ARGUMENT COUNT:
+
+    note: candidate function template not viable: requires 3 arguments,
+          but 2 were provided                                (and 4, and 5)
+
+The mistake that was actually made is the argument TYPE, and no note mentions
+it. The 2-argument overload -- the one intended -- is not listed at all,
+because its failure reason cannot be reported, so the user is told only about
+overloads they were not calling.
+
+FXC pane -- lists the candidate signatures, each showing SamplerState as the
+first parameter, which makes the mistake visible.
+
+Clang pane (hlsl_clang_trunk) -- the HLSL front end being built in Clang gets
+this right today:
+
+    note: candidate function not viable: no known conversion from
+          'SamplerComparisonState' to 'hlsl::SamplerState' for 1st argument
+
+This fails in Sema, so Clang's incomplete DXIL backend is not involved. Change
+the sampler to SamplerState and the Clang pane instead reports "Unsupported
+intrinsic llvm.dx.store.output.v4f32 for DXIL lowering" -- a separate
+limitation, and the control that shows the note above is about the sampler
+type rather than about Clang.

@@ -303,6 +303,154 @@ _write_pred({"kind": "internal_failure"})
 check("a crash the predicate wants is still a reproduction",
       triage.classify(1877, "", 0xC0000005, False), "repro")
 
+# --- the feature-absence markers must not eat DIAGNOSTIC symptoms ----------
+#
+# The markers are a proxy for "this build rejected the input before reaching
+# the code under test". On an issue whose reported symptom IS a diagnostic the
+# proxy and the symptom become the same observation, which batch 004 predicted
+# and #3055 then measured in both directions. See triage._predicate_quotes.
+_GOOD_DIAG = ("error: no matching function for call to 'clamp'\n"
+              "note: candidate function not viable: no known conversion from "
+              "'SamplerComparisonState' to 'vector<float, 1>' for 2nd argument")
+_UNDECLARED = "error: use of undeclared identifier 'clamp'"
+
+# Direction A. A release emitting the GOOD diagnostic the issue asks for scores
+# no-repro -- that is what "fixed here" looks like -- and used to be demoted,
+# so `bisect` trimmed away the very release that fixed it. The symptom is the
+# rejection WITHOUT the note naming the bad argument, so the note's arrival is
+# the fix.
+_write_pred({"kind": "all_of", "value": [
+    {"kind": "contains", "value": "no matching function for call to 'clamp'"},
+    {"kind": "not_regex", "value": "no known conversion"}]})
+check("a release emitting the diagnostic the issue asks for is a real no-repro",
+      triage.classify(1877, _GOOD_DIAG, 0x80004005, False), "no-repro")
+
+# ...but only because THIS issue's predicate quotes it. The same output under a
+# predicate about something else is still a build that never ran the repro.
+_write_pred({"kind": "contains", "value": "DXIL intrinsic overload must be valid"})
+check("the same output under an unrelated predicate is still an invalid probe",
+      triage.classify(1877, _GOOD_DIAG, 0x80004005, False), "invalid-probe")
+
+# Direction B. A probe that MATCHES gets demoted when the predicate happens to
+# carry any absence clause. Every release including ground truth would be
+# discarded and `bisect` would report "no release could run this repro".
+_write_pred({"kind": "all_of", "value": [
+    {"kind": "contains", "value": "use of undeclared identifier 'clamp'"},
+    {"kind": "not_regex", "value": "candidate function"}]})
+check("a matching probe whose symptom IS the marker is a real reproduction",
+      triage.classify(1877, _UNDECLARED, 0x80004005, False), "repro")
+
+# The suppression is verbatim containment in a POSITIVE clause, and nothing
+# looser. #3055's own primary predicate quotes the *member* spelling, which the
+# marker is not a substring of, so it must not suppress anything.
+_write_pred({"kind": "all_of", "value": [
+    {"kind": "contains", "value": "no matching member function for call to 'Sample'"},
+    {"kind": "not_regex", "value": "no known conversion"}]})
+check("a near-miss quotation does not suppress the demotion",
+      triage.classify(1877, _GOOD_DIAG, 0x80004005, False), "invalid-probe")
+
+# "The symptom is that X is ABSENT" does not make X's presence a measurement.
+_write_pred({"kind": "contains", "value": "use of undeclared identifier",
+             "invert": True})
+check("an inverted clause naming the marker does not suppress the demotion",
+      triage.classify(1877, _UNDECLARED, 0x80004005, False), "invalid-probe")
+
+# The fake-regression bug the markers exist to prevent must stay prevented. It
+# has produced wrong verdicts twice; a more permissive classifier reintroduces
+# it. #3873 (ps_6_7 did not exist yet) and #3038 (DXR 1.1 did not exist yet).
+_write_pred({"kind": "any_of", "value": [{"kind": "timeout"},
+                                         {"kind": "internal_failure"}]})
+check("a release predating the profile is still an invalid probe",
+      triage.classify(1877, "error: invalid profile ps_6_7", 1, False),
+      "invalid-probe")
+_write_pred({"kind": "internal_failure"})
+check("a release predating the intrinsic is still an invalid probe",
+      triage.classify(1877, "error: use of undeclared identifier 'RayQuery'",
+                      1, False),
+      "invalid-probe")
+_write_pred({"kind": "not_contains", "value": "fptosi"})
+check("an absence predicate satisfied by an early failure is still demoted",
+      triage.classify(1877, "error: use of undeclared identifier 'RayQuery'",
+                      1, False),
+      "invalid-probe")
+
+# --- "is not supported" has to name something the compiler does not HAVE ----
+# DXC emits that phrase from ~25 diagnostics about present-day code, so
+# unqualified it demoted ordinary errors. Noticed independently on #8732,
+# whose PR #8517 branch emits one of them.
+_write_pred({"kind": "contains", "value": "never appears in this text"})
+for desc, text, want in [
+    ("a bound/heap mixing diagnostic is an ordinary error",
+     "error: mixing bound and descriptor heap resources in the same variable "
+     "is not supported with SPV_EXT_descriptor_heap", "no-repro"),
+    ("'operator is not supported' is an ordinary error",
+     "error: operator is not supported", "no-repro"),
+    ("'not supported on minimum-precision types' is an ordinary error",
+     "error: signed integer division is not supported on minimum-precision "
+     "types, cast to int to use 32-bit division", "no-repro"),
+    ("'not supported for the current target' really is feature absence",
+     "error: thread-local storage is not supported for the current target",
+     "invalid-probe"),
+    ("'not supported for this target' really is feature absence",
+     "error: 'foo' attribute is not supported for this target",
+     "invalid-probe"),
+]:
+    check(desc, triage.classify(1877, text, 1, False), want)
+
+# --- an invalid-probe verdict has to say WHY, in the capture ---------------
+# It is the one verdict that means "ignore this measurement", and `bisect`
+# trims the release on the strength of it.
+_v, _r = triage.classify(1877, "error: invalid profile ps_6_7", 1, False,
+                         explain=True)
+check("explain=True returns the verdict and a reason", _v, "invalid-probe")
+check("the reason names the marker that fired",
+      _r is not None and '"invalid profile"' in _r, True)
+check("explain defaults off, so callers keep getting a bare verdict",
+      isinstance(triage.classify(1877, "error: invalid profile ps_6_7", 1, False),
+                 str), True)
+check("a clean verdict carries no reason",
+      triage.classify(1877, "; shader hash: abc", 0, False, explain=True),
+      ("no-repro", None))
+
+_reasoned = _os.path.join(_tmp, "out-reason-test.txt")
+with open(_reasoned, "w", encoding="utf-8") as fh:
+    fh.write("# compiler: v1.4.1907\n# exit: 1\n# match: match.json\n"
+             "# verdict: invalid-probe\n\nthe measurement\n")
+triage.stamp_reason(_reasoned, "because the marker fired")
+_m, _t = triage.read_out(_reasoned)
+check("the reason lands in the header, not the measurement",
+      (_m["invalid-probe-reason"], _t.strip()),
+      ("because the marker fired", "the measurement"))
+triage.stamp_reason(_reasoned, "a different reason")
+check("restamping replaces the reason rather than accumulating them",
+      open(_reasoned, encoding="utf-8").read().count("# invalid-probe-reason:"), 1)
+triage.stamp_reason(_reasoned, None)
+check("a verdict that is no longer a demotion drops the reason",
+      "invalid-probe-reason" in triage.read_out(_reasoned)[0], False)
+
+# --- ce_args: most dxc flags take no value ---------------------------------
+# Deciding "is this token a flag's value?" by "did the previous token start
+# with a dash" kept the source file after every value-less flag, and handed CE
+# a second, nonexistent input. Measured on #8732 (`... -spirv repro.hlsl`).
+_ce = _tf.mkdtemp()
+triage.issue_dir = lambda n: _ce
+open(_os.path.join(_ce, "repro.hlsl"), "w").close()
+open(_os.path.join(_ce, "forced.h"), "w").close()
+for desc, line, want in [
+    ("a value-less flag does not shield the source from being dropped",
+     "-T cs_6_6 -E main -fspv-use-descriptor-heap -spirv repro.hlsl",
+     "-T cs_6_6 -E main -fspv-use-descriptor-heap -spirv"),
+    ("an ordinary positional source is still dropped",
+     "-T ps_6_0 -E main repro.hlsl", "-T ps_6_0 -E main"),
+    ("a flag's file VALUE is still kept",
+     "-T ps_6_0 -include forced.h repro.hlsl", "-T ps_6_0 -include forced.h"),
+]:
+    with open(_os.path.join(_ce, "cmd.txt"), "w") as fh:
+        fh.write(line + "\n")
+    check(desc, triage.ce_args(0)[0], want)
+triage.issue_dir = lambda n: _tmp
+_write_pred({"kind": "contains", "value": "never appears in this text"})
+
 # --- a capture is never silently overwritten by a different predicate ------
 # The reason #2191 lost 20 of 21 primary probes. probe_path() now separates
 # them, but a --force or a renamed predicate could still land on an existing

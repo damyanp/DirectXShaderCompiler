@@ -111,6 +111,14 @@ Two things belong to the batch, not the issue, so tell the worker not to attempt
 finds itself wanting to say "this is the same as #NNNN" should say so in `method-notes.md` and
 leave the draft silent; collation is where that judgement can actually be checked.
 
+**A brief may name a hazard; it must not predict the verdict.** "This one is a diagnostic, so
+watch the `invalid-probe` classifier" is orienting. "History will be unmeasurable because
+`lib_6_9` is too new" is an answer, and the worker's job is to find the answer. #8725's brief
+said exactly that and the worker disproved it — five of twenty releases can express `lib_6_9`
+and all five reproduce — but a less careful worker would have recorded the prediction as the
+result and nothing on disk would have contradicted it. If you catch yourself writing an
+expected outcome into a brief, write the hazard instead and let the evidence decide.
+
 A subagent is weaker isolation than a real session: it shares the working directory, and it
 returns its findings into the orchestrator's context rather than only to disk. The first is
 handled by the locking above. The second is acceptable, because the orchestrator *is*
@@ -125,9 +133,16 @@ single-writer rule from a discipline into a property of the setup.
 ### What `reindex` guarantees, and what it does not
 
 Parallel triage leans entirely on mechanical checking, so know its edges. `reindex` re-scores
-every probe with today's predicate code, flags probes whose command `cmd.txt` no longer
-specifies, re-checks every control against its declared `--expect`, and audits each issue for
-evidence a completed triage should have left behind.
+every probe with today's predicate code — primary captures **and** labelled variants — flags
+probes whose command `cmd.txt` no longer specifies, re-checks every control against its
+declared `--expect`, and audits each issue for evidence a completed triage should have left
+behind.
+
+Variants were re-scored only against their `--expect` until batch 005, so a control's own
+`# verdict:` line could disagree with today's code indefinitely and nothing would say so. The
+first run of the extended check found three such lines in #2202, stale since batch 003 — their
+declared expectation had been satisfied the whole time while the header beneath it said the
+opposite.
 
 It cannot check reasoning. It will not tell you a repro is unfaithful to the issue, that the
 predicate tests the wrong thing, or that a verdict misreads its own output. That is what the
@@ -312,6 +327,27 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 > `invalid-probe` trap in a manual costume. Take the compiler path from a variable, create any
 > directory the repro needs from inside the repro, and gitignore what it emits.
 
+> **Getting a stack out of a crash needs the incantation that matches the failure.** An assert
+> arrives two different ways in DXC and the debugger command differs; both are in use.
+>
+> ```bat
+> :: __debugbreak()-style DXASSERT: exit 0x80000003, a trap. Just run to it.
+> cdb -c "g;kn 40;q" <dxc.exe> <args...>
+>
+> :: C++-exception assert: exit 0xE0000001. Break on the exception itself.
+> cdb -c "sxe -c \"kb 8; gh\" e0000001; g; q" <dxc.exe> <args...>
+> ```
+>
+> The second form's `gh` ("go handled") also **emulates `NDEBUG`**: continuing past the assert
+> runs the code the release build would have run, so a Debug binary can reproduce the
+> reporter's Release symptom without building one. That is how #8725 showed the assert and the
+> invalid `bitcast` it guards are the same defect. `cdb.exe` ships with the Windows SDK
+> debuggers (`C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\`). Trim the capture to the
+> header, the assert line and the frames before committing it — a full stack dump is noise.
+>
+> Note that dxc's assert output puts the value of `File:` on the *following* line, so reading
+> only the first line attributes the assert to the wrong file.
+
 ### 4. Define the symptom predicate
 
 `match.json` encodes "the symptom is present" so the same test is applied to every compiler
@@ -374,6 +410,14 @@ Add `"invert": true` to negate.
 > prints plain `cast<X>()`. Any marker you add must be build-agnostic, or it will score a real
 > crash as clean on some builds. Prefer the exit code; treat text markers as a backstop, and
 > assume a predicate tested against a single build is not yet tested.
+>
+> **It is not portable across release ages of the same compiler on the same platform either,
+> and an internal failure may print nothing at all.** #3259's v1.5.2010 access-violates with
+> completely empty stderr while every later release prints
+> `Internal compiler error: access violation`. A predicate matching that text would have
+> invented a fix boundary at the exact release the issue was filed against. This is the reason
+> `internal_failure` is defined on the exit status first and the text second — never write a
+> crash predicate that depends on the crash saying anything.
 
 **An issue may need more than one predicate.** When the reported symptom differs from current
 behaviour, add e.g. `match-crash.json` and bisect each separately. That is how you distinguish
@@ -448,6 +492,20 @@ python triage.py run --issue <N>
 python triage.py run --issue <N> --match match-crash.json   # extra predicate
 ```
 
+> **`--shader` and `--args` are not interchangeable.** `run --shader X --label Y` reuses
+> `cmd.txt`'s flags and swaps only the source operand, which is what makes a control differ
+> from the repro in exactly one way. `run --args "..."` replaces the **entire** command — the
+> filename included — and bypasses `cmd.txt` completely. Used without `--label` it therefore
+> overwrites the *primary* capture with a command `cmd.txt` does not specify; `reindex` catches
+> the mismatch, but `reindex` is a collation-only command, so on #3259 the primary capture sat
+> stale for the length of the triage. `run` now warns at capture time. Reach for `--shader`
+> unless the stage or flag set genuinely has to change.
+
+> **Editing a captured repro's comments invalidates the capture.** Assert and diagnostic output
+> quotes `Line:` numbers, so tidying a comment after the fact silently desynchronises every
+> line number in every file you have already written. Preserve the line count, or re-capture.
+> Noticed on #2530.
+
 Then classify against `expected.md`:
 
 | status | meaning |
@@ -460,6 +518,17 @@ Then classify against `expected.md`:
 
 `not-compiler-verifiable` is a legitimate, useful outcome — not a failure. Do not force a
 verdict on a rendering-artifact or driver-behaviour issue by compiling it.
+
+> **Before you interpret a single probe, check whether the issue is filed against code that is
+> not merged.** An issue that names a branch or a PR is not a claim about `main` at all, and
+> every probe you run against ground truth is answering a question nobody asked. Measured on
+> #8732, which names PR #8517 only in passing: on `main` the described silent miscompilation is
+> a loud validation error, none of the symbols it blames exist, and the honest reading is "not
+> reachable from here", not "does not reproduce". Read the thread for a branch or PR reference
+> and grep ground truth for the symbols the report names *first*; if they are absent, say so as
+> the headline rather than reporting the absence of the symptom. `inconclusive` with
+> `needs-human-judgement` is the right verdict, and the write-up has to explain that it is
+> unmeasurable rather than fixed.
 
 > **Sometimes `repros` is the uninteresting half of the answer.** #2427's command line still
 > fails exactly as filed — but the thread had already established in 2019 that this is the
@@ -552,6 +621,52 @@ across issues.
 > "always reproduced as far back as is checkable" into a spurious "regressed in v1.5.2010".
 > `invalid-probe` detection therefore also matches `use of undeclared identifier`,
 > `unknown type name`, `no member named` and `no matching function for call to`.
+>
+> Every marker has to name something the compiler does not **have**. A bare `is not supported`
+> does not: DXC emits that phrase from about 25 distinct diagnostics about present-day code
+> (`operator is not supported`, `signed integer division is not supported on
+> minimum-precision types`, PR #8517's own `mixing bound and descriptor heap resources … is
+> not supported`), so unqualified it demotes ordinary errors. It is now anchored to the
+> target/profile/shader-model forms. Noticed on #8732. If you add a marker, add it because you
+> watched it fire on a release that genuinely predated the feature — guessing silently discards
+> evidence.
+
+> **The markers break down on an issue whose reported symptom IS a diagnostic**, because then
+> the signal ("this build rejected the input before reaching the code under test") and the
+> symptom (an error message) are the same observation. Batch 004 predicted it; #3055 measured
+> it in both directions.
+>
+> * A release emitting the **good** diagnostic the issue asks for scores `no-repro` — which is
+>   exactly what "fixed here" looks like for a diagnostic-quality issue — and was demoted, so
+>   `bisect` trimmed away the very release that fixed it.
+> * A probe that **matches** was demoted whenever the predicate carried any absence clause, so
+>   every release including ground truth would have been discarded and `bisect` would have
+>   reported "no release could run this repro; retarget it at a profile/flag set the releases
+>   support" — a message that misattributes the cause entirely.
+>
+> `classify` now suppresses the demotion when a *positive* clause of the issue's own
+> `match.json` quotes the matched marker verbatim. That is the narrowest rule that fixes both,
+> and it requires a human to have written the diagnostic in as the symptom. Nothing else is
+> loosened: inverted clauses do not count, no predicate is evaluated as a regex against the
+> marker, and the converse rule — "any marker on a matching probe means a bad probe" — stays
+> rejected, because #1627's reported symptom *is* an `unrecognized argument` diagnostic.
+>
+> **What this means for you when triaging a diagnostic-quality issue:** write the diagnostic
+> text into `match.json` rather than approximating it, and check the header. Every demotion now
+> stamps `# invalid-probe-reason:` into the capture saying which rule fired and on what text,
+> so an `invalid-probe` you did not expect is readable on disk instead of only reconstructable
+> by re-reading `classify`.
+
+> **`invalid-probe` on the repro is ambiguous on its own; a feature-presence control resolves
+> it.** "This release rejected the input" can mean the release predates the feature, or that
+> something unrelated in the repro was rejected — and only the first justifies trimming the
+> release out of the history. Run the *smallest shader that uses the feature at all* under the
+> same profile and flags. `invalid-probe` on both means feature absence. `invalid-probe` on the
+> repro with a **clean** control means the rejection is about your repro, and silently trimming
+> it would hide a real result. Measured on #8725, whose brief predicted history would be
+> unmeasurable because `lib_6_9` is new: five of twenty releases can express it, a
+> `control-hello.hlsl` proved so, and all five reproduce — a full history where the prediction
+> said there would be none.
 
 > **An absence-based predicate is satisfied for free by a compile that never got started.**
 > If the symptom is that something is *missing* (`not_contains`, `not_regex`, or an inverted
@@ -560,6 +675,14 @@ across issues.
 > rejected the input would have "reproduced" it perfectly. The runner now reclassifies such a
 > probe as `invalid-probe` when the compile also failed. Prefer a positive predicate where one
 > exists, and always confirm the probe actually emitted DXIL.
+>
+> **The same clause is also vacuously true on a shader that never mentions the symbol**, and no
+> amount of tooling can see that. #8732's `not_regex "%bound\w*\s*=\s*Op\w*Variable"` was
+> satisfied for free by a case whose shader declares no bound resource at all: the compile
+> succeeded, the predicate matched, and the probe measured nothing. Only a control caught it —
+> `run --expect no-match` printing `WARNING: control expected no-match but scored repro`. If an
+> absence clause names a specific symbol, one of your controls must be a shader that *does*
+> declare it.
 
 > **A crashed probe measured nothing.** A release that access-violates on the repro did not
 > observe the reported symptom; it failed before it could. Scored as `no-repro` that is the
@@ -583,6 +706,15 @@ across issues.
 > the code. Measured on #2191, where the ground-truth Debug build exits `0xE0000001` and every
 > release exits 0 with correct DXIL. `bisect` now warns when those two facts coincide. Say
 > "silent by construction", not "fixed", and do not suggest closing.
+>
+> **The converse is just as common, and this warning primes you to miss it.** An assert can be
+> Debug-only while the *defect* is not: with the check compiled out, the unchecked value flows
+> on and the release build crashes anyway. Measured on #3259, where `DXASSERT_NOMSG(Ty)` becomes
+> `do { } while (0)` under `NDEBUG` (`include/dxc/Support/Global.h:369`) and the null type
+> reaches `Builder.CreateAlloca` two lines later — so all 19 probeable releases access-violate
+> and the history is fully meaningful. The discriminator is cheap and you should always run it
+> before writing "silent by construction": find the assert macro's `NDEBUG` expansion, then read
+> what the unchecked value does next.
 
 > **Binary search assumes the symptom is monotonic. Fix-then-revert issues are not.** With a
 > non-monotonic history, binary search returns an arbitrary boundary — and when both endpoints
@@ -686,6 +818,21 @@ reproduces before adopting it, and keep the stage-accurate original as the local
 > **Before believing any cross-compiler difference, compile something trivial with the same
 > flags and confirm the difference does not survive.** Where the backend is the blocker,
 > `-fsyntax-only` asks the narrower question the front end can still answer.
+>
+> **Reach for `-fsyntax-only` first whenever the symptom is a front-end diagnostic**, but only
+> when you need to: the rule is whether the front end *hard-errors*. If it does, the backend
+> never runs and the pane is already clean — #3055's Clang pane needs no `-fsyntax-only`
+> because `no matching member function for call to 'Sample'` is a Sema error. If the symptom is
+> only a warning or a note, the compile proceeds into a backend that cannot lower `SV_Target`,
+> and the pane fills with noise about the stage — which is why #2530's pane needs it. Two
+> workers in one batch reached opposite-looking conclusions here; this is the rule that
+> reconciles them.
+>
+> **FXC panes need controls too.** The control discipline above is written about Clang, but an
+> FXC pane is a different compiler with its own failure modes and the same reasoning applies.
+> Also note that `godbolt` records only the **first line** of each pane's output in its summary:
+> for `hlsl_clang_trunk` that is usually a `-Qembed_debug` unused-argument warning, so the tool
+> can print nothing of the finding while the link itself is perfect. Open the link.
 
 The same discipline applies to argument handling: `dxc_trunk` appears to accept `/FI` silently,
 but so does `/ZZZNONSENSE` — on CE's Linux builds a `/`-prefixed argument looks like a path, so
@@ -901,8 +1048,14 @@ python triage.py verdict --issue <N> --status repros --repro-quality complete \
   --triaged-by "<model>" --reviewed-by "<reviewer model>"
 ```
 
-Add `--text-stale "<what is stale>"` whenever the issue's title or body no longer describes
-what the compiler does. Record it here rather than only in `notes.md`: it is the finding a
+Add `--text-stale "<what is stale>"` whenever the issue's own text no longer describes
+what the compiler does. That means the title, the body, **or a maintainer comment left
+standing in the thread** — the harm is identical in all three cases, because a reader
+spot-checking the issue believes the text over the compiler. #3055 is the third shape: the
+body is accurate, but a 2023-07-14 comment says "compiles successfully now" and the body was
+then edited on 2023-09-27, so a reader going top-down meets a maintainer closing the question
+above a report that still reproduces. Say which of the three it is.
+Record it here rather than only in `notes.md`: it is the finding a
 maintainer can act on immediately, and `overview.md` sorts it to the top of its tier and
 quotes the text. A finding left in prose reaches nobody who is not already reading that issue.
 

@@ -340,6 +340,65 @@ def _is_absence_predicate(issue, match_file="match.json"):
     return walk(m)
 
 
+def _predicate_quotes(issue, match_file, marker):
+    """True if the issue's OWN predicate spells out the diagnostic `marker`.
+
+    The feature-absence markers in `classify` are a proxy for "this release
+    rejected the input before reaching the code under test". That proxy breaks
+    down on issues whose reported symptom IS a diagnostic, because then the
+    signal and the symptom are the same observation. Measured on #3055, a
+    diagnostic-quality issue, in both directions:
+
+    * a release that emits the GOOD diagnostic the issue asks for ("no matching
+      function for call to 'clamp'" plus the note naming the bad argument)
+      scores no-repro -- correctly, that is what "fixed here" looks like -- and
+      was then demoted to invalid-probe, so `bisect` trimmed away the very
+      release that fixed it; and
+    * a probe that MATCHES ("use of undeclared identifier 'clamp'" for a
+      wrong-arity call to a plainly declared intrinsic, which is the filed bug)
+      was demoted because the predicate happened to contain a `not_regex`
+      clause, so every release including ground truth would have been
+      discarded and `bisect` would have reported "no release could run this
+      repro".
+
+    The suppression is deliberately the narrowest thing that fixes both: the
+    demotion stands unless a *positive* clause of the issue's own predicate
+    contains the matched marker text verbatim. That requires a human to have
+    written the diagnostic into `match.json` as the symptom, which is exactly
+    the case the proxy cannot handle -- and nothing else. Inverted clauses do
+    not count: "the symptom is that X is absent" does not make X's presence a
+    measurement. No predicate is evaluated as a regex against the marker, so a
+    loose pattern cannot widen this.
+
+    Keeping it narrow matters. The converse rule -- treat any marker on a
+    matching probe as a bad probe -- was rejected in batch 004 because #1627's
+    reported symptom is an `unrecognized argument` diagnostic, and a permissive
+    classifier reintroduces the fake-regression bug the markers exist to
+    prevent (#3873, #3038), which has produced wrong verdicts twice.
+    """
+    if not marker:
+        return False
+    path = os.path.join(issue_dir(issue), match_file)
+    try:
+        with open(path) as f:
+            m = json.load(f)
+    except (OSError, ValueError):
+        return False
+    needle = marker.lower()
+
+    def walk(node):
+        if not isinstance(node, dict):
+            return False
+        kind = node.get("kind")
+        if kind in ("any_of", "all_of"):
+            return any(walk(s) for s in node.get("value") or [])
+        if kind in ("contains", "regex") and not node.get("invert", False):
+            return needle in str(node.get("value", "")).lower()
+        return False
+
+    return walk(m)
+
+
 def _eval_match(m, text, rc, timed_out, path):
     kind = m["kind"]
     # Fail loudly and specifically. A mistyped key here silently becomes a
@@ -521,6 +580,11 @@ def cmd_catalog(a):
     c = con()
     for r in rels:
         tag = r["tagName"]
+        # A release with no tag is not addressable by any other command and
+        # shows up in the catalogue as a nameless duplicate of whatever shares
+        # its build date. Noticed on #8725 next to v1.9.2607.
+        if not tag:
+            continue
         assets = json.loads(gh("release", "view", tag, "--repo", REPO,
                                "--json", "assets"))["assets"]
         dxc = next((x["name"] for x in assets
@@ -607,7 +671,7 @@ def cmd_fetch(a):
 
 
 VALUE_FLAGS = {"-i", "-e", "-t", "-d", "-fo", "-fh", "-fc", "-fe", "-fd",
-               "-fre", "-frs", "-fsh", "-vn", "-exports", "-x"}
+               "-fre", "-frs", "-fsh", "-vn", "-exports", "-x", "-include"}
 
 
 def retarget_cmd(line, shader):
@@ -633,8 +697,13 @@ def retarget_cmd(line, shader):
     return " ".join(out)
 
 
-def classify(issue, text, rc, timed_out, match_file="match.json"):
+def classify(issue, text, rc, timed_out, match_file="match.json", explain=False):
     """Score one probe: repro | no-repro | invalid-probe | unscored.
+
+    With `explain=True`, returns `(verdict, reason)` -- the reason is the
+    sentence `execute` stamps into the capture header, so a demotion is
+    self-explaining on disk instead of only reconstructable by re-reading this
+    function against the captured text.
 
     Kept as a free function rather than inlined into `execute` so that
     `reindex` scores committed evidence with *exactly* the code that scored it
@@ -647,8 +716,11 @@ def classify(issue, text, rc, timed_out, match_file="match.json"):
     worth capturing. Returning `unscored` keeps that evidence first-class
     instead of forcing a meaningless verdict onto it.
     """
+    def out(verdict, reason=None):
+        return (verdict, reason) if explain else verdict
+
     if not os.path.isfile(os.path.join(issue_dir(issue), match_file)):
-        return "unscored"
+        return out("unscored")
 
     verdict = "repro" if matches(issue, text, rc, timed_out, match_file) \
         else "no-repro"
@@ -678,15 +750,36 @@ def classify(issue, text, rc, timed_out, match_file="match.json"):
     # and the probe scores as a clean run, faking a fix in whichever release
     # changed the default. Only diagnostics that have actually been observed
     # doing this belong here; guessing at them would silently discard evidence.
-    unsupported = re.search(
+    #
+    # Each marker must name something the compiler does not HAVE. A bare "is
+    # not supported" does not: DXC emits that phrase from ~25 distinct
+    # diagnostics about present-day code ("operator is not supported", "signed
+    # integer division is not supported on minimum-precision types", PR #8517's
+    # own "mixing bound and descriptor heap resources ... is not supported"),
+    # so unqualified it demotes ordinary errors. It is anchored to the
+    # target/profile forms that really do mean "this build cannot express your
+    # input". Noticed independently on #8732; it fired on no archived capture,
+    # so the anchoring changes no existing verdict.
+    hit = re.search(
         r"(?i)invalid profile|unsupported profile|unrecognized (?:argument|option)|"
-        r"unknown argument|is not supported|requires shader model|"
+        r"unknown argument|requires shader model|"
+        r"is not supported (?:for|on|in|with) "
+        r"(?:the current |this |target )*(?:target|profile|shader model|stage)|"
         r"CodeGen not available|recompile with -D|"
         r"use of undeclared identifier|unknown type name|"
         r"no member named|no matching function for call to|"
         r"for non-scalar types use 'select'", text)
+    marker = hit.group(0) if hit else None
+    # ...unless the issue under triage is ABOUT that diagnostic, in which case
+    # the marker is measuring the symptom rather than feature absence. See
+    # `_predicate_quotes`.
+    quoted = _predicate_quotes(issue, match_file, marker)
+    unsupported = bool(marker) and not quoted
+
     if verdict == "no-repro" and unsupported:
-        return "invalid-probe"
+        return out("invalid-probe",
+                   f'output matched the feature-absence marker "{marker}", so '
+                   f'this build did not reach the code under test')
 
     # A probe that CRASHED measured nothing about the reported symptom, and
     # scoring it as a clean run is the most dangerous direction of error: it
@@ -700,7 +793,9 @@ def classify(issue, text, rc, timed_out, match_file="match.json"):
     # Note this cannot fire when the crash IS the symptom: an internal_failure
     # predicate scores that probe `repro`, never `no-repro`.
     if verdict == "no-repro" and is_internal_failure(text, rc, timed_out):
-        return "invalid-probe"
+        return out("invalid-probe",
+                   "the probe failed internally, so it measured nothing about "
+                   "the reported symptom")
 
     # Absence-based predicates ("the symptom is that X is MISSING") are
     # satisfied for free by any compile that never got far enough to emit X.
@@ -710,8 +805,12 @@ def classify(issue, text, rc, timed_out, match_file="match.json"):
     # hazard is structural, so flag it rather than silently trusting it.
     if verdict == "repro" and _is_absence_predicate(issue, match_file) \
             and (unsupported or is_internal_failure(text, rc, timed_out)):
-        return "invalid-probe"
-    return verdict
+        return out("invalid-probe",
+                   f'an absence clause of this predicate can be satisfied for '
+                   f'free by a run that failed early '
+                   + (f'(matched "{marker}")' if unsupported
+                      else "(the probe failed internally)"))
+    return out(verdict)
 
 
 def probe_path(d, compiler, match_file="match.json", label=None):
@@ -754,6 +853,30 @@ def stamp_repeat(path, attempts, hits):
             lines[i + 1:i + 1] = [f"# attempts: {attempts}\n", f"# hits: {hits}\n"]
             break
     with open(path, "w", encoding="utf-8") as f:
+        f.writelines(lines)
+
+
+def stamp_reason(path, reason):
+    """Record WHY a probe was demoted, in the capture itself.
+
+    An `invalid-probe` line is the one verdict that says "ignore this
+    measurement", and `bisect` acts on it by trimming the release from the
+    history. Reconstructing which of three independent rules fired, and on what
+    text, meant re-reading `classify` against the whole capture -- so the most
+    consequential verdict was the least self-explaining one on disk. Raised on
+    #3055 after exactly that exercise.
+    """
+    if not (path and os.path.isfile(path)):
+        return
+    with open(path, encoding="utf-8") as f:
+        lines = f.readlines()
+    lines = [ln for ln in lines if not ln.startswith("# invalid-probe-reason:")]
+    if reason:
+        for i, ln in enumerate(lines):
+            if ln.startswith("# verdict:"):
+                lines[i + 1:i + 1] = [f"# invalid-probe-reason: {reason}\n"]
+                break
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.writelines(lines)
 
 
@@ -831,6 +954,21 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
         # needs -T cs_6_0. The header records exactly what ran, so provenance
         # survives the arguments differing.
         cmds = [args]
+        # ...but --args supersedes cmd.txt silently, and an unlabelled --args
+        # run overwrites the PRIMARY capture with a command cmd.txt does not
+        # specify. `reindex` catches the resulting mismatch, and `reindex` is a
+        # collation-only command, so on #3259 the primary capture sat stale for
+        # the length of the triage. Say it at capture time instead.
+        if not label and os.path.isfile(cmd_path):
+            with open(cmd_path) as f:
+                current = " ; ".join(ln.strip() for ln in f
+                                     if ln.strip() and not ln.startswith("#"))
+            if current and current != args:
+                print(f"  warning: --args differs from cmd.txt and this run "
+                      f"has no --label, so it replaces the primary capture "
+                      f"with a command cmd.txt does not specify. Update "
+                      f"cmd.txt, or give this probe its own --label.",
+                      file=sys.stderr)
     else:
         with open(cmd_path) as f:
             cmds = [ln.strip() for ln in f if ln.strip() and not ln.startswith("#")]
@@ -861,7 +999,8 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
                       f"--- stdout ---\n{out}\n--- stderr ---\n{err}\n")
 
     text = "\n".join(chunks)
-    verdict = classify(issue, text, worst_rc, timed_out, match_file)
+    verdict, reason = classify(issue, text, worst_rc, timed_out, match_file,
+                               explain=True)
     # Variants are stored under a name reindex will not score against the
     # primary predicate: a control that legitimately behaves differently from
     # the repro is not a disagreement to investigate. The `variant:` header
@@ -874,6 +1013,7 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
                 f"# ran: {now()}\n# cmd: {' ; '.join(cmds)}\n"
                 f"# exit: {worst_rc}\n# timed_out: {int(timed_out)}\n"
                 f"# match: {match_file}\n# verdict: {verdict}\n"
+                + (f"# invalid-probe-reason: {reason}\n" if reason else "")
                 + (f"# variant: {label} ({subject})\n" if label else "")
                 + (f"# expect: {expect}\n" if expect else "")
                 + f"\n{text}")
@@ -1004,6 +1144,16 @@ def cmd_bisect(a):
         "SELECT tag FROM releases WHERE bisectable = 1 ORDER BY build_date")]
     if not rels:
         sys.exit("no releases catalogued; run 'triage.py catalog'")
+    # Prereleases are excluded so the sequence stays linear, but excluding them
+    # silently means a history reported as reaching "v1.9.2607" quietly stops
+    # short of newer builds that exist. Name them once, up front, so the range
+    # in the write-up is the range that was actually probed. Raised on #8725.
+    excluded = [r["tag"] for r in con().execute(
+        "SELECT tag FROM releases WHERE bisectable = 0 AND tag <> ''"
+        " ORDER BY build_date")]
+    if excluded:
+        print(f"  (not in the sequence: {', '.join(excluded)} -- prereleases or "
+              f"releases with no usable dxc asset)")
 
     def probe(tag):
         r = execute(a.issue, tag, a.match, repeat=a.repeat)
@@ -1084,8 +1234,22 @@ LABELS_MAX_AGE_HOURS = 24
 
 
 def refresh_labels():
-    rows = json.loads(gh("label", "list", "--repo", REPO, "--limit", "500",
-                         "--json", "name,description"))
+    """Fetch the live label taxonomy.
+
+    `gh label list` goes through the GraphQL API, which has its own rate-limit
+    budget: on #8732 it died with an unhandled traceback mid-triage while the
+    REST budget still showed 4991/5000 remaining. The REST labels endpoint
+    answers the same question from the other budget, so fall back to it rather
+    than making a rate limit on one API a hard stop for the whole session.
+    """
+    try:
+        rows = json.loads(gh("label", "list", "--repo", REPO, "--limit", "500",
+                             "--json", "name,description"))
+    except subprocess.CalledProcessError as e:
+        print(f"  warning: 'gh label list' failed ({e}); falling back to the "
+              f"REST labels endpoint (a separate rate-limit budget)",
+              file=sys.stderr)
+        rows = json.loads(gh("api", f"repos/{REPO}/labels", "--paginate"))
     c = con()
     c.execute("DELETE FROM labels")
     c.executemany("INSERT INTO labels (name, description, fetched_at)"
@@ -1198,6 +1362,13 @@ def ce_args(issue):
     `-Fo out.dxil` -- is kept, otherwise the flag would be left dangling and
     the resulting error would be an artefact of this function rather than the
     behaviour under test.
+
+    "Value of a flag" is decided by the same VALUE_FLAGS table `retarget_cmd`
+    uses, not by "the previous token began with a dash". Most dxc flags take no
+    value, so the dash test kept the source file after any of them -- measured
+    on #8732, whose cmd.txt ends `-spirv repro.hlsl`: CE was handed a second,
+    nonexistent input alongside the pane's own source, and every pane had to be
+    written out by hand with an `id:<args>` override.
     """
     d = issue_dir(issue)
     with open(os.path.join(d, "cmd.txt")) as f:
@@ -1207,7 +1378,7 @@ def ce_args(issue):
         print("  warning: multi-invocation cmd.txt; linking the first only")
     toks, keep = shlex.split(lines[0]), []
     for i, t in enumerate(toks):
-        positional = i == 0 or not toks[i - 1].startswith("-")
+        positional = i == 0 or toks[i - 1].lower().rstrip(":=") not in VALUE_FLAGS
         if positional and os.path.exists(os.path.join(d, t)):
             continue
         keep.append(t)
@@ -1695,19 +1866,34 @@ def cmd_reindex(a):
         # A control carrying a declared expectation is an assertion, so
         # re-check it here for the same reason probes are re-scored: the
         # predicate it depends on may have changed since it was captured.
+        #
+        # Its `# verdict:` is re-checked too. That line is derived, exactly as
+        # in a primary capture, but only `out-*.txt` was ever re-scored -- so
+        # after a classifier change a variant's header could disagree with
+        # today's code forever, silently, with no command able to correct it.
+        # Surfaced when #3055's two methodology probes were re-declared.
         for var in sorted(f for f in os.listdir(d)
                           if f.startswith("variant-") and f.endswith(".txt")):
-            meta, text = read_out(os.path.join(d, var))
-            if not meta.get("expect") or "exit" not in meta:
-                continue
+            vpath_v = os.path.join(d, var)
+            meta, text = read_out(vpath_v)
             mf = meta.get("match", "match.json")
-            if not os.path.isfile(os.path.join(d, mf)):
+            if "exit" not in meta or not os.path.isfile(os.path.join(d, mf)):
                 continue
             rc = None if meta["exit"] in ("None", "TIMEOUT") else int(meta["exit"])
-            v = classify(number, text, rc, meta.get("timed_out") == "1", mf)
-            if expectation_violated(meta["expect"], v):
+            v, why = classify(number, text, rc, meta.get("timed_out") == "1",
+                              mf, explain=True)
+            if meta.get("expect") and expectation_violated(meta["expect"], v):
                 changed.append(f"#{number} {var}: control declared "
                                f"{meta['expect']} but now scores {v}")
+            if a.verify and meta.get("verdict") and meta["verdict"] != v:
+                if a.accept:
+                    restamp(vpath_v, "verdict", v)
+                    stamp_reason(vpath_v, why)
+                    accepted.append(f"#{number} {var}: "
+                                    f"{meta['verdict']} -> {v}")
+                else:
+                    changed.append(f"#{number} {var}: header says "
+                                   f"{meta['verdict']}, today's code scores {v}")
 
         for out in sorted(f for f in os.listdir(d)
                           if f.startswith("out-") and f.endswith(".txt")):
@@ -1747,6 +1933,12 @@ def cmd_reindex(a):
                 if a.verify and meta.get("verdict") and meta["verdict"] != verdict:
                     if a.accept:
                         restamp(path, "verdict", verdict)
+                        # Keep the demotion's explanation with the verdict it
+                        # explains; a restamp that left the old reason behind
+                        # would be worse than no reason at all.
+                        stamp_reason(path, classify(number, text, rc, to,
+                                                    match_file,
+                                                    explain=True)[1])
                         accepted.append(f"#{number} {meta['compiler']}: "
                                         f"{meta['verdict']} -> {verdict}")
                     else:

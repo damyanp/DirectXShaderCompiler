@@ -1,0 +1,102 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:24:09+00:00
+# cmd: -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv -Vd repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: vd-repro (repro.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv -Vd repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.6
+; Generator: Google spiregg; 0
+; Bound: 43
+; Schema: 0
+               OpCapability DescriptorHeapEXT
+               OpCapability Shader
+               OpExtension "SPV_EXT_descriptor_heap"
+               OpExtension "SPV_KHR_untyped_pointers"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %gl_GlobalInvocationID %outputBytes %boundTex %resource_heap
+               OpExecutionMode %main LocalSize 1 1 1
+               OpSource HLSL 660
+               OpName %type_RWByteAddressBuffer "type.RWByteAddressBuffer"
+               OpName %outputBytes "outputBytes"
+               OpName %type_2d_image "type.2d.image"
+               OpName %boundTex "boundTex"
+               OpName %type_untyped_pointer "type.untyped.pointer"
+               OpName %resource_heap "resource_heap"
+               OpName %main "main"
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %resource_heap BuiltIn ResourceHeapEXT
+               OpDecorate %outputBytes DescriptorSet 0
+               OpDecorate %outputBytes Binding 0
+               OpDecorate %boundTex DescriptorSet 0
+               OpDecorate %boundTex Binding 1
+               OpDecorate %_runtimearr_uint ArrayStride 4
+               OpMemberDecorate %type_RWByteAddressBuffer 0 Offset 0
+               OpDecorate %type_RWByteAddressBuffer Block
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+       %uint = OpTypeInt 32 0
+     %uint_0 = OpConstant %uint 0
+     %uint_1 = OpConstant %uint 1
+%_runtimearr_uint = OpTypeRuntimeArray %uint
+%type_RWByteAddressBuffer = OpTypeStruct %_runtimearr_uint
+%_ptr_StorageBuffer_type_RWByteAddressBuffer = OpTypePointer StorageBuffer %type_RWByteAddressBuffer
+%type_2d_image = OpTypeImage %uint 2D 2 0 0 2 R32ui
+%_ptr_UniformConstant_type_2d_image = OpTypePointer UniformConstant %type_2d_image
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+%type_untyped_pointer = OpTypeUntypedPointerKHR UniformConstant
+       %void = OpTypeVoid
+         %20 = OpTypeFunction %void
+%_ptr_Function_type_2d_image = OpTypePointer Function %type_2d_image
+       %bool = OpTypeBool
+%_runtimearr_type_2d_image = OpTypeRuntimeArray %type_2d_image
+     %v2uint = OpTypeVector %uint 2
+%_ptr_Image_uint = OpTypePointer Image %uint
+%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
+%outputBytes = OpVariable %_ptr_StorageBuffer_type_RWByteAddressBuffer StorageBuffer
+   %boundTex = OpVariable %_ptr_UniformConstant_type_2d_image UniformConstant
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+%resource_heap = OpUntypedVariableKHR %type_untyped_pointer UniformConstant
+%_ptr_Input_uint = OpTypePointer Input %uint
+       %main = OpFunction %void None %20
+         %28 = OpLabel
+         %29 = OpVariable %_ptr_Function_type_2d_image Function
+         %30 = OpLoad %type_2d_image %boundTex
+               OpStore %29 %30
+         %31 = OpAccessChain %_ptr_Input_uint %gl_GlobalInvocationID %int_0
+         %32 = OpLoad %uint %31
+         %33 = OpIEqual %bool %32 %uint_0
+               OpSelectionMerge %34 None
+               OpBranchConditional %33 %35 %34
+         %35 = OpLabel
+         %36 = OpUntypedAccessChainKHR %type_untyped_pointer %_runtimearr_type_2d_image %resource_heap %uint_1
+         %37 = OpLoad %type_2d_image %36
+               OpStore %29 %37
+               OpBranch %34
+         %34 = OpLabel
+         %38 = OpLoad %v3uint %gl_GlobalInvocationID
+         %39 = OpVectorShuffle %v2uint %38 %38 0 1
+         %40 = OpImageTexelPointer %_ptr_Image_uint %29 %39 %uint_0
+         %41 = OpAtomicIAdd %uint %40 %uint_1 %uint_0 %uint_1
+         %42 = OpAccessChain %_ptr_StorageBuffer_uint %outputBytes %uint_0 %uint_0
+               OpStore %42 %41
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+repro.hlsl:12:17: warning: SPV_EXT_descriptor_heap support is incomplete.
+        mixed = ResourceDescriptorHeap[1];
+                ^
+
+

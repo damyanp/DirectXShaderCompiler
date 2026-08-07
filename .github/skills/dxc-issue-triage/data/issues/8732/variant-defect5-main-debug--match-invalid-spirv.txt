@@ -1,0 +1,26 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:24:09+00:00
+# cmd: -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv defect5.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-invalid-spirv.json
+# verdict: repro
+# variant: defect5 (defect5.hlsl)
+# expect: match
+
+$ dxc -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv defect5.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+defect5.hlsl:11:17: warning: SPV_EXT_descriptor_heap support is incomplete.
+        mixed = ResourceDescriptorHeap[1];
+                ^
+fatal error: generated SPIR-V is invalid: [VUID-StandaloneSpirv-OpTypeImage-06924] Cannot store to OpTypeImage, OpTypeSampler, OpTypeSampledImage, or OpTypeAccelerationStructureKHR objects
+  OpStore %28 %35
+
+note: please file a bug report on https://github.com/Microsoft/DirectXShaderCompiler/issues with source code if possible
+
+

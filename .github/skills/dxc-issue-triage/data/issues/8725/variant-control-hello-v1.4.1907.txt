@@ -1,0 +1,20 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T03:28:56+00:00
+# cmd: -T lib_6_9 control-hello.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# variant: control-hello (control-hello.hlsl)
+# expect: invalid-probe
+
+$ dxc -T lib_6_9 control-hello.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: invalid profile lib_6_9
+
+

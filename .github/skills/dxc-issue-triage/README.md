@@ -85,12 +85,16 @@ each side of a transition. **The floor is v1.4.1907** — the oldest release shi
 `dxc` — so `always-repro'd` means "for as long as it is possible to check", not "since it was
 filed".
 
-`text_stale` is set when the issue's own title or body no longer describes what the compiler
+`text_stale` is set when the issue's own text — title, body, or a maintainer comment left
+standing in the thread — no longer describes what the compiler
 does — #3444 has claimed since 2021 that `float2`/`float3`/`float4` work, and none of them
 do. It is a field rather than a remark in `notes.md` because it is the class of finding that
 most needs to surface: the defect is real, but anyone spot-checking the issue against its own
 description concludes "cannot reproduce". `overview.md` sorts these to the top of their tier,
 since editing a title is an action available immediately on an otherwise unactionable issue.
+The comment case is the same defect wearing different clothes: on #3055 the body is accurate,
+but a 2023 comment saying “compiles successfully now” sits above it and the body was edited
+afterwards, so a reader going top-down is told the opposite of the truth by the issue itself.
 
 In an `out-*.txt` header, `# verdict:` is per-probe, not per-issue, and has two further
 values: `invalid-probe` means that compiler never actually ran the repro — it rejected the

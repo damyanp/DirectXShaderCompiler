@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "generated SPIR-V is invalid",
+  "note": "Second predicate, for the behaviour the ground-truth build actually shows on repro.hlsl: instead of the reported silent miscompile, dxc rejects its own output. A separate predicate rather than a second clause of match.json because it is a different question with a different history -- 'when did the silent miscompile exist' vs 'when did this input start failing loudly' -- and the skill requires the two histories to sit side by side as out-<compiler>--<predicate>.txt. Deliberately anchored on the fatal-error banner rather than on the specific VUID, because which validator rule fires first depends on the SPIRV-Tools version vendored in external/SPIRV-Tools: at 1c336172 an Interlocked* use dies on VUID-StandaloneSpirv-OpTypeImage-06924 (OpStore to an image object) while a non-atomic use dies on the newly-enforced UniformConstant ArrayStride rule (KhronosGroup/SPIRV-Tools#6792). Pinning either VUID would make this predicate a measurement of the submodule rather than of DXC. Control: variant-bound-only-main-debug.txt compiles cleanly and does not contain this banner."
+}

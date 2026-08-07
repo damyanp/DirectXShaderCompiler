@@ -1,0 +1,73 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:24:10+00:00
+# cmd: -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv control-bound-only.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-invalid-spirv.json
+# verdict: no-repro
+# variant: bound-only (control-bound-only.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_6 -E main -fspv-use-descriptor-heap -fspv-target-env=vulkan1.3 -spirv control-bound-only.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.6
+; Generator: Google spiregg; 0
+; Bound: 26
+; Schema: 0
+               OpCapability DescriptorHeapEXT
+               OpCapability Shader
+               OpExtension "SPV_EXT_descriptor_heap"
+               OpExtension "SPV_KHR_untyped_pointers"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %gl_GlobalInvocationID %outputBytes %boundTex
+               OpExecutionMode %main LocalSize 1 1 1
+               OpSource HLSL 660
+               OpName %type_RWByteAddressBuffer "type.RWByteAddressBuffer"
+               OpName %outputBytes "outputBytes"
+               OpName %type_2d_image "type.2d.image"
+               OpName %boundTex "boundTex"
+               OpName %main "main"
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %outputBytes DescriptorSet 0
+               OpDecorate %outputBytes Binding 0
+               OpDecorate %boundTex DescriptorSet 0
+               OpDecorate %boundTex Binding 1
+               OpDecorate %_runtimearr_uint ArrayStride 4
+               OpMemberDecorate %type_RWByteAddressBuffer 0 Offset 0
+               OpDecorate %type_RWByteAddressBuffer Block
+       %uint = OpTypeInt 32 0
+     %uint_0 = OpConstant %uint 0
+     %uint_1 = OpConstant %uint 1
+%_runtimearr_uint = OpTypeRuntimeArray %uint
+%type_RWByteAddressBuffer = OpTypeStruct %_runtimearr_uint
+%_ptr_StorageBuffer_type_RWByteAddressBuffer = OpTypePointer StorageBuffer %type_RWByteAddressBuffer
+%type_2d_image = OpTypeImage %uint 2D 2 0 0 2 R32ui
+%_ptr_UniformConstant_type_2d_image = OpTypePointer UniformConstant %type_2d_image
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+       %void = OpTypeVoid
+         %16 = OpTypeFunction %void
+     %v2uint = OpTypeVector %uint 2
+%_ptr_Image_uint = OpTypePointer Image %uint
+%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
+%outputBytes = OpVariable %_ptr_StorageBuffer_type_RWByteAddressBuffer StorageBuffer
+   %boundTex = OpVariable %_ptr_UniformConstant_type_2d_image UniformConstant
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+       %main = OpFunction %void None %16
+         %20 = OpLabel
+         %21 = OpLoad %v3uint %gl_GlobalInvocationID
+         %22 = OpVectorShuffle %v2uint %21 %21 0 1
+         %23 = OpImageTexelPointer %_ptr_Image_uint %boundTex %22 %uint_0
+         %24 = OpAtomicIAdd %uint %23 %uint_1 %uint_0 %uint_1
+         %25 = OpAccessChain %_ptr_StorageBuffer_uint %outputBytes %uint_0 %uint_0
+               OpStore %25 %24
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

@@ -1,0 +1,23 @@
+{
+  "batch": "005",
+  "confidence": "high",
+  "created_at": "2020-07-23T15:39:59Z",
+  "godbolt_url": "https://godbolt.org/z/M7e5Yrr36",
+  "history": "always-repro'd (v1.4.1907..v1.9.2607, all 20 releases probed linearly; v1.4.1907 output byte-identical to main)",
+  "labels": "tech-debt,diagnostic",
+  "labels_add": "fxc-disagrees, usability",
+  "labels_now": "tech-debt,diagnostic",
+  "notes_path": "issues/3055/notes.md",
+  "number": 3055,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Intrinsic-method overload resolution reports only argument-COUNT mismatches; the argument-TYPE mismatch note is elided, so tex.Sample(SamplerComparisonState, float2) lists only the 3/4/5-argument overloads and never mentions the sampler type. The 2-argument candidate the user meant is the one suppressed. Unchanged v1.4.1907..main. Source: MatchArguments computes badArgIdx (SemaHLSL.cpp:5396) and the caller discards it (11364-11369), returning a bare TDK_NonDeducedMismatch (11456) whose note SemaOverload.cpp:9355-9360 elides by an explicit HLSL Change. Not specific to Sample -- GatherRed is identical. FXC lists the candidate signatures showing SamplerState; hlsl_clang_trunk already emits 'no known conversion from SamplerComparisonState to hlsl::SamplerState for 1st argument'. Note the issue body was edited 2023-09-27, after the 2023-07-14 comment saying it compiles.",
+  "text_stale": "Not the title or body -- the thread. llvm-beanz commented 2023-07-14 'This compiles successfully now', and the body was then edited 2023-09-27, so the correction sits above the report it appears to correct. A reader going top-down concludes the issue is fixed; it reproduces byte-identically from v1.4.1907 to main. The comment is about a DIFFERENT thing (the shader now compiles because a valid overload was substituted); the filed complaint is that the diagnostic never names the sampler-type mismatch, and that is unchanged.",
+  "title": "Improve error reporting for intrinsic methods with type mismatched arguments",
+  "triaged_at": "2026-08-07T04:23:45+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3055"
+}

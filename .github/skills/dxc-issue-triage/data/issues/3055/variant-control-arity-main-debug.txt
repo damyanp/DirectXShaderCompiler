@@ -1,0 +1,26 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:14:16+00:00
+# cmd: -T ps_6_0 -E main control-arity.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-arity (control-arity.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main control-arity.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-arity.hlsl:5:14: error: no matching member function for call to 'Sample'
+  return tex.Sample(samp);
+         ~~~~^~~~~~
+control-arity.hlsl:5:14: note: candidate function template not viable: requires 2 arguments, but 1 was provided
+control-arity.hlsl:5:14: note: candidate function template not viable: requires 3 arguments, but 1 was provided
+control-arity.hlsl:5:14: note: candidate function template not viable: requires 4 arguments, but 1 was provided
+control-arity.hlsl:5:14: note: candidate function template not viable: requires 5 arguments, but 1 was provided
+
+

@@ -1,0 +1,27 @@
+What to look for -- #8725, "[SER] Passing a payload by value to HitObject::Invoke
+asserts in CodeGen".
+
+`p` is an "in" (by value) parameter. dx::HitObject::Invoke takes its payload as
+`inout`, so this is not a valid argument for it -- but nothing diagnoses it.
+
+Compiler Explorer runs RELEASE builds, which have asserts compiled out, so the
+reported assert cannot appear here. What the panes do show:
+
+  DXC 1.8.2502    error: invalid profile lib_6_9 -- SM 6.9 does not exist in this
+                  release. This is why the history cannot be probed further back;
+                  it is not evidence that the bug is absent.
+  DXC 1.9.2607    what a user actually hits: a DXIL validation failure naming an
+  DXC trunk       'unreachable' instruction, with no source location and nothing
+                  pointing at the payload argument.
+  DXC trunk -fcgl the cause, in the pre-optimisation IR -- and note it exits 0:
+
+      %14 = load %struct.Payload, %struct.Payload* %2
+      %15 = bitcast %struct.Payload %14 to %struct.Payload*
+      call void @"dx.hl.op..void (i32, %dx.types.HitObject*, %struct.Payload*)"(
+               i32 382, %dx.types.HitObject* %obj, %struct.Payload* %15)
+
+  A struct VALUE bitcast to a POINTER. That is the invalid cast an assert-enabled
+  build traps on, emitted here without complaint.
+
+Changing `Function(Payload p)` to `Function(inout Payload p)` compiles and is the
+workaround.

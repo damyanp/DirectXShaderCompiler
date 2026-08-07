@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:59:15+00:00
+# cmd: -T as_6_5 -E main crossref-3251-cbuffer-payload.hlsl
+# exit: 2147483651
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: crossref-3251 (crossref-3251-cbuffer-payload.hlsl)
+# expect: match
+
+$ dxc -T as_6_5 -E main crossref-3251-cbuffer-payload.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147483651
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: Terminal Error 0x80000003
+

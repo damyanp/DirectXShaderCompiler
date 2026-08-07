@@ -1,0 +1,98 @@
+# manual capture: assert message + stack, for the repro and for the control
+# compiler: main-debug  (<repo>\build\Debug\bin\dxc.exe)
+# version:  dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+# harness:  assert-stack.cmd   (cdb 10.0.26100.6584, x64)  -- re-runnable
+# ran:      2026-08-06T20:20:13.8694741-07:00
+# why:      dxc sends DXASSERT text to OutputDebugString and then __debugbreak()s,
+#           so a plain run shows only 'Internal compiler error: Terminal Error
+#           0x80000003' on stderr with no message, file or line. See
+#           include/dxc/Support/Global.h (DXASSERT / DXASSERT_NOMSG).
+# NOTE:     hand-driven capture, not a probe. Not scored by match.json.
+#
+# CASE 1 is repro.hlsl with the exact arguments in cmd.txt. The assert is
+#        DXASSERT_NOMSG(Ty) at lib/DXIL/DxilUtil.cpp:877 in WrapInArrayTypes,
+#        called from TranslatePtrIfUsedByLoweredFn -- the frame named in the
+#        issue title.
+# CASE 2 is control-scalar-payload.hlsl, the same shader with a legal uint payload.
+#        No trap: the only break is the loader's initial one, and the stack after
+#        'g' shows the process exiting normally through ExitProcessImplementation.
+#        Paths in the DXIL output are elided; see variant-control-scalar-payload-main-debug.txt
+#        for the full successful compile.
+
+### CASE 1: repro.hlsl -- the repro, with the arguments in cmd.txt
+   AllowParallelInitializationOfLocalRepositories : true
+Microsoft (R) Windows Debugger Version 10.0.26100.6584 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T as_6_5 -E main repro.hlsl
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       srv*
+Symbol search path is: srv*
+Executable search path is: 
+(7b7c.30dc): Break instruction exception - code 80000003 (first chance)
+ntdll!LdrpDoDebuggerBreak+0x35:
+00007ff9`0867d7bd cc              int     3
+0:000> cdb: Reading initial command 'g;kn 40;q'
+Error: 	!(Ty)
+File:
+C:\prj\DirectXShaderCompiler\lib\DXIL\DxilUtil.cpp(877)
+Func:	hlsl::dxilutil::WrapInArrayTypes.
+(7b7c.30dc): Break instruction exception - code 80000003 (first chance)
+*** WARNING: Unable to verify checksum for C:\prj\DirectXShaderCompiler\build\Debug\bin\dxcompiler.dll
+ # Child-SP          RetAddr               Call Site
+00 00000049`fcb852a0 00007ff8`2e1759e6     dxcompiler!hlsl::dxilutil::WrapInArrayTypes+0x5f
+01 00000049`fcb85320 00007ff8`2e17c651     dxcompiler!TranslatePtrIfUsedByLoweredFn+0x266
+02 00000049`fcb856b0 00007ff8`2e185307     dxcompiler!`anonymous namespace'::SROAGlobalAndAllocas+0x7b1
+03 00000049`fcb86520 00007ff8`306874e8     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::runOnModule+0x8a7
+04 00000049`fcb86aa0 00007ff8`30688325     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+05 00000049`fcb86e50 00007ff8`3067ec6c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+06 00000049`fcb86f00 00007ff8`2e394a16     dxcompiler!llvm::legacy::PassManager::run+0x2c
+07 00000049`fcb86f40 00007ff8`2e391fa8     dxcompiler!`anonymous namespace'::EmitAssemblyHelper::EmitAssembly+0x616
+08 00000049`fcb87120 00007ff8`2e36a201     dxcompiler!clang::EmitBackendOutput+0x158
+09 00000049`fcb87570 00007ff8`2fbfd808     dxcompiler!clang::BackendConsumer::HandleTranslationUnit+0x521
+0a 00000049`fcb87790 00007ff8`2e729e3e     dxcompiler!clang::ParseAST+0x608
+0b 00000049`fcb87a60 00007ff8`2e363c55     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+0c 00000049`fcb87ac0 00007ff8`2e7298a8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+0d 00000049`fcb88010 00007ff8`2d94b7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+0e 00000049`fcb88080 00007ff8`2d92bb80     dxcompiler!DxcCompiler::Compile+0x41a2
+0f 00000049`fcb8c8c0 00007ff8`2d92d3d8     dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+10 00000049`fcb8dfd0 00007ff8`2d94ec2e     dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+*** WARNING: Unable to verify checksum for dxc.exe
+11 00000049`fcb8e050 00007ff6`3cd2f65d     dxcompiler!hlsl::DxcCompilerAdapter::Compile+0xce
+12 00000049`fcb8e0e0 00007ff6`3cd2a06e     dxc!DxcContext::Compile+0xe2d
+13 00000049`fcb8ecb0 00007ff6`3cd28ebc     dxc!dxc::main+0xa1e
+14 00000049`fcb8fd80 00007ff6`3d038ec9     dxc!wmain+0x1c
+15 00000049`fcb8fdb0 00007ff6`3d038de2     dxc!invoke_main+0x39
+16 00000049`fcb8fe00 00007ff6`3d038c9e     dxc!__scrt_common_main_seh+0x132
+17 00000049`fcb8fe70 00007ff6`3d038f3e     dxc!__scrt_common_main+0xe
+18 00000049`fcb8fea0 00007ff9`06e9e957     dxc!wmainCRTStartup+0xe
+19 00000049`fcb8fed0 00007ff9`0860ad6c     KERNEL32!BaseThreadInitThunk+0x17
+1a 00000049`fcb8ff00 00000000`00000000     ntdll!RtlUserThreadStart+0x2c
+quit:
+### CASE 2: control-scalar-payload.hlsl -- legal payload, must not trap
+   AllowParallelInitializationOfLocalRepositories : true
+Microsoft (R) Windows Debugger Version 10.0.26100.6584 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T as_6_5 -E main control-scalar-payload.hlsl
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       srv*
+Symbol search path is: srv*
+Executable search path is: 
+(5ed4.8648): Break instruction exception - code 80000003 (first chance)
+ntdll!LdrpDoDebuggerBreak+0x35:
+00007ff9`0867d7bd cc              int     3
+0:000> cdb: Reading initial command 'g;kn 40;q'
+ # Child-SP          RetAddr               Call Site
+00 000000d2`a078fce8 00007ff9`06eb180b     ntdll!NtTerminateProcess+0x14
+01 000000d2`a078fcf0 00007ff8`6c72219b     KERNEL32!ExitProcessImplementation+0xb
+02 000000d2`a078fd20 00007ff8`6c72214f     ucrtbased!wassert+0x54b
+03 000000d2`a078fd50 00007ff8`6c722456     ucrtbased!wassert+0x4ff
+*** WARNING: Unable to verify checksum for dxc.exe
+04 000000d2`a078fdb0 00007ff6`3d038dfb     ucrtbased!exit+0x16
+05 000000d2`a078fde0 00007ff6`3d038c9e     dxc!__scrt_common_main_seh+0x14b
+06 000000d2`a078fe50 00007ff6`3d038f3e     dxc!__scrt_common_main+0xe
+07 000000d2`a078fe80 00007ff9`06e9e957     dxc!wmainCRTStartup+0xe
+08 000000d2`a078feb0 00007ff9`0860ad6c     KERNEL32!BaseThreadInitThunk+0x17
+09 000000d2`a078fee0 00000000`00000000     ntdll!RtlUserThreadStart+0x2c
+quit:

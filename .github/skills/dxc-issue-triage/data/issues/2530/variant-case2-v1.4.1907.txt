@@ -1,0 +1,22 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T03:26:19+00:00
+# cmd: -T ps_6_0 -E main case2.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: case2 (case2.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main case2.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case2.hlsl:9:16: error: variable length arrays are not supported in HLSL
+    float array[ARRAY_SIZE_UINT] = { 1.0f };
+               ^
+
+

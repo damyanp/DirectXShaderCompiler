@@ -1,0 +1,23 @@
+# compiler: v1.9.2602
+# exe: <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+# ran: 2026-08-07T03:27:31+00:00
+# cmd: -T lib_6_9 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T lib_6_9 repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+Function: ?RayGen@@YAXXZ: error: Instructions must be of an allowed type.
+note: at 'unreachable' in block '#0' of function '?RayGen@@YAXXZ'.
+Validation failed.
+
+
+

@@ -1,0 +1,88 @@
+# manual case: Compiler Explorer panes for #3055, and the Clang control
+#
+# Not a local dxc invocation, so filed as manual-case-* rather than out-* /
+# variant-*. `triage.py godbolt` verifies before shortening but records only the
+# first line of each pane, and the Clang pane's first line is an unrelated
+# -Qembed_debug warning -- so the actual pane content is captured here.
+#
+# link: https://godbolt.org/z/M7e5Yrr36
+# source: repro.hlsl with godbolt-note.txt prepended as a banner, which is why
+#         the reported line is 39 rather than 5.
+# ran: 2026-08-07, via the Compiler Explorer API
+#      POST https://godbolt.org/api/compiler/<id>/compile
+# NOTE: CE runs Release builds and dxc_trunk is a rolling build, so this
+#       corroborates the local Debug ground truth, it does not overrule it.
+
+============================================================================
+fxc_10_0_19041   /T ps_5_0 /E main                                   exit 1
+============================================================================
+<source>(39,10-32): error X3013: 'Sample': no matching 2 parameter intrinsic method
+<source>(39,10-32): error X3013: Possible intrinsic methods are:
+<source>(39,10-32): error X3013:     Texture2D<float4>.Sample(SamplerState, float2|half2|min10float2|min16float2)
+<source>(39,10-32): error X3013:     Texture2D<float4>.Sample(SamplerState, float2|half2|min10float2|min16float2, int2)
+<source>(39,10-32): error X3013:     Texture2D<float4>.Sample(SamplerState, float2|half2|min10float2|min16float2, int2, float1|half1|min10float1|min16float1)
+<source>(39,10-32): error X3013:     Texture2D<float4>.Sample(SamplerState, float2|half2|min10float2|min16float2, int2, float1|half1|min10float1|min16float1, out uint status)
+
+compilation failed; no code produced
+Microsoft (R) Direct3D Shader Compiler 10.1
+Copyright (C) 2013 Microsoft. All rights reserved.
+
+============================================================================
+dxc_1_6_2112     -T ps_6_0 -E main                                   exit 5
+dxc_trunk        -T ps_6_0 -E main                                   exit 5
+============================================================================
+(identical output from both; matches the local ground truth verbatim apart
+ from the line number)
+
+<source>:39:14: error: no matching member function for call to 'Sample'
+  return tex.Sample(samp, coord);
+         ~~~~^~~~~~
+<source>:39:14: note: candidate function template not viable: requires 3 arguments, but 2 were provided
+<source>:39:14: note: candidate function template not viable: requires 4 arguments, but 2 were provided
+<source>:39:14: note: candidate function template not viable: requires 5 arguments, but 2 were provided
+
+============================================================================
+hlsl_clang_trunk -T ps_6_0 -E main                                   exit 1
+============================================================================
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+<source>:39:14: error: no matching member function for call to 'Sample'
+   39 |   return tex.Sample(samp, coord);
+      |          ~~~~^~~~~~
+note: candidate function not viable: no known conversion from 'SamplerComparisonState' to 'hlsl::SamplerState' for 1st argument
+note: candidate function not viable: requires 3 arguments, but 2 were provided
+note: candidate function not viable: requires 4 arguments, but 2 were provided
+1 error generated.
+
+============================================================================
+CONTROL for the Clang pane                                           exit 1
+hlsl_clang_trunk -T ps_6_0 -E main, on control-correct-sampler.hlsl
+(unannotated source, hence no line shift)
+============================================================================
+# SKILL.md step 7: "A Clang error is not evidence until you have a control."
+# Clang's DXIL backend cannot lower a pixel shader, so it fails on inputs that
+# have nothing to do with this issue. Required: the same shader with the
+# CORRECT sampler type must NOT produce the overload error above.
+#
+# expect: no "no matching member function" error, and no conversion note.
+# result: PASS -- Clang gets past Sema and fails later, in DXIL lowering, with
+#         an unrelated error. So the conversion note above is a Sema result
+#         about the sampler type, not an artefact of Clang's incompleteness.
+#         The repro never reaches DXIL lowering, so this limitation does not
+#         affect the pane.
+
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+error: Unsupported intrinsic llvm.dx.load.input.v2f32 for DXIL lowering
+error: Unsupported intrinsic llvm.dx.store.output.v4f32 for DXIL lowering
+2 errors generated.
+
+============================================================================
+CONTROL for the FXC pane                                             exit 0
+fxc_10_0_19041 /T ps_5_0 /E main, on control-correct-sampler.hlsl
+============================================================================
+# expect: no X3013. result: PASS -- compiles clean, so FXC's X3013 on the
+# repro is about the sampler type too.
+
+Microsoft (R) Direct3D Shader Compiler 10.1
+Copyright (C) 2013 Microsoft. All rights reserved.
+
+compilation code save succeeded; see C:\Windows\TEMP\...\output.s

@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T03:56:59+00:00
+# cmd: -T ps_6_0 -E main crossref-vector-component.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: crossref-vector-component (crossref-vector-component.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main crossref-vector-component.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+crossref-vector-component.hlsl:16:16: error: variable length arrays are not supported in HLSL
+    float array[SIZE2.x] = { 1.0f };
+               ^
+
+

@@ -1,0 +1,66 @@
+# manual capture -- NOT a probe, not scored by match.json
+# issue: 8725
+# what: Compiler Explorer pane results for the published link, captured so the
+#       claims in comment.md / godbolt-note.txt stay checkable if CE changes.
+# link: https://godbolt.org/z/Eo8YbKs5n   (HEAD -> 200; shortlinkinfo confirms
+#       4 panes with the options below and the annotated source)
+# source: repro.hlsl, prefixed by godbolt-note.txt as a comment banner
+# ran: 2026-08-06 (this session), via POST /api/compiler/<id>/compile and
+#      `python scripts/triage.py godbolt --issue 8725 --compilers ...`
+#
+# CE runs Linux RELEASE builds (NDEBUG). The assert cannot appear here; that is
+# expected and is exactly why the local Debug build is the ground truth.
+
+### PANE 1: dxc_1_8_2502  -T lib_6_9
+exit=5
+error: invalid profile lib_6_9
+
+  Feature absence, not a clean run. SM 6.9 does not exist in this release, so no
+  1.8.2502-or-older binary can express the repro.
+
+### PANE 2: dxc_1_9_2607  -T lib_6_9
+exit=5
+error: validation errors
+Function: ?RayGen@@YAXXZ: error: Instructions must be of an allowed type.
+note: at 'unreachable' in block '#0' of function '?RayGen@@YAXXZ'.
+Validation failed.
+
+### PANE 3: dxc_trunk  -T lib_6_9
+exit=5
+error: validation errors
+Function: ?RayGen@@YAXXZ: error: Instructions must be of an allowed type.
+note: at 'unreachable' in block '#0' of function '?RayGen@@YAXXZ'.
+Validation failed.
+
+  CE's dxc_trunk self-reports as "dxc(private) 1.9.0.10001 (main, 32dd9cfc)".
+  Same face as the local Debug build shows when the asserts are continued past
+  (manual-case-assert-stack.txt, CASE 2), so Release and Debug agree on cause.
+
+### PANE 4: dxc_trunk  -T lib_6_9 -fcgl
+exit=0   <-- note: succeeds, and emits invalid IR
+
+  Relevant lines of the emitted module (@"\01?Function@@YAXUPayload@@@Z"):
+
+    %12 = bitcast %struct.Payload* %2 to i8*
+    %13 = bitcast %struct.Payload* %1 to i8*
+    call void @llvm.memcpy.p0i8.p0i8.i64(i8* %12, i8* %13, i64 4, i32 1, i1 false)
+    %14 = load %struct.Payload, %struct.Payload* %2, !dbg !80 ; line:14 col:3
+    %15 = bitcast %struct.Payload %14 to %struct.Payload*, !dbg !80 ; line:14 col:3
+    call void @"dx.hl.op..void (i32, %dx.types.HitObject*, %struct.Payload*)"(
+        i32 382, %dx.types.HitObject* %obj, %struct.Payload* %15), !dbg !80
+
+  `bitcast %struct.Payload %14 to %struct.Payload*` -- a struct value cast to a
+  pointer. Byte-for-byte the same defect the local Debug build traps on
+  (manual-case-fcgl-invalid-bitcast.txt, CASE 7), so this is not a
+  Windows-only or a Debug-only artefact.
+
+### Not published as panes
+  dxc_1_10_2605_2 / dxc_1_10_2605_24: CE carries these, but they are GitHub
+  prereleases and so are outside the local bisect set; adding them would put a
+  pane in the link that the recorded history does not cover.
+  hlsl_clang_trunk: checked, not assumed -- exit=1 with
+    <source>:5:1: error: declaration of anonymous struct must be a definition
+    <source>:13:3: error: use of undeclared identifier 'dx'
+  i.e. no [raypayload], no RayDesc, no dx::HitObject. The pane would only show
+  that the repro is out of clang's reach today, so it is left out (and the
+  `check-in-clang` label is not proposed on that basis alone).

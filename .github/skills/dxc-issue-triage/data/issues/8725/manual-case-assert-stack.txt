@@ -1,0 +1,353 @@
+# manual capture -- NOT a probe, not scored by match.json
+# issue: 8725
+# what: assert messages, source locations and stacks for the repro and five
+#       variants, captured under cdb because dxc sends assert text to
+#       OutputDebugString rather than stderr.
+# script: assert-stack.cmd  (re-runnable; this file is its output with cdb's
+#         module-load / NatVis / banner noise removed and nothing else changed)
+# exe: <repo>/build/Debug/bin/dxc.exe
+# version: dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+# sha256: EB5A6A0C7AD8EC340EFD30E52A76090ADBCF9E2E52470B2B8496EC18B01D2D2C
+# cdb: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe 10.0.26100.6584
+# ran: 2026-08-06T20:26:58-07:00
+#
+# CASES 1-6 are here. CASES 7-8 (the emitted IR) are in
+# manual-case-fcgl-invalid-bitcast.txt.
+### CASE 1: repro.hlsl (-T lib_6_9) -- the issue as filed, FIRST assert only
+
+
+
+
+
+
+
+
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 repro.hlsl
+
+
+
+Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
+File:
+C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
+(be4.6cf4): Unknown exception - code e0000001 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 000000b4`099834e0 00007ff8`2e201731     KERNELBASE!RaiseException+0x8a
+01 000000b4`099835e0 00007ff8`2e4cad54     dxcompiler!llvm_assert+0x51
+02 000000b4`09983620 00007ff8`2e4cd34b     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArg+0xd4
+03 000000b4`09983fd0 00007ff8`2e5aa88e     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArgs+0x21b
+04 000000b4`099841f0 00007ff8`2e666d25     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArgs<clang::FunctionProtoType>+0x47e
+05 000000b4`099843f0 00007ff8`2e6675e3     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCall+0xd95
+06 000000b4`099854d0 00007ff8`2e6a9138     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallExpr+0x613
+07 000000b4`099856d0 00007ff8`2e69c050     dxcompiler!`anonymous namespace'::ScalarExprEmitter::VisitCallExpr+0xe8
+08 000000b4`09985780 00007ff8`2e6a2966     dxcompiler!clang::StmtVisitorBase<clang::make_ptr,`anonymous namespace'::ScalarExprEmitter,llvm::Value *>::Visit+0x810
+09 000000b4`099857e0 00007ff8`2e69b611     dxcompiler!`anonymous namespace'::ScalarExprEmitter::Visit+0x716
+0a 000000b4`09985b40 00007ff8`2e651ff3     dxcompiler!clang::CodeGen::CodeGenFunction::EmitScalarExpr+0x91
+0b 000000b4`09985ba0 00007ff8`2e651f3d     dxcompiler!clang::CodeGen::CodeGenFunction::EmitAnyExpr+0x83
+0c 000000b4`09985c60 00007ff8`2e6186e0     dxcompiler!clang::CodeGen::CodeGenFunction::EmitIgnoredExpr+0x6d
+0d 000000b4`09985d40 00007ff8`2e6191ea     dxcompiler!clang::CodeGen::CodeGenFunction::EmitStmt+0x210
+0e 000000b4`09985ef0 00007ff8`2e565175     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCompoundStmtWithoutScope+0x9a
+0f 000000b4`09985ff0 00007ff8`2e563493     dxcompiler!clang::CodeGen::CodeGenFunction::EmitFunctionBody+0x75
+10 000000b4`09986060 00007ff8`2e3ad1c9     dxcompiler!clang::CodeGen::CodeGenFunction::GenerateCode+0x7f3
+11 000000b4`09986540 00007ff8`2e3aca9c     dxcompiler!clang::CodeGen::CodeGenModule::EmitGlobalFunctionDefinition+0x689
+12 000000b4`09987110 00007ff8`2e3aadb1     dxcompiler!clang::CodeGen::CodeGenModule::EmitGlobalDefinition+0x43c
+13 000000b4`09987320 00007ff8`2e3a6531     dxcompiler!clang::CodeGen::CodeGenModule::EmitGlobal+0x3a1
+14 000000b4`099874c0 00007ff8`2e39734f     dxcompiler!clang::CodeGen::CodeGenModule::EmitTopLevelDecl+0x211
+15 000000b4`09987690 00007ff8`2e369c73     dxcompiler!`anonymous namespace'::CodeGeneratorImpl::HandleTopLevelDecl+0xbf
+16 000000b4`09987700 00007ff8`2fbfd597     dxcompiler!clang::BackendConsumer::HandleTopLevelDecl+0x133
+17 000000b4`099877d0 00007ff8`2e729e3e     dxcompiler!clang::ParseAST+0x397
+18 000000b4`09987aa0 00007ff8`2e363c55     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+19 000000b4`09987b00 00007ff8`2e7298a8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+1a 000000b4`09988050 00007ff8`2d94b7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+1b 000000b4`099880c0 00007ff8`2d92bb80     dxcompiler!DxcCompiler::Compile+0x41a2
+1c 000000b4`0998c900 00007ff8`2d92d3d8     dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+1d 000000b4`0998e010 00007ff8`2d94ec2e     dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+1e 000000b4`0998e090 00007ff6`3cd2f65d     dxcompiler!hlsl::DxcCompilerAdapter::Compile+0xce
+1f 000000b4`0998e120 00007ff6`3cd2a06e     dxc!DxcContext::Compile+0xe2d
+20 000000b4`0998ecf0 00007ff6`3cd28ebc     dxc!dxc::main+0xa1e
+21 000000b4`0998fdc0 00007ff6`3d038ec9     dxc!wmain+0x1c
+22 000000b4`0998fdf0 00007ff6`3d038de2     dxc!invoke_main+0x39
+23 000000b4`0998fe40 00007ff6`3d038c9e     dxc!__scrt_common_main_seh+0x132
+24 000000b4`0998feb0 00007ff6`3d038f3e     dxc!__scrt_common_main+0xe
+25 000000b4`0998fee0 00007ff9`06e9e957     dxc!wmainCRTStartup+0xe
+26 000000b4`0998ff10 00007ff9`0860ad6c     KERNEL32!BaseThreadInitThunk+0x17
+27 000000b4`0998ff40 00000000`00000000     ntdll!RtlUserThreadStart+0x2c
+quit:
+Debugger exiting...
+
+### CASE 2: repro.hlsl -- continue past every assert (gh) to see the whole
+### sequence and what a build with asserts compiled out would report.
+
+
+
+
+
+
+
+
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 repro.hlsl
+
+
+
+Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
+File:
+C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
+(1a88.3918): Unknown exception - code e0000001 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 00000079`125832b0 00007ff8`2e201731     KERNELBASE!RaiseException+0x8a
+01 00000079`125833b0 00007ff8`2e4cad54     dxcompiler!llvm_assert+0x51
+02 00000079`125833f0 00007ff8`2e4cd34b     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArg+0xd4
+03 00000079`12583da0 00007ff8`2e5aa88e     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArgs+0x21b
+04 00000079`12583fc0 00007ff8`2e666d25     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArgs<clang::FunctionProtoType>+0x47e
+05 00000079`125841c0 00007ff8`2e6675e3     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCall+0xd95
+06 00000079`125852a0 00007ff8`2e6a9138     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallExpr+0x613
+07 00000079`125854a0 00007ff8`2e69c050     dxcompiler!`anonymous namespace'::ScalarExprEmitter::VisitCallExpr+0xe8
+Error: assert(castIsValid(op, S, Ty) && "Invalid cast!")
+File:
+C:\prj\DirectXShaderCompiler\lib\IR\Instructions.cpp(2257)
+Func:	llvm::CastInst::Create
+(1a88.3918): Unknown exception - code e0000001 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 00000079`12582dd0 00007ff8`2e201731     KERNELBASE!RaiseException+0x8a
+01 00000079`12582ed0 00007ff8`2db1442a     dxcompiler!llvm_assert+0x51
+02 00000079`12582f10 00007ff8`2e4ad82b     dxcompiler!llvm::CastInst::Create+0x6a
+03 00000079`12583090 00007ff8`2e4ad66c     dxcompiler!llvm::IRBuilder<1,llvm::ConstantFolder,clang::CodeGen::CGBuilderInserter<1> >::CreateCast+0xdb
+04 00000079`12583100 00007ff8`2e4c86d3     dxcompiler!llvm::IRBuilder<1,llvm::ConstantFolder,clang::CodeGen::CGBuilderInserter<1> >::CreateBitCast+0x3c
+05 00000079`12583140 00007ff8`2e666eac     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCall+0x13e3
+06 00000079`125841c0 00007ff8`2e6675e3     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCall+0xf1c
+07 00000079`125852a0 00007ff8`2e6a9138     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallExpr+0x613
+Error: assert(castIsValid(getOpcode(), S, Ty) && "Illegal BitCast")
+File:
+C:\prj\DirectXShaderCompiler\lib\IR\Instructions.cpp(2942)
+Func:	llvm::BitCastInst::BitCastInst
+(1a88.3918): Unknown exception - code e0000001 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 00000079`12582d90 00007ff8`2e201731     KERNELBASE!RaiseException+0x8a
+01 00000079`12582e90 00007ff8`2db236d5     dxcompiler!llvm_assert+0x51
+02 00000079`12582ed0 00007ff8`2db14a0e     dxcompiler!llvm::BitCastInst::BitCastInst+0xa5
+03 00000079`12582f10 00007ff8`2e4ad82b     dxcompiler!llvm::CastInst::Create+0x64e
+04 00000079`12583090 00007ff8`2e4ad66c     dxcompiler!llvm::IRBuilder<1,llvm::ConstantFolder,clang::CodeGen::CGBuilderInserter<1> >::CreateCast+0xdb
+05 00000079`12583100 00007ff8`2e4c86d3     dxcompiler!llvm::IRBuilder<1,llvm::ConstantFolder,clang::CodeGen::CGBuilderInserter<1> >::CreateBitCast+0x3c
+06 00000079`12583140 00007ff8`2e666eac     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCall+0x13e3
+07 00000079`125841c0 00007ff8`2e6675e3     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCall+0xf1c
+Error: assert(castIsValid(getOpcode(), S, Ty) && "Illegal BitCast")
+File:
+C:\prj\DirectXShaderCompiler\lib\IR\Instructions.cpp(2942)
+Func:	llvm::BitCastInst::BitCastInst
+(1a88.3918): Unknown exception - code e0000001 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 00000079`12583760 00007ff8`2e201731     KERNELBASE!RaiseException+0x8a
+01 00000079`12583860 00007ff8`2db236d5     dxcompiler!llvm_assert+0x51
+02 00000079`125838a0 00007ff8`2db235fa     dxcompiler!llvm::BitCastInst::BitCastInst+0xa5
+03 00000079`125838e0 00007ff8`2daceebd     dxcompiler!llvm::BitCastInst::cloneImpl+0x7a
+04 00000079`12583960 00007ff8`2e2c496f     dxcompiler!llvm::Instruction::clone+0x5ed
+05 00000079`12583a70 00007ff8`2e2c27d5     dxcompiler!`anonymous namespace'::PruningFunctionCloner::CloneBlock+0x31f
+06 00000079`12583ec0 00007ff8`2e2c3855     dxcompiler!llvm::CloneAndPruneIntoFromInst+0x3a5
+07 00000079`12584600 00007ff8`2e304090     dxcompiler!llvm::CloneAndPruneFunctionInto+0x95
+error: validation errors
+
+Function: ?RayGen@@YAXXZ: error: Instructions must be of an allowed type.
+note: at 'unreachable' in block '#0' of function '?RayGen@@YAXXZ'.
+Validation failed.
+
+
+quit:
+
+### CASE 3: control-inout.hlsl -- the reporter's workaround, must NOT assert
+
+
+
+
+
+
+
+
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 control-inout.hlsl
+
+
+
+; shader hash: 40f07b1b77598c944030aa28a86a64c4
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.Payload = type { float }
+%dx.types.HitObject = type { i8* }
+
+; Function Attrs: nounwind
+define void @"\01?RayGen@@YAXXZ"() #0 {
+  %1 = alloca %struct.Payload, align 8
+  %2 = call %dx.types.HitObject @dx.op.hitObject_MakeMiss(i32 265, i32 0, i32 0, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00)  ; HitObject_MakeMiss(RayFlags,MissShaderIndex,Origin_X,Origin_Y,Origin_Z,TMin,Direction_X,Direction_Y,Direction_Z,TMax)
+  %3 = getelementptr inbounds %struct.Payload, %struct.Payload* %1, i32 0, i32 0
+  store float 0.000000e+00, float* %3, align 8
+  call void @dx.op.hitObject_Invoke.struct.Payload(i32 267, %dx.types.HitObject %2, %struct.Payload* nonnull %1)  ; HitObject_Invoke(hitObject,payload)
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.hitObject_Invoke.struct.Payload(i32, %dx.types.HitObject, %struct.Payload*) #0
+
+; Function Attrs: nounwind readnone
+declare %dx.types.HitObject @dx.op.hitObject_MakeMiss(i32, i32, i32, float, float, float, float, float, float, float, float) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.typeAnnotations = !{!4}
+!dx.dxrPayloadAnnotations = !{!8}
+!dx.entryPoints = !{!11, !12}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 9}
+!2 = !{i32 1, i32 10}
+!3 = !{!"lib", i32 6, i32 9}
+!4 = !{i32 1, void ()* @"\01?RayGen@@YAXXZ", !5}
+!5 = !{!6}
+!6 = !{i32 1, !7, !7}
+!7 = !{}
+!8 = !{i32 0, %struct.Payload undef, !9}
+!9 = !{!10}
+!10 = !{i32 0, i32 819}
+!11 = !{null, !"", null, null, null}
+!12 = !{void ()* @"\01?RayGen@@YAXXZ", !"\01?RayGen@@YAXXZ", null, null, !13}
+!13 = !{i32 8, i32 7, i32 5, !14}
+!14 = !{i32 0}
+
+quit:
+
+### CASE 4: variant-static-global.hlsl -- no by-value parameter, no user
+### function: a mutable static global payload passed straight to Invoke.
+
+
+
+
+
+
+
+
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 variant-static-global.hlsl
+
+
+
+Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
+File:
+C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
+(5690.3124): Unknown exception - code e0000001 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 000000ad`77f83300 00007ff8`2e201731     KERNELBASE!RaiseException+0x8a
+01 000000ad`77f83400 00007ff8`2e4cad54     dxcompiler!llvm_assert+0x51
+02 000000ad`77f83440 00007ff8`2e4cd34b     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArg+0xd4
+03 000000ad`77f83df0 00007ff8`2e5aa88e     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArgs+0x21b
+04 000000ad`77f84010 00007ff8`2e666d25     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArgs<clang::FunctionProtoType>+0x47e
+05 000000ad`77f84210 00007ff8`2e6675e3     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCall+0xd95
+06 000000ad`77f852f0 00007ff8`2e6a9138     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallExpr+0x613
+07 000000ad`77f854f0 00007ff8`2e69c050     dxcompiler!`anonymous namespace'::ScalarExprEmitter::VisitCallExpr+0xe8
+08 000000ad`77f855a0 00007ff8`2e6a2966     dxcompiler!clang::StmtVisitorBase<clang::make_ptr,`anonymous namespace'::ScalarExprEmitter,llvm::Value *>::Visit+0x810
+09 000000ad`77f85600 00007ff8`2e69b611     dxcompiler!`anonymous namespace'::ScalarExprEmitter::Visit+0x716
+0a 000000ad`77f85960 00007ff8`2e651ff3     dxcompiler!clang::CodeGen::CodeGenFunction::EmitScalarExpr+0x91
+0b 000000ad`77f859c0 00007ff8`2e651f3d     dxcompiler!clang::CodeGen::CodeGenFunction::EmitAnyExpr+0x83
+0c 000000ad`77f85a80 00007ff8`2e6186e0     dxcompiler!clang::CodeGen::CodeGenFunction::EmitIgnoredExpr+0x6d
+0d 000000ad`77f85b60 00007ff8`2e6191ea     dxcompiler!clang::CodeGen::CodeGenFunction::EmitStmt+0x210
+0e 000000ad`77f85d10 00007ff8`2e565175     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCompoundStmtWithoutScope+0x9a
+0f 000000ad`77f85e10 00007ff8`2e563493     dxcompiler!clang::CodeGen::CodeGenFunction::EmitFunctionBody+0x75
+10 000000ad`77f85e80 00007ff8`2e3ad1c9     dxcompiler!clang::CodeGen::CodeGenFunction::GenerateCode+0x7f3
+11 000000ad`77f86360 00007ff8`2e3aca9c     dxcompiler!clang::CodeGen::CodeGenModule::EmitGlobalFunctionDefinition+0x689
+quit:
+Debugger exiting...
+
+### CASE 5: variant-hitobject-traceray-byval.hlsl -- dx::HitObject::TraceRay,
+### not Invoke, with the same by-value payload parameter.
+
+
+
+
+
+
+
+
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 variant-hitobject-traceray-byval.hlsl
+
+
+
+Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
+File:
+C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
+(4154.62cc): Unknown exception - code e0000001 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 000000fb`1e382bd0 00007ff8`2e201731     KERNELBASE!RaiseException+0x8a
+01 000000fb`1e382cd0 00007ff8`2e4cad54     dxcompiler!llvm_assert+0x51
+02 000000fb`1e382d10 00007ff8`2e4cd34b     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArg+0xd4
+03 000000fb`1e3836c0 00007ff8`2e5aa88e     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArgs+0x21b
+04 000000fb`1e3838e0 00007ff8`2e666d25     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArgs<clang::FunctionProtoType>+0x47e
+05 000000fb`1e383ae0 00007ff8`2e6675e3     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCall+0xd95
+06 000000fb`1e384bc0 00007ff8`2e67f836     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallExpr+0x613
+07 000000fb`1e384dc0 00007ff8`2e678df8     dxcompiler!`anonymous namespace'::AggExprEmitter::VisitCallExpr+0xc6
+08 000000fb`1e384e60 00007ff8`2e67d74c     dxcompiler!clang::StmtVisitorBase<clang::make_ptr,`anonymous namespace'::AggExprEmitter,void>::Visit+0x868
+09 000000fb`1e384ec0 00007ff8`2e678317     dxcompiler!`anonymous namespace'::AggExprEmitter::Visit+0x4c
+0a 000000fb`1e384f20 00007ff8`2e645918     dxcompiler!clang::CodeGen::CodeGenFunction::EmitAggExpr+0x157
+0b 000000fb`1e384fc0 00007ff8`2e647caf     dxcompiler!clang::CodeGen::CodeGenFunction::EmitExprAsInit+0x338
+0c 000000fb`1e385280 00007ff8`2e646ca4     dxcompiler!clang::CodeGen::CodeGenFunction::EmitAutoVarInit+0x37f
+0d 000000fb`1e385840 00007ff8`2e646262     dxcompiler!clang::CodeGen::CodeGenFunction::EmitAutoVarDecl+0x54
+0e 000000fb`1e3858c0 00007ff8`2e645efc     dxcompiler!clang::CodeGen::CodeGenFunction::EmitVarDecl+0x1f2
+0f 000000fb`1e385930 00007ff8`2e61c817     dxcompiler!clang::CodeGen::CodeGenFunction::EmitDecl+0x18c
+10 000000fb`1e3859b0 00007ff8`2e618de4     dxcompiler!clang::CodeGen::CodeGenFunction::EmitDeclStmt+0xc7
+11 000000fb`1e385a30 00007ff8`2e61855d     dxcompiler!clang::CodeGen::CodeGenFunction::EmitSimpleStmt+0xe4
+quit:
+Debugger exiting...
+
+### CASE 6: variant-nopaq.hlsl -disable-payload-qualifiers -- no payload
+### access qualifiers anywhere.
+
+
+
+
+
+
+
+
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 -disable-payload-qualifiers variant-nopaq.hlsl
+
+
+
+Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
+File:
+C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
+(6f48.2c24): Unknown exception - code e0000001 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 0000009a`27782d50 00007ff8`2e201731     KERNELBASE!RaiseException+0x8a
+01 0000009a`27782e50 00007ff8`2e4cad54     dxcompiler!llvm_assert+0x51
+02 0000009a`27782e90 00007ff8`2e4cd34b     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArg+0xd4
+03 0000009a`27783840 00007ff8`2e5aa88e     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArgs+0x21b
+04 0000009a`27783a60 00007ff8`2e666d25     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallArgs<clang::FunctionProtoType>+0x47e
+05 0000009a`27783c60 00007ff8`2e6675e3     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCall+0xd95
+06 0000009a`27784d40 00007ff8`2e6a9138     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallExpr+0x613
+07 0000009a`27784f40 00007ff8`2e69c050     dxcompiler!`anonymous namespace'::ScalarExprEmitter::VisitCallExpr+0xe8
+08 0000009a`27784ff0 00007ff8`2e6a2966     dxcompiler!clang::StmtVisitorBase<clang::make_ptr,`anonymous namespace'::ScalarExprEmitter,llvm::Value *>::Visit+0x810
+09 0000009a`27785050 00007ff8`2e69b611     dxcompiler!`anonymous namespace'::ScalarExprEmitter::Visit+0x716
+0a 0000009a`277853b0 00007ff8`2e651ff3     dxcompiler!clang::CodeGen::CodeGenFunction::EmitScalarExpr+0x91
+0b 0000009a`27785410 00007ff8`2e651f3d     dxcompiler!clang::CodeGen::CodeGenFunction::EmitAnyExpr+0x83
+0c 0000009a`277854d0 00007ff8`2e6186e0     dxcompiler!clang::CodeGen::CodeGenFunction::EmitIgnoredExpr+0x6d
+0d 0000009a`277855b0 00007ff8`2e6191ea     dxcompiler!clang::CodeGen::CodeGenFunction::EmitStmt+0x210
+0e 0000009a`27785760 00007ff8`2e565175     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCompoundStmtWithoutScope+0x9a
+0f 0000009a`27785860 00007ff8`2e563493     dxcompiler!clang::CodeGen::CodeGenFunction::EmitFunctionBody+0x75
+10 0000009a`277858d0 00007ff8`2e3ad1c9     dxcompiler!clang::CodeGen::CodeGenFunction::GenerateCode+0x7f3
+11 0000009a`27785db0 00007ff8`2e3aca9c     dxcompiler!clang::CodeGen::CodeGenModule::EmitGlobalFunctionDefinition+0x689
+quit:
+Debugger exiting...
+

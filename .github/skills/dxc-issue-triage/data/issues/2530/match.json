@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "variable length arrays are not supported in HLSL",
+  "note": "The exact diagnostic quoted in the issue body. A positive predicate on emitted text, so (unlike a not_contains) it cannot be satisfied for free by a compile that never started -- SKILL.md step 6's absence-predicate trap does not apply. Deliberately NOT a bare nonzero_exit: on Windows dxc returns E_FAIL for every diagnosed error, so nonzero_exit would score any unrelated rejection (bad profile on an old release, a moved -HV default on a new one) as this bug. Controlled by control-uint-bound.hlsl, which is the same shader with an unconverted `static const uint` bound: it compiles, and the predicate must not fire on it (variant-control-uint-bound-main-debug.txt, --expect no-match). Case 2 from the issue body is the same predicate against case2.hlsl (variant-case2-*.txt, --expect match)."
+}
