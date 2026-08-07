@@ -1153,8 +1153,12 @@ work, and none of them do.
 > *A summary that falsifies the analysis it summarises.* The draft correctly said
 > `atomicBinOp` has **no** sample-index operand. The one-line `text_stale` compressed that to
 > "`i32 undef` where the sample index belongs" — asserting the slot exists. The reporter
-> quoted that phrase back and corrected it. A short field is not licence to state something
-> the long-form evidence does not; **compression must only remove claims, never add one.**
+> quoted that phrase back and corrected it, while confirming the long-form draft "does
+> correctly state" the point: *"Just the sentence about the sample index was weird/wrong."*
+> The evidence was sound and the compression was not, which is the asymmetry to watch — the
+> short fields are read first, quoted most, and reviewed least. A short field is not licence
+> to state something the long-form evidence does not; **compression must only remove claims,
+> never add one.** Step 10 reviews `comment.md`; nothing reviews `summary` or `text_stale`.
 
 Always state the sampling bias. Verdicts from the oldest issues do not generalise to the
 backlog.
