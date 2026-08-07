@@ -1,0 +1,28 @@
+# The issue supplies a shader but no command line at all, so nothing here is literally
+# "as filed". This file records the two readings that were considered and why cmd.txt
+# departs from the most literal one.
+#
+# Literal reading -- what "compiling to Spir-v" most obviously means:
+#
+#   -T lib_6_3 repro.hlsl
+#   -T lib_6_3 -spirv repro.hlsl
+#
+# That second line cannot compile ANY raytracing shader, on any DXC in the bisection
+# range, because SPIR-V raytracing is gated on the target environment:
+#
+#   main (ab5400907): error: Vulkan 1.1 with SPIR-V 1.4 is required for Raytracing
+#                            but not permitted to use
+#   v1.5.2010:        error: Vulkan 1.2 is required for Raytracing
+#                            but not permitted to use
+#
+# The gate has nothing to do with the payload, and it fires before the empty struct is
+# ever considered -- so a bare `-spirv` line would measure the target-env gate, not the
+# reported disagreement. cmd.txt therefore passes -fspv-target-env=vulkan1.2, which is
+# recognised both by main and by v1.5.2010 (the release current when this was filed) and
+# is the newest spelling that spans the whole range: v1.5.2010 rejects
+# `vulkan1.1spirv1.4` with "unknown SPIR-V target environment".
+#
+# The literal bare-`-spirv` behaviour on the ground-truth build is still captured, as
+# variant-spirv-default-env-main-debug.txt, so nothing is hidden by the choice.
+-T lib_6_3 repro.hlsl
+-T lib_6_3 -spirv repro.hlsl

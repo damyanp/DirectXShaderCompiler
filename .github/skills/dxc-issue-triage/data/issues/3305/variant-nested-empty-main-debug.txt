@@ -1,0 +1,58 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T06:42:24+00:00
+# cmd: -T lib_6_3 control-nested-empty.hlsl ; -T lib_6_3 -spirv -fspv-target-env=vulkan1.2 control-nested-empty.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: nested-empty (control-nested-empty.hlsl)
+# expect: match
+
+$ dxc -T lib_6_3 control-nested-empty.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-nested-empty.hlsl:3:23: error: shader must include inout payload structure parameter.
+[shader("miss")] void main(inout Payload payload) {}
+                      ^
+
+
+
+$ dxc -T lib_6_3 -spirv -fspv-target-env=vulkan1.2 control-nested-empty.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 10
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_ray_tracing"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint MissKHR %main "main" %payload
+               OpSource HLSL 630
+               OpName %Payload "Payload"
+               OpMemberName %Payload 0 "i"
+               OpName %Inner "Inner"
+               OpName %payload "payload"
+               OpName %main "main"
+      %Inner = OpTypeStruct
+    %Payload = OpTypeStruct %Inner
+%_ptr_IncomingRayPayloadKHR_Payload = OpTypePointer IncomingRayPayloadKHR %Payload
+       %void = OpTypeVoid
+          %7 = OpTypeFunction %void
+    %payload = OpVariable %_ptr_IncomingRayPayloadKHR_Payload IncomingRayPayloadKHR
+       %main = OpFunction %void None %7
+          %8 = OpLabel
+          %9 = OpLoad %Payload %payload
+               OpStore %payload %9
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

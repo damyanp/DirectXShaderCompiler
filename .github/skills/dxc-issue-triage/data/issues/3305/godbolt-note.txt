@@ -1,0 +1,24 @@
+#3305 -- an empty payload struct. DXC's two back ends disagree about this one file.
+
+Two panes, the same compiler and the same source, one flag apart:
+
+  dxc_trunk  -T lib_6_3
+      -> error: shader must include inout payload structure parameter.
+
+  dxc_trunk  -T lib_6_3 -spirv -fspv-target-env=vulkan1.2
+      -> compiles. Look for "%Payload = OpTypeStruct" -- a struct with no members --
+         and the IncomingRayPayloadKHR variable declared from it.
+
+Read the DXIL message closely: the shader DOES include an inout payload structure
+parameter. The check behind that message tests the payload's SIZE, not the presence
+of the parameter (tools/clang/lib/CodeGen/CGHLSLMS.cpp, "0 == ...Ray.payloadSizeInBytes").
+A genuinely missing parameter gets a different, accurate message from Sema:
+"incorrect number of entry parameters for raytracing stage 'miss'".
+
+-fspv-target-env is not a workaround for this bug. SPIR-V raytracing is gated on the
+target environment in every DXC; without it the SPIR-V pane stops at that gate and
+never reaches the payload.
+
+Compiler Explorer runs Release builds of a rolling trunk; the local triage measured
+20 releases, v1.4.1907 (2019-07) to v1.9.2607, and every one prints the same DXIL
+error at the same source location.

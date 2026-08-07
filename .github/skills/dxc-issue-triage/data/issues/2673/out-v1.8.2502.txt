@@ -1,0 +1,396 @@
+# compiler: v1.8.2502
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe
+# ran: 2026-08-07T06:34:55+00:00
+# cmd: -E main -T cs_6_0 -Zi -Od -DDefineA -DDefineB=0 repro.hlsl -Qstrip_reflect
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -E main -T cs_6_0 -Zi -Od -DDefineA -DDefineB=0 repro.hlsl -Qstrip_reflect
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 4060af49a44c1972252be0cbd3e55b9c.pdb
+; shader hash: 4060af49a44c1972252be0cbd3e55b9c
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,8,1)
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+; Resource bind info for mats
+; {
+;
+;   struct hostlayout.struct.mat
+;   {
+;
+;       row_major float2x2 f2x2;                      ; Offset:    0
+;   
+;   } $Element;                                       ; Offset:    0 Size:    16
+;
+; }
+;
+; Resource bind info for mats2
+; {
+;
+;   column_major float2x2 $Element;                   ; Offset:    0 Size:    16
+;
+; }
+;
+; Resource bind info for fA
+; {
+;
+;   column_major float2x2 $Element;                   ; Offset:    0 Size:    16
+;
+; }
+;
+; Resource bind info for fB
+; {
+;
+;   float2 $Element;                                  ; Offset:    0 Size:     8
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; mats                              texture  struct         r/o      T0             t0     1
+; mats2                             texture  struct         r/o      T1             t1     1
+; fA                                    UAV  struct         r/w      U0             u0     1
+; fB                                    UAV  struct         r/w      U1             u1     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.f32 = type { float, float, float, float, i32 }
+%"hostlayout.class.StructuredBuffer<mat>" = type { %hostlayout.struct.mat }
+%hostlayout.struct.mat = type { [2 x <2 x float>] }
+%"hostlayout.class.StructuredBuffer<matrix<float, 2, 2> >" = type { [2 x <2 x float>] }
+%"hostlayout.class.RWStructuredBuffer<matrix<float, 2, 2> >" = type { [2 x <2 x float>] }
+%"class.RWStructuredBuffer<vector<float, 2> >" = type { <2 x float> }
+
+@"\01?dataC@@3PAUS@@A.1.v.1dim" = addrspace(3) global [128 x float] undef, align 4
+@"\01?dataC@@3PAUS@@A.0.v.v.1dim" = addrspace(3) global [256 x float] undef, align 16
+@dx.nothing.a = internal constant [1 x i32] zeroinitializer
+
+define void @main() {
+  %fB_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 1, i32 1, i1 false), !dbg !101 ; line:48 col:52  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %fA_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !101 ; line:48 col:52  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %mats2_texture_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 1, i32 1, i1 false), !dbg !101 ; line:48 col:52  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %mats_texture_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !101 ; line:48 col:52  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadId.i32(i32 93, i32 0), !dbg !102 ; line:46 col:105  ; ThreadId(component)
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 1), !dbg !102 ; line:46 col:105  ; ThreadId(component)
+  %3 = call i32 @dx.op.groupId.i32(i32 94, i32 0), !dbg !102 ; line:46 col:105  ; GroupId(component)
+  %4 = call i32 @dx.op.groupId.i32(i32 94, i32 1), !dbg !102 ; line:46 col:105  ; GroupId(component)
+  %5 = call i32 @dx.op.threadIdInGroup.i32(i32 95, i32 1), !dbg !102 ; line:46 col:105  ; ThreadIdInGroup(component)
+  %6 = call i32 @dx.op.flattenedThreadIdInGroup.i32(i32 96), !dbg !102 ; line:46 col:105  ; FlattenedThreadIdInGroup()
+  call void @llvm.dbg.value(metadata i32 %6, i64 0, metadata !103, metadata !104), !dbg !102 ; var:"gidx" !DIExpression() func:"main"
+  call void @llvm.dbg.value(metadata i32 %5, i64 0, metadata !105, metadata !106), !dbg !107 ; var:"gtid" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %3, i64 0, metadata !108, metadata !109), !dbg !110 ; var:"gid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %4, i64 0, metadata !108, metadata !106), !dbg !110 ; var:"gid" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !111, metadata !109), !dbg !112 ; var:"tid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %2, i64 0, metadata !111, metadata !106), !dbg !112 ; var:"tid" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  %7 = urem i32 %1, 64, !dbg !113 ; line:48 col:16
+  %8 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %mats_texture_structbuf, i32 %3, i32 0), !dbg !114 ; line:48 col:45  ; BufferLoad(srv,index,wot)
+  %9 = extractvalue %dx.types.ResRet.f32 %8, 0, !dbg !114 ; line:48 col:45
+  %10 = extractvalue %dx.types.ResRet.f32 %8, 1, !dbg !114 ; line:48 col:45
+  %11 = extractvalue %dx.types.ResRet.f32 %8, 2, !dbg !114 ; line:48 col:45
+  %12 = extractvalue %dx.types.ResRet.f32 %8, 3, !dbg !114 ; line:48 col:45
+  %13 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %mats2_texture_structbuf, i32 %5, i32 0), !dbg !101 ; line:48 col:52  ; BufferLoad(srv,index,wot)
+  %14 = extractvalue %dx.types.ResRet.f32 %13, 0, !dbg !101 ; line:48 col:52
+  %15 = extractvalue %dx.types.ResRet.f32 %13, 1, !dbg !101 ; line:48 col:52
+  %16 = extractvalue %dx.types.ResRet.f32 %13, 2, !dbg !101 ; line:48 col:52
+  %17 = extractvalue %dx.types.ResRet.f32 %13, 3, !dbg !101 ; line:48 col:52
+  %.i0 = fadd fast float %9, %14, !dbg !115 ; line:48 col:50
+  %.i1 = fadd fast float %10, %15, !dbg !115 ; line:48 col:50
+  %.i2 = fadd fast float %11, %16, !dbg !115 ; line:48 col:50
+  %.i3 = fadd fast float %12, %17, !dbg !115 ; line:48 col:50
+  %18 = mul i32 %7, 4, !dbg !116 ; line:48 col:26
+  %19 = add i32 0, %18, !dbg !116 ; line:48 col:26
+  %20 = getelementptr [256 x float], [256 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.0.v.v.1dim", i32 0, i32 %19, !dbg !116 ; line:48 col:26
+  store float %.i0, float addrspace(3)* %20, !dbg !116 ; line:48 col:26
+  %21 = mul i32 %7, 4, !dbg !116 ; line:48 col:26
+  %22 = add i32 1, %21, !dbg !116 ; line:48 col:26
+  %23 = getelementptr [256 x float], [256 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.0.v.v.1dim", i32 0, i32 %22, !dbg !116 ; line:48 col:26
+  store float %.i2, float addrspace(3)* %23, !dbg !116 ; line:48 col:26
+  %24 = mul i32 %7, 4, !dbg !116 ; line:48 col:26
+  %25 = add i32 2, %24, !dbg !116 ; line:48 col:26
+  %26 = getelementptr [256 x float], [256 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.0.v.v.1dim", i32 0, i32 %25, !dbg !116 ; line:48 col:26
+  store float %.i1, float addrspace(3)* %26, !dbg !116 ; line:48 col:26
+  %27 = mul i32 %7, 4, !dbg !116 ; line:48 col:26
+  %28 = add i32 3, %27, !dbg !116 ; line:48 col:26
+  %29 = getelementptr [256 x float], [256 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.0.v.v.1dim", i32 0, i32 %28, !dbg !116 ; line:48 col:26
+  store float %.i3, float addrspace(3)* %29, !dbg !116 ; line:48 col:26
+  %.i04 = uitofp i32 %3 to float, !dbg !117 ; line:49 col:28
+  %.i15 = uitofp i32 %4 to float, !dbg !117 ; line:49 col:28
+  %30 = urem i32 %1, 64, !dbg !118 ; line:49 col:16
+  %31 = mul i32 %30, 2, !dbg !119 ; line:49 col:26
+  %32 = add i32 0, %31, !dbg !119 ; line:49 col:26
+  %33 = getelementptr [128 x float], [128 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.1.v.1dim", i32 0, i32 %32, !dbg !119 ; line:49 col:26
+  store float %.i04, float addrspace(3)* %33, align 4, !dbg !119 ; line:49 col:26
+  %34 = mul i32 %30, 2, !dbg !119 ; line:49 col:26
+  %35 = add i32 1, %34, !dbg !119 ; line:49 col:26
+  %36 = getelementptr [128 x float], [128 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.1.v.1dim", i32 0, i32 %35, !dbg !119 ; line:49 col:26
+  store float %.i15, float addrspace(3)* %36, align 4, !dbg !119 ; line:49 col:26
+  call void @dx.op.barrier(i32 80, i32 9), !dbg !120 ; line:50 col:5  ; Barrier(barrierMode)
+  %37 = urem i32 %2, 64, !dbg !121 ; line:51 col:38
+  %38 = sub i32 63, %37, !dbg !122 ; line:51 col:32
+  %39 = mul i32 %38, 4, !dbg !123 ; line:51 col:46
+  %40 = add i32 0, %39, !dbg !123 ; line:51 col:46
+  %41 = getelementptr [256 x float], [256 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.0.v.v.1dim", i32 0, i32 %40, !dbg !123 ; line:51 col:46
+  %42 = load float, float addrspace(3)* %41, !dbg !123 ; line:51 col:46
+  %43 = mul i32 %38, 4, !dbg !123 ; line:51 col:46
+  %44 = add i32 1, %43, !dbg !123 ; line:51 col:46
+  %45 = getelementptr [256 x float], [256 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.0.v.v.1dim", i32 0, i32 %44, !dbg !123 ; line:51 col:46
+  %46 = load float, float addrspace(3)* %45, !dbg !123 ; line:51 col:46
+  %47 = mul i32 %38, 4, !dbg !123 ; line:51 col:46
+  %48 = add i32 2, %47, !dbg !123 ; line:51 col:46
+  %49 = getelementptr [256 x float], [256 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.0.v.v.1dim", i32 0, i32 %48, !dbg !123 ; line:51 col:46
+  %50 = load float, float addrspace(3)* %49, !dbg !123 ; line:51 col:46
+  %51 = mul i32 %38, 4, !dbg !123 ; line:51 col:46
+  %52 = add i32 3, %51, !dbg !123 ; line:51 col:46
+  %53 = getelementptr [256 x float], [256 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.0.v.v.1dim", i32 0, i32 %52, !dbg !123 ; line:51 col:46
+  %54 = load float, float addrspace(3)* %53, !dbg !123 ; line:51 col:46
+  call void @llvm.dbg.value(metadata float %42, i64 0, metadata !124, metadata !109), !dbg !125 ; var:"f2x2" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %46, i64 0, metadata !124, metadata !106), !dbg !125 ; var:"f2x2" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %50, i64 0, metadata !124, metadata !126), !dbg !125 ; var:"f2x2" !DIExpression(DW_OP_bit_piece, 64, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %54, i64 0, metadata !124, metadata !127), !dbg !125 ; var:"f2x2" !DIExpression(DW_OP_bit_piece, 96, 32) func:"main"
+  %55 = urem i32 %2, 64, !dbg !128 ; line:52 col:34
+  %56 = sub i32 63, %55, !dbg !129 ; line:52 col:28
+  %57 = mul i32 %56, 2, !dbg !130 ; line:52 col:42
+  %58 = add i32 0, %57, !dbg !130 ; line:52 col:42
+  %59 = getelementptr [128 x float], [128 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.1.v.1dim", i32 0, i32 %58, !dbg !130 ; line:52 col:42
+  %60 = load float, float addrspace(3)* %59, align 4, !dbg !130 ; line:52 col:42
+  %61 = mul i32 %56, 2, !dbg !130 ; line:52 col:42
+  %62 = add i32 1, %61, !dbg !130 ; line:52 col:42
+  %63 = getelementptr [128 x float], [128 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.1.v.1dim", i32 0, i32 %62, !dbg !130 ; line:52 col:42
+  %64 = load float, float addrspace(3)* %63, align 4, !dbg !130 ; line:52 col:42
+  %65 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !131 ; line:52 col:12
+  call void @llvm.dbg.value(metadata float %60, i64 0, metadata !132, metadata !109), !dbg !131 ; var:"f2" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %64, i64 0, metadata !132, metadata !106), !dbg !131 ; var:"f2" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %fA_UAV_structbuf, i32 %6, i32 0, float %42, float %46, float %50, float %54, i8 15), !dbg !133 ; line:53 col:14  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %fB_UAV_structbuf, i32 %6, i32 0, float %60, float %64, float undef, float undef, i8 3), !dbg !134 ; line:54 col:14  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  %66 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !135 ; line:55 col:1
+  ret void, !dbg !135 ; line:55 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.groupId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadIdInGroup.i32(i32, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.flattenedThreadIdInGroup.i32(i32) #0
+
+; Function Attrs: noduplicate nounwind
+declare void @dx.op.barrier(i32, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32, %dx.types.Handle, i32, i32) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #3
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { noduplicate nounwind }
+attributes #2 = { nounwind readonly }
+attributes #3 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!66, !67}
+!llvm.ident = !{!68}
+!dx.source.contents = !{!69}
+!dx.source.defines = !{!70}
+!dx.source.mainFileName = !{!71}
+!dx.source.args = !{!72}
+!dx.version = !{!73}
+!dx.valver = !{!74}
+!dx.shaderModel = !{!75}
+!dx.resources = !{!76}
+!dx.typeAnnotations = !{!84, !95}
+!dx.entryPoints = !{!98}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxcoob 1.8.2502.8 (b4711839e)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !18)
+!1 = !DIFile(filename: "repro.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 46, type: !5, isLocal: false, isDefinition: true, scopeLine: 47, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7, !7, !7, !17}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint2", file: !1, line: 33, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 2>", file: !1, line: 33, size: 64, align: 32, elements: !9, templateParams: !13)
+!9 = !{!10, !12}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, line: 33, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, line: 33, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !{!14, !15}
+!14 = !DITemplateTypeParameter(name: "element", type: !11)
+!15 = !DITemplateValueParameter(name: "element_count", type: !16, value: i32 2)
+!16 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!17 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 33, baseType: !11)
+!18 = !{!19, !45, !49, !53, !60, !62, !64}
+!19 = !DIGlobalVariable(name: "dataC", linkageName: "\01?dataC@@3PAUS@@A", scope: !0, file: !1, line: 33, type: !20, isLocal: false, isDefinition: true)
+!20 = !DICompositeType(tag: DW_TAG_array_type, baseType: !21, size: 12288, align: 32, elements: !43)
+!21 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", file: !1, line: 28, size: 192, align: 32, elements: !22)
+!22 = !{!23, !36}
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "d", scope: !21, file: !1, line: 29, baseType: !24, size: 128, align: 32)
+!24 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2x2", file: !1, line: 33, baseType: !25)
+!25 = !DICompositeType(tag: DW_TAG_class_type, name: "matrix<float, 2, 2>", file: !1, line: 33, size: 128, align: 32, elements: !26, templateParams: !32)
+!26 = !{!27, !29, !30, !31}
+!27 = !DIDerivedType(tag: DW_TAG_member, name: "_11", scope: !25, file: !1, line: 33, baseType: !28, size: 32, align: 32, flags: DIFlagPublic)
+!28 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!29 = !DIDerivedType(tag: DW_TAG_member, name: "_12", scope: !25, file: !1, line: 33, baseType: !28, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!30 = !DIDerivedType(tag: DW_TAG_member, name: "_21", scope: !25, file: !1, line: 33, baseType: !28, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "_22", scope: !25, file: !1, line: 33, baseType: !28, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!32 = !{!33, !34, !35}
+!33 = !DITemplateTypeParameter(name: "element", type: !28)
+!34 = !DITemplateValueParameter(name: "row_count", type: !16, value: i32 2)
+!35 = !DITemplateValueParameter(name: "col_count", type: !16, value: i32 2)
+!36 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !21, file: !1, line: 30, baseType: !37, size: 64, align: 32, offset: 128)
+!37 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, line: 33, baseType: !38)
+!38 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, line: 33, size: 64, align: 32, elements: !39, templateParams: !42)
+!39 = !{!40, !41}
+!40 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !38, file: !1, line: 33, baseType: !28, size: 32, align: 32, flags: DIFlagPublic)
+!41 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !38, file: !1, line: 33, baseType: !28, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!42 = !{!33, !15}
+!43 = !{!44}
+!44 = !DISubrange(count: 64)
+!45 = !DIGlobalVariable(name: "fA", linkageName: "\01?fA@@3V?$RWStructuredBuffer@V?$matrix@M$01$01@@@@A", scope: !0, file: !1, line: 35, type: !46, isLocal: false, isDefinition: true)
+!46 = !DICompositeType(tag: DW_TAG_class_type, name: "RWStructuredBuffer<matrix<float, 2, 2> >", file: !1, line: 35, size: 128, align: 32, elements: !2, templateParams: !47)
+!47 = !{!48}
+!48 = !DITemplateTypeParameter(name: "element", type: !25)
+!49 = !DIGlobalVariable(name: "fB", linkageName: "\01?fB@@3V?$RWStructuredBuffer@V?$vector@M$01@@@@A", scope: !0, file: !1, line: 36, type: !50, isLocal: false, isDefinition: true)
+!50 = !DICompositeType(tag: DW_TAG_class_type, name: "RWStructuredBuffer<vector<float, 2> >", file: !1, line: 36, size: 64, align: 32, elements: !2, templateParams: !51)
+!51 = !{!52}
+!52 = !DITemplateTypeParameter(name: "element", type: !38)
+!53 = !DIGlobalVariable(name: "mats", linkageName: "\01?mats@@3V?$StructuredBuffer@Umat@@@@A", scope: !0, file: !1, line: 42, type: !54, isLocal: false, isDefinition: true)
+!54 = !DICompositeType(tag: DW_TAG_class_type, name: "StructuredBuffer<mat>", file: !1, line: 42, size: 128, align: 32, elements: !2, templateParams: !55)
+!55 = !{!56}
+!56 = !DITemplateTypeParameter(name: "element", type: !57)
+!57 = !DICompositeType(tag: DW_TAG_structure_type, name: "mat", file: !1, line: 38, size: 128, align: 32, elements: !58)
+!58 = !{!59}
+!59 = !DIDerivedType(tag: DW_TAG_member, name: "f2x2", scope: !57, file: !1, line: 39, baseType: !24, size: 128, align: 32)
+!60 = !DIGlobalVariable(name: "mats2", linkageName: "\01?mats2@@3V?$StructuredBuffer@V?$matrix@M$01$01@@@@A", scope: !0, file: !1, line: 43, type: !61, isLocal: false, isDefinition: true)
+!61 = !DICompositeType(tag: DW_TAG_class_type, name: "StructuredBuffer<matrix<float, 2, 2> >", file: !1, line: 43, size: 128, align: 32, elements: !2, templateParams: !47)
+!62 = !DIGlobalVariable(name: "dataC.1", linkageName: "\01?dataC@@3PAUS@@A.1.v.1dim", scope: !0, file: !1, line: 33, type: !63, isLocal: false, isDefinition: true, variable: [128 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.1.v.1dim")
+!63 = !DIDerivedType(tag: DW_TAG_member, name: ".1", baseType: !20, size: 4096, align: 4, offset: 8192)
+!64 = !DIGlobalVariable(name: "dataC.0", linkageName: "\01?dataC@@3PAUS@@A.0.v.v.1dim", scope: !0, file: !1, line: 33, type: !65, isLocal: false, isDefinition: true, variable: [256 x float] addrspace(3)* @"\01?dataC@@3PAUS@@A.0.v.v.1dim")
+!65 = !DIDerivedType(tag: DW_TAG_member, name: ".0", baseType: !20, size: 8192, align: 8)
+!66 = !{i32 2, !"Dwarf Version", i32 4}
+!67 = !{i32 2, !"Debug Info Version", i32 3}
+!68 = !{!"dxcoob 1.8.2502.8 (b4711839e)"}
+!69 = !{!"repro.hlsl", !"// RUN: %dxc -E main -T cs_6_0 -Zi -Od -DDefineA -DDefineB=0 %s -Qstrip_reflect | FileCheck %s\0D\0A\0D\0A// CHECK: threadId\0D\0A// CHECK: groupId\0D\0A// CHECK: threadIdInGroup\0D\0A// CHECK: flattenedThreadIdInGroup\0D\0A// CHECK: addrspace(3)\0D\0A\0D\0A// Make sure source info exist.\0D\0A// CHECK: !dx.source.contents\0D\0A// CHECK: !dx.source.defines\0D\0A// CHECK: !dx.source.mainFileName\0D\0A// CHECK: !dx.source.args\0D\0A\0D\0A// CHECK: DIGlobalVariable(name: \22dataC\22\0D\0A// CHECK: DIDerivedType(tag: DW_TAG_member, name: \22d\22\0D\0A// CHECK: DIDerivedType(tag: DW_TAG_member, name: \22b\22\0D\0A\0D\0A// Exclude quoted source file (see readme)\0D\0A// CHECK-LABEL: {{!\22[^\22]*\5C\5C0A[^\22]*\22}}\0D\0A\0D\0A// Make sure source info contents exist.\0D\0A// CHECK: !{!\22DefineA=1\22, !\22DefineB=0\22}\0D\0A// CHECK: share_mem_dbg.hlsl\22}\0D\0A// CHECK: !{!\22-E\22, !\22main\22, !\22-T\22, !\22cs_6_0\22, !\22-Zi\22, !\22-Od\22, !\22-D\22, !\22DefineA\22, !\22-D\22, !\22DefineB=0\22, !\22-Qstrip_reflect\22, !\22-Qembed_debug\22}\0D\0A\0D\0A\0D\0Astruct S {\0D\0A  column_major float2x2 d;\0D\0A  float2  b;\0D\0A};\0D\0A\0D\0Agroupshared S dataC[8*8];\0D\0A\0D\0ARWStructuredBuffer<float2x2> fA;\0D\0ARWStructuredBuffer<float2> fB;\0D\0A\0D\0Astruct mat {\0D\0A  row_major float2x2 f2x2;\0D\0A};\0D\0A\0D\0AStructuredBuffer<mat> mats;\0D\0AStructuredBuffer<row_major float2x2> mats2;\0D\0A\0D\0A[numthreads(8,8,1)]\0D\0Avoid main( uint2 tid : SV_DispatchThreadID, uint2 gid : SV_GroupID, uint2 gtid : SV_GroupThreadID, uint gidx : SV_GroupIndex )\0D\0A{\0D\0A    dataC[tid.x%(8*8)].d = mats.Load(gid.x).f2x2 + mats2.Load(gtid.y);\0D\0A    dataC[tid.x%(8*8)].b = gid;\0D\0A    GroupMemoryBarrierWithGroupSync();\0D\0A    float2x2 f2x2 = dataC[8*8-1-tid.y%(8*8)].d;\0D\0A    float2 f2 = dataC[8*8-1-tid.y%(8*8)].b;\0D\0A    fA[gidx] = f2x2;\0D\0A    fB[gidx] = f2;\0D\0A}\0D\0A"}
+!70 = !{!"DefineA=1", !"DefineB=0", !"DefineA=1", !"DefineB=0"}
+!71 = !{!"repro.hlsl"}
+!72 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Od", !"-D", !"DefineA", !"-D", !"DefineB=0", !"-Qstrip_reflect", !"-D", !"DefineA", !"-D", !"DefineB=0", !"-Qembed_debug"}
+!73 = !{i32 1, i32 0}
+!74 = !{i32 1, i32 8}
+!75 = !{!"cs", i32 6, i32 0}
+!76 = !{!77, !81, null, null}
+!77 = !{!78, !80}
+!78 = !{i32 0, %"hostlayout.class.StructuredBuffer<mat>"* undef, !"mats", i32 0, i32 0, i32 1, i32 12, i32 0, !79}
+!79 = !{i32 1, i32 16}
+!80 = !{i32 1, %"hostlayout.class.StructuredBuffer<matrix<float, 2, 2> >"* undef, !"mats2", i32 0, i32 1, i32 1, i32 12, i32 0, !79}
+!81 = !{!82, !83}
+!82 = !{i32 0, %"hostlayout.class.RWStructuredBuffer<matrix<float, 2, 2> >"* undef, !"fA", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !79}
+!83 = !{i32 1, %"class.RWStructuredBuffer<vector<float, 2> >"* undef, !"fB", i32 0, i32 1, i32 1, i32 12, i1 false, i1 false, i1 false, !74}
+!84 = !{i32 0, %"class.RWStructuredBuffer<vector<float, 2> >" undef, !85, %"hostlayout.class.RWStructuredBuffer<matrix<float, 2, 2> >" undef, !87, %hostlayout.struct.mat undef, !90, %"hostlayout.class.StructuredBuffer<mat>" undef, !93, %"hostlayout.class.StructuredBuffer<matrix<float, 2, 2> >" undef, !87}
+!85 = !{i32 8, !86}
+!86 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 9}
+!87 = !{i32 24, !88}
+!88 = !{i32 6, !"h", i32 2, !89, i32 3, i32 0, i32 7, i32 9}
+!89 = !{i32 2, i32 2, i32 2}
+!90 = !{i32 24, !91}
+!91 = !{i32 6, !"f2x2", i32 2, !92, i32 3, i32 0, i32 7, i32 9}
+!92 = !{i32 2, i32 2, i32 1}
+!93 = !{i32 24, !94}
+!94 = !{i32 6, !"h", i32 3, i32 0}
+!95 = !{i32 1, void ()* @main, !96}
+!96 = !{!97}
+!97 = !{i32 0, !2, !2}
+!98 = !{void ()* @main, !"main", null, !76, !99}
+!99 = !{i32 0, i64 17, i32 4, !100}
+!100 = !{i32 8, i32 8, i32 1}
+!101 = !DILocation(line: 48, column: 52, scope: !4)
+!102 = !DILocation(line: 46, column: 105, scope: !4)
+!103 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "gidx", arg: 4, scope: !4, file: !1, line: 46, type: !17)
+!104 = !DIExpression()
+!105 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "gtid", arg: 3, scope: !4, file: !1, line: 46, type: !7)
+!106 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!107 = !DILocation(line: 46, column: 75, scope: !4)
+!108 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "gid", arg: 2, scope: !4, file: !1, line: 46, type: !7)
+!109 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!110 = !DILocation(line: 46, column: 51, scope: !4)
+!111 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "tid", arg: 1, scope: !4, file: !1, line: 46, type: !7)
+!112 = !DILocation(line: 46, column: 18, scope: !4)
+!113 = !DILocation(line: 48, column: 16, scope: !4)
+!114 = !DILocation(line: 48, column: 45, scope: !4)
+!115 = !DILocation(line: 48, column: 50, scope: !4)
+!116 = !DILocation(line: 48, column: 26, scope: !4)
+!117 = !DILocation(line: 49, column: 28, scope: !4)
+!118 = !DILocation(line: 49, column: 16, scope: !4)
+!119 = !DILocation(line: 49, column: 26, scope: !4)
+!120 = !DILocation(line: 50, column: 5, scope: !4)
+!121 = !DILocation(line: 51, column: 38, scope: !4)
+!122 = !DILocation(line: 51, column: 32, scope: !4)
+!123 = !DILocation(line: 51, column: 46, scope: !4)
+!124 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "f2x2", scope: !4, file: !1, line: 51, type: !24)
+!125 = !DILocation(line: 51, column: 14, scope: !4)
+!126 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!127 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!128 = !DILocation(line: 52, column: 34, scope: !4)
+!129 = !DILocation(line: 52, column: 28, scope: !4)
+!130 = !DILocation(line: 52, column: 42, scope: !4)
+!131 = !DILocation(line: 52, column: 12, scope: !4)
+!132 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "f2", scope: !4, file: !1, line: 52, type: !37)
+!133 = !DILocation(line: 53, column: 14, scope: !4)
+!134 = !DILocation(line: 54, column: 14, scope: !4)
+!135 = !DILocation(line: 55, column: 1, scope: !4)
+
+
+--- stderr ---
+warning: no output provided for debug - embedding PDB in shader container.  Use -Qembed_debug to silence this warning.
+
+

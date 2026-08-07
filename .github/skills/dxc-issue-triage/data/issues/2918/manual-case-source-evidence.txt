@@ -1,0 +1,106 @@
+# case: what changed in the PIX pass between the reproducing and non-reproducing releases?
+# harness: git, in the DXC working tree at ab5400907
+# why: the history in manual-case-history.txt brackets the fix between v1.5.2010 (2020-10-22)
+#   and v1.6.2104 (2021-04-20). Showing that a field is written and never read -- or here,
+#   that the exact metadata shape the issue quotes was constructed by one line of the pass --
+#   is stronger evidence than the output observation alone (SKILL.md step 11).
+# ran: 2026-08-07
+# verdict: unscored
+
+$ git log --oneline --date=short v1.5.2010..v1.6.2104 -- lib/DxilPIXPasses/DxilDbgValueToDbgDeclare.cpp
+ade0e2479 PIX: Shader debug: don't instrument ray query handles (#3434)
+ac5630e8e Fixes for adding -Od (#3292)
+265492784 PIX: Update debugging passes for certain language features (#3289)
+
+$ git --no-pager show -s --format="%H%n%an <%ae>%n%ad%n%n%B" ac5630e8e
+ac5630e8e6e224195a9d39b1b0dbe04275f5c1b8
+Jeff Noyle <jeffno@microsoft.com>
+Thu Dec 3 16:36:51 2020 -0800
+
+Fixes for adding -Od (#3292)
+
+A customer couldn't recompile their large shader with -Od for debugging in PIX.
+-The symbol manager would quit early, so now it continues to discover other variables
+-The value-to-declare pass was adding an incorrect debug location, which tripped up the verifier.
+$ git --no-pager show ac5630e8e -- lib/DxilPIXPasses/DxilDbgValueToDbgDeclare.cpp   [the relevant hunks]
+diff --git a/lib/DxilPIXPasses/DxilDbgValueToDbgDeclare.cpp b/lib/DxilPIXPasses/DxilDbgValueToDbgDeclare.cpp
+@@ -197,6 +197,7 @@ class VariableRegisters
+@@ -233,7 +234,8 @@ private:
+@@ -389,7 +391,7 @@ void DxilDbgValueToDbgDeclare::handleDbgValue(
+@@ -435,8 +437,8 @@ void DxilDbgValueToDbgDeclare::handleDbgValue(
+@@ -482,9 +484,11 @@ static llvm::DIType *DITypePeelTypeAlias(
+@@ -617,7 +621,7 @@ void VariableRegisters::PopulateAllocaMap_BasicType(
+-  DbgDeclare->setDebugLoc(GetVariableLocation());
++  DbgDeclare->setDebugLoc(m_dbgLoc);
+
+$ git --no-pager show ac5630e8e^:lib/DxilPIXPasses/DxilDbgValueToDbgDeclare.cpp | findstr /n GetVariableLocation   [the location the pass attached, pre-fix]
+llvm::DILocation *VariableRegisters::GetVariableLocation() const
+{
+  const unsigned DefaultColumn = 1;
+  return llvm::DILocation::get(
+      m_B.getContext(),
+      m_Variable->getLine(),
+      DefaultColumn,
+      m_Variable->getScope());
+}
+
+llvm::Value *VariableRegisters::GetMetadataAsValue(
+
+WHAT THAT MEANS
+  DILocation::get(ctx, line, column, scope) is the 4-argument overload: InlinedAt is null.
+  So for a variable declared in a function that -Od left as a real call but that the PIX
+  passes see through inlining, the pass attached to an instruction in the *entry* function a
+  !dbg whose scope chain terminates in the *callee's* DISubprogram, with no inlinedAt: to
+  make that legal. That is exactly what llvm::Verifier::visitDISubprogram rejects with
+  "!dbg attachment points at wrong subprogram for function".
+
+  The shape matches the dump in the issue line for line:
+    reported  !970 = !DILocation(line: 96, column: 1, scope: !965)   ; !965 = DILexicalBlock
+    pre-fix   DILocation::get(ctx, m_Variable->getLine(), /*column*/ 1, m_Variable->getScope())
+  column: 1 is not a column the front end would emit for a declaration; it is DefaultColumn
+  in the code above. No inlinedAt: in either.
+
+CURRENT STATE at ab5400907 (lib/DxilPIXPasses/DxilDbgValueToDbgDeclare.cpp)
+
+  the call site now uses the originating instruction's own DebugLoc:
+  1231:   auto *Expression = GetMetadataAsValue(
+  1232:       GetDIExpression(Ty, sizeOverride == 0 ? offsets.Aligned : offsets.Packed,
+  1233:                       GetVariableSizeInbits(m_Variable), sizeOverride));
+  1234:   auto *DbgDeclare =
+  1235:       m_B.CreateCall(m_DbgDeclareFn, {Storage, Variable, Expression});
+  1236:   DbgDeclare->setDebugLoc(m_dbgLoc);
+  1237: }
+
+  and the old helper is left compiled out, unreachable:
+  1329: }
+  1330: 
+  1331: // HLSL Change: remove unused function
+  1332: #if 0
+  1333: llvm::DILocation *VariableRegisters::GetVariableLocation() const
+  1334: {
+  1335:   const unsigned DefaultColumn = 1;
+  1336:   return llvm::DILocation::get(
+  1337:       m_B.getContext(),
+  1338:       m_Variable->getLine(),
+  1339:       DefaultColumn,
+  1340:       m_Variable->getScope());
+  1341: }
+  1342: #endif
+  1343: 
+
+ANCESTRY
+
+$ git merge-base --is-ancestor ac5630e8e HEAD   -> exit 0  (0 = the fix is in the triaged build)
+$ git rev-list --count v1.5.2010..v1.6.2104     -> 268 commits in the window, 3 of which
+  touch the pass (listed at the top). Of those 3, only ac5630e8e changes the debug location
+  attached to the synthesised llvm.dbg.declare; the other two add handling for ray query
+  handles and for language features, and neither calls setDebugLoc.
+
+STRENGTH OF THIS ATTRIBUTION
+
+  Strong, not certain. The behaviour change was measured on release binaries either side of
+  the window (manual-case-history.txt); the commit was not built and run in isolation, so
+  this is source reasoning over a 268-commit window narrowed to one plausible commit, not a
+  bisect. The commit message independently describes the same failure mode ("The
+  value-to-declare pass was adding an incorrect debug location, which tripped up the
+  verifier"), and its author is the person the issue tells you to ask for details.

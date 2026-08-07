@@ -1,0 +1,32 @@
+# The reporter's configuration (cmd-as-filed.txt), with two deliberate
+# departures and one addition.
+#
+# 1. -Fd names the PDB explicitly instead of ending in a slash.
+#    The reporter's trailing slash makes dxc auto-name the PDB
+#    <container-hash>.pdb, and that hash differs from release to release, so no
+#    fixed second line could ever name the file. Measured on ground truth: both
+#    spellings emit a 5632-byte PDB with NumBlocks=10 and the same out-of-range
+#    block 10, so the departure does not change what is under test
+#    (manual-case-msf-header-main-debug.txt).
+#
+# 2. Paths use FORWARD slashes. triage.py splits these lines with
+#    shlex.split(), which runs in POSIX mode and silently DELETES backslashes:
+#    "-Fd pdb\repro.pdb" reaches dxc as "-Fd pdbrepro.pdb". dxc on Windows
+#    accepts forward slashes in paths, so this is a harness constraint, not a
+#    change to the reported configuration.
+#
+# 3. A second invocation reads the PDB back. Line 1 on its own prints NOTHING
+#    AT ALL on a successful compile -- see variant-compile-only-main-debug.txt,
+#    a control that exists to make exactly that point permanent. Without line 2
+#    there is no text for any predicate to test. Line 2 also reaches block 10,
+#    the block the superblock disowns, so it is the evidence that the disowned
+#    block holds real payload.
+#
+# Output goes to pdb/, which is committed as an empty gitignored directory: dxc
+# does not create the -Fd directory itself, and git does not store empty
+# directories.
+#
+# NOTE: neither line can observe the reported symptom. It is a property of the
+# bytes of pdb/repro.pdb. Run measure_msf.py for that.
+-T ps_6_0 -Zi -Qstrip_debug -Zsb repro.hlsl -Fd pdb/repro.pdb -Fo pdb/a.dxbc
+-dumpbin pdb/repro.pdb

@@ -1,0 +1,17 @@
+# #2918 -- STAGE 1 OF A TWO-STAGE REPRO. This line alone cannot show the symptom.
+#
+# The issue is a failure inside a PIX *pass*, which runs over an already-compiled module
+# through IDxcOptimizer::RunOptimizer. No `dxc` invocation reaches it, so `triage.py run`
+# and `bisect` cannot score this issue and there is deliberately no match.json -- captures
+# here are `unscored`. The measurement lives in run-pix-passes.py and manual-case-*.txt.
+#
+#   stage 1 (this file)  dxc  -T cs_6_0 -E main -Od -Zi -Qembed_debug repro.hlsl > module.ll
+#   stage 2 (harness)    dxopt module.ll -opt-mod-passes -dxil-dbg-value-to-dbg-declare \
+#                                                        -dxil-annotate-with-virtual-regs
+#
+# -Od rather than the reported /Od: dxc accepts both, and unrecognised /-flags are silently
+# ignored (SKILL.md), so the - form guarantees the flag was honoured. -Zi -Qembed_debug are
+# not in the report but are implied by it: every line of the quoted assert is debug metadata,
+# and PIX debugs shaders that carry it. cs_6_0 is the oldest profile that shows it and matches
+# the report's "...CS" entry point. No -Fo: `run --shader X` retargets only the source operand.
+-T cs_6_0 -E main -Od -Zi -Qembed_debug repro.hlsl

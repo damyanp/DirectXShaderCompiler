@@ -1,0 +1,39 @@
+What to look for: #3005 -- separate PDB files have an invalid MSF header.
+
+NOTHING IN THIS PANE SHOWS THE BUG, and that is the finding.
+
+The reported defect is in a FILE dxc writes, not in anything it prints. With
+-Zi -Qstrip_debug -Zsb -Fd <path>, dxc emits a separate .pdb whose MSF
+superblock declares NumBlocks (uint32 at offset 0x28) one block short of the
+file's real size -- so the file's own stream directory points at a block the
+header says does not exist. Compiler Explorer can only show you stdout, stderr
+and the disassembly, so it cannot show you those bytes.
+
+What you can see here: the compile succeeds and says nothing at all. That
+silence is why this defect survived six years. Nothing in a build log, a CI
+check or a compiler-output diff can notice it.
+
+Measured on a clean Debug build of main (ab5400907), ps_6_0, this shader:
+
+  size on disk        5632 bytes = 11 x 512-byte blocks
+  NumBlocks   @0x28   10          <-- declares blocks 0..9
+  stream 5 (the DXIL container) occupies blocks 6, 7, 8, 9, 10
+                                  <-- block 10 is outside the declared range
+
+All 21 dxc builds measured -- every release from v1.4.1907 (2019) to v1.9.2607
+(2026), plus main -- do this. Against v1.5.2010, the release closest to the
+build in the report, the numbers come out at exactly the reporter's: 5120
+bytes, 10 blocks, NumBlocks = 9.
+
+Two notes on this link:
+
+  * The panes drop the `-Fd pdb/repro.pdb -Fo pdb/a.dxbc` of the local cmd.txt
+    in favour of a plain `-Fd repro.pdb`. Compiler Explorer has no `pdb/`
+    directory, so the local spelling fails there with "No such file or
+    directory" -- an artefact of the sandbox, not of dxc. The flags that matter
+    (-Zi -Qstrip_debug -Zsb -Fd) are unchanged.
+
+  * The 1.6.2112 pane prints "DXIL.dll not found. Resulting DXIL will not be
+    signed", exactly as the report does. That warning is unrelated: it was
+    checked locally against a build that does have dxil.dll and does sign, and
+    the PDB defect is byte-for-byte identical either way.

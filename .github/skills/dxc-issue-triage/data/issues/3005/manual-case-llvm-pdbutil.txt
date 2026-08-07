@@ -1,0 +1,94 @@
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2124]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2124 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+  control: copied repro.pdb with NumBlocks 10 -> 11; the two files differ in 4 bytes at 0x28.
+  $ llvm-pdbutil dump --summary pdb\main-debug\named\repro.pdb        # as dxc wrote it
+  exit: 0
+  |                           Summary
+  | ============================================================
+  |   Block Size: 512
+  |   Number of blocks: 10
+  |   Number of streams: 6
+  |   Signature: 0
+  |   Age: 1
+  |   GUID: {60A130A8-5E93-37F3-FE2E-4E6D69E11B1B}
+  |   Features: 0x0
+  |   Has Debug Info: false
+  |   Has Types: true
+  |   Has IDs: false
+  |   Has Globals: false
+  |   Has Publics: false
+  $ llvm-pdbutil dump --streams --stream-blocks pdb\main-debug\named\repro.pdb        # as dxc wrote it
+  exit: 0
+  |                           Streams
+  | ============================================================
+  |   Stream 0 (   0 bytes): [Old MSF Directory]
+  |             Blocks: []
+  |   Stream 1 (  56 bytes): [PDB Stream]
+  |             Blocks: [5]
+  |   Stream 2 (   0 bytes): [TPI Stream]
+  |             Blocks: []
+  |   Stream 3 (   0 bytes): [DBI Stream]
+  |             Blocks: []
+  |   Stream 4 (   0 bytes): [IPI Stream]
+  |             Blocks: []
+  |   Stream 5 (2124 bytes): [???]
+  |             Blocks: [6, 7, 8, 9, 10]
+  $ llvm-pdbutil dump --summary pdb\main-debug\named\repro-numblocks-corrected.pdb        # NumBlocks corrected
+  exit: 0
+  |                           Summary
+  | ============================================================
+  |   Block Size: 512
+  |   Number of blocks: 11
+  |   Number of streams: 6
+  |   Signature: 0
+  |   Age: 1
+  |   GUID: {60A130A8-5E93-37F3-FE2E-4E6D69E11B1B}
+  |   Features: 0x0
+  |   Has Debug Info: false
+  |   Has Types: true
+  |   Has IDs: false
+  |   Has Globals: false
+  |   Has Publics: false
+  $ llvm-pdbutil dump --streams --stream-blocks pdb\main-debug\named\repro-numblocks-corrected.pdb        # NumBlocks corrected
+  exit: 0
+  |                           Streams
+  | ============================================================
+  |   Stream 0 (   0 bytes): [Old MSF Directory]
+  |             Blocks: []
+  |   Stream 1 (  56 bytes): [PDB Stream]
+  |             Blocks: [5]
+  |   Stream 2 (   0 bytes): [TPI Stream]
+  |             Blocks: []
+  |   Stream 3 (   0 bytes): [DBI Stream]
+  |             Blocks: []
+  |   Stream 4 (   0 bytes): [IPI Stream]
+  |             Blocks: []
+  |   Stream 5 (2124 bytes): [???]
+  |             Blocks: [6, 7, 8, 9, 10]

@@ -1,0 +1,22 @@
+{
+  "batch": "007",
+  "confidence": "high",
+  "created_at": "2020-10-07T13:54:51Z",
+  "godbolt_url": "https://godbolt.org/z/48nqT9roE",
+  "history": "always-repro'd",
+  "labels": "spirv",
+  "labels_add": "enhancement, up-for-grabs, docs",
+  "labels_now": "spirv",
+  "notes_path": "data/issues/3189/notes.md",
+  "number": 3189,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Reproduces exactly as filed on ground truth and on all 19 probeable releases (v1.5.2010..v1.9.2607); v1.4.1907 is invalid-probe (no SPIR-V codegen, confirmed by a flag-free control, since the primary capture was demoted only for an unknown flag). With the reporter reconstructed shift flags the used cbuffer c is decorated Binding 2 while the two unused cbuffers are fully DCE-eliminated; with no shift flags it is Binding 4, so the behaviour is not shift-specific. Source confirms decorateResourceBindings runs at SpirvEmitter.cpp:840, before spirv-opt at 972/988, and -O0 shows a=0 b=1 c=2 unchanged. DXIL mode compacts (c at cb0), as noted in the thread. Not a defect to fix: s-perron stated the design position in 2024 (default must not change; opt-in spirv-opt renumbering pass welcome), and DXC already ships -fspv-preserve-bindings which keeps unused resources rather than compacting them. Remaining actions are relabelling as an enhancement and two docs gaps in SPIR-V.rst: the behaviour itself, and -fspv-preserve-bindings, which is undocumented.",
+  "title": "[SPIR-V] Descriptor bindings assigned before dead code elimination",
+  "triaged_at": "2026-08-07T13:22:04+00:00",
+  "triaged_by": "claude-opus-4.5 (Copilot CLI)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3189"
+}

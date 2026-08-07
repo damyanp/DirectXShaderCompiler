@@ -1,0 +1,1430 @@
+=== main-debug ===
+  exe             : C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+  version         : dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\main-debug\as-filed\ -Fo pdb\main-debug\as-filed\a.dxbc
+  exit            : 0
+  file            : a830a160935ef337fe2e4e6d69e11b1b.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2132]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2132 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\main-debug\named\repro.pdb -Fo pdb\main-debug\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2124]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2124 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.4.1907 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
+  version         : dxc failed : Unknown argument: '--version'
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.4.1907\as-filed\ -Fo pdb\v1.4.1907\as-filed\a.dxbc
+  exit            : 0
+  file            : f9da3ad7577096e1939eba528969c090.pdb
+  size on disk    : 5120 bytes = 10 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 9
+  NumDirectoryBytes@0x2c: 48
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 4608; file size = 5120; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 1780]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 1780 bytes) blocks [6, 7, 8, 9]
+  highest block index actually used : 9
+  highest block index NumBlocks allows: 8
+  OUT-OF-RANGE BLOCKS: [9]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 09 00 00 00 30 00 00 00  |............0...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.4.1907\named\repro.pdb -Fo pdb\v1.4.1907\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5120 bytes = 10 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 9
+  NumDirectoryBytes@0x2c: 48
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 4608; file size = 5120; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 1776]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 1776 bytes) blocks [6, 7, 8, 9]
+  highest block index actually used : 9
+  highest block index NumBlocks allows: 8
+  OUT-OF-RANGE BLOCKS: [9]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 09 00 00 00 30 00 00 00  |............0...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.5.2010 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
+  version         : dxc failed : Unknown argument: '--version'
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.5.2010\as-filed\ -Fo pdb\v1.5.2010\as-filed\a.dxbc
+  exit            : 0
+  file            : 06e2577abcda3193b71c3138755d4801.pdb
+  size on disk    : 5120 bytes = 10 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 9
+  NumDirectoryBytes@0x2c: 48
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 4608; file size = 5120; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 1936]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 1936 bytes) blocks [6, 7, 8, 9]
+  highest block index actually used : 9
+  highest block index NumBlocks allows: 8
+  OUT-OF-RANGE BLOCKS: [9]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 09 00 00 00 30 00 00 00  |............0...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.5.2010\named\repro.pdb -Fo pdb\v1.5.2010\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5120 bytes = 10 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 9
+  NumDirectoryBytes@0x2c: 48
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 4608; file size = 5120; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 1932]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 1932 bytes) blocks [6, 7, 8, 9]
+  highest block index actually used : 9
+  highest block index NumBlocks allows: 8
+  OUT-OF-RANGE BLOCKS: [9]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 09 00 00 00 30 00 00 00  |............0...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.6.2104 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe
+  version         : dxc failed : Unknown argument: '--version'
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.6.2104\as-filed\ -Fo pdb\v1.6.2104\as-filed\a.dxbc
+  exit            : 0
+  file            : 7efd93578d970ff351afc3ab6a3d8b4a.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2112]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2112 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.6.2104\named\repro.pdb -Fo pdb\v1.6.2104\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2108]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2108 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.6.2106 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
+  version         : dxc failed : Unknown argument: '--version'
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.6.2106\as-filed\ -Fo pdb\v1.6.2106\as-filed\a.dxbc
+  exit            : 0
+  file            : 7efd93578d970ff351afc3ab6a3d8b4a.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2108]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2108 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.6.2106\named\repro.pdb -Fo pdb\v1.6.2106\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2104]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2104 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.6.2112 ===
+  exe             : C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.6 - 1.6.2112.12 (770ac0cc1); dxil.dll: 1.6(101.6.2112.2)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.6.2112\as-filed\ -Fo pdb\v1.6.2112\as-filed\a.dxbc
+  exit            : 0
+  file            : 7efd93578d970ff351afc3ab6a3d8b4a.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2112]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2112 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.6.2112\named\repro.pdb -Fo pdb\v1.6.2112\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2108]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2108 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.7.2207 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.7 - 1.7.2207.3 (e9137cd1d); dxil.dll: 1.7(101.7.2207.10)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2207\as-filed\ -Fo pdb\v1.7.2207\as-filed\a.dxbc
+  exit            : 0
+  file            : c8384c7f41183a6be83ec6f4046562e6.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2112]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2112 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2207\named\repro.pdb -Fo pdb\v1.7.2207\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2108]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2108 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.7.2212 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.7 - 1.7.2212.12 (8c9d92be7); dxil.dll: 1.7(101.7.2212.14)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2212\as-filed\ -Fo pdb\v1.7.2212\as-filed\a.dxbc
+  exit            : 0
+  file            : 0f3d01f44985d28417d47992ecbfbd65.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2104]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2104 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2212\named\repro.pdb -Fo pdb\v1.7.2212\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2100]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2100 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.7.2212.1 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.7 - 1.7.2212.40 (e043f4a12); dxil.dll: 1.7(101.7.2212.36)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2212.1\as-filed\ -Fo pdb\v1.7.2212.1\as-filed\a.dxbc
+  exit            : 0
+  file            : e3a6ed19617167ccdcd8a661a0a103c0.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2108]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2108 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2212.1\named\repro.pdb -Fo pdb\v1.7.2212.1\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2104]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2104 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.7.2308 ===
+  exe             : C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.7 - 1.7.2308.7 (69e54e290); dxil.dll: 1.7(101.7.2308.12)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2308\as-filed\ -Fo pdb\v1.7.2308\as-filed\a.dxbc
+  exit            : 0
+  file            : 7d9b26ed7394cc38028d3b2ba4feb306.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2096]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2096 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2308\named\repro.pdb -Fo pdb\v1.7.2308\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2092]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2092 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.8.2403 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.8 - 1.8.2403.34 (c9660a8c0); dxil.dll: 1.8(101.8.2403.18)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2403\as-filed\ -Fo pdb\v1.8.2403\as-filed\a.dxbc
+  exit            : 0
+  file            : 3b4d25cd096e11cb50a3d4875b606462.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2104]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2104 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2403\named\repro.pdb -Fo pdb\v1.8.2403\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2100]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2100 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.8.2403.1 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.8 - 1.8.2403.36 (9c2b82878); dxil.dll: 1.8(101.8.2403.21)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2403.1\as-filed\ -Fo pdb\v1.8.2403.1\as-filed\a.dxbc
+  exit            : 0
+  file            : 554fe3bf544618abc8d80382b35d5d6a.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2108]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2108 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2403.1\named\repro.pdb -Fo pdb\v1.8.2403.1\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2104]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2104 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.8.2403.2 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.8 - 1.8.2403.37 (11e1318c3); dxil.dll: 1.8(101.8.2403.24)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2403.2\as-filed\ -Fo pdb\v1.8.2403.2\as-filed\a.dxbc
+  exit            : 0
+  file            : 26799c7c8c8a585743c255af6452e917.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2108]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2108 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2403.2\named\repro.pdb -Fo pdb\v1.8.2403.2\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2104]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2104 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.8.2405 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.8 - 1.8.2405.15 (fd7e54bcd); dxil.dll: 1.8(101.8.2405.17)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2405\as-filed\ -Fo pdb\v1.8.2405\as-filed\a.dxbc
+  exit            : 0
+  file            : 075d13dff6af0746dc3775863e0687f0.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2104]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2104 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2405\named\repro.pdb -Fo pdb\v1.8.2405\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2100]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2100 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.8.2407 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.8 - 1.8.2407.7 (416fab6b5); dxil.dll: 1.8(101.8.2407.12)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2407\as-filed\ -Fo pdb\v1.8.2407\as-filed\a.dxbc
+  exit            : 0
+  file            : ce2508013169ad41f5072c695b7ce7a3.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2096]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2096 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2407\named\repro.pdb -Fo pdb\v1.8.2407\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2092]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2092 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.8.2502 ===
+  exe             : C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.8 - 1.8.2502.8 (b4711839e); dxil.dll: 1.8(1.8.2502.8)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2502\as-filed\ -Fo pdb\v1.8.2502\as-filed\a.dxbc
+  exit            : 0
+  file            : 551501d734a782e31bf99b22b014fab9.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2096]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2096 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2502\named\repro.pdb -Fo pdb\v1.8.2502\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2092]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2092 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.8.2505 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.9 - 1.8.2505.28 (9efbb6c32); dxil.dll: 1.9(1.8.2505.28)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2505\as-filed\ -Fo pdb\v1.8.2505\as-filed\a.dxbc
+  exit            : 0
+  file            : 20e27748b17632ad20ab468795cfb48d.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2104]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2104 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2505\named\repro.pdb -Fo pdb\v1.8.2505\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2100]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2100 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.8.2505.1 ===
+  exe             : C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.9 - 1.8.2505.32 (b106a961d); dxil.dll: 1.9(1.8.2505.32)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2505.1\as-filed\ -Fo pdb\v1.8.2505.1\as-filed\a.dxbc
+  exit            : 0
+  file            : 3b2e9d9a9fb8dd38c40d3fba866e258d.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2108]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2108 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2505.1\named\repro.pdb -Fo pdb\v1.8.2505.1\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2104]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2104 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.9.2602 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.9(5184-21d28f72)(1.9.2602.17) - 1.9.2602.17 (21d28f727)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.9.2602\as-filed\ -Fo pdb\v1.9.2602\as-filed\a.dxbc
+  exit            : 0
+  file            : 950312ad40473ebeb7016116b5e7719a.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2104]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2104 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.9.2602\named\repro.pdb -Fo pdb\v1.9.2602\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2100]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2100 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.9.2602.24 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.9(5191-d355aa83)(1.9.2602.24) - 1.9.2602.24 (d355aa836)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.9.2602.24\as-filed\ -Fo pdb\v1.9.2602.24\as-filed\a.dxbc
+  exit            : 0
+  file            : 75df364da673a5e83d24bb5841b0ef28.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2112]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2112 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.9.2602.24\named\repro.pdb -Fo pdb\v1.9.2602.24\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2108]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2108 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== v1.9.2607 ===
+  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
+  version         : dxcompiler.dll: 1.9(5402-0d3ee6b5)(1.9.0.5402) - 1.9.0.5402 (0d3ee6b55-dirty)
+  -- as-filed --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.9.2607\as-filed\ -Fo pdb\v1.9.2607\as-filed\a.dxbc
+  exit            : 0
+  file            : 147e604c1891e44a191d0bec524851da.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2108]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2108 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  -- named --
+  $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.9.2607\named\repro.pdb -Fo pdb\v1.9.2607\named\a.dxbc
+  exit            : 0
+  file            : repro.pdb
+  size on disk    : 5632 bytes = 11 x 512-byte blocks
+  magic           : ok
+  BlockSize       @0x20: 512
+  FreeBlockMapBlock@0x24: 1
+  NumBlocks       @0x28: 10
+  NumDirectoryBytes@0x2c: 52
+  Unknown1        @0x30: 0
+  BlockMapAddr    @0x34: 3
+  NumBlocks*BlockSize = 5120; file size = 5632; difference = 1 block(s)
+  SYMPTOM         : PRESENT (NumBlocks short by 1)
+  streams         : 6, sizes [0, 56, 0, 0, 0, 2104]
+    stream 0 (    0 bytes) blocks []
+    stream 1 (   56 bytes) blocks [5]
+    stream 2 (    0 bytes) blocks []
+    stream 3 (    0 bytes) blocks []
+    stream 4 (    0 bytes) blocks []
+    stream 5 ( 2104 bytes) blocks [6, 7, 8, 9, 10]
+  highest block index actually used : 10
+  highest block index NumBlocks allows: 9
+  OUT-OF-RANGE BLOCKS: [10]
+  llvm validateSuperBlock + parseFileHeaders: no complaint
+  first 0x50 bytes:
+    00000000  4d 69 63 72 6f 73 6f 66 74 20 43 2f 43 2b 2b 20  |Microsoft C/C++ |
+    00000010  4d 53 46 20 37 2e 30 30 0d 0a 1a 44 53 00 00 00  |MSF 7.00...DS...|
+    00000020  00 02 00 00 01 00 00 00 0a 00 00 00 34 00 00 00  |............4...|
+    00000030  00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00  |................|
+    00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+
+=== summary ===
+compiler         -Fd form     size  blocks  NumBlocks symptom  llvm reader
+main-debug       as-filed     5632      11         10 PRESENT  accepts
+main-debug       named        5632      11         10 PRESENT  accepts
+v1.4.1907        as-filed     5120      10          9 PRESENT  accepts
+v1.4.1907        named        5120      10          9 PRESENT  accepts
+v1.5.2010        as-filed     5120      10          9 PRESENT  accepts
+v1.5.2010        named        5120      10          9 PRESENT  accepts
+v1.6.2104        as-filed     5632      11         10 PRESENT  accepts
+v1.6.2104        named        5632      11         10 PRESENT  accepts
+v1.6.2106        as-filed     5632      11         10 PRESENT  accepts
+v1.6.2106        named        5632      11         10 PRESENT  accepts
+v1.6.2112        as-filed     5632      11         10 PRESENT  accepts
+v1.6.2112        named        5632      11         10 PRESENT  accepts
+v1.7.2207        as-filed     5632      11         10 PRESENT  accepts
+v1.7.2207        named        5632      11         10 PRESENT  accepts
+v1.7.2212        as-filed     5632      11         10 PRESENT  accepts
+v1.7.2212        named        5632      11         10 PRESENT  accepts
+v1.7.2212.1      as-filed     5632      11         10 PRESENT  accepts
+v1.7.2212.1      named        5632      11         10 PRESENT  accepts
+v1.7.2308        as-filed     5632      11         10 PRESENT  accepts
+v1.7.2308        named        5632      11         10 PRESENT  accepts
+v1.8.2403        as-filed     5632      11         10 PRESENT  accepts
+v1.8.2403        named        5632      11         10 PRESENT  accepts
+v1.8.2403.1      as-filed     5632      11         10 PRESENT  accepts
+v1.8.2403.1      named        5632      11         10 PRESENT  accepts
+v1.8.2403.2      as-filed     5632      11         10 PRESENT  accepts
+v1.8.2403.2      named        5632      11         10 PRESENT  accepts
+v1.8.2405        as-filed     5632      11         10 PRESENT  accepts
+v1.8.2405        named        5632      11         10 PRESENT  accepts
+v1.8.2407        as-filed     5632      11         10 PRESENT  accepts
+v1.8.2407        named        5632      11         10 PRESENT  accepts
+v1.8.2502        as-filed     5632      11         10 PRESENT  accepts
+v1.8.2502        named        5632      11         10 PRESENT  accepts
+v1.8.2505        as-filed     5632      11         10 PRESENT  accepts
+v1.8.2505        named        5632      11         10 PRESENT  accepts
+v1.8.2505.1      as-filed     5632      11         10 PRESENT  accepts
+v1.8.2505.1      named        5632      11         10 PRESENT  accepts
+v1.9.2602        as-filed     5632      11         10 PRESENT  accepts
+v1.9.2602        named        5632      11         10 PRESENT  accepts
+v1.9.2602.24     as-filed     5632      11         10 PRESENT  accepts
+v1.9.2602.24     named        5632      11         10 PRESENT  accepts
+v1.9.2607        as-filed     5632      11         10 PRESENT  accepts
+v1.9.2607        named        5632      11         10 PRESENT  accepts

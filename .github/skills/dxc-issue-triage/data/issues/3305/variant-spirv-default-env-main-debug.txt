@@ -1,0 +1,21 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T06:39:50+00:00
+# cmd: -T lib_6_3 -spirv repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: spirv-default-env (repro.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 -spirv repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: Vulkan 1.1 with SPIR-V 1.4 is required for Raytracing but not permitted to use
+note: please specify your target environment via command line option -fspv-target-env=
+
+

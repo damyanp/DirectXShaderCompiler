@@ -1,0 +1,21 @@
+# #3305 -- the reported symptom IS a disagreement between DXC's two backends on one
+# source, so both compiles are captured in one probe. Line 1 is the DXIL compile the
+# issue says fails; line 2 is the SPIR-V compile it says succeeds. A single-target probe
+# would measure half the issue, and the halves have to be readable side by side.
+#
+# The reporter names no profile. [shader("miss")] is a DXR 1.0 raytracing stage, so a
+# library profile is required; lib_6_3 is the OLDEST profile that can express it, which
+# keeps old releases probeable instead of answering `invalid profile` (SKILL.md step 6).
+# No -E: lib targets take no entry point. Confirmed at the floor: v1.4.1907 compiles the
+# non-empty-payload control at lib_6_3 cleanly.
+#
+# -fspv-target-env=vulkan1.2 is an instrument, not an inherited workaround: SPIR-V
+# raytracing is gated on the target environment in EVERY release in range, so a bare
+# `-spirv` line measures that gate and never reaches the payload. vulkan1.2 is the
+# spelling recognised both by main and by v1.5.2010; see cmd-as-filed.txt. The bare
+# form's behaviour today is captured as variant-spirv-default-env-main-debug.txt.
+#
+# Nothing else is added. The reporter says disabling optimizations changed nothing;
+# variant-od-main-debug.txt checks that claim rather than assuming it.
+-T lib_6_3 repro.hlsl
+-T lib_6_3 -spirv -fspv-target-env=vulkan1.2 repro.hlsl

@@ -1,0 +1,97 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T06:39:29+00:00
+# cmd: -T lib_6_3 control-nonempty-payload.hlsl ; -T lib_6_3 -spirv -fspv-target-env=vulkan1.2 control-nonempty-payload.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-nonempty (control-nonempty-payload.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 control-nonempty-payload.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; shader hash: 4f1c18d8f97d46203b79199590cb560b
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.Payload = type { <4 x float> }
+
+; Function Attrs: nounwind readnone
+define void @"\01?main@@YAXUPayload@@@Z"(%struct.Payload* noalias nocapture %payload) #0 {
+  ret void
+}
+
+attributes #0 = { nounwind readnone }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.typeAnnotations = !{!4}
+!dx.entryPoints = !{!9, !10}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 10}
+!3 = !{!"lib", i32 6, i32 3}
+!4 = !{i32 1, void (%struct.Payload*)* @"\01?main@@YAXUPayload@@@Z", !5}
+!5 = !{!6, !8}
+!6 = !{i32 1, !7, !7}
+!7 = !{}
+!8 = !{i32 2, !7, !7}
+!9 = !{null, !"", null, null, null}
+!10 = !{void (%struct.Payload*)* @"\01?main@@YAXUPayload@@@Z", !"\01?main@@YAXUPayload@@@Z", null, null, !11}
+!11 = !{i32 8, i32 11, i32 6, i32 16, i32 5, !12}
+!12 = !{i32 0}
+
+
+--- stderr ---
+
+
+$ dxc -T lib_6_3 -spirv -fspv-target-env=vulkan1.2 control-nonempty-payload.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 11
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_ray_tracing"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint MissKHR %main "main" %payload
+               OpSource HLSL 630
+               OpName %Payload "Payload"
+               OpMemberName %Payload 0 "color"
+               OpName %payload "payload"
+               OpName %main "main"
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+    %Payload = OpTypeStruct %v4float
+%_ptr_IncomingRayPayloadKHR_Payload = OpTypePointer IncomingRayPayloadKHR %Payload
+       %void = OpTypeVoid
+          %8 = OpTypeFunction %void
+    %payload = OpVariable %_ptr_IncomingRayPayloadKHR_Payload IncomingRayPayloadKHR
+       %main = OpFunction %void None %8
+          %9 = OpLabel
+         %10 = OpLoad %Payload %payload
+               OpStore %payload %10
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

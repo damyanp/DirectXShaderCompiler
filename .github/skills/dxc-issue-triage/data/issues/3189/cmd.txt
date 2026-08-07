@@ -1,0 +1,21 @@
+# Reporter's configuration, reconstructed.
+#
+# The issue body gives a complete shader but not a command line. It says:
+#   "(I am using the shift functionality to move the textures and samplers so
+#    that buffer start at 0)"
+# No resource in the shader carries :register(), and docs/SPIR-V.rst says the
+# -fvk-{b|s|t|u}-shift options apply to register-less resources only when
+# -fvk-auto-shift-bindings is also given. So the shift flags below are the
+# minimal configuration that can produce what the reporter describes.
+#
+# It is verified rather than assumed: this command line yields exactly the
+# numbers in the report -- g_texture2D at 100, g_sampler at 200, and the used
+# cbuffer c at Binding 2 (reported "Actual: c [Set: 0, Binding: 2]"). The
+# specific shift magnitudes 100/200 are arbitrary; any values that move t and s
+# clear of 0..2 give the same result.
+#
+# -T ps_6_0 is the oldest profile that expresses this pixel shader; the report
+# names no profile. See variant-no-shift-* for the same defect with no shift
+# flags at all (c lands at Binding 4), which shows the defect is not an artefact
+# of the shift options.
+-T ps_6_0 -E mainPS -spirv -fvk-auto-shift-bindings -fvk-t-shift 100 0 -fvk-s-shift 200 0 repro.hlsl

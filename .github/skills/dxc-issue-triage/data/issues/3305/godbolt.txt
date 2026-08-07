@@ -1,0 +1,1 @@
+dxc_trunk,dxc_trunk:-T lib_6_3 -spirv -fspv-target-env=vulkan1.2

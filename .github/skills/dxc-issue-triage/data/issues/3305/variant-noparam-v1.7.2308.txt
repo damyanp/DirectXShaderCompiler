@@ -1,0 +1,34 @@
+# compiler: v1.7.2308
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+# ran: 2026-08-07T06:46:58+00:00
+# cmd: -T lib_6_3 control-noparam.hlsl ; -T lib_6_3 -spirv -fspv-target-env=vulkan1.2 control-noparam.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: noparam (control-noparam.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 control-noparam.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-noparam.hlsl:2:23: error: incorrect number of entry parameters for raytracing stage 'miss': 0 parameter(s) provided, expected one payload parameter
+[shader("miss")] void main() {}
+                      ^
+
+
+
+$ dxc -T lib_6_3 -spirv -fspv-target-env=vulkan1.2 control-noparam.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-noparam.hlsl:2:23: error: incorrect number of entry parameters for raytracing stage 'miss': 0 parameter(s) provided, expected one payload parameter
+[shader("miss")] void main() {}
+                      ^
+
+

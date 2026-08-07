@@ -1,0 +1,23 @@
+{
+  "batch": "007",
+  "confidence": "high",
+  "created_at": "2020-06-29T15:29:14Z",
+  "expected_symptom": "The MSF superblock of the PDB emitted by -Fd has NumBlocks * BlockSize != the file size on disk (short by at least one block), and the stream directory references a block index >= NumBlocks.",
+  "godbolt_url": "https://godbolt.org/z/s567x57P8",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (all 20 releases) plus main-debug -- established by reading the PDB's bytes on all 21 builds (manual-case-msf-header-history.txt), NOT by the predicate. Do not read the bisect line as symptom history: it reports v1.4.1907 no-repro because that release's -dumpbin cannot read a PDB and the precondition predicate fails, not because the defect is absent -- v1.4.1907 writes the identical short NumBlocks. Source dating puts introduction at 2dec1cd0d (2019-05-29), before the oldest probeable release.",
+  "labels": "bug,debug info",
+  "labels_now": "bug, debug info",
+  "notes_path": "issues/3005/notes.md",
+  "number": 3005,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Still reproduces on main (ab5400907). The separate PDB written by -Fd declares NumBlocks one block short, so the file's own stream directory addresses a block the superblock says does not exist; cause is NumBlockAddrBlocks being written but never counted at lib/DXIL/DxilPDB.cpp:132. Present in all 21 builds measured. LLVM and llvm-pdbutil accept the file; Microsoft's reference MSF implementation would refuse to read the last page. The actionable finding is that PR #5767 (Fixes #3005, by a maintainer, reviewed and format-clean in Nov 2023) was closed unmerged by an inactivity sweep on 2026-01-22.",
+  "text_stale": "A maintainer comment left standing: @damyanp asked on 2024-06-27 'it looks like you have a PR prepared for this. How far off is that from being ready to go in?' It was never answered, and the PR it refers to (#5767) was closed unmerged on 2026-01-22, so the thread reads top-down as though a fix is pending when none is. Title and body are still accurate -- the hex dump reproduces exactly on v1.5.2010.",
+  "title": "Generated separate PDB files have possibly invalid header",
+  "triaged_at": "2026-08-07T13:22:04+00:00",
+  "triaged_by": "GitHub Copilot CLI 1.0.79-2 (model not self-identifiable)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3005"
+}

@@ -1,0 +1,15 @@
+The invocation exactly as the issue cites it -- the RUN: line of
+tools/clang/test/HLSLFileCheck/dxil/debug/misc/share_mem_dbg.hlsl:
+
+%dxc -E main -T cs_6_0 -Zi -Od -DDefineA -DDefineB=0 %s -Qstrip_reflect | FileCheck %s
+
+cmd.txt expands the two lit substitutions and drops the FileCheck pipe; nothing
+else differs. See cmd.txt for the reasoning.
+
+Note on the configuration dependence the issue asserts: in 2020 the
+HLSLFileCheck suite was driven through the compiler API by a C++ harness, which
+is the "test infrastructure ... skips the initial compile operations found in
+dxc.cpp" the reporter contrasts with. Today lit runs the same file through the
+real dxc.exe (%dxc == the binary, tools/clang/test/lit.cfg:294). This triage
+measures the command-line path -- dxc.exe with an argv -- which is the path the
+issue says is affected.

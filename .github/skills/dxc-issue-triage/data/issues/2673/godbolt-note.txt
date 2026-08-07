@@ -1,0 +1,18 @@
+Issue #2673 -- command-line -D defines are duplicated on the way to the preprocessor.
+
+Scroll the output to the metadata at the end and compare two nodes against the
+CHECK lines in the source above (this file is DXC's own test, unmodified):
+
+  !dx.source.defines -> !N = !{!"DefineA=1", !"DefineB=0", !"DefineA=1", !"DefineB=0"}
+       two -D flags were passed; each is recorded twice. The test's own
+       "// CHECK: !{!"DefineA=1", !"DefineB=0"}" expects one of each.
+
+  !dx.source.args    -> the pair !"-D", !"DefineA", !"-D", !"DefineB=0" appears
+       once where it was typed and a second time after !"-Qstrip_reflect":
+       the driver re-appends the defines it already parsed out of the argv.
+       (Ignore the repeated !"-Zi" and the !"-Qembed_debug" -- those are added
+       by Compiler Explorer's own wrapper, not by this bug.)
+
+The compile succeeds and the DXIL is correct -- only the recorded defines are
+wrong. Both DXC panes show it, and it is the same on every release from
+v1.4.1907 (2019) to v1.9.2607.

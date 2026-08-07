@@ -1,0 +1,98 @@
+# compiler: v1.7.2212
+# exe: <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+# ran: 2026-08-07T06:33:34+00:00
+# cmd: -T ps_6_0 -E mainPS -spirv -fvk-auto-shift-bindings -fvk-t-shift 100 0 -fvk-s-shift 200 0 repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E mainPS -spirv -fvk-auto-shift-bindings -fvk-t-shift 100 0 -fvk-s-shift 200 0 repro.hlsl
+[exe] <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 40
+; Schema: 0
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %mainPS "mainPS" %in_var_TEXCOORD %in_var_COLOR %out_var_SV_Target
+               OpExecutionMode %mainPS OriginUpperLeft
+               OpSource HLSL 600
+               OpName %type_2d_image "type.2d.image"
+               OpName %g_texture2D "g_texture2D"
+               OpName %type_sampler "type.sampler"
+               OpName %g_sampler "g_sampler"
+               OpName %type_c "type.c"
+               OpMemberName %type_c 0 "g_localToClip"
+               OpMemberName %type_c 1 "g_randomOffset"
+               OpMemberName %type_c 2 "g_colorAdd"
+               OpName %c "c"
+               OpName %in_var_TEXCOORD "in.var.TEXCOORD"
+               OpName %in_var_COLOR "in.var.COLOR"
+               OpName %out_var_SV_Target "out.var.SV_Target"
+               OpName %mainPS "mainPS"
+               OpName %type_sampled_image "type.sampled.image"
+               OpDecorate %in_var_TEXCOORD Location 0
+               OpDecorate %in_var_COLOR Location 1
+               OpDecorate %out_var_SV_Target Location 0
+               OpDecorate %g_texture2D DescriptorSet 0
+               OpDecorate %g_texture2D Binding 100
+               OpDecorate %g_sampler DescriptorSet 0
+               OpDecorate %g_sampler Binding 200
+               OpDecorate %c DescriptorSet 0
+               OpDecorate %c Binding 2
+               OpMemberDecorate %type_c 0 Offset 0
+               OpMemberDecorate %type_c 0 MatrixStride 16
+               OpMemberDecorate %type_c 0 RowMajor
+               OpMemberDecorate %type_c 1 Offset 64
+               OpMemberDecorate %type_c 2 Offset 80
+               OpDecorate %type_c Block
+        %int = OpTypeInt 32 1
+      %int_2 = OpConstant %int 2
+      %float = OpTypeFloat 32
+%type_2d_image = OpTypeImage %float 2D 2 0 0 1 Unknown
+%_ptr_UniformConstant_type_2d_image = OpTypePointer UniformConstant %type_2d_image
+%type_sampler = OpTypeSampler
+%_ptr_UniformConstant_type_sampler = OpTypePointer UniformConstant %type_sampler
+    %v4float = OpTypeVector %float 4
+%mat4v4float = OpTypeMatrix %v4float 4
+     %type_c = OpTypeStruct %mat4v4float %v4float %v4float
+%_ptr_Uniform_type_c = OpTypePointer Uniform %type_c
+    %v3float = OpTypeVector %float 3
+%_ptr_Input_v3float = OpTypePointer Input %v3float
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %26 = OpTypeFunction %void
+    %v2float = OpTypeVector %float 2
+%type_sampled_image = OpTypeSampledImage %type_2d_image
+%_ptr_Uniform_v4float = OpTypePointer Uniform %v4float
+%g_texture2D = OpVariable %_ptr_UniformConstant_type_2d_image UniformConstant
+  %g_sampler = OpVariable %_ptr_UniformConstant_type_sampler UniformConstant
+          %c = OpVariable %_ptr_Uniform_type_c Uniform
+%in_var_TEXCOORD = OpVariable %_ptr_Input_v3float Input
+%in_var_COLOR = OpVariable %_ptr_Input_v4float Input
+%out_var_SV_Target = OpVariable %_ptr_Output_v4float Output
+     %mainPS = OpFunction %void None %26
+         %29 = OpLabel
+         %30 = OpLoad %v3float %in_var_TEXCOORD
+         %31 = OpLoad %v4float %in_var_COLOR
+         %32 = OpLoad %type_2d_image %g_texture2D
+         %33 = OpLoad %type_sampler %g_sampler
+         %34 = OpVectorShuffle %v2float %30 %30 0 1
+         %35 = OpSampledImage %type_sampled_image %32 %33
+         %36 = OpImageSampleImplicitLod %v4float %35 %34 None
+         %37 = OpAccessChain %_ptr_Uniform_v4float %c %int_2
+         %38 = OpLoad %v4float %37
+         %39 = OpExtInst %v4float %1 Fma %36 %31 %38
+               OpStore %out_var_SV_Target %39
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

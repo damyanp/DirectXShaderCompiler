@@ -1,0 +1,22 @@
+{
+  "batch": "007",
+  "confidence": "high",
+  "created_at": "2020-12-07T12:34:54Z",
+  "godbolt_url": "https://godbolt.org/z/Pr3cfczY7",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (all 20 releases probed linearly, no invalid probes); the SPIR-V half of the same captures compiles in 19 of 20, v1.5.2010 onward -- only v1.4.1907 lacks SPIR-V codegen. Predates the 2020-12 report",
+  "labels": "bug",
+  "labels_add": "diagnostic",
+  "labels_now": "bug",
+  "notes_path": "issues/3305/notes.md",
+  "number": 3305,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "needs-human-judgement",
+  "summary": "DXIL still rejects an empty payload struct while SPIR-V compiles it, unchanged on every measurable build (v1.4.1907..v1.9.2607 and main). The DXIL diagnostic misnames its cause: it says the shader must include an inout payload structure parameter, but the parameter is present and what CGHLSLMS.cpp:2492 checks is payloadSizeInBytes == 0 -- a payload whose only member is an empty struct gets the same message, and since PR #5131 (2023-04) a genuinely missing parameter gets an accurate Sema message instead. Whether an empty payload should be legal is a language/product decision, deliberate since 2018 and still unanswered on the thread; the wrong message is separately fixable either way.",
+  "title": "Empty Payload struct not recognized in DXIL",
+  "triaged_at": "2026-08-07T13:22:04+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3305"
+}

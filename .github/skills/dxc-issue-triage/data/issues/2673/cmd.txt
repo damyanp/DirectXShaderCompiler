@@ -1,0 +1,15 @@
+# The issue cites tools/clang/test/HLSLFileCheck/dxil/debug/misc/share_mem_dbg.hlsl
+# and "the dxc invocation stipulated by the RUN: command". That RUN line is:
+#
+#   %dxc -E main -T cs_6_0 -Zi -Od -DDefineA -DDefineB=0 %s -Qstrip_reflect | FileCheck %s
+#
+# Departures, all recorded in cmd-as-filed.txt:
+#   %dxc -> the dxc.exe under test. lit substitutes the plain binary and adds no
+#           flags (tools/clang/test/lit.cfg:294), so this is a faithful expansion.
+#   %s   -> repro.hlsl, a byte-identical copy of the cited test file (sha256
+#           6C20B1C4...9A6E); the DXC tree is not modified or read at run time.
+#   | FileCheck %s dropped: the disassembly is captured and scored by match.json
+#           instead, so the exact defines node is visible in the evidence.
+#
+# The profile, -Zi -Od, both -D flags and -Qstrip_reflect are exactly as cited.
+-E main -T cs_6_0 -Zi -Od -DDefineA -DDefineB=0 repro.hlsl -Qstrip_reflect

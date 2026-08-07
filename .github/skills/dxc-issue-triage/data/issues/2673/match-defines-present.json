@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "!\\d+ = !\\{!\"Define[AB]=[01]\"",
+  "note": "ANCHOR, not the symptom. Reads: the compile emitted an LLVM metadata node definition whose first entry is one of the repro's -D defines -- i.e. debug info exists and !dx.source.defines carries the command-line defines. Read the `# verdict:` header on these captures accordingly: `repro` means the anchor HELD (the probe was capable of showing the symptom), `no-repro` means no defines metadata was emitted and any match.json result from the same release measured nothing. This exists because the issue's symptom is a duplicated entry in a debug-info node, and 'no node at all' is not the same finding as 'node present, no duplication'; without this, a release that quietly stopped emitting debug info would score clean under match.json and read as a fix. Probes are filed as out-<compiler>--defines-present.txt."
+}

@@ -16,9 +16,9 @@
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
   "summary": "Both reported symptoms confirmed on main (eff900d54) and on every SM 6.7-capable release since v1.7.2207. ICE: InterlockedMax(tex.sample[s][uv],..) exits E_FAIL with 'llvm::cast<X>() argument of incompatible type!' (a thrown hlsl::Exception, identical in Debug and Release); also fires with a constant sample index, other atomics and RWTexture2DMSArray. Silent case: compiles with exit 0 and no diagnostic, emitting dx.op.atomicBinOp with 'i32 undef' in the last coordinate on a 2dMS UAV -- byte-identical to the same atomic on a plain RWTexture2D. DXIL.rst:1876-1887 does not list Texture2DMS among AtomicBinOp's valid resource types and gen_intrin_main.txt declares no interlocked method on RWTexture2DMS, so this is invalid input DXC fails to diagnose, not valid input it miscompiles. The validator does not catch it either (DxilValidation.cpp:2412 checks UAV-ness, not resource kind).",
-  "text_stale": "Title says 'silent UB or ICE'; understates it. The silent case emits a DXIL atomic with i32 undef where the sample index belongs, and that container passes validation.",
+  "text_stale": "",
   "title": "Atomics on RWTexture2DMS result in silent UB or ICE",
-  "triaged_at": "2026-08-07T01:59:17+00:00",
+  "triaged_at": "2026-08-07T13:25:45+00:00",
   "triaged_by": "claude-opus-5 (Copilot CLI)",
   "triaged_with_commit": "eff900d5",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/8737"

@@ -1,0 +1,20 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T06:40:16+00:00
+# cmd: -dumpbin pdb/absent.pdb
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: no-pdb (?)
+# expect: no-match
+
+$ dxc -dumpbin pdb/absent.pdb
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 1
+--- stdout ---
+
+
+--- stderr ---
+The system cannot find the file specified. pdb/absent.pdb
+

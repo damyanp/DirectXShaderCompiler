@@ -1,0 +1,50 @@
+# what: why the published Compiler Explorer link has no Clang pane
+# how:  scripts/triage.py's ce_compile(), called directly (see the command lines
+#       below); CE compiler id hlsl_clang_trunk, Release Linux build
+# when: 2026-08-07
+# note: NOT a probe of this issue's predicate. Clang output here is evidence about
+#       Clang's raytracing support, not about the empty payload.
+
+SKILL.md step 7 says to consider a Clang pane, and that "a Clang error is not
+evidence until you have a control". Both were run.
+
+==============================================================================
+==== repro.hlsl -- the reported shader (empty payload)
+==============================================================================
+$ hlsl_clang_trunk -T lib_6_3
+exit=1
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+<source>:2:42: error: semantic annotations must be present for all parameters of an entry function or patch constant function
+    2 | [shader("miss")] void main(inout Payload payload) {}
+      |                                          ^
+<source>:2:42: note: 'payload' declared here
+1 error generated.
+<Compilation failed>
+
+==============================================================================
+==== control-nonempty-payload.hlsl -- CONTROL: identical shader, payload has one
+==== float4 field. DXC compiles this for both targets (see
+==== variant-control-nonempty-main-debug.txt).
+==============================================================================
+$ hlsl_clang_trunk -T lib_6_3
+exit=1
+clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+<source>:2:42: error: semantic annotations must be present for all parameters of an entry function or patch constant function
+    2 | [shader("miss")] void main(inout Payload payload) {}
+      |                                          ^
+<source>:2:42: note: 'payload' declared here
+1 error generated.
+<Compilation failed>
+
+==============================================================================
+==== conclusion
+==============================================================================
+The control fails identically, so Clang's error is about raytracing entry points
+in general -- its HLSL front end does not yet model a payload parameter and demands
+a semantic annotation on it -- and says nothing about empty payloads. -fsyntax-only
+changes nothing: this is a Sema error, so the back end never runs (the extra output
+is only an unused '-S' warning).
+
+A pane of that would be noise about the stage, so the Clang pane is omitted. It also
+means the "has the successor compiler already answered this?" question cannot be
+asked here yet: Clang cannot express the input at all.

@@ -151,11 +151,12 @@ def main():
     w("")
 
     if stale:
-        w(f"**{len(stale)} issues no longer say what they do.** These are the "
-          "highest-value findings in the set: the defect is real, but anyone "
-          "spot-checking the issue against its own description concludes "
-          "\"cannot reproduce\". Fixing the title is a cheap, immediate "
-          "action on an otherwise unactionable issue.")
+        w(f"**{len(stale)} issues whose text no longer matches their "
+          "behaviour.** Every issue below **does** reproduce — the defect is "
+          "real and confirmed. What is wrong is the description: a reader "
+          "checking the issue against its own title or body would conclude "
+          "the opposite. Correcting the text is a cheap, immediate action on "
+          "an otherwise unactionable issue.")
         w("")
         w("| # | What is stale |")
         w("| --- | --- |")

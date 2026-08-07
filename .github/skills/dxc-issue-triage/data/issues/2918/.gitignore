@@ -1,0 +1,7 @@
+# run-pix-passes.py recreates work/<build>/ on every run: a compiled module, a deliberately
+# broken copy of it used as the verifier control, and a private copy of dxopt.exe paired with
+# each release's dxcompiler.dll. All derived, none of it evidence -- the numbers taken from it
+# are in manual-case-*.txt. Ignored rather than committed for the reason SKILL.md gives on
+# #2427: the script creates the directory itself, so nothing depends on git storing an empty
+# one, and the copied DLLs are release binaries that do not belong in this tree.
+work/

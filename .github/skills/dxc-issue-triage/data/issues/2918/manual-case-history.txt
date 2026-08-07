@@ -1,0 +1,78 @@
+# case: does the PIX numbering pass still fail on a /Od + debug-info shader with a subroutine?
+# harness: run-pix-passes.py --history (committed beside this file)
+# why not `triage.py bisect`: the symptom is a failure inside a PIX pass, reached through
+#   IDxcOptimizer::RunOptimizer over an already-compiled module. `cmd.txt` holds one dxc
+#   invocation, so the harness cannot express stage 2 and there is no match.json to bisect.
+# repro: repro.hlsl -- AGENT-CONSTRUCTED. The reported repro is a private shader behind an
+#   internal bug number and is not available; see notes.md.
+# symptom: stage 2 does not complete, on a stage-1 module that is itself verifier-clean.
+# controls: per build, `baseline` (same module, no passes) must SUCCEED and `control` (same
+#   module with inlinedAt: deleted from one lexical-block-scoped DILocation, no passes) must
+#   FAIL. Together they show the module went in clean and that the build still performs the
+#   "!dbg attachment points at wrong subprogram" check.
+# ran: 2026-08-07
+# verdict: unscored
+#
+# Trimmed to the summary table, the three builds that carry the transition, and the verifier
+# text. The other 13 builds' detail blocks are identical in shape to v1.6.2104's; re-run the
+# harness for the full output.
+
+RESULTS
+stage 1: dxc -T cs_6_0 -E main -Od -Zi -Qembed_debug repro.hlsl
+stage 2: dxopt module.ll -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+driver : C:\prj\DirectXShaderCompiler\build\Debug\bin\dxopt.exe
+
+build          compile   baseline  control   PIX passes  verdict
+----------------------------------------------------------------
+v1.4.1907      0         n/a       n/a       n/a         invalid-probe -- this build has no dxil-dbg-value-to-dbg-declare
+v1.5.2010      0         0         1         1           repro
+v1.6.2104      0         0         1         0           no-repro
+v1.6.2106      0         0         3221226505 0           no-repro
+v1.7.2207      0         0         1         0           no-repro
+v1.7.2212      0         0         1         0           no-repro
+v1.7.2212.1    0         0         1         0           no-repro
+v1.8.2403      0         0         1         0           no-repro
+v1.8.2403.1    0         0         1         0           no-repro
+v1.8.2403.2    0         0         1         0           no-repro
+v1.8.2405      0         0         1         0           no-repro
+v1.8.2407      0         0         1         0           no-repro
+v1.8.2505      0         0         1         0           no-repro
+v1.9.2602      0         0         1         0           no-repro
+v1.9.2602.24   0         0         1         0           no-repro
+v1.9.2607      0         0         1         0           no-repro
+main-debug     0         0         1         0           no-repro
+
+DETAIL (transition only)
+
+v1.4.1907
+  dxcompiler.dll : <releases>\v1.4.1907
+  missing passes : dxil-dbg-value-to-dbg-declare
+  compile        : exit 0 (0x00000000), debug info present
+
+v1.5.2010
+  dxcompiler.dll : <releases>\v1.5.2010\bin\x64
+  compile        : exit 0 (0x00000000), debug info present
+  baseline       : exit 0 (0x00000000)  
+  control (!73)  : exit 1 (0x00000001)  Operation failed - error code 0x80004005.
+  PIX passes     : exit 1 (0x00000001)  Operation failed - error code 0x80004005.
+  control rejected by the verifier as (text via this repo's opt.exe):
+    !dbg attachment points at wrong subprogram for function
+    !16 = !DISubprogram(name: "main", scope: !1, file: !1, line: 26, type: !17, isLocal: false, isDefinition: true, scopeLine: 27, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+    void ()* @main
+      %18 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !73
+    !73 = !DILocation(line: 18, column: 12, scope: !74)
+    !74 = distinct !DILexicalBlock(scope: !28, file: !1, line: 18, column: 3)
+
+v1.6.2104
+  dxcompiler.dll : <releases>\v1.6.2104\bin\x64
+  compile        : exit 0 (0x00000000), debug info present
+  baseline       : exit 0 (0x00000000)  
+  control (!73)  : exit 1 (0x00000001)  Operation failed - error code 0x80004005.
+  PIX passes     : exit 0 (0x00000000)  InstructionCount:67
+  control rejected by the verifier as (text via this repo's opt.exe):
+    !dbg attachment points at wrong subprogram for function
+    !16 = !DISubprogram(name: "main", scope: !1, file: !1, line: 26, type: !17, isLocal: false, isDefinition: true, scopeLine: 27, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+    void ()* @main
+      %18 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !73
+    !73 = !DILocation(line: 18, column: 12, scope: !74)
+    !74 = distinct !DILexicalBlock(scope: !28, file: !1, line: 18, column: 3)

@@ -1,0 +1,52 @@
+DXC issue #2918 -- PIX numbering pass fails with /Od when subroutines are used
+https://github.com/microsoft/DirectXShaderCompiler/issues/2918
+
+READ THIS FIRST
+
+This shader is a reconstruction written during triage. It is NOT the
+shader in the report -- that one is private, referenced only by an
+internal PIX bug number, and was never attached to the issue.
+
+Compiler Explorer also cannot show the failure itself, for two
+independent reasons:
+
+  * the failure is in a PIX pass, which is not part of a dxc
+    invocation. It runs afterwards, over an already-compiled module,
+    through IDxcOptimizer::RunOptimizer -- what PIX does, and what
+    dxopt.exe does from a command line. CE runs dxc only.
+  * the oldest DXC on CE is 1.6.2112, which already contains the fix.
+    The last release that reproduces is 1.5.2010.
+
+So both panes here are expected to succeed. What they are for is the
+debug metadata, which is the whole of the bug.
+
+WHAT TO LOOK FOR
+
+Scroll to the metadata at the bottom of either pane.
+
+CullValues is a separate function in the source, and /Od keeps it as a
+separate DISubprogram:
+
+    !28 = !DISubprogram(name: "CullValues", linkageName: "\01?CullValues@@YAMV?$vector@M$02@@@Z", ...)
+
+but its body ends up in @main. Every instruction that came from it
+carries a !dbg whose scope is that subprogram -- and an inlinedAt:
+
+    !78 = !DILocation(line: 18, column: 12, scope: !79, inlinedAt: !71)
+    !79 = distinct !DILexicalBlock(scope: !28, file: !1, line: 18, column: 3)
+
+inlinedAt: is the part that matters. Without it, a !dbg inside @main
+whose scope chain ends at CullValues is illegal, and the LLVM verifier
+rejects the module with
+
+    !dbg attachment points at wrong subprogram for function
+
+which is the assert in the report. Before the fix, the PIX
+value-to-declare pass built its own DILocation from the variable's
+declaration -- line, column 1, the variable's scope, and no inlinedAt --
+and attached it to the llvm.dbg.declare it synthesised in @main. The
+verifier that DxcOptimizer appends to the pass pipeline then failed the
+whole RunOptimizer call, which is what surfaced in PIX as an exception.
+
+The compare pane is another post-fix DXC; it is here to show the
+metadata is stable, not to show a difference.

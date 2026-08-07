@@ -1,0 +1,9 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "OpDecorate %c DescriptorSet 0\\b" },
+    { "kind": "regex", "value": "OpDecorate %c Binding 4\\b" },
+    { "kind": "not_regex", "value": "OpDecorate %(a|b) (DescriptorSet|Binding)\\b" }
+  ],
+  "note": "Second predicate for the SAME defect under a plain '-spirv' command line with no binding-shift flags (variant-no-shift-*). Without shifts the four surviving-plus-dead resources are numbered in declaration order -- g_texture2D 0, g_sampler 1, a 2, b 3, c 4 -- so the used cbuffer lands at Binding 4 rather than the Binding 2 the reporter saw. Same structure and same anchoring as match.json; only the expected number differs. Its purpose is to show that the reported behaviour is a property of implicit binding assignment generally, not of the -fvk-*-shift options the reporter happened to use. CONTROL: variant-no-shift-control-main-debug--match-no-shift.txt runs control-no-dead-cbuffers.hlsl (a and b deleted) with the same no-shift arguments; there c is legitimately at Binding 2 and the predicate must not fire."
+}

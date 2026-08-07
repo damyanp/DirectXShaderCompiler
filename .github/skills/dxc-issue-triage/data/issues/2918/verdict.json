@@ -1,0 +1,22 @@
+{
+  "batch": "007",
+  "confidence": "high",
+  "created_at": "2020-05-27T21:23:53Z",
+  "fixed_in": "v1.6.2104",
+  "godbolt_url": "https://godbolt.org/z/a4qPPYzvK",
+  "history": "fixed-in: v1.6.2104",
+  "labels": "",
+  "labels_add": "PIX, debug info, crash, bug",
+  "notes_path": "issues/2918/notes.md",
+  "number": 2918,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "does-not-repro",
+  "suggested_action": "close-fixed",
+  "summary": "Fixed, never closed. Reported repro is a private shader behind an internal PIX bug number and was not obtainable; an agent-constructed reconstruction (compute shader, -Od -Zi, local array in a non-inlined helper) run through dxopt -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs fails on v1.5.2010 and succeeds on v1.6.2104 through main. Fix is almost certainly ac5630e8e (#3292, \"Fixes for adding -Od\", Dec 2020), which replaced setDebugLoc(GetVariableLocation()) - a DILocation with no inlinedAt and column 1, exactly the shape in the reported dump - with the originating instruction DebugLoc. Attribution is source reasoning over the release window, not a bisect.",
+  "title": "PIX: Numbering pass fails with /Od when subroutines are used",
+  "triaged_at": "2026-08-07T13:22:04+00:00",
+  "triaged_by": "claude-opus-4.6 (Copilot CLI)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/2918"
+}

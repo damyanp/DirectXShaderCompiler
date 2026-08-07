@@ -1,0 +1,53 @@
+# compiler: v1.6.2106
+# exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+# ran: 2026-08-07T06:40:31+00:00
+# cmd: -T lib_6_3 repro.hlsl ; -T lib_6_3 -spirv -fspv-target-env=vulkan1.2 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T lib_6_3 repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:2:23: error: shader must include inout payload structure parameter.
+[shader("miss")] void main(inout Payload payload) {}
+                      ^
+
+
+
+$ dxc -T lib_6_3 -spirv -fspv-target-env=vulkan1.2 repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 9
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_ray_tracing"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint MissNV %main "main" %payload
+               OpSource HLSL 630
+               OpName %Payload "Payload"
+               OpName %payload "payload"
+               OpName %main "main"
+    %Payload = OpTypeStruct
+%_ptr_IncomingRayPayloadNV_Payload = OpTypePointer IncomingRayPayloadNV %Payload
+       %void = OpTypeVoid
+          %6 = OpTypeFunction %void
+    %payload = OpVariable %_ptr_IncomingRayPayloadNV_Payload IncomingRayPayloadNV
+       %main = OpFunction %void None %6
+          %7 = OpLabel
+          %8 = OpLoad %Payload %payload
+               OpStore %payload %8
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

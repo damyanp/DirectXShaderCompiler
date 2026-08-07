@@ -1,0 +1,9 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "OpDecorate %c DescriptorSet 0\\b" },
+    { "kind": "regex", "value": "OpDecorate %c Binding 2\\b" },
+    { "kind": "not_regex", "value": "OpDecorate %(a|b) (DescriptorSet|Binding)\\b" }
+  ],
+  "note": "Positive and exact: the reported symptom IS a decoration value, so the predicate pins it rather than testing for an absence. The first two clauses cannot be emitted by a compile that failed or was rejected early, which anchors the third. Clause 3 encodes the other half of the report -- 'In the resulting Spirv I can see that the two unused Cbuffers have been eliminated' -- so the predicate asserts both that a and b are gone AND that c still counted them. CONTROL: control-no-dead-cbuffers.hlsl is the same shader with cbuffers a and b deleted, run with byte-identical arguments (variant-control-main-debug.txt, --expect no-match). There the used cbuffer is legitimately the first b-type resource and is decorated Binding 0, so the predicate does not fire -- which is what shows it is matching 'the dead cbuffers consumed bindings' and not merely 'a cbuffer named c exists'. Caveat for a future reader: if a build ever stops eliminating a and b, clause 3 fails and this scores no-match for a reason that is NOT 'fixed'. Read the capture before believing a no-match."
+}

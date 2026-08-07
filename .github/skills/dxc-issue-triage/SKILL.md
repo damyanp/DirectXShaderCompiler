@@ -14,6 +14,22 @@ when did that change?** Produce a report backed by on-disk evidence.
   `gh api` GET. Never `gh issue edit|comment|close|reopen|label`, even if a verdict seems
   obvious. Drafting a comment is in scope; **posting it is not**. Recommending an action and
   taking it are different jobs.
+- **Never write an issue reference into a commit message.** `#1234`, `GH-1234` and issue or
+  PR URLs all create a **cross-reference event on the issue itself**, visible to everyone
+  watching it — which is posting to the issue by another route, and breaks the read-only rule
+  just as surely as `gh issue comment`. Use bare numbers: `triage: batch 006 (2128, 2331)`.
+  This fires even from a personal fork, and it is attributed to whoever pushed.
+
+  > Measured: pushing three batch commits created **16 cross-references across 14 issues**.
+  > On one of them the reporter followed the link within hours, read an *unposted draft* plus
+  > a one-line summary that compressed a correct analysis into a false claim, and reasonably
+  > answered it as though it were the project's position. The maintainer had to apologise
+  > publicly. Rewriting the messages afterwards does not retract the events.
+  >
+  > The blast radius is wider than the noise: a cross-reference makes the whole triage branch
+  > discoverable from the issue, so **every draft becomes de-facto published**. Write drafts
+  > as if a reporter will read them unreviewed, because one did.
+
 - **Never modify DXC source** while triaging. The point is to measure the compiler as it is.
 - **Only public repros go to Compiler Explorer.** `godbolt` uploads the shader to a public
   third-party service. Repros derived from public issues in this public repo are fine;
@@ -1122,6 +1138,23 @@ living only in this report's prose. These are the highest-value findings: the de
 but anyone spot-checking against the description will wrongly conclude "cannot reproduce".
 This includes the **title**: #3444 has claimed since 2021 that `float2`/`float3`/`float4`
 work, and none of them do.
+
+> **`text_stale` is a claim about the reporter's writing — hold it to a high bar.** It says
+> "this description is now wrong", so it lands differently from every other verdict field.
+> Two failure modes, both hit on #8737:
+>
+> *Applied to an issue that is not stale at all.* #8737 was filed **three days** before it
+> was triaged, by a reporter who had already documented both symptoms precisely. Its title,
+> "silent UB or ICE", is exactly what the compiler does. It was nonetheless marked stale as
+> "understates it" — turning a nuance into a defect claim about someone's writing. **Check
+> the filing date first:** a recently-filed issue's text is almost never stale, and
+> "understates it" is not staleness. Retracted.
+>
+> *A summary that falsifies the analysis it summarises.* The draft correctly said
+> `atomicBinOp` has **no** sample-index operand. The one-line `text_stale` compressed that to
+> "`i32 undef` where the sample index belongs" — asserting the slot exists. The reporter
+> quoted that phrase back and corrected it. A short field is not licence to state something
+> the long-form evidence does not; **compression must only remove claims, never add one.**
 
 Always state the sampling bias. Verdicts from the oldest issues do not generalise to the
 backlog.

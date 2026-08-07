@@ -1,0 +1,13 @@
+# Reporter's command line from the issue body, with only the paths localised:
+#
+#   dxc -Zi -Qstrip_debug -Zsb input.hlsl -T ps_6_0 -Fd /path/to/output/ -Fo /path/to/output/a.dxbc
+#
+# The trailing slash on -Fd is the reporter's, and is significant: it makes dxc
+# auto-name the PDB <container-hash>.pdb rather than using the argument as a
+# filename. Kept here verbatim because it is what was reported.
+#
+# This file is NOT what the compilers are scored on -- see cmd.txt, which
+# explains why it differs. Both forms were measured on ground truth and produce
+# the same 5632-byte PDB with the same NumBlocks=10; see
+# manual-case-msf-header-main-debug.txt.
+-Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb/ -Fo pdb/a.dxbc

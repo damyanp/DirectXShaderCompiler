@@ -1,0 +1,23 @@
+{
+  "batch": "007",
+  "confidence": "high",
+  "created_at": "2020-01-30T23:21:55Z",
+  "expected_symptom": "The !dx.source.defines metadata node lists each -D define more than once (four entries for two -D flags) on a command-line dxc.exe compile with -Zi; a correct compile lists each exactly once.",
+  "godbolt_url": "https://godbolt.org/z/qa68hEf4z",
+  "history": "always-repro'd",
+  "labels": "",
+  "labels_add": "bug, debug info",
+  "labels_now": "",
+  "notes_path": "data/issues/2673/notes.md",
+  "number": 2673,
+  "repro_quality": "partial",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Command-line -D defines are still duplicated: !dx.source.defines lists each define twice, exactly the node filed in 2020, on main (ab5400907) and on all 20 releases from v1.4.1907 to v1.9.2607. !dx.source.args shows the -D pair appended a second time, so the duplication happens in the argument list before the preprocessor or debug info see it. Corroborated in source: dxc.cpp:881-885 passes the argv (which still holds the -D flags) and m_Opts.Defines to IDxcCompiler::Compile, and BuildArguments re-appends one -D per define (dxclibrary.cpp:506-508) -- the de-duplication that already exists for -E/-T three lines above was never extended to defines. The reported configuration dependence still holds: the TAEF harness that runs the cited test passes nullptr,0 for defines (FileCheckerTest.cpp:573-575), so the test never exercises the driver path. DXIL is unaffected; the wrong data reaches IDxcPdbUtils and the PIX/DIA surfaces.",
+  "title": "User command line defines are duplicated in debug info and in preprocessor",
+  "triaged_at": "2026-08-07T13:22:03+00:00",
+  "triaged_by": "GitHub Copilot CLI (claude-opus-4.6)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/2673"
+}

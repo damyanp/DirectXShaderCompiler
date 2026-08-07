@@ -1,0 +1,28 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T06:40:41+00:00
+# cmd: -T ps_6_0 -Zi -Qstrip_debug -Zsb repro.hlsl -Fd pdb/repro.pdb -Fo pdb/a.dxbc ; -dumpbin pdb/repro.pdb
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -T ps_6_0 -Zi -Qstrip_debug -Zsb repro.hlsl -Fd pdb/repro.pdb -Fo pdb/a.dxbc
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -dumpbin pdb/repro.pdb
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 1
+--- stdout ---
+
+
+--- stderr ---
+error: Invalid bitcode signature
+dxc failed : error code 0x80004005.
+
+

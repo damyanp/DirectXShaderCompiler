@@ -1,0 +1,4 @@
+# Output of the repro. The directory itself is committed because git does not
+# store empty directories and dxc will not create the -Fd directory itself.
+*
+!.gitignore

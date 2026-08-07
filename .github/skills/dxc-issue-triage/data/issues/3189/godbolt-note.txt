@@ -1,0 +1,24 @@
+What to look for: the OpDecorate ... Binding lines, not the exit status.
+All three panes compile successfully. That is expected -- this is a
+wrong-number issue, not a failure.
+
+Panes 1 and 2 (dxc 1.6.2112 and trunk, -spirv):
+
+    OpDecorate %c DescriptorSet 0
+    OpDecorate %c Binding 2       <-- the reporter expected Binding 0
+
+cbuffers `a` and `b` are unused and have been dead-code-eliminated: search the
+output for `%a` or `%b` and you will find no OpVariable, no OpName and no
+OpDecorate for either. They nevertheless consumed bindings 0 and 1, because
+binding numbers are assigned during SPIR-V emission
+(DeclResultIdMapper::decorateResourceBindings) and DCE runs afterwards, in
+spirv-opt.
+
+`-fvk-auto-shift-bindings -fvk-t-shift 100 0 -fvk-s-shift 200 0` reconstructs
+the reporter's "shift functionality" so the texture and sampler move clear of
+the cbuffers. Without those flags the same defect shows as `%c Binding 4`
+(after g_texture2D 0, g_sampler 1, a 2, b 3).
+
+Pane 3 is the same shader compiled to DXIL instead. In the "Resource Bindings"
+table `c` is at `cb0` and `a`/`b` do not appear at all -- the difference
+raised in the issue thread.

@@ -4,7 +4,7 @@
 
 # DXC issue triage — overview
 
-**30 issues triaged** across 6 batches (001, 002, 003, 004, 005, 006). Ordered by what a maintainer can act on, most actionable first.
+**35 issues triaged** across 7 batches (001, 002, 003, 004, 005, 006, 007). Ordered by what a maintainer can act on, most actionable first.
 
 Nothing here has been applied. No issue has been edited, commented on, closed or relabelled; every recommendation is a proposal, and every draft comment is unposted.
 
@@ -12,25 +12,25 @@ Nothing here has been applied. No issue has been edited, commented on, closed or
 
 | Action | Issues |
 | --- | ---: |
-| [Ready to close](#ready-to-close) | 2 |
-| [Needs a maintainer decision](#needs-a-maintainer-decision) | 2 |
-| [Reclassify](#reclassify) | 4 |
-| [Confirmed still broken (keep open)](#confirmed-still-broken-keep-open) | 22 |
-| **Total** | **30** |
+| [Ready to close](#ready-to-close) | 3 |
+| [Needs a maintainer decision](#needs-a-maintainer-decision) | 4 |
+| [Reclassify](#reclassify) | 5 |
+| [Confirmed still broken (keep open)](#confirmed-still-broken-keep-open) | 23 |
+| **Total** | **35** |
 
-**9 issues no longer say what they do.** These are the highest-value findings in the set: the defect is real, but anyone spot-checking the issue against its own description concludes "cannot reproduce". Fixing the title is a cheap, immediate action on an otherwise unactionable issue.
+**9 issues whose text no longer matches their behaviour.** Every issue below **does** reproduce — the defect is real and confirmed. What is wrong is the description: a reader checking the issue against its own title or body would conclude the opposite. Correcting the text is a cheap, immediate action on an otherwise unactionable issue.
 
 | # | What is stale |
 | --- | --- |
 | [#1702](https://github.com/microsoft/DirectXShaderCompiler/issues/1702) | Reported as an assert; the assert is gone and the current defect is silent wrong codegen (empty main, undef stores). Title and body describe a symptom that no longer occurs. |
 | [#2188](https://github.com/microsoft/DirectXShaderCompiler/issues/2188) | Title blames 'static const int'; static const scalars work. The trigger is reading a component of a const vector (c2Thread.x), which is narrower and differently worded. |
 | [#2331](https://github.com/microsoft/DirectXShaderCompiler/issues/2331) | Body claims B1 and B2 are stale: commenting out one case no longer 'validates clean' and adding a fourth enumerator no longer reaches the validator -- both are now 'error: control may reach end of non-void function [-Wreturn-type]' at Sema, changed between v1.4.1907 and v1.5.2010. The main symptom and B3 (default: compiles clean) still hold. |
+| [#3005](https://github.com/microsoft/DirectXShaderCompiler/issues/3005) | A maintainer comment left standing: @damyanp asked on 2024-06-27 'it looks like you have a PR prepared for this. How far off is that from being ready to go in?' It was never answered, and the PR it refers to (#5767) was closed unmerged on 2026-01-22, so the thread reads top-down as though a fix is pending when none is. Title and body are still accurate -- the hex dump reproduces exactly on v1.5.2010. |
 | [#3055](https://github.com/microsoft/DirectXShaderCompiler/issues/3055) | Not the title or body -- the thread. llvm-beanz commented 2023-07-14 'This compiles successfully now', and the body was then edited 2023-09-27, so the correction sits above the report it appears to correct. A reader going top-down concludes the issue is fixed; it reproduces byte-identically from v1.4.1907 to main. The comment is about a DIFFERENT thing (the shader now compiles because a valid overload was substituted); the filed complaint is that the diagnostic never names the sampler-type mismatch, and that is unchanged. |
 | [#3444](https://github.com/microsoft/DirectXShaderCompiler/issues/3444) | Title claims float2/float3/float4 work. None of them do -- wrong since 2021. |
 | [#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527) | Title says 'case sensitive'. Case is not the mechanism: #pragma once keys on the path as spelled, so './x' vs '././x' fails with case held constant. The real scope is wider than the title. |
 | [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725) | Title scopes this to 'passing a payload by value to HitObject::Invoke'. Measured: dx::HitObject::TraceRay fails identically, and a mutable static payload passed straight to Invoke fails with no by-value parameter and no user function at all. So the title's 'by value' is one instance of a wider trigger -- an object-method intrinsic with an inout record parameter called with an argument whose address is not provably non-aliasing -- stated as a lead; only Invoke and TraceRay were measured. |
 | [#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732) | Title says 'silent miscompilation or ICE', but the body's own Actual Behavior section says all four filed defects are now diagnosed at compile time and defect 4 no longer ICEs -- only the heap-only conditional case is still described as silent. Neither state is reachable from main: the issue is filed against the unmerged branch of PR #8517 and says so only in passing, so anyone checking it against main or any release sees a loud validation error and concludes it cannot be reproduced. |
-| [#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737) | Title says 'silent UB or ICE'; understates it. The silent case emits a DXIL atomic with i32 undef where the sample index belongs, and that container passes validation. |
 
 ## Ready to close
 
@@ -38,8 +38,16 @@ Nothing here has been applied. No issue has been edited, commented on, closed or
 
 | # | Title | Status | History | Conf. | Repro | CE | Artifacts |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| [#2918](https://github.com/microsoft/DirectXShaderCompiler/issues/2918) | PIX: Numbering pass fails with /Od when subroutines are used | does-not-repro | fixed-in: v1.6.2104 | high | agent-constructed | [a4qPPYzvK](https://godbolt.org/z/a4qPPYzvK) | [draft](../issues/2918/comment.md) · [notes](../issues/2918/notes.md) · [expected](../issues/2918/expected.md) · [method](../issues/2918/method-notes.md) |
 | [#3038](https://github.com/microsoft/DirectXShaderCompiler/issues/3038) | DXR 1.1: Using TraceRayInline(...) right after TraceRay(...) crashes shader compilation | does-not-repro | fixed-in: v1.8.2505 | high | agent-constructed | [6s1W5rfKx](https://godbolt.org/z/6s1W5rfKx) | [draft](../issues/3038/comment.md) · [notes](../issues/3038/notes.md) · [expected](../issues/3038/expected.md) |
 | [#3768](https://github.com/microsoft/DirectXShaderCompiler/issues/3768) | [SPIR-V] crash compiling shader using printf | does-not-repro | regressed-in v1.6.2104; fixed-in v1.6.2112 | high | complete | [e5KT1E6W9](https://godbolt.org/z/e5KT1E6W9) | [draft](../issues/3768/comment.md) · [notes](../issues/3768/notes.md) · [expected](../issues/3768/expected.md) · [method](../issues/3768/method-notes.md) |
+
+**[#2918](https://github.com/microsoft/DirectXShaderCompiler/issues/2918) — PIX: Numbering pass fails with /Od when subroutines are used**  
+<sub>batch 007 · triaged against `ab5400907` · drafted by `claude-opus-4.6 (Copilot CLI)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
+
+Fixed, never closed. Reported repro is a private shader behind an internal PIX bug number and was not obtainable; an agent-constructed reconstruction (compute shader, -Od -Zi, local array in a non-inlined helper) run through dxopt -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs fails on v1.5.2010 and succeeds on v1.6.2104 through main. Fix is almost certainly ac5630e8e (#3292, "Fixes for adding -Od", Dec 2020), which replaced setDebugLoc(GetVariableLocation()) - a DILocation with no inlinedAt and column 1, exactly the shape in the reported dump - with the originating instruction DebugLoc. Attribution is source reasoning over the release window, not a bisect.
+
+*Labels:* add `PIX`, `debug info`, `crash`, `bug`.
 
 **[#3038](https://github.com/microsoft/DirectXShaderCompiler/issues/3038) — DXR 1.1: Using TraceRayInline(...) right after TraceRay(...) crashes shader compilation**  
 <sub>batch 003 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
@@ -61,7 +69,9 @@ SPIR-V printf heap corruption. A captured repeated-run set reproduced STATUS_HEA
 | # | Title | Status | History | Conf. | Repro | CE | Artifacts |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | [#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732) | [SPIR-V] SPV_EXT_descriptor_heap mixed bound/heap aliasing causes silent miscompilation or ICE ⚠️ | inconclusive | unmeasurable -- only v1.9.2607 of the 20 releases in the bis | high | partial | [bcn4zoTdM](https://godbolt.org/z/bcn4zoTdM) | [draft](../issues/8732/comment.md) · [notes](../issues/8732/notes.md) · [expected](../issues/8732/expected.md) · [method](../issues/8732/method-notes.md) |
+| [#3005](https://github.com/microsoft/DirectXShaderCompiler/issues/3005) | Generated separate PDB files have possibly invalid header ⚠️ | repros | always-repro'd across v1.4.1907..v1.9.2607 (all 20 releases) | high | complete | [s567x57P8](https://godbolt.org/z/s567x57P8) | [draft](../issues/3005/comment.md) · [notes](../issues/3005/notes.md) · [expected](../issues/3005/expected.md) · [method](../issues/3005/method-notes.md) |
 | [#3150](https://github.com/microsoft/DirectXShaderCompiler/issues/3150) | Unspecified behavior from new-to-DXIL sdiv instruction | not-compiler-verifiable | n/a | high | prose-only | n/a | [draft](../issues/3150/comment.md) · [notes](../issues/3150/notes.md) · [expected](../issues/3150/expected.md) |
+| [#3305](https://github.com/microsoft/DirectXShaderCompiler/issues/3305) | Empty Payload struct not recognized in DXIL | repros | always-repro'd across v1.4.1907..v1.9.2607 (all 20 releases  | high | complete | [Pr3cfczY7](https://godbolt.org/z/Pr3cfczY7) | [draft](../issues/3305/comment.md) · [notes](../issues/3305/notes.md) · [expected](../issues/3305/expected.md) · [method](../issues/3305/method-notes.md) |
 
 **[#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732) — [SPIR-V] SPV_EXT_descriptor_heap mixed bound/heap aliasing causes silent miscompilation or ICE**  
 <sub>batch 005 · triaged against `ab5400907` · drafted by `claude-opus-4.5 (GitHub Copilot CLI)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
@@ -72,6 +82,13 @@ Filed against the unmerged branch of PR #8517; the VarDecl alias map it blames d
 
 *Labels:* add `correctness`.
 
+**[#3005](https://github.com/microsoft/DirectXShaderCompiler/issues/3005) — Generated separate PDB files have possibly invalid header**  
+<sub>batch 007 · triaged against `ab5400907` · drafted by `GitHub Copilot CLI 1.0.79-2 (model not self-identifiable)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
+
+Still reproduces on main (ab5400907). The separate PDB written by -Fd declares NumBlocks one block short, so the file's own stream directory addresses a block the superblock says does not exist; cause is NumBlockAddrBlocks being written but never counted at lib/DXIL/DxilPDB.cpp:132. Present in all 21 builds measured. LLVM and llvm-pdbutil accept the file; Microsoft's reference MSF implementation would refuse to read the last page. The actionable finding is that PR #5767 (Fixes #3005, by a maintainer, reviewed and format-clean in Nov 2023) was closed unmerged by an inactivity sweep on 2026-01-22.
+
+> ⚠️ **Issue text is stale.** A maintainer comment left standing: @damyanp asked on 2024-06-27 'it looks like you have a PR prepared for this. How far off is that from being ready to go in?' It was never answered, and the PR it refers to (#5767) was closed unmerged on 2026-01-22, so the thread reads top-down as though a fix is pending when none is. Title and body are still accurate -- the hex dump reproduces exactly on v1.5.2010.
+
 **[#3150](https://github.com/microsoft/DirectXShaderCompiler/issues/3150) — Unspecified behavior from new-to-DXIL sdiv instruction**  
 <sub>batch 003 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
 
@@ -80,6 +97,13 @@ Spec/docs gap, active design thread (latest 2026-01-22). Checkable facts: the DX
 *Labels:* add `dxil`.
 
 *No Compiler Explorer link:* no defect to show; specification/documentation gap on an active design thread, which already contains maintainer-authored links (jenatali, llvm-beanz). Adding another would be noise.
+
+**[#3305](https://github.com/microsoft/DirectXShaderCompiler/issues/3305) — Empty Payload struct not recognized in DXIL**  
+<sub>batch 007 · triaged against `ab5400907` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
+
+DXIL still rejects an empty payload struct while SPIR-V compiles it, unchanged on every measurable build (v1.4.1907..v1.9.2607 and main). The DXIL diagnostic misnames its cause: it says the shader must include an inout payload structure parameter, but the parameter is present and what CGHLSLMS.cpp:2492 checks is payloadSizeInBytes == 0 -- a payload whose only member is an empty struct gets the same message, and since PR #5131 (2023-04) a genuinely missing parameter gets an accurate Sema message instead. Whether an empty payload should be legal is a language/product decision, deliberate since 2018 and still unanswered on the thread; the wrong message is separately fixable either way.
+
+*Labels:* add `diagnostic`.
 
 
 ## Reclassify
@@ -92,6 +116,7 @@ Spec/docs gap, active design thread (latest 2026-01-22). Checkable facts: the DX
 | [#1627](https://github.com/microsoft/DirectXShaderCompiler/issues/1627) | force include file | repros | always-repro'd | high | agent-constructed | [E1xv7nvPa](https://godbolt.org/z/E1xv7nvPa) | [draft](../issues/1627/comment.md) · [notes](../issues/1627/notes.md) · [expected](../issues/1627/expected.md) |
 | [#2128](https://github.com/microsoft/DirectXShaderCompiler/issues/2128) | Generated bytecode by dxc has very higher compression ratio | repros | always-repro'd | high | agent-constructed | n/a | [draft](../issues/2128/comment.md) · [notes](../issues/2128/notes.md) · [expected](../issues/2128/expected.md) · [method](../issues/2128/method-notes.md) |
 | [#2792](https://github.com/microsoft/DirectXShaderCompiler/issues/2792) | Need to report error when use constant which has offset bigger than root constant size. | repros | always-repro'd across v1.4.1907..v1.9.2607 (all 20 releases  | high | complete | [d5zcrTPjP](https://godbolt.org/z/d5zcrTPjP) | [draft](../issues/2792/comment.md) · [notes](../issues/2792/notes.md) · [expected](../issues/2792/expected.md) · [method](../issues/2792/method-notes.md) |
+| [#3189](https://github.com/microsoft/DirectXShaderCompiler/issues/3189) | [SPIR-V] Descriptor bindings assigned before dead code elimination | repros | always-repro'd | high | complete | [48nqT9roE](https://godbolt.org/z/48nqT9roE) | [draft](../issues/3189/comment.md) · [notes](../issues/3189/notes.md) · [expected](../issues/3189/expected.md) · [method](../issues/3189/method-notes.md) |
 
 **[#1306](https://github.com/microsoft/DirectXShaderCompiler/issues/1306) — Validation for sync in varying flow control**  
 <sub>batch 001 · triaged against `eff900d54` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
@@ -123,6 +148,13 @@ No DXC has ever checked a cbuffer's size against its root constant block's num32
 
 *Labels:* add `diagnostic`, `enhancement`, `check-in-clang`; remove `bug`.
 
+**[#3189](https://github.com/microsoft/DirectXShaderCompiler/issues/3189) — [SPIR-V] Descriptor bindings assigned before dead code elimination**  
+<sub>batch 007 · triaged against `ab5400907` · drafted by `claude-opus-4.5 (Copilot CLI)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
+
+Reproduces exactly as filed on ground truth and on all 19 probeable releases (v1.5.2010..v1.9.2607); v1.4.1907 is invalid-probe (no SPIR-V codegen, confirmed by a flag-free control, since the primary capture was demoted only for an unknown flag). With the reporter reconstructed shift flags the used cbuffer c is decorated Binding 2 while the two unused cbuffers are fully DCE-eliminated; with no shift flags it is Binding 4, so the behaviour is not shift-specific. Source confirms decorateResourceBindings runs at SpirvEmitter.cpp:840, before spirv-opt at 972/988, and -O0 shows a=0 b=1 c=2 unchanged. DXIL mode compacts (c at cb0), as noted in the thread. Not a defect to fix: s-perron stated the design position in 2024 (default must not change; opt-in spirv-opt renumbering pass welcome), and DXC already ships -fspv-preserve-bindings which keeps unused resources rather than compacting them. Remaining actions are relabelling as an enhancement and two docs gaps in SPIR-V.rst: the behaviour itself, and -fspv-preserve-bindings, which is undocumented.
+
+*Labels:* add `enhancement`, `up-for-grabs`, `docs`.
+
 
 ## Confirmed still broken (keep open)
 
@@ -137,7 +169,6 @@ No DXC has ever checked a cbuffer's size against its root constant block's num32
 | [#3444](https://github.com/microsoft/DirectXShaderCompiler/issues/3444) | [DXIL] Decorating CS float argument with SV_DispatchThreadID semantic crashes the compiler (float2, float3 and float4 works) ⚠️ | repros | always-repro'd | high | complete | [d6jG8Yjrr](https://godbolt.org/z/d6jG8Yjrr) | [draft](../issues/3444/comment.md) · [notes](../issues/3444/notes.md) · [expected](../issues/3444/expected.md) |
 | [#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527) | pragma once is case sensitive ⚠️ | repros | always-repro'd | high | complete | n/a | [draft](../issues/8527/comment.md) · [notes](../issues/8527/notes.md) · [expected](../issues/8527/expected.md) · [method](../issues/8527/method-notes.md) |
 | [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725) | [SER] Passing a payload by value to HitObject::Invoke asserts in CodeGen ⚠️ | repros | always-repro'd across v1.8.2505..v1.9.2607 (15 older release | high | complete | [Eo8YbKs5n](https://godbolt.org/z/Eo8YbKs5n) | [draft](../issues/8725/comment.md) · [notes](../issues/8725/notes.md) · [expected](../issues/8725/expected.md) · [method](../issues/8725/method-notes.md) |
-| [#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737) | Atomics on RWTexture2DMS result in silent UB or ICE ⚠️ | repros | always-repro'd (v1.7.2207..v1.9.2607; 5 older releases preda | high | complete | [ea91a6vnj](https://godbolt.org/z/ea91a6vnj) | [draft](../issues/8737/comment.md) · [notes](../issues/8737/notes.md) · [expected](../issues/8737/expected.md) · [method](../issues/8737/method-notes.md) |
 | [#708](https://github.com/microsoft/DirectXShaderCompiler/issues/708) | RegisterOffset is being ignored from RegisterAssignment | repros | always-repro'd | high | agent-constructed | [MsfE6b1v8](https://godbolt.org/z/MsfE6b1v8) | — |
 | [#1768](https://github.com/microsoft/DirectXShaderCompiler/issues/1768) | Arrays of structs in GS OutputStreams are not supported | repros | always-repro'd | high | complete | [b66vK5EPx](https://godbolt.org/z/b66vK5EPx) | [draft](../issues/1768/comment.md) · [notes](../issues/1768/notes.md) · [expected](../issues/1768/expected.md) |
 | [#1803](https://github.com/microsoft/DirectXShaderCompiler/issues/1803) | [RW]StructuredBuffer<matrix> ignores orientation | repros | always-repro'd | high | complete | [4K5T5G5Wf](https://godbolt.org/z/4K5T5G5Wf) | [draft](../issues/1803/comment.md) · [notes](../issues/1803/notes.md) · [expected](../issues/1803/expected.md) |
@@ -147,10 +178,12 @@ No DXC has ever checked a cbuffer's size against its root constant block's num32
 | [#2427](https://github.com/microsoft/DirectXShaderCompiler/issues/2427) | Compiler fails on quoted folder parameters finishing with '\\' | repros | always-repro'd | high | complete | n/a | [draft](../issues/2427/comment.md) · [notes](../issues/2427/notes.md) · [expected](../issues/2427/expected.md) |
 | [#2528](https://github.com/microsoft/DirectXShaderCompiler/issues/2528) | Remainder of inout signature element not passed through when one component is modified | repros | always-repro'd | high | complete | [EaYncchW3](https://godbolt.org/z/EaYncchW3) | [draft](../issues/2528/comment.md) · [notes](../issues/2528/notes.md) · [expected](../issues/2528/expected.md) · [method](../issues/2528/method-notes.md) |
 | [#2530](https://github.com/microsoft/DirectXShaderCompiler/issues/2530) | Array bound with static const variable | repros | always-repro'd | high | complete | [Yzd9KjcaG](https://godbolt.org/z/Yzd9KjcaG) | [draft](../issues/2530/comment.md) · [notes](../issues/2530/notes.md) · [expected](../issues/2530/expected.md) · [method](../issues/2530/method-notes.md) |
+| [#2673](https://github.com/microsoft/DirectXShaderCompiler/issues/2673) | User command line defines are duplicated in debug info and in preprocessor | repros | always-repro'd | high | partial | [qa68hEf4z](https://godbolt.org/z/qa68hEf4z) | [draft](../issues/2673/comment.md) · [notes](../issues/2673/notes.md) · [expected](../issues/2673/expected.md) · [method](../issues/2673/method-notes.md) |
 | [#3009](https://github.com/microsoft/DirectXShaderCompiler/issues/3009) | dxc silently passes uninitialized value as undef | repros | always-repro'd | high | complete | [5bdo83bTY](https://godbolt.org/z/5bdo83bTY) | [draft](../issues/3009/comment.md) · [notes](../issues/3009/notes.md) · [expected](../issues/3009/expected.md) |
 | [#3048](https://github.com/microsoft/DirectXShaderCompiler/issues/3048) | Casting subclass to parent of three class heirarchy causes crashes | repros | always-repro'd | high | complete | [1o5Exs9YP](https://godbolt.org/z/1o5Exs9YP) | [draft](../issues/3048/comment.md) · [notes](../issues/3048/notes.md) · [expected](../issues/3048/expected.md) |
 | [#3259](https://github.com/microsoft/DirectXShaderCompiler/issues/3259) | Crash in TranslatePtrIfUsedByLoweredFn | repros | always-repro'd across v1.5.2010..v1.9.2607 (19 releases); v1 | high | complete | [8rxodd943](https://godbolt.org/z/8rxodd943) | [draft](../issues/3259/comment.md) · [notes](../issues/3259/notes.md) · [expected](../issues/3259/expected.md) · [method](../issues/3259/method-notes.md) |
 | [#3873](https://github.com/microsoft/DirectXShaderCompiler/issues/3873) | Infinite loop related to struct inheritance and empty struct | repros | always-repro'd | high | complete | [6z6j7Ma36](https://godbolt.org/z/6z6j7Ma36) | [draft](../issues/3873/comment.md) · [notes](../issues/3873/notes.md) · [expected](../issues/3873/expected.md) |
+| [#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737) | Atomics on RWTexture2DMS result in silent UB or ICE | repros | always-repro'd (v1.7.2207..v1.9.2607; 5 older releases preda | high | complete | [ea91a6vnj](https://godbolt.org/z/ea91a6vnj) | [draft](../issues/8737/comment.md) · [notes](../issues/8737/notes.md) · [expected](../issues/8737/expected.md) · [method](../issues/8737/method-notes.md) |
 | [#3251](https://github.com/microsoft/DirectXShaderCompiler/issues/3251) | Missing implementation for HLOpcodeGroup::NotHL in TranslateCBAddressUserLegacy | repros | always-repro'd -- all 19 probeable releases v1.5.2010..v1.9. | high | complete | [arjrMWhWf](https://godbolt.org/z/arjrMWhWf) | [draft](../issues/3251/comment.md) · [notes](../issues/3251/notes.md) · [expected](../issues/3251/expected.md) · [method](../issues/3251/method-notes.md) |
 
 **[#1702](https://github.com/microsoft/DirectXShaderCompiler/issues/1702) — Array as parameter of function**  
@@ -218,15 +251,6 @@ Confirmed on main (1.9.0.5433, ab5400907) and on all 5 releases that can compile
 
 *Labels:* add `crash`, `incorrect-code`, `diagnostic`, `sm6.9`; remove `needs-triage`.
 
-**[#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737) — Atomics on RWTexture2DMS result in silent UB or ICE**  
-<sub>batch 004 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
-
-Both reported symptoms confirmed on main (eff900d54) and on every SM 6.7-capable release since v1.7.2207. ICE: InterlockedMax(tex.sample[s][uv],..) exits E_FAIL with 'llvm::cast<X>() argument of incompatible type!' (a thrown hlsl::Exception, identical in Debug and Release); also fires with a constant sample index, other atomics and RWTexture2DMSArray. Silent case: compiles with exit 0 and no diagnostic, emitting dx.op.atomicBinOp with 'i32 undef' in the last coordinate on a 2dMS UAV -- byte-identical to the same atomic on a plain RWTexture2D. DXIL.rst:1876-1887 does not list Texture2DMS among AtomicBinOp's valid resource types and gen_intrin_main.txt declares no interlocked method on RWTexture2DMS, so this is invalid input DXC fails to diagnose, not valid input it miscompiles. The validator does not catch it either (DxilValidation.cpp:2412 checks UAV-ness, not resource kind).
-
-> ⚠️ **Issue text is stale.** Title says 'silent UB or ICE'; understates it. The silent case emits a DXIL atomic with i32 undef where the sample index belongs, and that container passes validation.
-
-*Labels:* add `crash`, `incorrect-code`, `diagnostic`, `sm6.7`; remove `needs-triage`.
-
 **[#708](https://github.com/microsoft/DirectXShaderCompiler/issues/708) — RegisterOffset is being ignored from RegisterAssignment**  
 <sub>batch 001 · triaged against `eff900d54` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
 
@@ -292,6 +316,13 @@ Both cases in the body still fail on main (ab5400907). Case 1 fails on all 20 re
 
 *Labels:* add `diagnostic`.
 
+**[#2673](https://github.com/microsoft/DirectXShaderCompiler/issues/2673) — User command line defines are duplicated in debug info and in preprocessor**  
+<sub>batch 007 · triaged against `ab5400907` · drafted by `GitHub Copilot CLI (claude-opus-4.6)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
+
+Command-line -D defines are still duplicated: !dx.source.defines lists each define twice, exactly the node filed in 2020, on main (ab5400907) and on all 20 releases from v1.4.1907 to v1.9.2607. !dx.source.args shows the -D pair appended a second time, so the duplication happens in the argument list before the preprocessor or debug info see it. Corroborated in source: dxc.cpp:881-885 passes the argv (which still holds the -D flags) and m_Opts.Defines to IDxcCompiler::Compile, and BuildArguments re-appends one -D per define (dxclibrary.cpp:506-508) -- the de-duplication that already exists for -E/-T three lines above was never extended to defines. The reported configuration dependence still holds: the TAEF harness that runs the cited test passes nullptr,0 for defines (FileCheckerTest.cpp:573-575), so the test never exercises the driver path. DXIL is unaffected; the wrong data reaches IDxcPdbUtils and the PIX/DIA surfaces.
+
+*Labels:* add `bug`, `debug info`.
+
 **[#3009](https://github.com/microsoft/DirectXShaderCompiler/issues/3009) — dxc silently passes uninitialized value as undef**  
 <sub>batch 002 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
 
@@ -320,6 +351,13 @@ Empty-struct inheritance hangs the compiler. Release builds spin unbounded (stil
 
 *Labels:* add `type-system`.
 
+**[#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737) — Atomics on RWTexture2DMS result in silent UB or ICE**  
+<sub>batch 004 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
+
+Both reported symptoms confirmed on main (eff900d54) and on every SM 6.7-capable release since v1.7.2207. ICE: InterlockedMax(tex.sample[s][uv],..) exits E_FAIL with 'llvm::cast<X>() argument of incompatible type!' (a thrown hlsl::Exception, identical in Debug and Release); also fires with a constant sample index, other atomics and RWTexture2DMSArray. Silent case: compiles with exit 0 and no diagnostic, emitting dx.op.atomicBinOp with 'i32 undef' in the last coordinate on a 2dMS UAV -- byte-identical to the same atomic on a plain RWTexture2D. DXIL.rst:1876-1887 does not list Texture2DMS among AtomicBinOp's valid resource types and gen_intrin_main.txt declares no interlocked method on RWTexture2DMS, so this is invalid input DXC fails to diagnose, not valid input it miscompiles. The validator does not catch it either (DxilValidation.cpp:2412 checks UAV-ness, not resource kind).
+
+*Labels:* add `crash`, `incorrect-code`, `diagnostic`, `sm6.7`; remove `needs-triage`.
+
 **[#3251](https://github.com/microsoft/DirectXShaderCompiler/issues/3251) — Missing implementation for HLOpcodeGroup::NotHL in TranslateCBAddressUserLegacy**  
 <sub>batch 006 · triaged against `ab5400907` · drafted by `claude-opus-5` · reviewed by `gpt-5.6-sol`</sub>
 
@@ -333,4 +371,4 @@ Still asserts on Debug main (ab5400907): DXASSERT(0, 'not implemented yet') at l
 - **Compiler Explorer runs Release builds**, so a Debug-only assert looks clean there. CE corroborates the local build; it never overrules it. `dxc_trunk` is a rolling build and is not reproducible over time.
 - **Sampling is deliberately unrepresentative.** Batches over-weight the oldest issues, so the verdict distribution here does not generalise to the backlog.
 
-Per-batch reports, including the method findings that changed how later batches were run: [batch 001](batch-001.md), [batch 002](batch-002.md), [batch 003](batch-003.md), [batch 004](batch-004.md), [batch 005](batch-005.md), [batch 006](batch-006.md).
+Per-batch reports, including the method findings that changed how later batches were run: [batch 001](batch-001.md), [batch 002](batch-002.md), [batch 003](batch-003.md), [batch 004](batch-004.md), [batch 005](batch-005.md), [batch 006](batch-006.md), [batch 007](batch-007.md).
