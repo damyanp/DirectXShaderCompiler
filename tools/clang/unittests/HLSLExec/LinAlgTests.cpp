@@ -2549,37 +2549,10 @@ static const char CopyConvertShader[] = R"(
   }
 )";
 
-// MatrixConstruction is queried with a full {M,K,N} multiply shape, but a use-A
-// tile only pins M and K; the N extent is free. The runtime accepts a shape
-// when every extent is a positive multiple of a native tile, so probe the
-// power-of-two extents that native tiles are built from and accept the tile if
-// any probe matches. Missing an extent skips a test case; it can never report
-// an unsupported tile as supported.
-static constexpr UINT FreeExtentProbes[] = {4, 8, 16, 32, 64, 128};
-
-static HRESULT
-supportsUseAMatrix(ID3D12Device *Device,
-                   linalg_abi::D3D12_LINEAR_ALGEBRA_DATATYPE Type,
-                   UINT WaveSize, UINT Rows, UINT Columns, bool &Supported) {
-  Supported = false;
-  for (UINT FreeExtent : FreeExtentProbes) {
-    linalg_test::MatrixConstructionSupport Construction;
-    const HRESULT HR = linalg_test::queryMatrixConstruction(
-        Device, {Type, WaveSize, {Rows, Columns, FreeExtent}}, Construction);
-    if (FAILED(HR))
-      return HR;
-    if (Construction.supported()) {
-      Supported = true;
-      return S_OK;
-    }
-  }
-  return S_OK;
-}
-
-static HRESULT queryCopyConvertSupport(ID3D12Device *Device,
-                                       const MatrixParams &Params,
-                                       bool Transpose, bool &Supported,
-                                       UINT &SelectedWaveSize) {
+static HRESULT selectCopyConvertWaveSize(ID3D12Device *Device,
+                                         const MatrixParams &Params,
+                                         bool Transpose, bool &Supported,
+                                         UINT &SelectedWaveSize) {
   Supported = false;
   SelectedWaveSize = 0;
   if (!Device || Params.Use != MatrixUse::A ||
@@ -2651,6 +2624,24 @@ static HRESULT queryCopyConvertSupport(ID3D12Device *Device,
       L"WaveSize(4,128) and a %d-thread group",
       Params.M, Params.N, Destination.M, Destination.N, Params.NumThreads);
   return S_OK;
+}
+
+static bool copyConvertApplicable(ID3D12Device *Device,
+                                  const MatrixParams &Params, bool Transpose,
+                                  LPCWSTR CaseName, UINT &SelectedWaveSize) {
+  bool Supported = false;
+  const HRESULT QueryResult = selectCopyConvertWaveSize(
+      Device, Params, Transpose, Supported, SelectedWaveSize);
+  if (!applyApplicability(
+          linalg_test::classifyApplicability(
+              QueryResult, Supported,
+              linalg_test::CapabilityRequirement::CapabilityGated),
+          CaseName))
+    return false;
+
+  VERIFY_IS_TRUE(SelectedWaveSize != 0,
+                 "A case cleared to run must have a selected wave size");
+  return true;
 }
 
 static void runCopyConvert(ID3D12Device *Device,
@@ -2745,8 +2736,14 @@ void DxilConf_SM610_LinAlg::CopyConvert_Wave_16x16_F16() {
   Params.Layout = MatrixLayout::RowMajor;
   Params.NumThreads = 128;
   Params.Enable16Bit = true;
+
+  UINT SelectedWaveSize = 0;
+  if (!copyConvertApplicable(D3DDevice, Params, /*Transpose=*/false,
+                             L"CopyConvert_Wave_16x16_F16", SelectedWaveSize))
+    return;
+
   runCopyConvert(D3DDevice, DxcSupport, Params, VerboseLogging,
-                 /*Transpose=*/false);
+                 /*Transpose=*/false, SelectedWaveSize);
 }
 
 void DxilConf_SM610_LinAlg::CopyConvert_Wave_16x16_F16_Transpose() {
@@ -2759,8 +2756,15 @@ void DxilConf_SM610_LinAlg::CopyConvert_Wave_16x16_F16_Transpose() {
   Params.Layout = MatrixLayout::RowMajor;
   Params.NumThreads = 128;
   Params.Enable16Bit = true;
+
+  UINT SelectedWaveSize = 0;
+  if (!copyConvertApplicable(D3DDevice, Params, /*Transpose=*/true,
+                             L"CopyConvert_Wave_16x16_F16_Transpose",
+                             SelectedWaveSize))
+    return;
+
   runCopyConvert(D3DDevice, DxcSupport, Params, VerboseLogging,
-                 /*Transpose=*/true);
+                 /*Transpose=*/true, SelectedWaveSize);
 }
 
 void DxilConf_SM610_LinAlg::CopyConvert_Wave_4x8_F32_Transpose() {
@@ -2774,17 +2778,10 @@ void DxilConf_SM610_LinAlg::CopyConvert_Wave_4x8_F32_Transpose() {
   Params.NumThreads = 128;
   Params.Enable16Bit = false;
 
-  bool Supported;
-  UINT SelectedWaveSize;
-  const HRESULT QueryResult = queryCopyConvertSupport(
-      D3DDevice, Params, /*Transpose=*/true, Supported, SelectedWaveSize);
-  const linalg_test::Applicability Applicability =
-      linalg_test::classifyApplicability(
-          QueryResult, Supported,
-          linalg_test::CapabilityRequirement::CapabilityGated);
-  if (!applyApplicability(
-          Applicability,
-          L"CopyConvert_Wave_4x8_F32_Transpose MatrixConstruction"))
+  UINT SelectedWaveSize = 0;
+  if (!copyConvertApplicable(D3DDevice, Params, /*Transpose=*/true,
+                             L"CopyConvert_Wave_4x8_F32_Transpose",
+                             SelectedWaveSize))
     return;
 
   // Non-square dimensions make the destination shape and row stride observable.
