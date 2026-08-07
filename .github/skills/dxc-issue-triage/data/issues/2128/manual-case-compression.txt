@@ -1,0 +1,138 @@
+# case: compression ratio of dxc vs fxc shader objects, and per-container-part breakdown
+# harness: measure.py (committed beside this file); re-run with `python measure.py`
+# compiler: main-debug  C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+# contrast: fxc.exe 10.0.26100.0 (Windows SDK), /T ps_5_1 -- fxc cannot emit SM6, and the
+#           migration from fxc to dxc is exactly the comparison the reporter made
+# ran: 2026-08-07T05:05:26Z
+# verdict: unscored -- the symptom is a ratio; match.json's vocabulary is exit codes and text
+# note: ratio = len(raw-deflate(bytes)) / len(bytes), level 9, wbits=-15 -- a .zip member
+#       exactly, and a .zip compresses each member independently, which is the reporter's
+#       "if I will zip same shaders"
+
+dxc: C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+fxc: C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\fxc.exe
+dxc --version: dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+dxc args: -T ps_6_0 -E main -O3
+fxc args: /T ps_5_1 /E main /O3 /nologo
+
+HARNESS CONTROLS
+  input                                  bytes  deflated  ratio  expect       
+  -------------------------------------  -----  --------  -----  -------  ----
+  incompressible (sha256 chain, 4096 B)  4096   4101      1.001  >= 0.98  PASS
+  compressible (repro.hlsl source)       3328   1323      0.398  <= 0.50  PASS
+
+COMMANDS RUN
+  $ C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe -T ps_6_0 -E main -O3 -Fo artifacts\corpus-small.dxc.cso corpus-small.hlsl   (and the same for the other two shaders)
+  $ C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe -T ps_6_0 -E main -O3 -Qstrip_reflect -Fo artifacts\corpus-small.dxc-strip.cso corpus-small.hlsl   (and the same for the other two shaders)
+  $ C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\fxc.exe /T ps_5_1 /E main /O3 /nologo /Fo artifacts\corpus-small.fxc.cso corpus-small.hlsl   (and the same for the other two shaders)
+  $ C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\fxc.exe /T ps_5_1 /E main /O3 /nologo /Qstrip_reflect /Fo artifacts\corpus-small.fxc-strip.cso corpus-small.hlsl   (and the same for the other two shaders)
+
+PER-SHADER OBJECT SIZE AND DEFLATE RATIO
+  shader                compiler   bytes  deflated  ratio
+  --------------------  ---------  -----  --------  -----
+  corpus-small.hlsl     dxc        4176   2393      0.573
+  repro.hlsl            dxc        6976   4440      0.636
+  corpus-large.hlsl     dxc        35364  17776     0.503
+  TOTAL all 3           dxc        46516  24609     0.529
+  TOTAL excl. unrolled  dxc        11152  6833      0.613
+  corpus-small.hlsl     dxc+strip  2376   1869      0.787
+  repro.hlsl            dxc+strip  4616   3520      0.763
+  corpus-large.hlsl     dxc+strip  33224  17080     0.514
+  TOTAL all 3           dxc+strip  40216  22469     0.559
+  TOTAL excl. unrolled  dxc+strip  6992   5389      0.771
+  corpus-small.hlsl     fxc        928    419       0.452
+  repro.hlsl            fxc        4588   1406      0.306
+  corpus-large.hlsl     fxc        41708  2478      0.059
+  TOTAL all 3           fxc        47224  4303      0.091
+  TOTAL excl. unrolled  fxc        5516   1825      0.331
+  corpus-small.hlsl     fxc+strip  400    222       0.555
+  repro.hlsl            fxc+strip  3536   1030      0.291
+  corpus-large.hlsl     fxc+strip  40908  2168      0.053
+  TOTAL all 3           fxc+strip  44844  3420      0.076
+  TOTAL excl. unrolled  fxc+strip  3936   1252      0.318
+
+SIZE MULTIPLE OVER THE CORPUS (reporter claimed ~3x zipped)
+  comparison              raw all 3  zipped all 3  raw excl. unrolled  zipped excl. unrolled
+  ----------------------  ---------  ------------  ------------------  ---------------------
+  dxc vs fxc              0.99x      5.72x         2.02x               3.74x                
+  dxc+strip vs fxc+strip  0.90x      6.57x         1.78x               4.30x                
+
+PART BREAKDOWN -- dxc
+  shader             part  bytes  deflated  ratio
+  -----------------  ----  -----  --------  -----
+  corpus-small.hlsl  SFI0  8      5         0.625
+  corpus-small.hlsl  ISG1  96     50        0.521
+  corpus-small.hlsl  OSG1  52     30        0.577
+  corpus-small.hlsl  PSV0  252    82        0.325
+  corpus-small.hlsl  STAT  1788   1641      0.918
+  corpus-small.hlsl  HASH  20     22        1.100
+  corpus-small.hlsl  DXIL  1844   1660      0.900
+  repro.hlsl         SFI0  8      5         0.625
+  repro.hlsl         ISG1  192    72        0.375
+  repro.hlsl         OSG1  52     30        0.577
+  repro.hlsl         PSV0  436    127       0.291
+  repro.hlsl         STAT  2348   2125      0.905
+  repro.hlsl         HASH  20     23        1.150
+  repro.hlsl         DXIL  3804   3224      0.848
+  corpus-large.hlsl  SFI0  8      5         0.625
+  corpus-large.hlsl  ISG1  128    61        0.477
+  corpus-large.hlsl  OSG1  52     30        0.577
+  corpus-large.hlsl  PSV0  296    98        0.331
+  corpus-large.hlsl  STAT  2128   1924      0.904
+  corpus-large.hlsl  HASH  20     22        1.100
+  corpus-large.hlsl  DXIL  32616  16825     0.516
+
+PART BREAKDOWN -- dxc+strip
+  shader             part  bytes  deflated  ratio
+  -----------------  ----  -----  --------  -----
+  corpus-small.hlsl  SFI0  8      5         0.625
+  corpus-small.hlsl  ISG1  96     50        0.521
+  corpus-small.hlsl  OSG1  52     30        0.577
+  corpus-small.hlsl  PSV0  252    82        0.325
+  corpus-small.hlsl  HASH  20     22        1.100
+  corpus-small.hlsl  DXIL  1844   1660      0.900
+  repro.hlsl         SFI0  8      5         0.625
+  repro.hlsl         ISG1  192    72        0.375
+  repro.hlsl         OSG1  52     30        0.577
+  repro.hlsl         PSV0  436    127       0.291
+  repro.hlsl         HASH  20     23        1.150
+  repro.hlsl         DXIL  3804   3224      0.848
+  corpus-large.hlsl  SFI0  8      5         0.625
+  corpus-large.hlsl  ISG1  128    61        0.477
+  corpus-large.hlsl  OSG1  52     30        0.577
+  corpus-large.hlsl  PSV0  296    98        0.331
+  corpus-large.hlsl  HASH  20     22        1.100
+  corpus-large.hlsl  DXIL  32616  16825     0.516
+
+PART BREAKDOWN -- fxc
+  shader             part  bytes  deflated  ratio
+  -----------------  ----  -----  --------  -----
+  corpus-small.hlsl  RDEF  356    180       0.506
+  corpus-small.hlsl  ISGN  80     52        0.650
+  corpus-small.hlsl  OSGN  44     29        0.659
+  corpus-small.hlsl  SHEX  208    103       0.495
+  corpus-small.hlsl  STAT  148    21        0.142
+  repro.hlsl         RDEF  880    349       0.397
+  repro.hlsl         ISGN  152    73        0.480
+  repro.hlsl         OSGN  44     29        0.659
+  repro.hlsl         SHEX  3272   886       0.271
+  repro.hlsl         STAT  148    26        0.176
+  corpus-large.hlsl  RDEF  628    272       0.433
+  corpus-large.hlsl  ISGN  104    63        0.606
+  corpus-large.hlsl  OSGN  44     29        0.659
+  corpus-large.hlsl  SHEX  40692  2024      0.050
+  corpus-large.hlsl  STAT  148    27        0.182
+
+PART BREAKDOWN -- fxc+strip
+  shader             part  bytes  deflated  ratio
+  -----------------  ----  -----  --------  -----
+  corpus-small.hlsl  ISGN  80     52        0.650
+  corpus-small.hlsl  OSGN  44     29        0.659
+  corpus-small.hlsl  SHEX  208    103       0.495
+  repro.hlsl         ISGN  152    73        0.480
+  repro.hlsl         OSGN  44     29        0.659
+  repro.hlsl         SHEX  3272   886       0.271
+  corpus-large.hlsl  ISGN  104    63        0.606
+  corpus-large.hlsl  OSGN  44     29        0.659
+  corpus-large.hlsl  SHEX  40692  2024      0.050
+

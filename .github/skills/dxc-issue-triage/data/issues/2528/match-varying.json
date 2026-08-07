@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "storeOutput\\.f32\\(i32\\s+5,\\s*i32\\s+1,\\s*i32\\s+0,\\s*i8\\s+0,"
+    },
+    {
+      "kind": "not_regex",
+      "value": "storeOutput\\.f32\\(i32\\s+5,\\s*i32\\s+1,\\s*i32\\s+0,\\s*i8\\s+[123],"
+    }
+  ],
+  "note": "Scores case-struct-varying.hlsl, NOT repro.hlsl. Same defect, second shape, and the shape that matters for impact: on an ordinary varying (output element 1, TEXCOORD0) rather than SV_Position, the dropped pass-through is NOT caught by the DXIL validator, so DXC exits 0 and emits a shader whose TEXCOORD0.yzw are never written. Structure mirrors match.json -- positive anchor on the component the shader did assign (element 1, i8 0), absence clause on the three it did not (i8 1/2/3) -- so the absence clause cannot be satisfied by a compile that emitted nothing. Deliberately keyed on output element 1: match.json looks only at element 0, which in this shader is SV_Position and IS passed through correctly, so match.json scores this shader no-match and that no-match means nothing about the defect. CONTROLS: variant-struct-varying-all-main-debug--match-varying.txt is the same struct assigning all four components of uv -- it emits storeOutput for element 1 i8 0..3, so the predicate does not fire, and because it genuinely stores element 1 components 1/2/3 the absence clause is refuted rather than vacuously satisfied. variant-repro-main-debug--match-varying.txt is repro.hlsl scored by this predicate: it has no output element 1 at all and correctly scores no-match, confirming the predicate is specific to the varying shape rather than firing on any reproduction of this issue. This predicate has no bisect history: cmd.txt drives repro.hlsl, so history was established with match.json and match-validation.json, and the varying shape was measured on ground truth plus v1.4.1907 by hand."
+}

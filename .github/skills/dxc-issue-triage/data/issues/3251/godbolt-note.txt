@@ -1,0 +1,33 @@
+What to look for -- #3251, DXC issue triage
+https://github.com/microsoft/DirectXShaderCompiler/issues/3251
+
+Every pane FAILS. That is the point: nothing here should be read as a diagnostic about the
+shader, which is valid HLSL. Check the compiler's exit status and the "Output" pane, not the
+(empty) assembly:
+
+  dxc_1_6_2112   Program terminated with signal: SIGSEGV   (exit 139)
+  dxc_trunk      Program terminated with signal: SIGSEGV   (exit 139)
+
+dxc_trunk is a rolling build, so treat the exact shape as the class of failure rather than a
+fixed signature; on Windows release binaries the same defect also appears as
+"Internal compiler error: access violation", as UNREACHABLE in DataLayout::getTypeSizeInBits(),
+and as "llvm::cast<X>() argument of incompatible type!". Every one of those is this bug.
+
+The trigger is the whole-struct copy out of the implicit $Globals cbuffer into the
+amplification payload: g_lhSampleData is a cbuffer-backed global, and
+`p.lhSampleData = g_lhSampleData;` is emitted as one llvm.memcpy from that cbuffer.
+TranslateCBAddressUserLegacy dispatches cbuffer-pointer users on HLOpcodeGroup and has no case
+for HLOpcodeGroup::NotHL, which is what a plain llvm.memcpy is. Writing the same copy field by
+field compiles cleanly -- that is the one-line difference.
+
+LIMITATION, and it matters here. Compiler Explorer ships RELEASE builds, where DXC's asserts are
+compiled out. The assert this issue is named for -- DXASSERT(0, "not implemented yet"),
+lib/HLSL/HLOperationLower.cpp:8801 -- therefore CANNOT appear in any pane on this page. What you
+see instead is what that unhandled case costs once the assert is gone: the untranslated memcpy is
+left behind, the value it points at is deleted anyway, and something downstream dereferences it.
+So CE corroborates the local Debug build here; it does not and cannot overrule it. The
+authoritative measurement is a Debug build of main, which traps the assert itself.
+
+No Clang pane: the repro is inherently an amplification shader (DispatchMesh + a payload), the
+payload alloca is precisely what keeps the memcpy alive, and restating it as a compute shader
+would exercise a different path and prove nothing.

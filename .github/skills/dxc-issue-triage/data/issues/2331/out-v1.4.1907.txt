@@ -1,0 +1,23 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T05:02:37+00:00
+# cmd: -T ps_6_0 -E MainPS repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E MainPS repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+at 0x2324278c200 inside block #0 of function MainPS Instructions must be of an allowed type
+
+Validation failed.
+
+
+

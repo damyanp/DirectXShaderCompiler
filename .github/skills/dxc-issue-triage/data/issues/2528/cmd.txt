@@ -1,0 +1,13 @@
+# Two invocations of the SAME source, captured together.
+#
+# Line 1 is the reporter's command verbatim (see cmd-as-filed.txt). It fails DXIL
+# validation, so it prints diagnostics and no DXIL at all -- which means a
+# predicate that inspects the generated code cannot see anything under it.
+#
+# Line 2 adds -Vd so the module DXC actually generated is emitted and can be
+# examined. This is an instrument, not an inherited workaround: it is not
+# something the reporter used to dodge an unrelated bug, and it hides nothing,
+# because line 1 is captured in the same file. The symptom of this issue is
+# wrong code, so the evidence has to be the code.
+-T vs_6_0 -E main repro.hlsl
+-T vs_6_0 -E main -Vd repro.hlsl

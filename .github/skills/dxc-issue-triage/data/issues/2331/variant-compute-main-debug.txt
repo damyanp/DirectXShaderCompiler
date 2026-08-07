@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T05:11:15+00:00
+# cmd: -T cs_6_0 -E MainCS case-compute.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: compute (case-compute.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E MainCS case-compute.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+case-compute.hlsl:30:1: error: Instructions must be of an allowed type.
+note: at 'unreachable' in block '#4' of function 'MainCS'.
+Validation failed.
+
+
+

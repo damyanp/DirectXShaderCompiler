@@ -1,0 +1,81 @@
+# case: per-container-part breakdown at v1.4.1907 (oldest release with a usable dxc) and at
+#       v1.5.2010, to localise the ~40% raw-size drop between them seen in
+#       manual-case-history.txt
+# harness: measure.py --parts <exe> <tag>
+# ran: 2026-08-07T05:03:57Z
+# verdict: unscored
+
+dxc: C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
+dxc --version: 
+
+HARNESS CONTROLS
+  input                                  bytes  deflated  ratio  expect       
+  -------------------------------------  -----  --------  -----  -------  ----
+  incompressible (sha256 chain, 4096 B)  4096   4101      1.001  >= 0.98  PASS
+  compressible (repro.hlsl source)       3328   1323      0.398  <= 0.50  PASS
+
+COMMANDS RUN
+  $ C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe -T ps_6_0 -E main -O3 -Fo artifacts\corpus-small.v141907.cso corpus-small.hlsl   (and the same for the other two shaders)
+
+PART BREAKDOWN -- v141907
+  shader             part          bytes  deflated  ratio
+  -----------------  ------------  -----  --------  -----
+  corpus-small.hlsl  SFI0          8      5         0.625
+  corpus-small.hlsl  ISG1          93     48        0.516
+  corpus-small.hlsl  OSG1          50     31        0.620
+  corpus-small.hlsl  PSV0          204    67        0.328
+  corpus-small.hlsl  DXIL          2144   1928      0.899
+  corpus-small.hlsl  (whole file)  2591   2106      0.813
+  repro.hlsl         SFI0          8      5         0.625
+  repro.hlsl         ISG1          216    75        0.347
+  repro.hlsl         OSG1          50     31        0.620
+  repro.hlsl         PSV0          372    108       0.290
+  repro.hlsl         DXIL          5848   4907      0.839
+  repro.hlsl         (whole file)  6586   5161      0.784
+  corpus-large.hlsl  SFI0          8      5         0.625
+  corpus-large.hlsl  ISG1          134    60        0.448
+  corpus-large.hlsl  OSG1          50     31        0.620
+  corpus-large.hlsl  PSV0          248    81        0.327
+  corpus-large.hlsl  DXIL          68700  33561     0.489
+  corpus-large.hlsl  (whole file)  69232  33732     0.487
+
+dxc: C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
+dxc --version: 
+
+HARNESS CONTROLS
+  input                                  bytes  deflated  ratio  expect       
+  -------------------------------------  -----  --------  -----  -------  ----
+  incompressible (sha256 chain, 4096 B)  4096   4101      1.001  >= 0.98  PASS
+  compressible (repro.hlsl source)       3328   1323      0.398  <= 0.50  PASS
+
+COMMANDS RUN
+  $ C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe -T ps_6_0 -E main -O3 -Fo artifacts\corpus-small.v152010.cso corpus-small.hlsl   (and the same for the other two shaders)
+
+PART BREAKDOWN -- v152010
+  shader             part          bytes  deflated  ratio
+  -----------------  ------------  -----  --------  -----
+  corpus-small.hlsl  SFI0          8      5         0.625
+  corpus-small.hlsl  ISG1          93     49        0.527
+  corpus-small.hlsl  OSG1          50     30        0.600
+  corpus-small.hlsl  PSV0          204    67        0.328
+  corpus-small.hlsl  STAT          1968   1814      0.922
+  corpus-small.hlsl  HASH          20     23        1.150
+  corpus-small.hlsl  DXIL          1844   1664      0.902
+  corpus-small.hlsl  (whole file)  4303   2999      0.697
+  repro.hlsl         SFI0          8      5         0.625
+  repro.hlsl         ISG1          216    78        0.361
+  repro.hlsl         OSG1          50     30        0.600
+  repro.hlsl         PSV0          372    108       0.290
+  repro.hlsl         STAT          2852   2589      0.908
+  repro.hlsl         HASH          20     22        1.100
+  repro.hlsl         DXIL          3800   3235      0.851
+  repro.hlsl         (whole file)  7434   5320      0.716
+  corpus-large.hlsl  SFI0          8      5         0.625
+  corpus-large.hlsl  ISG1          134    62        0.463
+  corpus-large.hlsl  OSG1          50     30        0.600
+  corpus-large.hlsl  PSV0          248    81        0.327
+  corpus-large.hlsl  STAT          2364   2132      0.902
+  corpus-large.hlsl  HASH          20     23        1.150
+  corpus-large.hlsl  DXIL          32844  16988     0.517
+  corpus-large.hlsl  (whole file)  35784  18677     0.522
+

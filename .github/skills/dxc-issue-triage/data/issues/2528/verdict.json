@@ -1,0 +1,23 @@
+{
+  "batch": "006",
+  "confidence": "high",
+  "created_at": "2019-10-17T01:55:49Z",
+  "expected_symptom": "DXIL for \"void main(inout float4 pos : SV_Position) { pos.w = 1; }\" at -T vs_6_0 writes output element 0 component 3 but not components 0/1/2 -- the unmodified xyz are not passed through from the input signature. Correct output: storeOutput for i8 0..3 with xyz fed by loadInput, and output signature Used=xyzw.",
+  "godbolt_url": "https://godbolt.org/z/EaYncchW3",
+  "history": "always-repro'd",
+  "labels": "bug,fxc-disagrees",
+  "labels_add": "correctness, check-in-clang",
+  "labels_now": "bug,fxc-disagrees",
+  "notes_path": "issues/2528/notes.md",
+  "number": 2528,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main and on all 20 releases v1.4.1907..v1.9.2607. Writing one component of an inout signature element suppresses the pass-through of the rest: DXC emits only storeOutput(i32 5, i32 0, i32 0, i8 3, ...), no loadInput at all, and the output signature reads Used=w instead of xyzw. On SV_Position the DXIL validator catches it and the compile fails; on an ordinary varying (struct with TEXCOORD0) DXC exits 0 and silently emits a shader whose .yzw are undefined -- the impact evidence the 2024 dormancy note was missing. FXC passes all components through on the byte-identical sources.",
+  "title": "Remainder of inout signature element not passed through when one component is modified",
+  "triaged_at": "2026-08-07T05:55:33+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/2528"
+}

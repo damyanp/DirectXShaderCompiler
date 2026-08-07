@@ -1,0 +1,17 @@
+# compiler: v1.8.2505.1
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe
+# ran: 2026-08-07T05:04:01+00:00
+# cmd: -T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug repro.hlsl
+# exit: 3221225477
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe
+[exit] 3221225477
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: access violation. Attempted to read from address 0x00000000000002B8
+

@@ -1,0 +1,11 @@
+# #2128 -- the reporter said only "without debug info and with /O3".
+#
+# -O3 rather than the reported /O3: dxc parses both, and unrecognised /-flags are silently
+# ignored (SKILL.md), so the -form is used to guarantee the flag was actually honoured.
+# No debug info is dxc's default; nothing is added.
+#
+# ps_6_0 is the oldest profile that shows the behaviour, and fxc's side of the comparison is
+# ps_5_1 -- see measure.py. -Fo is deliberately NOT here: `run --shader X` retargets only the
+# source operand, so an -Fo in this file would make every corpus shader overwrite one output.
+# The binaries the measurement reads are produced by measure.py, which records its own commands.
+-T ps_6_0 -E main -O3 repro.hlsl

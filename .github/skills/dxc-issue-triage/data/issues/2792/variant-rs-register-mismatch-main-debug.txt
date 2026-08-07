@@ -1,0 +1,26 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T04:56:15+00:00
+# cmd: -T ps_6_0 -E main control-rs-register-mismatch.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: rs-register-mismatch (control-rs-register-mismatch.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main control-rs-register-mismatch.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: Root Signature in DXIL container is not compatible with shader.
+error: Shader CBV descriptor range (RegisterSpace=0, NumDescriptors=1, BaseShaderRegister=0) is not fully bound in root signature.
+
+Validation failed.
+
+
+

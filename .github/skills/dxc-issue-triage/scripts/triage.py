@@ -340,6 +340,57 @@ def _is_absence_predicate(issue, match_file="match.json"):
     return walk(m)
 
 
+def _has_positive_clause(issue, match_file="match.json"):
+    """True if the predicate contains a clause a failed compile cannot satisfy.
+
+    The companion to `_is_absence_predicate`. An absence clause is satisfied for
+    free by any run that never got far enough to emit the thing being looked
+    for, and `classify`'s guard only demotes such a probe when the output
+    carried a feature-absence marker or the run failed internally. **An
+    ordinary diagnosed error is neither** -- on Windows that is E_FAIL
+    (0x80004005) plus an `error:` line, which is by far the likeliest early
+    failure across a 20-release history -- so it still scores as a textbook
+    reproduction. Demonstrated on #2792 against real captured output: a probe
+    with three `error:` lines and no DXIL scored `repro` under an unanchored
+    absence predicate.
+
+    Demoting that case is not available: an issue whose symptom is "the
+    diagnostic exists but says the wrong thing" legitimately errors on every
+    reproducing probe, and demoting it would be the #3055 defect in a new
+    shape. What is available is to say so at capture time, so the predicate can
+    be anchored before twenty releases are run against it. #2792 did anchor its
+    predicate -- `extractvalue %dx.types.CBufRet.f32 <v>, 1` cannot be emitted
+    by a compile that failed -- and that anchor, not the classifier, is what
+    made the issue safe.
+    """
+    path = os.path.join(issue_dir(issue), match_file)
+    try:
+        with open(path) as f:
+            m = json.load(f)
+    except (OSError, ValueError):
+        return False
+
+    def walk(node):
+        if not isinstance(node, dict):
+            return False
+        kind = node.get("kind")
+        if kind in ("any_of", "all_of"):
+            return any(walk(s) for s in node.get("value") or [])
+        inverted = bool(node.get("invert", False))
+        # `contains`/`regex` uninverted assert output the compiler had to reach
+        # the code under test to produce. `internal_failure` and `timeout` are
+        # positive observations of a failure mode. `nonzero_exit` is NOT: an
+        # input rejected at parse exits nonzero too, which is the very failure
+        # this is guarding against.
+        if kind in ("contains", "regex", "internal_failure", "timeout"):
+            return not inverted
+        if kind in ("not_contains", "not_regex"):
+            return inverted
+        return False
+
+    return walk(m)
+
+
 def _predicate_quotes(issue, match_file, marker):
     """True if the issue's OWN predicate spells out the diagnostic `marker`.
 
@@ -1001,6 +1052,20 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
     text = "\n".join(chunks)
     verdict, reason = classify(issue, text, worst_rc, timed_out, match_file,
                                explain=True)
+    # `classify`'s absence guard cannot demote this case (see
+    # `_has_positive_clause`), so warn instead of silently recording a
+    # reproduction that measured nothing. Narrow on purpose: only when the
+    # predicate is absence-only AND the compile actually failed.
+    if verdict == "repro" and (worst_rc or timed_out) \
+            and _is_absence_predicate(issue, match_file) \
+            and not _has_positive_clause(issue, match_file):
+        print(f"  warning: {match_file} defines the symptom only by absence, "
+              f"and this probe failed (exit 0x{(worst_rc or 0) & 0xFFFFFFFF:08X})"
+              f" -- an absence clause is satisfied for free by a run that never "
+              f"reached the code under test, and an ordinary diagnosed error "
+              f"trips neither of classify()'s demotion arms. Anchor the "
+              f"predicate with a positive clause before scanning releases.",
+              file=sys.stderr)
     # Variants are stored under a name reindex will not score against the
     # primary predicate: a control that legitimately behaves differently from
     # the repro is not a disagreement to investigate. The `variant:` header

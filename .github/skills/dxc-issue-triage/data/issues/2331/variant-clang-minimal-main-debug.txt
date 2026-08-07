@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-07T05:26:50+00:00
+# cmd: -T cs_6_0 -E MainCS case-clang-minimal.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: clang-minimal (case-clang-minimal.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E MainCS case-clang-minimal.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+case-clang-minimal.hlsl:16:1: error: Instructions must be of an allowed type.
+note: at 'unreachable' in block '#3' of function 'MainCS'.
+Validation failed.
+
+
+

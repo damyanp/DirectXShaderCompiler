@@ -1,0 +1,25 @@
+# compiler: v1.7.2212
+# exe: <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+# ran: 2026-08-07T05:06:53+00:00
+# cmd: -T ps_6_0 -E MainPS case-four-enumerators.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: four-enumerators (case-four-enumerators.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E MainPS case-four-enumerators.hlsl
+[exe] <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case-four-enumerators.hlsl:22:10: warning: enumeration value 'Fake' not handled in switch [-Wswitch]
+switch ( __GetQuality() )
+         ^
+case-four-enumerators.hlsl:28:1: error: control may reach end of non-void function [-Wreturn-type]
+}
+^
+
+

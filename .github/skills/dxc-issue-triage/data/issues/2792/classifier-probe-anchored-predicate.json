@@ -1,0 +1,9 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains", "value": "@dx.op.cbufferLoadLegacy" },
+    { "kind": "not_regex",
+      "value": "(?i)root constant|num32BitConstants|out of bound" }
+  ],
+  "note": "NOT the predicate used for #2792. The naive predicate in classifier-probe-naive-predicate.json with a positive anchor bolted on, so classifier-probe.py can show that the anchor -- not any rule in classify() -- is what stops an ordinary diagnosed rejection from scoring as a free reproduction. Never referenced by cmd.txt or by any capture."
+}

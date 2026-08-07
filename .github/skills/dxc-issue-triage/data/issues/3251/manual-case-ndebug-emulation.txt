@@ -1,0 +1,104 @@
+# manual capture: what a Release build does, emulated on the Debug build
+# compiler: main-debug  (<repo>\build\Debug\bin\dxc.exe)
+# version:  dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+# harness:  ndebug-emulate.cmd   (cdb 10.0.26100.6584, x64)  -- re-runnable
+# ran:      2026-08-06T22:02:56.4139080-07:00
+# NOTE:     hand-driven capture, not a probe. Not scored by match.json.
+#           Stacks trimmed to the frames that matter; module-load noise removed.
+#
+# WHY THIS EXISTS. Every shipping DXC release is a Release build with NDEBUG, where DXASSERT is
+# do { } while (0). So "no release binary shows this assert" would be true by construction and
+# would say nothing about whether the defect is fixed (SKILL.md, the #2191 trap). The question
+# that decides whether the release scan is meaningful is: with the assert gone, does the bad
+# state still do damage? Continuing past the assert in the debugger answers it without building
+# a Release compiler. This was predicted from source in expected.md BEFORE it was run.
+#
+# STEP 1 continues past the DXASSERT alone. The very next thing that happens is LLVM's own
+#        guard: assert(use_empty() && "Uses remain when a value is destroyed!") in
+#        llvm::Value::~Value (lib/IR/Value.cpp:83), reached from BitCastInst::~BitCastInst <-
+#        Instruction::eraseFromParent <- TranslateCBAddressUserLegacy. That is the
+#        BCI->eraseFromParent() at HLOperationLower.cpp:8845: because the assert arm declined
+#        to translate or erase the llvm.memcpy, the bitcast it feeds is destroyed with a live
+#        use. In a real Release build this second assert is compiled out as well.
+#
+# STEP 2 continues past that one too -- the full NDEBUG emulation -- and the compile takes an
+#        ACCESS VIOLATION (0xC0000005) in
+#           llvm::Type::getTypeID <- Value::stripPointerCasts <- MemTransferInst::getSource
+#           <- InstCombiner::visitCallInst <- ... <- InstructionCombiningPass::runOnFunction
+#        i.e. InstCombine walks the leftover llvm.memcpy and dereferences its now-dangling
+#        source operand. The defect outlives the assert.
+#
+# CONCLUSION: this is NOT "silent by construction". Whatever the release binaries do on this
+# repro is a real measurement, and a clean release would be a genuine fix rather than an
+# artefact of NDEBUG.
+### STEP 1: continue past the DXASSERT only -- where does the unhandled memcpy lead?
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug repro.hlsl
+(3be4.1c40): Break instruction exception - code 80000003 (first chance)
+Error: 	!(0)
+File:
+Func:	`anonymous-namespace'::TranslateCBAddressUserLegacy.
+	not implemented yet
+(3be4.1c40): Break instruction exception - code 80000003 (first chance)
+Error: assert(use_empty() && "Uses remain when a value is destroyed!")
+File:
+Func:	llvm::Value::~Value
+(3be4.1c40): Unknown exception - code e0000001 (first chance)
+(3be4.1c40): Unknown exception - code e0000001 (!!! second chance !!!)
+Last event: 3be4.1c40: Unknown exception - code e0000001 (!!! second chance !!!)
+00 00000085`93d837f0 00007ff8`2e201731     KERNELBASE!RaiseException+0x8a
+01 00000085`93d838f0 00007ff8`2da6de6e     dxcompiler!llvm_assert+0x51
+02 00000085`93d83930 00007ff8`2dad1a93     dxcompiler!llvm::Value::~Value+0x28e
+03 00000085`93d83a60 00007ff8`2dacd4ea     dxcompiler!llvm::User::~User+0x23
+04 00000085`93d83a90 00007ff8`2db12b03     dxcompiler!llvm::Instruction::~Instruction+0x8a
+05 00000085`93d83ac0 00007ff8`2db28164     dxcompiler!llvm::UnaryInstruction::~UnaryInstruction+0x23
+06 00000085`93d83af0 00007ff8`2db28124     dxcompiler!llvm::CastInst::~CastInst+0x14
+07 00000085`93d83b20 00007ff8`2db28b38     dxcompiler!llvm::BitCastInst::~BitCastInst+0x14
+08 00000085`93d83b50 00007ff8`2dad20fb     dxcompiler!llvm::BitCastInst::`scalar deleting destructor'+0x18
+09 00000085`93d83b80 00007ff8`2dad3b3b     dxcompiler!llvm::ilist_node_traits<llvm::Instruction>::deleteNode+0x4b
+0a 00000085`93d83bd0 00007ff8`2dacd60b     dxcompiler!llvm::iplist<llvm::Instruction,llvm::ilist_traits<llvm::Instruction> >::erase+0x2b
+0b 00000085`93d83c00 00007ff8`2deaed61     dxcompiler!llvm::Instruction::eraseFromParent+0x5b
+0c 00000085`93d83c50 00007ff8`2dead8e4     dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x1431
+0d 00000085`93d84300 00007ff8`2deaedec     dxcompiler!`anonymous namespace'::TranslateCBGepLegacy+0x1304
+0e 00000085`93d84a20 00007ff8`2deaef54     dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x14bc
+0f 00000085`93d850d0 00007ff8`2deb302f     dxcompiler!`anonymous namespace'::TranslateCBOperationsLegacy+0x114
+10 00000085`93d85180 00007ff8`2deb3625     dxcompiler!TranslateHLSubscript+0xef
+11 00000085`93d85350 00007ff8`2deb43e5     dxcompiler!TranslateSubscriptOperation+0xf5
+12 00000085`93d85410 00007ff8`2de811f0     dxcompiler!TranslateHLBuiltinOperation+0x845
+13 00000085`93d85790 00007ff8`2ddd2297     dxcompiler!hlsl::TranslateBuiltinOperations+0x290
+### STEP 2: continue past every assert -- the full NDEBUG emulation
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug repro.hlsl
+(77c8.5790): Break instruction exception - code 80000003 (first chance)
+Error: 	!(0)
+File:
+Func:	`anonymous-namespace'::TranslateCBAddressUserLegacy.
+	not implemented yet
+(77c8.5790): Break instruction exception - code 80000003 (first chance)
+Error: assert(use_empty() && "Uses remain when a value is destroyed!")
+File:
+Func:	llvm::Value::~Value
+(77c8.5790): Unknown exception - code e0000001 (first chance)
+(77c8.5790): Access violation - code c0000005 (first chance)
+First chance exceptions are reported before any exception handling.
+This exception may be expected and handled.
+Last event: 77c8.5790: Access violation - code c0000005 (first chance)
+00 000000bb`26384da0 00007ff8`2da763e4     dxcompiler!llvm::Type::getTypeID+0xb
+01 000000bb`26384db0 00007ff8`2da70b2b     dxcompiler!llvm::Type::isPointerTy+0x14
+02 000000bb`26384df0 00007ff8`2da6f0d4     dxcompiler!`anonymous namespace'::stripPointerCastsAndOffsets<1>+0x3b
+03 000000bb`26384f00 00007ff8`2dc4c28c     dxcompiler!llvm::Value::stripPointerCasts+0x14
+04 000000bb`26384f30 00007ff8`2df75cd7     dxcompiler!llvm::MemTransferInst::getSource+0x1c
+05 000000bb`26384f60 00007ff8`2df02cce     dxcompiler!llvm::InstCombiner::visitCallInst+0x497
+06 000000bb`26385b60 00007ff8`2df02dee     dxcompiler!llvm::InstVisitor<llvm::InstCombiner,llvm::Instruction *>::visitIntrinsicInst+0x1e
+07 000000bb`26385b90 00007ff8`2df02e7e     dxcompiler!llvm::InstVisitor<llvm::InstCombiner,llvm::Instruction *>::visitMemIntrinsic+0x1e
+08 000000bb`26385bc0 00007ff8`2df02dbe     dxcompiler!llvm::InstVisitor<llvm::InstCombiner,llvm::Instruction *>::visitMemTransferInst+0x1e
+09 000000bb`26385bf0 00007ff8`2defcfb6     dxcompiler!llvm::InstVisitor<llvm::InstCombiner,llvm::Instruction *>::visitMemCpyInst+0x1e
+0a 000000bb`26385c20 00007ff8`2df02955     dxcompiler!llvm::InstVisitor<llvm::InstCombiner,llvm::Instruction *>::delegateCallInst+0xa6
+0b 000000bb`26385c60 00007ff8`2df0261e     dxcompiler!llvm::InstVisitor<llvm::InstCombiner,llvm::Instruction *>::visitCall+0x25
+0c 000000bb`26385c90 00007ff8`2dee0038     dxcompiler!llvm::InstVisitor<llvm::InstCombiner,llvm::Instruction *>::visit+0x42e
+0d 000000bb`26385cd0 00007ff8`2deed62f     dxcompiler!llvm::InstCombiner::run+0x6d8
+0e 000000bb`26386040 00007ff8`2deeda5b     dxcompiler!combineInstructionsOverFunction+0x2df
+0f 000000bb`26386240 00007ff8`30685634     dxcompiler!`anonymous namespace'::InstructionCombiningPass::runOnFunction+0x13b
+10 000000bb`263862d0 00007ff8`3068599b     dxcompiler!llvm::FPPassManager::runOnFunction+0x394
+11 000000bb`26386580 00007ff8`306874e8     dxcompiler!llvm::FPPassManager::runOnModule+0x16b
+12 000000bb`263866b0 00007ff8`30688325     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+13 000000bb`26386a60 00007ff8`3067ec6c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+

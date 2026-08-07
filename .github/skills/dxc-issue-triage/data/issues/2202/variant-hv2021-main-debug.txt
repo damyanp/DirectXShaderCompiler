@@ -5,7 +5,8 @@
 # exit: 2147500037
 # timed_out: 0
 # match: match.json
-# verdict: no-repro
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "for non-scalar types use 'select'", so this build did not reach the code under test
 # variant: hv2021 (repro.hlsl)
 # expect: invalid-probe
 

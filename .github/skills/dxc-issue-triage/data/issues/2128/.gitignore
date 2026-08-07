@@ -1,0 +1,5 @@
+# measure.py recompiles the corpus into artifacts/ on every run, so the objects are derived,
+# not evidence. The numbers taken from them are in manual-case-*.txt. Ignored rather than
+# committed for the reason SKILL.md gives on #2427: the script creates the directory itself,
+# so nothing here depends on git storing an empty one.
+artifacts/

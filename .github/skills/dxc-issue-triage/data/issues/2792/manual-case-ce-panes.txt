@@ -1,0 +1,129 @@
+# what: Compiler Explorer panes for #2792, captured in full.
+#       `triage.py godbolt` records only the FIRST line of each pane, which here
+#       is an environment warning -- so the tool can print nothing of the
+#       finding while the link itself is perfect. SKILL.md step 7 warns about
+#       exactly this ("Open the link."), so the panes are captured here instead.
+# how:  cd .github/skills/dxc-issue-triage && python data/issues/2792/ce-panes.py
+# ran:  2026-08-07T05:12:39+00:00
+#
+# SECTION 1 below runs the PIXEL repro (repro.hlsl) and its controls. It is
+# what established that a Clang pane on the pixel form is stage noise: the
+# one-line control shader fails with the SAME "Unsupported intrinsic
+# llvm.dx.store.output.f32 for DXIL lowering" error as the repro, so the error
+# is about the shader stage and says nothing about this issue.
+#
+# The two Clang root-signature controls are the reason the Clang result is
+# reported the way it is: clang DOES parse and check root signature syntax
+# (a malformed one gives "invalid parameter of RootSignature"), but it does NOT
+# diagnose a root signature that binds b1 while the cbuffer sits at b0 -- which
+# DXC does reject. So clang has no root-signature-vs-shader checking at all
+# yet, and its silence on #2792's repro is "not implemented there either",
+# not independent confirmation that the shader is fine.
+#
+# SECTION 2 is the verification of the PUBLISHED link, which uses the compute
+# restatement (compute-translation.hlsl) so all three compilers can answer the
+# same question. Panes are re-compiled from the source actually stored in the
+# shortlink, not from the local file.
+#
+# DXIL bodies are trimmed; rerun the command above for the full output.
+
+============================== SECTION 1: pixel repro + controls ==============================
+dxc_1_6_2112  -T ps_6_0 -E main   [repro]
+exit=0 crashed=False
+------------------------------------------------------------------------------
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+;   } cb;                                             ; Offset:    0 Size:     8
+  %1 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %cb_cbuffer, i32 0), !dbg !38 ; line:9 col:10  ; CBufferLoadLegacy(handle,regIndex)
+  %2 = extractvalue %dx.types.CBufRet.f32 %1, 1, !dbg !38 ; line:9 col:10
+!7 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+==============================================================================
+dxc_trunk  -T ps_6_0 -E main   [repro]
+exit=0 crashed=False
+------------------------------------------------------------------------------
+;   } cb;                                             ; Offset:    0 Size:     8
+  %1 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %cb_cbuffer, i32 0), !dbg !38 ; line:9 col:10  ; CBufferLoadLegacy(handle,regIndex)
+  %2 = extractvalue %dx.types.CBufRet.f32 %1, 1, !dbg !38 ; line:9 col:10
+!7 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+==============================================================================
+dxc_trunk  -T ps_6_0 -E main   [control: num32BitConstants=2, i.e. correct]
+exit=0 crashed=False
+------------------------------------------------------------------------------
+;   } cb;                                             ; Offset:    0 Size:     8
+  %1 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %cb_cbuffer, i32 0), !dbg !38 ; line:18 col:10  ; CBufferLoadLegacy(handle,regIndex)
+  %2 = extractvalue %dx.types.CBufRet.f32 %1, 1, !dbg !38 ; line:18 col:10
+!7 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+==============================================================================
+hlsl_clang_trunk  -T ps_6_0 -E main   [repro]
+exit=1 crashed=False
+------------------------------------------------------------------------------
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[0;1;31merror: [0m[1mUnsupported intrinsic llvm.dx.store.output.f32 for DXIL lowering[0m
+1 error generated.
+<Compilation failed>
+==============================================================================
+hlsl_clang_trunk  -T ps_6_0 -E main   [CONTROL: one-line shader, same flags]
+exit=1 crashed=False
+------------------------------------------------------------------------------
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[0;1;31merror: [0m[1mUnsupported intrinsic llvm.dx.store.output.f32 for DXIL lowering[0m
+1 error generated.
+<Compilation failed>
+==============================================================================
+hlsl_clang_trunk  -T ps_6_0 -E main -fsyntax-only   [repro, front end only]
+exit=0 crashed=False
+------------------------------------------------------------------------------
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+<No output file>
+==============================================================================
+hlsl_clang_trunk  -T ps_6_0 -E main -fsyntax-only   [CONTROL: one-line shader, front end only]
+exit=0 crashed=False
+------------------------------------------------------------------------------
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+<No output file>
+==============================================================================
+hlsl_clang_trunk  -T ps_6_0 -E main -fsyntax-only   [CONTROL: syntactically broken root signature]
+exit=1 crashed=False
+------------------------------------------------------------------------------
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:7:31: [0m[0;1;31merror: [0m[1minvalid parameter of RootSignature[0m
+[0m1 error generated.
+<Compilation failed>
+==============================================================================
+hlsl_clang_trunk  -T ps_6_0 -E main -fsyntax-only   [CONTROL: root sig binds b1, cbuffer is at b0 (dxc errors on this)]
+exit=0 crashed=False
+------------------------------------------------------------------------------
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+<No output file>
+==============================================================================
+dxc_trunk  -T ps_6_0 -E main   [CONTROL: syntactically broken root signature]
+exit=5 crashed=False
+------------------------------------------------------------------------------
+<source>:7:2: error: root signature error - Unexpected token 'NotARootSignatureClause' when parsing root signature
+<Compilation failed>
+
+# (452 lines of DXIL/metadata trimmed)
+
+============================== SECTION 2: the PUBLISHED link ==============================
+
+link          : https://godbolt.org/z/d5zcrTPjP
+stored source : 72 lines; banner present=True; num32BitConstants=1 present=True
+panes verified by recompiling the source stored IN the shortlink:
+
+dxc_1_6_2112       -T cs_6_0 -E main   exit=0 crashed=False
+    diagnostic : warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+    cbuffer    : ;   } cb;                                             ; Offset:    0 Size:     8
+    oob load   : %2 = extractvalue %dx.types.CBufRet.f32 %1, 1, !dbg !42 ; line:71 col:13
+
+dxc_trunk          -T cs_6_0 -E main   exit=0 crashed=False
+    diagnostic : (none)
+    cbuffer    : ;   } cb;                                             ; Offset:    0 Size:     8
+    oob load   : %2 = extractvalue %dx.types.CBufRet.f32 %1, 1, !dbg !42 ; line:71 col:13
+
+hlsl_clang_trunk   -T cs_6_0 -E main   exit=0 crashed=False
+    diagnostic : clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+    oob load   : %4 = extractvalue %dx.types.CBufRet.f32 %3, 1, !dbg !93
+

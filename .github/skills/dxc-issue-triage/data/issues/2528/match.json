@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "storeOutput\\.f32\\(i32\\s+5,\\s*i32\\s+0,\\s*i32\\s+0,\\s*i8\\s+3,"
+    },
+    {
+      "kind": "not_regex",
+      "value": "storeOutput\\.f32\\(i32\\s+5,\\s*i32\\s+0,\\s*i32\\s+0,\\s*i8\\s+[012],"
+    }
+  ],
+  "note": "The symptom is wrong CODE, not an exit status, so the predicate reads the disassembly. The reporter's four CHECK lines demand storeOutput for every component (i8 0..3) of output element 0; the bug is that only the component the shader assigned (w = i8 3) is stored and the pass-through of x/y/z is dropped. The two clauses are deliberately paired. The positive clause is an anchor: an absence clause on its own is satisfied for free by any compile that never emitted DXIL (SKILL.md, #1877), and this repro's first invocation ALWAYS fails validation, so unanchored absence would score every conceivable output as a reproduction. Requiring the i8 3 store means the probe only counts if a module was actually produced and it really did write w. CONTROLS, both captured and both scoring no-match: variant-control-untouched-main-debug.txt is the same shader with an empty body (the case the issue says works) -- it emits all four storeOutput calls, so the not_regex clause is false and the predicate does not fire; variant-control-all-components-main-debug.txt assigns all four components and likewise emits i8 0..3. The second control is the one that matters for the absence clause specifically: it is a shader that genuinely does store output element 0 component 0, so 'not_regex i8 [012]' cannot be satisfied vacuously by a shader that never mentions the symbol (SKILL.md, #8732). Deliberately NOT keyed on: the DXIL validation error, which is a downstream consequence -- if a future compiler narrowed the output signature mask to .w instead of restoring the pass-through, validation would pass while the code stayed wrong, and this predicate would still fire. That claim is tracked separately by match-validation.json. Also deliberately not keyed on any bare 'undef' operand: structurally-undef operands appear in perfectly valid DXIL (loadInput's trailing argument is undef in every non-GS shader), so such a predicate matches correct shaders (SKILL.md, #3009)."
+}

@@ -1,0 +1,112 @@
+# Manual case: Compiler Explorer, and why the published link has no clang pane
+
+All four probes below were run through Compiler Explorer's compile API with
+`ce-probe.py` (in this directory), language `hlsl`, on 2026-08-06.  `hlsl_clang_trunk` and
+`dxc_trunk` are rolling builds and are not reproducible over time; treat the *class* of
+result as the finding, not an exact revision.
+
+    python ce-probe.py <label> <shader> "hlsl_clang_trunk|-T cs_6_0 -E MainCS"
+
+@llvm-beanz's 2024-06-21 comment -- "I've filed an issue to remove these instructions during
+DXIL lowering in Clang" -- makes a clang pane the most interesting comparison available on
+this issue, so it was pursued rather than assumed.
+
+---
+
+## 1. `case-compute.hlsl` (the compute restating of the repro)
+
+| compiler | exit | result |
+| --- | --- | --- |
+| `dxc_1_6_2112` | 5 | `warning: DXIL.dll not found.  Resulting DXIL will not be signed...` then `error: Instructions must be of an allowed type.` / `note: at 'unreachable' in block '#4' of function 'MainCS'.` |
+| `dxc_trunk` | 5 | same two error lines, no signing warning |
+| `hlsl_clang_trunk` | 1 | `fatal error: error in backend: DXIL atomicrmw not implemented for this resource type`, in `DXILResourceAccess` / `replaceAccess` |
+
+Note the CE `dxc_1_6_2112` pane reproduces the reporter's exact 2019 environment for free:
+CE runs Linux builds with no `dxil.dll`, so it prints the same signing warning the issue
+quotes -- and validation still runs and still fails.  That is the cleanest available
+demonstration that the signing warning is incidental to this bug.
+
+The clang line looks like clang diagnosing something, which is exactly the trap SKILL.md
+records from #1702.
+
+## 2. Control: `control-clang-rwbuffer.hlsl`
+
+A three-line compute shader with the same `RWBuffer<float4>` store and the same flags,
+containing nothing to do with this issue.
+
+```
+hlsl_clang_trunk  exit=0    (only "argument unused during compilation: '-Qembed_debug'")
+```
+
+Clean.  So clang's failure in probe 1 is **not** a blanket "this backend cannot lower
+compute shaders that write an RWBuffer" -- it is about something in the repro.  Under
+SKILL.md that is the case where a rejection must not be waved away, so it was narrowed.
+
+## 3. Discriminator: `case-compute-default.hlsl`
+
+Probe 1's shader with the `default:` arm added -- i.e. the input DXC accepts, and the one
+the reporter identified as the workaround.
+
+```
+hlsl_clang_trunk  exit=1    fatal error: error in backend: DXIL atomicrmw not implemented
+                            for this resource type      <-- identical failure
+```
+
+A **known-good** input fails clang identically.  The clang failure is therefore unrelated to
+#2331; it tracks `ConstantBuffer<T>` plus the buffer store, not the fall-off-the-end path.
+A clang pane on this repro would be pure noise, so the published link carries DXC panes
+only.
+
+"Known-good" is measured, not assumed -- both this shader and the probe-2 control were also
+run locally on ground truth, where they compile clean:
+
+```
+variant-compute-default-main-debug.txt          exit=0   no-repro
+variant-clang-control-rwbuffer-main-debug.txt   exit=0   no-repro
+```
+
+## 4. Supplementary: `case-clang-minimal.hlsl`
+
+Not the repro and not published -- a cut-down restating with the `ConstantBuffer<T>` removed,
+which clang's backend can compile, keeping the enum-class switch that covers every
+enumerator with no `default:` in a non-void function.
+
+```
+dxc_trunk         exit=5   <source>:16:1: error: Instructions must be of an allowed type.
+                           note: at 'unreachable' in block '#3' of function 'MainCS'.
+hlsl_clang_trunk  exit=0
+```
+
+Confirmed locally on ground truth as well (`variant-clang-minimal-main-debug.txt`, exit
+`0x80004005`), so the CE `dxc_trunk` result is not a CE artefact.
+
+Same defect still reaches DXC; clang compiles it.  Reading clang's emitted DXIL, the default
+label is the merge block and there is **no `unreachable`** -- the fall-off-the-end path
+contributes `poison` to the phis:
+
+```llvm
+  switch i32 %2, label %5 [
+    i32 2, label %4
+    i32 1, label %3
+  ], !dbg !121
+...
+5:                                                ; preds = %0, %3, %4
+  %6 = phi nsz float [ 0.000000e+00, %4 ], [ 0.000000e+00, %3 ], [ poison, %0 ], !dbg !125
+  ...
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %10, i32 %1, i32 undef,
+                                   float %6, float %7, float %8, float %9, i8 15)
+  ret void
+```
+
+So on this construct clang already does what @llvm-beanz described.  Two limits on that
+result, both real:
+
+* it is one *restating*, not the issue's shader -- clang cannot compile the issue's shader
+  (probe 3), so an exact comparison is not available;
+* "no illegal instruction" is not the same as "correct": the undefined path now stores
+  `poison`.  Whether that is the intended lowering is a clang question, not a DXC one.
+
+> Trap worth recording: a naive `'unreachable' in output` check over the CE response says
+> **True** for this shader.  The hit is in `!dx.source.contents` debug metadata, which embeds
+> the HLSL source -- and the source is this file's own header comment, which contains the
+> word.  The IR body has none.  Grep the function body, not the module.

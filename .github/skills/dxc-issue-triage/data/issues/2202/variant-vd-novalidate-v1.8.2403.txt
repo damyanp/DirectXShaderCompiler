@@ -5,7 +5,8 @@
 # exit: 3221225477
 # timed_out: 0
 # match: match.json
-# verdict: no-repro
+# verdict: invalid-probe
+# invalid-probe-reason: the probe failed internally, so it measured nothing about the reported symptom
 # variant: vd-novalidate (repro.hlsl)
 # expect: invalid-probe
 

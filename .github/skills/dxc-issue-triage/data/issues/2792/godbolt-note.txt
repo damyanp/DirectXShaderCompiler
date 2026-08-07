@@ -1,0 +1,51 @@
+#2792 -- "Need to report error when use constant which has offset bigger than
+root constant size."
+https://github.com/microsoft/DirectXShaderCompiler/issues/2792
+
+WHAT TO LOOK FOR: every pane compiles, exit 0, with no diagnostic about the
+shader. That is the bug -- the reported defect is a diagnostic that is missing,
+so there is nothing red to read; the evidence is what the compilers accept.
+(Pane messages about "DXIL.dll not found ... will not be signed" or an unused
+"-Qembed_debug" argument come from Compiler Explorer's environment and are not
+complaints about this shader.)
+
+The root signature reserves ONE 32-bit constant at b0 (num32BitConstants = 1),
+the cbuffer bound there declares two floats, and the shader reads the second.
+"Buffer Definitions" in the DXC panes shows the cbuffer is twice the size the
+root signature reserves:
+
+    float a;   ; Offset:    0
+    float b;   ; Offset:    4
+    } cb;      ; Offset:    0 Size:     8     <-- 8 bytes; root sig reserves 4
+
+and every pane emits the out-of-bounds load anyway:
+
+    %N = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(...)
+    %M = extractvalue %dx.types.CBufRet.f32 %N, 1   <-- component 1, i.e. the
+                                                       32-bit word past the end
+
+Root-signature-vs-shader validation does run here in DXC: move the root
+constants to b1 and it reports "Shader CBV descriptor range ... is not fully
+bound in root signature". It checks which registers a root signature covers,
+never how many 32-bit constants a root constant block holds -- setting
+num32BitConstants to 2 (correct) produces identical output to 1 (out of
+bounds), which is what shows the field is never compared against the cbuffer.
+
+Two caveats on reading the panes:
+
+- This is a compute restatement of the issue's pixel shader, so Clang -- whose
+  DXIL backend cannot yet lower a shader writing SV_Target -- answers the same
+  question on the same input. The pixel original behaves identically and is the
+  local evidence; the restatement was checked both ways, and reading only the
+  in-range constant makes the symptom go away.
+- hlsl_clang_trunk does parse and check root signature syntax (a malformed one
+  gives "error: invalid parameter of RootSignature"), but it has no
+  root-signature-vs-shader checking at all yet: it also accepts a root
+  signature binding b1 while the cbuffer sits at b0, which DXC rejects. Read
+  its clean pane as "not implemented there either", not as independent
+  confirmation that the shader is fine.
+
+Compiler Explorer runs Release builds, which makes no difference here because
+this is a missing diagnostic rather than an assert. Measured locally on a Debug
+main build and on all 20 DXC releases from v1.4.1907 to v1.9.2607 -- identical
+behaviour throughout.

@@ -1,0 +1,150 @@
+# Manual case: does DXIL container signing actually happen, and does dxil.dll matter?
+
+The issue is titled "Problem with DXIL signing", and the reported output carries
+`warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release
+environments.`  Signing is not something `cmd.txt` can measure, so it is measured here by
+hand: compile, write a container with `-Fo`, and read the 16-byte digest at offset 4 of the
+`DXBC` header (`DxilContainerHeader::Hash`, hashed from `offsetof(..., Version)` to the end
+by `ComputeHashRetail` -- `lib/DxilContainer/DxcContainerBuilder.cpp:185-204`,
+`tools/clang/tools/dxcvalidator/dxcvalidator.cpp:36-52`).
+
+Shell: PowerShell 7.  `$GT` = `C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe`
+(ground truth, `1.9.0.5433 (triage, ab5400907)`).  Run from this directory.  `.dxo` outputs
+are scratch and were deleted after the digests below were read; re-running the commands
+regenerates them.
+
+`control-default-case.hlsl` is used for every signing probe because the *repro* fails
+validation and therefore produces no container at all -- which is itself the first result.
+
+---
+
+## 1. Ground truth, default environment
+
+```
+$ $GT -T ps_6_0 -E MainPS control-default-case.hlsl -Fo sign-probe-gt.dxo
+exit=0
+magic=DXBC
+hash=787986802743ecdd403360764860bb71
+```
+
+Non-zero digest: **the container is hashed/signed with no `dxil.dll` involved at all.**
+
+## 2. Ground truth, external validator forced on
+
+`dxil.dll` *is* present next to the ground-truth `dxc.exe` (10,720,768 bytes,
+`FileVersion 1.9.0.5393`, `damyanp/fix-resource-struct-zero-init, dc2088b20-dirty`,
+Authenticode `NotSigned` -- a local build, not the retail DLL).  It is **not loaded by
+default**: since PR #7451 (`NFC: remove dead external validation code paths from
+dxcompiler`) `dxcompiler.dll` no longer probes for a sibling `dxil.dll`; `dxc.exe` loads one
+only when `DXC_DXIL_DLL_PATH` names an absolute path
+(`lib/DxcSupport/dxcapi.extval.cpp:433-462`).
+
+```
+$ $env:DXC_DXIL_DLL_PATH='C:\prj\DirectXShaderCompiler\build\Debug\bin\dxil.dll'
+$ $GT --version
+dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907); C:\prj\DirectXShaderCompiler\build\Debug\bin\dxil.dll: 1.10 - 1.9.0.5393 (damyanp/fix-resource-struct-zero-init, dc2088b20-dirty)
+
+$ $GT -T ps_6_0 -E MainPS control-default-case.hlsl -Fo sign-probe-ext.dxo
+exit=0
+hash=787986802743ecdd403360764860bb71        <-- byte-identical to case 1
+```
+
+**The external validator produces the same signature as the internal one.**  Signing is not
+contingent on `dxil.dll` on a current build.
+
+## 3. Ground truth, external validator forced on, running the repro
+
+```
+$ $GT -T ps_6_0 -E MainPS repro.hlsl
+error: validation errors
+
+Function: MainPS: error: Instructions must be of an allowed type.
+note: at 'unreachable' in block '#4' of function 'MainPS'.
+Validation failed.
+exit=-2136342519   (0x80AA0009, DXC_E_IR_VERIFICATION_FAILED)
+```
+
+Same rule, same defect -- but two differences from the default configuration
+(`out-main-debug.txt`, which exits `0x80004005`):
+
+* the **exit code changes** from `E_FAIL` to `0x80AA0009`.  Neither is an internal failure
+  (severity nibble 8), so `is_internal_failure` classifies both correctly, but a predicate
+  keyed to a specific non-zero exit code would have been wrong under one of them;
+* the **source location is lost**: `Function: MainPS:` replaces `repro.hlsl:24:1:`.
+
+The reproduction itself is unaffected, which is the point of the probe.
+
+## 4. `dxil.dll` across every release probed
+
+`out-*.txt` for all 20 releases: **no probe printed `DXIL.dll not found`**.  The string is
+present in the v1.4.1907 binary (verified by scanning `dxcompiler.dll` for it), so its
+absence from the output means the DLL was found and loaded, not that the warning was
+unavailable.  The string is present in every `dxcompiler.dll` from v1.4.1907 through
+v1.8.2407 and absent from v1.8.2505 onward.
+
+`dxc --version` gives the same answer directly, for the releases that support the flag
+(v1.4.1907-v1.6.2106 answer `Unknown argument: '--version'`):
+
+| release | `--version` reports |
+| --- | --- |
+| v1.7.2207 | `dxcompiler.dll: 1.7 - 1.7.2207.3 (e9137cd1d); dxil.dll: 1.7(101.7.2207.10)` |
+| v1.7.2212 | `... ; dxil.dll: 1.7(101.7.2212.14)` |
+| v1.7.2212.1 | `... ; dxil.dll: 1.7(101.7.2212.36)` |
+| v1.8.2403 | `... ; dxil.dll: 1.8(101.8.2403.18)` |
+| v1.8.2403.1 | `... ; dxil.dll: 1.8(101.8.2403.21)` |
+| v1.8.2403.2 | `... ; dxil.dll: 1.8(101.8.2403.24)` |
+| v1.8.2405 | `... ; dxil.dll: 1.8(101.8.2405.17)` |
+| v1.8.2407 | `... ; dxil.dll: 1.8(101.8.2407.12)` |
+| v1.8.2505 | `dxcompiler.dll: 1.9 - 1.8.2505.28 (9efbb6c32); dxil.dll: 1.9(1.8.2505.28)` |
+| v1.9.2602 | `dxcompiler.dll: 1.9(5184-21d28f72)(1.9.2602.17) - 1.9.2602.17 (21d28f727)` -- **no dxil.dll** |
+| v1.9.2602.24 | no `dxil.dll` |
+| v1.9.2607 | no `dxil.dll` |
+| main-debug | no `dxil.dll` |
+
+Every release tree in the cache *ships* a `dxil.dll` next to its `dxc.exe` (checked with
+`Get-AuthenticodeSignature`: v1.4.1907 carries the SDK's `10.0.18362.1`, `Valid`;
+v1.5.2010 `NotSigned`; v1.6.2104/2106 `UnknownError`; every release from v1.7.2207 `Valid`),
+so no probe in this issue ran without a validator available.  What changes across the range
+is whether DXC *uses* it: auto-loaded through v1.8.2505, ignored from v1.9.2602 on.
+
+That split is real but does not affect this verdict: all 21 probes fail on the same
+validator rule and exit `0x80004005`.
+
+## 5. `-Vd`, and what disabling validation removes
+
+`variant-vd-novalidation-main-debug.txt` -- `-T ps_6_0 -E MainPS -Vd repro.hlsl`, exit 0.
+The compile succeeds and emits the module the validator was rejecting:
+
+```llvm
+  switch i32 %4, label %17 [
+    i32 0, label %5
+    i32 1, label %9
+    i32 2, label %13
+  ]
+...
+; <label>:17                                      ; preds = %0
+  unreachable
+```
+
+This is @tristanlabelle's 2019 diagnosis, confirmed: the fall-off-the-end path becomes an
+LLVM `unreachable`, which is not a legal DXIL instruction.
+
+`-Vd` is not a workaround for this issue: it does not just skip the diagnostic, it also
+**leaves the container unsigned**, which is the very thing the issue title is about.
+Measured digests, same 16 bytes at offset 4, same shader unless stated:
+
+| compiler | input | flags | digest |
+| --- | --- | --- | --- |
+| main-debug | `control-default-case.hlsl` | (none) | `787986802743ecdd403360764860bb71` |
+| main-debug | `control-default-case.hlsl` | `DXC_DXIL_DLL_PATH` set | `787986802743ecdd403360764860bb71` |
+| main-debug | `control-default-case.hlsl` | `-Vd` | `00000000000000000000000000000000` |
+| main-debug | `repro.hlsl` | `-Vd` | `00000000000000000000000000000000` |
+| v1.4.1907 | `control-default-case.hlsl` | (none) | `92c0940d85b841f27b958aa403b824d8` |
+| v1.9.2607 | `control-default-case.hlsl` | (none) | `27f119687e6ad9ca88bbdc7de5072ed0` |
+
+So: a validated compile is signed on the oldest and newest releases and on ground truth,
+with or without an external `dxil.dll`; `-Vd` is the only configuration measured here that
+produces an all-zero (unsigned) digest.  The two release digests differ from each other only
+because the DXIL they cover differs between compiler versions.
+
+`-Vd` appears nowhere in the issue and is **not** in `cmd.txt`.

@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains", "value": "Instructions must be of an allowed type" },
+    { "kind": "nonzero_exit" }
+  ],
+  "note": "The reported symptom is a DXIL validation failure naming one specific validator rule, so the predicate quotes that rule verbatim rather than approximating it (SKILL.md step 6, diagnostic-quality issues). The rule text is the one part of the message that is stable across validator ages: the 2019 report shows it embedded in a location clause ('at 0x... inside block #0 of function MainPS Instructions must be of an allowed type'), while the in-tree test tools/clang/test/HLSLFileCheck/validation/no_return_unreachable.hlsl shows today's wording ('error: Instructions must be of an allowed type.' plus a 'note: at 'unreachable' in block' line). Substring-matching the rule alone spans both. The nonzero_exit clause requires that the compile actually failed, so the rule text appearing in a warning or in a passing run could not score as the symptom. NOT an internal_failure predicate: a DXIL validation failure exits E_FAIL (0x80004005), which is an ordinary diagnosed error, and this issue is not a crash. CONTROL (variant-default-case-*): the issue's own stated fix, repro.hlsl plus a 'default:' arm, which the reporter says compiles clean -- run with --expect no-match. A second negative control, variant-enum-minimal-*, uses the same enum class/ConstantBuffer declarations with no switch at all and doubles as the feature-presence control for the bisection."
+}

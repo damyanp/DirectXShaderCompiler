@@ -334,14 +334,21 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 > :: __debugbreak()-style DXASSERT: exit 0x80000003, a trap. Just run to it.
 > cdb -c "g;kn 40;q" <dxc.exe> <args...>
 >
+> :: ...and to continue PAST that trap, `gh` it: run to the trap, step over it, then look.
+> cdb -c "g;gh;.lastevent;kn 14;q" -- <dxc.exe> <args...>
+>
 > :: C++-exception assert: exit 0xE0000001. Break on the exception itself.
 > cdb -c "sxe -c \"kb 8; gh\" e0000001; g; q" <dxc.exe> <args...>
 > ```
 >
-> The second form's `gh` ("go handled") also **emulates `NDEBUG`**: continuing past the assert
-> runs the code the release build would have run, so a Debug binary can reproduce the
-> reporter's Release symptom without building one. That is how #8725 showed the assert and the
-> invalid `bitcast` it guards are the same defect. `cdb.exe` ships with the Windows SDK
+> `gh` ("go handled") **emulates `NDEBUG`** in *both* forms: continuing past the assert runs the
+> code the release build would have run, so a Debug binary can reproduce the reporter's Release
+> symptom without building one. That is how #8725 showed the assert and the invalid `bitcast`
+> it guards are the same defect, and how #3251 predicted its release failure mode *before* the
+> twenty-release scan ran. Chain one `gh` per assert to walk further — and add
+> `sxe -c "gh" e0000001` in the same command line if a *later* LLVM assert (which does throw)
+> stands in the way. Which form you meet depends only on which macro the failing code used, so
+> keep both to hand. `cdb.exe` ships with the Windows SDK
 > debuggers (`C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\`). Trim the capture to the
 > header, the assert line and the frames before committing it — a full stack dump is noise.
 >
@@ -546,6 +553,18 @@ verdict on a rendering-artifact or driver-behaviour issue by compiling it.
 > re-quotes arguments and silently repairs the bug. Keep the raw invocation in its own script
 > next to the issue, and record which shell produced the result.
 
+> **PowerShell will silently eat `$` and `` ` `` out of any prose you write through it.** Two
+> different mechanisms, both invisible, both measured in batch 006 and both landing in committed
+> artifacts. In a **double-quoted** string `$Globals` expands to nothing — `triage.py verdict
+> --summary "... not $Globals-specific ..."` recorded *"not -specific"*, and that sentence then
+> propagated into `overview.md`. In the same string `` `else `` becomes `U+001B` + `lse`,
+> because `` `e `` is PowerShell's escape character; that one reached
+> `3251/manual-case-assert-stack.txt` and **cannot be corrected**, because hand-editing a
+> committed capture is falsification. **Single-quote any string containing `$` or a backtick**,
+> and prefer writing prose into files with an editor rather than through the shell. Note the
+> converse: `U+001B` in a *captured* file is usually legitimate — Compiler Explorer returns
+> ANSI-coloured Clang output — so do not "clean" it.
+
 **Judge a `does-not-repro` against the configuration the reporter used.** A Debug build is the
 right ground truth for asserts, but it is the *wrong* one for issues the reporter says only
 fail in Release. Where the report is configuration-dependent or non-deterministic, test the
@@ -672,9 +691,18 @@ across issues.
 > If the symptom is that something is *missing* (`not_contains`, `not_regex`, or an inverted
 > `contains`), then any release that fails to parse the repro emits no match either — and
 > scores as a textbook reproduction. #1877's predicate is `not_contains fptosi`; a release that
-> rejected the input would have "reproduced" it perfectly. The runner now reclassifies such a
-> probe as `invalid-probe` when the compile also failed. Prefer a positive predicate where one
-> exists, and always confirm the probe actually emitted DXIL.
+> rejected the input would have "reproduced" it perfectly. The runner demotes such a probe to
+> `invalid-probe` **only** when the output also tripped a feature-absence marker or the run
+> failed internally. **An ordinary diagnosed error is neither** — on Windows that is E_FAIL
+> plus an `error:` line, which is the likeliest early failure across a twenty-release history,
+> and it still scores `repro`. Measured on #2792 against real captured output: a probe with
+> three `error:` lines and no DXIL scored as a reproduction under an unanchored absence
+> predicate. Demoting that case is not available, because an issue whose symptom is a *wrong*
+> diagnostic legitimately errors on every reproducing probe (that is #3055's defect in a new
+> shape), so **the runner warns instead** when an absence-only predicate matches a failed
+> compile. Anchor the predicate with a positive clause — #2792's
+> `extractvalue %dx.types.CBufRet.f32 <v>, 1` cannot be emitted by a compile that failed — and
+> always confirm the probe actually emitted DXIL.
 >
 > **The same clause is also vacuously true on a shader that never mentions the symbol**, and no
 > amount of tooling can see that. #8732's `not_regex "%bound\w*\s*=\s*Op\w*Variable"` was
@@ -796,7 +824,9 @@ The two Clang builds usually agree; prefer one pane unless they differ.
 
 **When Clang cannot compile the repro's shader stage, translate it — or omit the pane.**
 Clang's stage support is uneven: compute is complete, pixel parses but the backend cannot lower
-any shader writing `SV_Target`, and geometry is not supported at all. A pane full of errors
+any shader writing `SV_Target`, vertex parses but the backend cannot lower signature I/O either
+(`Unsupported intrinsic llvm.dx.load.input.v4f32`, measured on #2528), and geometry is not
+supported at all. A pane full of errors
 about the stage says nothing about the issue, so:
 
 1. **Prefer a compute-shader translation.** If the construct under test is not stage-specific,

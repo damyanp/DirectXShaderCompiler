@@ -1,0 +1,47 @@
+$ hlsl_clang_trunk -T vs_6_0 -E main   [repro]
+[exit] 1
+--- output ---
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:10:29: [0m[0;1;31merror: [0m[1mattribute 'SV_Position' only applies to a field or parameter of type 'float/float1/float2/float3/float4'[0m
+   10 | [0;34mvoid[0m main([0;34minout[0m float4 pos: SV_Position) {[0m
+      | [0;1;32m                            ^
+[0m1 error generated.
+<Compilation failed>
+
+$ hlsl_clang_trunk -T vs_6_0 -E main   [trivial-control]
+[exit] 1
+--- output ---
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[0;1;31merror: [0m[1mUnsupported intrinsic llvm.dx.load.input.v4f32 for DXIL lowering[0m
+[0;1;31merror: [0m[1mUnsupported intrinsic llvm.dx.store.output.v4f32 for DXIL lowering[0m
+2 errors generated.
+<Compilation failed>
+
+$ hlsl_clang_trunk -T vs_6_0 -E main -fsyntax-only   [repro +fsyntax-only]
+[exit] 1
+--- output ---
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:10:29: [0m[0;1;31merror: [0m[1mattribute 'SV_Position' only applies to a field or parameter of type 'float/float1/float2/float3/float4'[0m
+   10 | [0;34mvoid[0m main([0;34minout[0m float4 pos: SV_Position) {[0m
+      | [0;1;32m                            ^
+[0m1 error generated.
+<Compilation failed>
+
+$ hlsl_clang_trunk -T vs_6_0 -E main -fsyntax-only   [trivial-control +fsyntax-only]
+[exit] 0
+--- output ---
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+<No output file>
+
+$ hlsl_clang_trunk -T vs_6_0 -E main   [control-untouched]
+[exit] 1
+--- output ---
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:8:29: [0m[0;1;31merror: [0m[1mattribute 'SV_Position' only applies to a field or parameter of type 'float/float1/float2/float3/float4'[0m
+    8 | [0;34mvoid[0m main([0;34minout[0m float4 pos: SV_Position) {[0m
+      | [0;1;32m                            ^
+[0m1 error generated.
+<Compilation failed>
+

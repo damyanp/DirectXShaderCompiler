@@ -1,0 +1,34 @@
+What to look for -- microsoft/DirectXShaderCompiler#2528
+"Remainder of inout signature element not passed through when one component is modified"
+
+`pos` is one inout signature element. The shader assigns only `pos.w`, so a correct
+compilation has to copy the untouched `pos.xyz` from the input signature to the output
+signature. The panes are deliberately given different arguments; compare them:
+
+  FXC 10.1, /T vs_5_0            -- correct, and this is the same source file.
+      Input signature  Used = xyz     Output signature  Used = xyzw
+      mov o0.xyz, v0.xyzx
+      mov o0.w, l(1.000000)
+
+  DXC 1.6.2112, -T vs_6_0        -- the reporter's original command line. It does not
+      produce a shader at all:
+          error: Not all elements of output SV_Position were written.
+
+  DXC trunk, -T vs_6_0 -Vd       -- the same input with DXIL validation switched off, so
+      the module DXC actually generated is visible. Two places show the bug:
+        * the "; Output signature:" comment table: SV_Position reads Used = w, not
+          Used = xyzw -- and the "; Input signature:" table's Used column is empty;
+        * the body of "define void @main()": one
+          call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float 1.0)
+          and no dx.op.loadInput at all. Components x, y and z are never read and
+          never written, so they reach the rasteriser undefined.
+      Expected there: storeOutput for i8 0, i8 1, i8 2 and i8 3, with x/y/z fed by
+      loadInput -- exactly the four CHECK lines in the issue body.
+
+This is not "DXC cannot pass an inout element through". Empty main()'s body and DXC emits
+four loadInput/storeOutput pairs correctly; writing ONE component is what suppresses the
+pass-through of the rest.
+
+Reproduces on every DXC release from v1.4.1907 (2019-07) through v1.9.2607, and on main at
+ab5400907. CE runs Release builds, which is fine here -- nothing about this symptom is
+assert-dependent.

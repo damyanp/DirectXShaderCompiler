@@ -1,0 +1,5 @@
+{
+  "kind": "not_regex",
+  "value": "(?i)root constant|num32BitConstants|out of bound",
+  "note": "NOT the predicate used for #2792. This is the naive absence-only predicate a triager would most naturally write for a missing-diagnostic issue -- 'dxc emitted no error about the root constant size'. It is here purely so classifier-probe.py can measure how triage.py's invalid-probe rules behave on it. Never referenced by cmd.txt or by any capture."
+}

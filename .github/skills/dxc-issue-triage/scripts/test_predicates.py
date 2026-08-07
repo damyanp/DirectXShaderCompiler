@@ -187,6 +187,42 @@ for desc, pred, want in [
     _write_pred(pred)
     check(desc, triage._is_absence_predicate(1877), want)
 
+# An absence clause is satisfied for free by a compile that failed early, and
+# `classify` only demotes such a probe when it also tripped a feature-absence
+# marker or failed internally. An ORDINARY DIAGNOSED ERROR is neither -- on
+# Windows, E_FAIL plus an `error:` line -- so an absence-only predicate scores
+# it `repro`. Measured on #2792 against real captured output. The predicate
+# cannot be demoted (that is #3055's defect in a new shape), so the runner
+# warns; this is the test for what it warns about.
+for desc, pred, want in [
+    ("absence-only predicate has no positive clause",
+     {"kind": "not_contains", "value": "fptosi"}, False),
+    ("a contains clause anchors it",
+     {"kind": "all_of", "value": [{"kind": "contains", "value": "extractvalue"},
+                                  {"kind": "not_contains", "value": "cmp"}]}, True),
+    ("a regex clause anchors it",
+     {"kind": "all_of", "value": [{"kind": "regex", "value": "dx[.]op[.]"},
+                                  {"kind": "not_regex", "value": "error:"}]}, True),
+    ("internal_failure is a positive observation",
+     {"kind": "any_of", "value": [{"kind": "internal_failure"},
+                                  {"kind": "not_contains", "value": "x"}]}, True),
+    ("timeout is a positive observation",
+     {"kind": "any_of", "value": [{"kind": "timeout"},
+                                  {"kind": "not_contains", "value": "x"}]}, True),
+    # A rejected input exits nonzero too, so this anchors nothing.
+    ("nonzero_exit does NOT anchor an absence predicate",
+     {"kind": "all_of", "value": [{"kind": "nonzero_exit"},
+                                  {"kind": "not_contains", "value": "x"}]}, False),
+    ("an inverted contains does not anchor it either",
+     {"kind": "all_of", "value": [{"kind": "contains", "value": "x",
+                                   "invert": True},
+                                  {"kind": "not_contains", "value": "y"}]}, False),
+    ("an inverted not_contains is a positive clause",
+     {"kind": "not_contains", "value": "x", "invert": True}, True),
+]:
+    _write_pred(pred)
+    check(desc, triage._has_positive_clause(1877), want)
+
 # --- feature-absence diagnostics are invalid probes, not clean runs --------
 # Measured on #3038: v1.4.1907 predates DXR 1.1 and answers "use of undeclared
 # identifier 'RayQuery'". That is not evidence the bug was absent.

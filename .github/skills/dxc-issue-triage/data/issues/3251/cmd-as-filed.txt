@@ -1,0 +1,13 @@
+# As filed, #3251: "I used  as_6_5, /Zi -enable-16bit-types /Qembed_debug"
+/T as_6_5 /E main /Zi -enable-16bit-types /Qembed_debug repro.hlsl
+
+# cmd.txt differs in one way only: `-` spelling instead of `/` for Zi/Qembed_debug/T/E.
+# dxc treats the two prefixes identically on Windows, but Compiler Explorer's Linux builds
+# see a leading `/` as a path, so MSVC-style flags are not testable there at all
+# (SKILL.md step 7). Using `-` keeps one command identical across ground truth, the release
+# scan and CE. The equivalence is measured, not assumed: variant-as-filed-*.txt runs the
+# literal `/`-spelled form above on the ground-truth build.
+#
+# The entry point is not stated in the issue; the function is called main, so -E main.
+# The debug flags are kept because the reporter used them (and their memcpy carried !dbg),
+# even though variant-noflags-*.txt shows they are not load-bearing.

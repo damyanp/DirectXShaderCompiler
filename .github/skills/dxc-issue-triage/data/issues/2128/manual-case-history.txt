@@ -1,0 +1,40 @@
+# case: has the compressibility of dxc output changed across the release history?
+# harness: measure.py --history (committed beside this file)
+# why not `triage.py bisect`: bisect scores a text/exit predicate. The symptom here is a
+#   ratio, so the history search is this loop over every cached release instead.
+# corpus: corpus-small.hlsl, repro.hlsl, corpus-large.hlsl -- identical args to every release
+# ran: 2026-08-07T05:02:31Z
+# verdict: unscored
+
+
+HARNESS CONTROLS
+  input                                  bytes  deflated  ratio  expect       
+  -------------------------------------  -----  --------  -----  -------  ----
+  incompressible (sha256 chain, 4096 B)  4096   4101      1.001  >= 0.98  PASS
+  compressible (repro.hlsl source)       3328   1323      0.398  <= 0.50  PASS
+
+CORPUS TOTAL PER RELEASE (dxc, -T ps_6_0 -E main -O3)
+  built           tag           bytes  deflated  ratio
+  --------------  ------------  -----  --------  -----
+  2019-07-15      v1.4.1907     78409  40999     0.523
+  2020-10-22      v1.5.2010     47521  26996     0.568
+  2021-04-20      v1.6.2104     47657  26887     0.564
+  2021-07-01      v1.6.2106     46669  24768     0.531
+  2021-12-08      v1.6.2112     46669  24768     0.531
+  2022-07-18      v1.7.2207     46656  24791     0.531
+  2022-12-16      v1.7.2212     46576  24755     0.531
+  2023-03-01      v1.7.2212.1   46576  24757     0.532
+  2023-08-14      v1.7.2308     46568  24752     0.532
+  2024-03-07      v1.8.2403     46648  24708     0.530
+  2024-03-22      v1.8.2403.1   46648  24712     0.530
+  2024-03-29      v1.8.2403.2   46648  24712     0.530
+  2024-05-24      v1.8.2405     46648  24713     0.530
+  2024-07-31      v1.8.2407     46412  24534     0.529
+  2025-02-20      v1.8.2502     46412  24530     0.529
+  2025-05-24      v1.8.2505     46392  24610     0.530
+  2025-07-14      v1.8.2505.1   46392  24609     0.530
+  2026-02-20      v1.9.2602     46392  24612     0.531
+  2026-05-27      v1.9.2602.24  46392  24613     0.531
+  2026-07-29      v1.9.2607     46464  24645     0.530
+  (ground truth)  main-debug    46516  24609     0.529
+

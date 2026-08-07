@@ -1,0 +1,139 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-07T05:05:03+00:00
+# cmd: -T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug control-min-dispatchmesh.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-min-dispatchmesh (control-min-dispatchmesh.hlsl)
+# expect: no-match
+
+$ dxc -T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug control-min-dispatchmesh.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 708d5628eb9139955aff9923fedfed91.pdb
+; shader hash: 708d5628eb9139955aff9923fedfed91
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Amplification Shader
+; NumThreads=(1,1,1)
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.smallPayload = type { i32 }
+
+define void @main() {
+  %p = alloca %struct.smallPayload, align 4
+  %1 = getelementptr inbounds %struct.smallPayload, %struct.smallPayload* %p, i32 0, i32 0, !dbg !26 ; line:15 col:7
+  store i32 1, i32* %1, align 4, !dbg !27, !tbaa !28 ; line:15 col:9
+  call void @llvm.dbg.value(metadata %struct.smallPayload* %p, i64 0, metadata !32, metadata !38), !dbg !39 ; var:"p" !DIExpression() func:"main"
+  call void @dx.op.dispatchMesh.struct.smallPayload(i32 173, i32 1, i32 1, i32 1, %struct.smallPayload* nonnull %p), !dbg !40 ; line:16 col:5  ; DispatchMesh(threadGroupCountX,threadGroupCountY,threadGroupCountZ,payload)
+  ret void, !dbg !41 ; line:17 col:1
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.dispatchMesh.struct.smallPayload(i32, i32, i32, i32, %struct.smallPayload*) #0
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!7, !8}
+!llvm.ident = !{!9}
+!dx.source.contents = !{!10}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!11}
+!dx.source.args = !{!12}
+!dx.version = !{!13}
+!dx.valver = !{!14}
+!dx.shaderModel = !{!15}
+!dx.typeAnnotations = !{!16, !19}
+!dx.entryPoints = !{!22}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.5402 (0d3ee6b55-dirty)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3)
+!1 = !DIFile(filename: "control-min-dispatchmesh.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 12, type: !5, isLocal: false, isDefinition: true, scopeLine: 13, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{i32 2, !"Dwarf Version", i32 4}
+!8 = !{i32 2, !"Debug Info Version", i32 3}
+!9 = !{!"dxc(private) 1.9.0.5402 (0d3ee6b55-dirty)"}
+!10 = !{!"control-min-dispatchmesh.hlsl", !"// Feature-presence control for #3251: the smallest amplification shader that calls DispatchMesh,\0D\0A// run with the repro's exact flags. A release that predates amplification shaders rejects this\0D\0A// too (feature absence -> the repro's invalid-probe is genuine); a release that compiles this\0D\0A// but rejects the repro is rejecting something about the repro, and trimming it from the\0D\0A// history would hide a real result.\0D\0Astruct smallPayload\0D\0A{\0D\0A    uint i;\0D\0A};\0D\0A\0D\0A[numthreads(1, 1, 1)]\0D\0Avoid main()\0D\0A{\0D\0A    smallPayload p;\0D\0A    p.i = 1;\0D\0A    DispatchMesh(1, 1, 1, p);\0D\0A}\0D\0A"}
+!11 = !{!"control-min-dispatchmesh.hlsl"}
+!12 = !{!"-E", !"main", !"-T", !"as_6_5", !"-Zi", !"-enable-16bit-types", !"-Qembed_debug"}
+!13 = !{i32 1, i32 5}
+!14 = !{i32 1, i32 9}
+!15 = !{!"as", i32 6, i32 5}
+!16 = !{i32 0, %struct.smallPayload undef, !17}
+!17 = !{i32 4, !18}
+!18 = !{i32 6, !"i", i32 3, i32 0, i32 7, i32 5}
+!19 = !{i32 1, void ()* @main, !20}
+!20 = !{!21}
+!21 = !{i32 1, !2, !2}
+!22 = !{void ()* @main, !"main", null, null, !23}
+!23 = !{i32 0, i64 8388608, i32 10, !24}
+!24 = !{!25, i32 4}
+!25 = !{i32 1, i32 1, i32 1}
+!26 = !DILocation(line: 15, column: 7, scope: !4)
+!27 = !DILocation(line: 15, column: 9, scope: !4)
+!28 = !{!29, !29, i64 0}
+!29 = !{!"int", !30, i64 0}
+!30 = !{!"omnipotent char", !31, i64 0}
+!31 = !{!"Simple C/C++ TBAA"}
+!32 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "p", scope: !4, file: !1, line: 14, type: !33)
+!33 = !DICompositeType(tag: DW_TAG_structure_type, name: "smallPayload", file: !1, line: 6, size: 32, align: 32, elements: !34)
+!34 = !{!35}
+!35 = !DIDerivedType(tag: DW_TAG_member, name: "i", scope: !33, file: !1, line: 8, baseType: !36, size: 32, align: 32)
+!36 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 14, baseType: !37)
+!37 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!38 = !DIExpression()
+!39 = !DILocation(line: 14, column: 18, scope: !4)
+!40 = !DILocation(line: 16, column: 5, scope: !4)
+!41 = !DILocation(line: 17, column: 1, scope: !4)
+
+
+--- stderr ---
+

@@ -1,0 +1,137 @@
+# what: a measurement of triage.py's own invalid-probe classifier, not of dxc
+# how:  cd .github/skills/dxc-issue-triage && python data/issues/2792/classifier-probe.py
+# ran:  2026-08-07T05:02:00+00:00
+# why:  #2792's symptom is a MISSING diagnostic, so its predicate must express
+#       an absence. Sections A/B exercise the shipped predicate, C the naive
+#       absence-only predicate, D the _predicate_quotes suppression, E the
+#       positive anchor that match.json actually uses. See method-notes.md.
+# note: sections B, C and E feed synthetic or borrowed text to classify() on
+#       purpose -- they measure the classifier, and only section A's inputs are
+#       real captures of repro.hlsl/controls.
+==============================================================================
+A. The real probes, under the predicate actually shipped (match.json)
+==============================================================================
+
+  repro.hlsl on main-debug (out-of-bounds, accepted silently)
+    predicate      : match.json (absence-shaped: True)
+    exit           : 0x00000000   internal_failure: False
+    -> verdict     : repro
+
+  repro.hlsl on v1.4.1907 (oldest release)
+    predicate      : match.json (absence-shaped: True)
+    exit           : 0x00000000   internal_failure: False
+    -> verdict     : repro
+
+  control-in-bounds (fully correct shader)
+    predicate      : match.json (absence-shaped: True)
+    exit           : 0x00000000   internal_failure: False
+    -> verdict     : no-repro
+
+  control-rs-register-mismatch (dxc DOES diagnose this)
+    predicate      : match.json (absence-shaped: True)
+    exit           : 0x80004005   internal_failure: False
+    -> verdict     : no-repro
+
+  control-rootconst-fits (correct; identical output to the repro)
+    predicate      : match.json (absence-shaped: True)
+    exit           : 0x00000000   internal_failure: False
+    -> verdict     : repro
+
+==============================================================================
+B. Hypothetical future DXC that FIXES #2792 by emitting the diagnostic.
+   Scores no-repro (correct). Is it then demoted by the marker rule?
+==============================================================================
+
+  plain wording
+    predicate      : match.json (absence-shaped: True)
+    exit           : 0x80004005   internal_failure: False
+    -> verdict     : no-repro
+
+  validator wording, mirroring the existing RS check
+    predicate      : match.json (absence-shaped: True)
+    exit           : 0x80004005   internal_failure: False
+    -> verdict     : no-repro
+
+  wording that merely mentions the target -- does NOT trip a marker
+    predicate      : match.json (absence-shaped: True)
+    exit           : 0x80004005   internal_failure: False
+    -> verdict     : no-repro
+
+  gated wording -- DOES trip the 'requires shader model' marker
+    predicate      : match.json (absence-shaped: True)
+    exit           : 0x80004005   internal_failure: False
+    -> verdict     : invalid-probe
+    -> reason      : output matched the feature-absence marker "requires shader model", so this build did not reach the code under test
+
+==============================================================================
+C. The trap this issue is exposed to: a NAIVE absence-only predicate
+   ('no error mentions the root constant size'), which is what an
+   absence predicate for this issue looks like without a positive
+   anchor. Fed REAL output from an input dxc genuinely rejected.
+==============================================================================
+
+  control-rs-register-mismatch under the naive predicate
+    predicate      : classifier-probe-naive-predicate.json (absence-shaped: True)
+    exit           : 0x80004005   internal_failure: False
+    -> verdict     : repro
+
+  a bare syntax error under the naive predicate
+    predicate      : classifier-probe-naive-predicate.json (absence-shaped: True)
+    exit           : 0x80004005   internal_failure: False
+    -> verdict     : repro
+
+  a release that cannot express the input (marker present)
+    predicate      : classifier-probe-naive-predicate.json (absence-shaped: True)
+    exit           : 0x80004005   internal_failure: False
+    -> verdict     : invalid-probe
+    -> reason      : an absence clause of this predicate can be satisfied for free by a run that failed early (matched "invalid profile")
+
+  a release that crashed
+    predicate      : classifier-probe-naive-predicate.json (absence-shaped: True)
+    exit           : 0xC0000005   internal_failure: True
+    -> verdict     : invalid-probe
+    -> reason      : an absence clause of this predicate can be satisfied for free by a run that failed early (the probe failed internally)
+
+==============================================================================
+D. _predicate_quotes suppression -- the #3055 fix -- on this issue
+==============================================================================
+
+  positive clauses of match.json: ['extractvalue %dx\\.types\\.CBufRet\\.f32 [^,\\n]+, 1\\b']
+  _predicate_quotes('is not supported for the target') = False
+  _predicate_quotes('use of undeclared identifier') = False
+  _predicate_quotes('invalid profile') = False
+
+  The suppression requires a positive clause of the issue's own
+  predicate to quote the marker verbatim. #2792 asks for a diagnostic
+  that does not exist in any DXC, so there is no text to quote and the
+  suppression is structurally unavailable here.
+
+==============================================================================
+E. The mitigation actually used by match.json: anchor the absence with
+   a positive clause. Same four inputs as section C.
+==============================================================================
+
+  control-rs-register-mismatch under the anchored predicate
+    predicate      : classifier-probe-anchored-predicate.json (absence-shaped: True)
+    exit           : 0x80004005   internal_failure: False
+    -> verdict     : no-repro
+
+  a bare syntax error under the anchored predicate
+    predicate      : classifier-probe-anchored-predicate.json (absence-shaped: True)
+    exit           : 0x80004005   internal_failure: False
+    -> verdict     : no-repro
+
+  a release that cannot express the input
+    predicate      : classifier-probe-anchored-predicate.json (absence-shaped: True)
+    exit           : 0x80004005   internal_failure: False
+    -> verdict     : invalid-probe
+    -> reason      : output matched the feature-absence marker "invalid profile", so this build did not reach the code under test
+
+  a release that crashed
+    predicate      : classifier-probe-anchored-predicate.json (absence-shaped: True)
+    exit           : 0xC0000005   internal_failure: True
+    -> verdict     : invalid-probe
+    -> reason      : the probe failed internally, so it measured nothing about the reported symptom
+
+  All four score no-repro or invalid-probe -- never a false `repro`.
+  The anchor, not the classifier, is what makes this issue safe.

@@ -1,0 +1,23 @@
+{
+  "batch": "006",
+  "confidence": "high",
+  "created_at": "2020-03-25T22:53:26Z",
+  "godbolt_url": "https://godbolt.org/z/d5zcrTPjP",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (all 20 releases probed linearly, no invalid probes); v1.4.1907 is the oldest probeable release, so this predates the report",
+  "labels": "bug",
+  "labels_add": "diagnostic, enhancement, check-in-clang",
+  "labels_now": "bug",
+  "labels_remove": "bug",
+  "notes_path": "issues/2792/notes.md",
+  "number": 2792,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "No DXC has ever checked a cbuffer's size against its root constant block's num32BitConstants. RootConstants(b0, num32BitConstants = 1) with a two-float cbuffer at b0 compiles clean, exit 0, no diagnostic, and codegens the out-of-bounds read (extractvalue %dx.types.CBufRet.f32 %2, 1). Setting num32BitConstants = 2, making the shader correct, produces byte-identical output and the same shader hash: the field is parsed, serialised and printed but read by no validator, and DxilRootSignatureValidator registers a root constant as a one-register CBV range without passing Num32BitValues at all. Adjacent checking does run (binding b1 against a b0 cbuffer is rejected with 'Shader CBV descriptor range ... is not fully bound in root signature'), so this is a gap in that check rather than its absence. That check, VerifyRootSignatureWithShaderPSV, works from PSV bind info which carries no size, so a container-validation fix needs a PSV format change while a front-end fix does not. hlsl_clang_trunk does not diagnose it either, but also accepts the b1/b0 mismatch, so it has no root-signature-vs-shader checking yet at all. A request for a diagnostic that has never existed, not a regression.",
+  "title": "Need to report error when use constant which has offset bigger than root constant size.",
+  "triaged_at": "2026-08-07T05:55:33+00:00",
+  "triaged_by": "claude-opus-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "ab5400907",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/2792"
+}

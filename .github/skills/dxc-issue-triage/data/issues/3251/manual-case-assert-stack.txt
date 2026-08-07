@@ -1,0 +1,98 @@
+# manual capture: assert message + stack, for the repro, the control and one variant
+# compiler: main-debug  (<repo>\build\Debug\bin\dxc.exe)
+# version:  dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+# harness:  assert-stack.cmd   (cdb 10.0.26100.6584, x64)  -- re-runnable
+# ran:      2026-08-06T22:00:43.1756154-07:00
+# why:      dxc sends DXASSERT text to OutputDebugString and then __debugbreak()s, so a plain
+#           run shows only 'Internal compiler error: Terminal Error 0x80000003' on stderr with
+#           no message, file or line -- and the line number is the whole finding here. See
+#           include/dxc/Support/Global.h (DXASSERT).
+# NOTE:     hand-driven capture, not a probe. Not scored by match.json.
+#           Stacks trimmed to the frames that matter; module-load and symbol-path noise removed.
+#
+# CASE 1  repro.hlsl, with the exact arguments in cmd.txt. The assert is
+#         DXASSERT(0, "not implemented yet") at lib/HLSL/HLOperationLower.cpp:8801, in
+#         TranslateCBAddressUserLegacy -- the function named in the issue title. Note the line:
+#         the issue reports 6207, which in Nov 2020 was the CallInst arm's final lse. PR
+#         #3034 (eaa7f95d0, 2020-11-17) inserted an IntrinsicInst branch for lifetime markers,
+#         so llvm.memcpy -- an IntrinsicInst -- now lands in that branch's inner lse at 8801
+#         instead of the outer one at 8804. Same missing HLOpcodeGroup::NotHL case.
+#         The frames show the calling context: TranslateHLSubscript (CBufferSubscript) ->
+#         TranslateCBOperationsLegacy -> TranslateCBAddressUserLegacy -> TranslateCBGepLegacy ->
+#         TranslateCBAddressUserLegacy (bitcast arm) -> TranslateCBAddressUserLegacy (the trap),
+#         inside DxilGenerationPass::GenerateDxilOperations.
+# CASE 2  control-fieldwise-payload.hlsl -- the same struct copied field by field. No trap: the
+#         only break is the loader's initial one and the stack after 'g' shows the process
+#         exiting normally. See variant-control-fieldwise-payload-main-debug.txt for exit 0.
+# CASE 3  variant-local-payload.hlsl -- payload filled from a local instead of the cbuffer.
+#         It also traps, but at a DIFFERENT assert in a DIFFERENT and EARLIER pass:
+#         !(onlyUsedByLifetimeMarkers(BCI)) at lib/Transforms/Scalar/ScalarReplAggregatesHLSL.cpp
+#         :2630 in SROA_Helper::RewriteBitCast, under SROA_Parameter_HLSL::runOnModule -- it
+#         never reaches DxilGenerationPass. So it is NOT a control for this predicate; it is a
+#         separate observation, recorded because it is why the obvious negative control had to
+#         be replaced by CASE 2.
+### CASE 1: repro.hlsl -- the repro, with the arguments in cmd.txt
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug repro.hlsl
+(3a30.773c): Break instruction exception - code 80000003 (first chance)
+Error: 	!(0)
+File:
+Func:	`anonymous-namespace'::TranslateCBAddressUserLegacy.
+	not implemented yet
+(3a30.773c): Break instruction exception - code 80000003 (first chance)
+00 00000066`8ff83330 00007ff8`2deaed46     dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x1087
+01 00000066`8ff839e0 00007ff8`2dead8e4     dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x1416
+02 00000066`8ff84090 00007ff8`2deaedec     dxcompiler!`anonymous namespace'::TranslateCBGepLegacy+0x1304
+03 00000066`8ff847b0 00007ff8`2deaef54     dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x14bc
+04 00000066`8ff84e60 00007ff8`2deb302f     dxcompiler!`anonymous namespace'::TranslateCBOperationsLegacy+0x114
+05 00000066`8ff84f10 00007ff8`2deb3625     dxcompiler!TranslateHLSubscript+0xef
+06 00000066`8ff850e0 00007ff8`2deb43e5     dxcompiler!TranslateSubscriptOperation+0xf5
+07 00000066`8ff851a0 00007ff8`2de811f0     dxcompiler!TranslateHLBuiltinOperation+0x845
+08 00000066`8ff85520 00007ff8`2ddd2297     dxcompiler!hlsl::TranslateBuiltinOperations+0x290
+09 00000066`8ff85950 00007ff8`2ddd1339     dxcompiler!`anonymous namespace'::DxilGenerationPass::GenerateDxilOperations+0x1b7
+0a 00000066`8ff85a90 00007ff8`306874e8     dxcompiler!`anonymous namespace'::DxilGenerationPass::runOnModule+0x509
+0b 00000066`8ff86410 00007ff8`30688325     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+0c 00000066`8ff867c0 00007ff8`3067ec6c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+0d 00000066`8ff86870 00007ff8`2e394a16     dxcompiler!llvm::legacy::PassManager::run+0x2c
+0e 00000066`8ff868b0 00007ff8`2e391fa8     dxcompiler!`anonymous namespace'::EmitAssemblyHelper::EmitAssembly+0x616
+0f 00000066`8ff86a90 00007ff8`2e36a201     dxcompiler!clang::EmitBackendOutput+0x158
+10 00000066`8ff86ee0 00007ff8`2fbfd808     dxcompiler!clang::BackendConsumer::HandleTranslationUnit+0x521
+11 00000066`8ff87100 00007ff8`2e729e3e     dxcompiler!clang::ParseAST+0x608
+### CASE 2: control-fieldwise-payload.hlsl -- same copy written field by field, must not trap
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug control-fieldwise-payload.hlsl
+(68f4.42f8): Break instruction exception - code 80000003 (first chance)
+00 000000a6`ef98f6c8 00007ff9`06eb180b     ntdll!NtTerminateProcess+0x14
+01 000000a6`ef98f6d0 00007ff8`8e26219b     KERNEL32!ExitProcessImplementation+0xb
+02 000000a6`ef98f700 00007ff8`8e26214f     ucrtbased!wassert+0x54b
+03 000000a6`ef98f730 00007ff8`8e262456     ucrtbased!wassert+0x4ff
+04 000000a6`ef98f790 00007ff6`3d038dfb     ucrtbased!exit+0x16
+05 000000a6`ef98f7c0 00007ff6`3d038c9e     dxc!__scrt_common_main_seh+0x14b
+06 000000a6`ef98f830 00007ff6`3d038f3e     dxc!__scrt_common_main+0xe
+07 000000a6`ef98f860 00007ff9`06e9e957     dxc!wmainCRTStartup+0xe
+08 000000a6`ef98f890 00007ff9`0860ad6c     KERNEL32!BaseThreadInitThunk+0x17
+09 000000a6`ef98f8c0 00000000`00000000     ntdll!RtlUserThreadStart+0x2c
+### CASE 3: variant-local-payload.hlsl -- payload filled from a local; traps ELSEWHERE
+CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug variant-local-payload.hlsl
+(74c4.8084): Break instruction exception - code 80000003 (first chance)
+Error: 	!(onlyUsedByLifetimeMarkers(BCI))
+File:
+Func:	`anonymous-namespace'::SROA_Helper::RewriteBitCast.
+(74c4.8084): Break instruction exception - code 80000003 (first chance)
+00 0000008a`fa384800 00007ff8`2e170556     dxcompiler!`anonymous namespace'::SROA_Helper::RewriteBitCast+0x19c
+01 0000008a`fa384c90 00007ff8`2e16e510     dxcompiler!`anonymous namespace'::SROA_Helper::RewriteForScalarRepl+0x286
+02 0000008a`fa384d80 00007ff8`2e17c8e8     dxcompiler!`anonymous namespace'::SROA_Helper::DoScalarReplacement+0xd20
+03 0000008a`fa3852b0 00007ff8`2e185307     dxcompiler!`anonymous namespace'::SROAGlobalAndAllocas+0xa48
+04 0000008a`fa386120 00007ff8`306874e8     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::runOnModule+0x8a7
+05 0000008a`fa3866a0 00007ff8`30688325     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+06 0000008a`fa386a50 00007ff8`3067ec6c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+07 0000008a`fa386b00 00007ff8`2e394a16     dxcompiler!llvm::legacy::PassManager::run+0x2c
+08 0000008a`fa386b40 00007ff8`2e391fa8     dxcompiler!`anonymous namespace'::EmitAssemblyHelper::EmitAssembly+0x616
+09 0000008a`fa386d20 00007ff8`2e36a201     dxcompiler!clang::EmitBackendOutput+0x158
+0a 0000008a`fa387170 00007ff8`2fbfd808     dxcompiler!clang::BackendConsumer::HandleTranslationUnit+0x521
+0b 0000008a`fa387390 00007ff8`2e729e3e     dxcompiler!clang::ParseAST+0x608
+0c 0000008a`fa387660 00007ff8`2e363c55     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+0d 0000008a`fa3876c0 00007ff8`2e7298a8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+0e 0000008a`fa387c10 00007ff8`2d94b7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+0f 0000008a`fa387c80 00007ff8`2d92bb80     dxcompiler!DxcCompiler::Compile+0x41a2
+10 0000008a`fa38c4c0 00007ff8`2d92d3d8     dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+11 0000008a`fa38dbd0 00007ff8`2d94ec2e     dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+

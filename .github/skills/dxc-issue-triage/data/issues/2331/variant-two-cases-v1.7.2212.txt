@@ -1,0 +1,25 @@
+# compiler: v1.7.2212
+# exe: <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+# ran: 2026-08-07T05:06:09+00:00
+# cmd: -T ps_6_0 -E MainPS case-two-cases.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: two-cases (case-two-cases.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E MainPS case-two-cases.hlsl
+[exe] <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case-two-cases.hlsl:22:10: warning: enumeration value 'High' not handled in switch [-Wswitch]
+switch ( __GetQuality() )
+         ^
+case-two-cases.hlsl:28:1: error: control may reach end of non-void function [-Wreturn-type]
+}
+^
+
+

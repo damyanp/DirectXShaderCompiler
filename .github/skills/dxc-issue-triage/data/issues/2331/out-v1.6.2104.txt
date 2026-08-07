@@ -1,0 +1,23 @@
+# compiler: v1.6.2104
+# exe: <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+# ran: 2026-08-07T05:02:37+00:00
+# cmd: -T ps_6_0 -E MainPS repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E MainPS repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+repro.hlsl:24:1: error: Instructions must be of an allowed type.
+note: at 'unreachable' in block '#4' of function 'MainPS'.
+Validation failed.
+
+
+

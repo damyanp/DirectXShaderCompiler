@@ -1,0 +1,21 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-07T05:05:03+00:00
+# cmd: -T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug control-min-dispatchmesh.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "invalid profile", so this build did not reach the code under test
+# variant: control-min-dispatchmesh (control-min-dispatchmesh.hlsl)
+# expect: invalid-probe
+
+$ dxc -T as_6_5 -E main -Zi -enable-16bit-types -Qembed_debug control-min-dispatchmesh.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: invalid profile as_6_5
+
+
