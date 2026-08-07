@@ -1,0 +1,20 @@
+# compiler: v1.7.2308
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+# ran: 2026-08-06T04:39:38+00:00
+# cmd: -T cs_6_0 -E CSMain repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E CSMain repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: llvm::cast<X>() argument of incompatible type!
+
+
+
+

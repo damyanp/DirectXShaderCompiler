@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "(?i)unknown (command line )?argument.*-include",
+  "note": "Symptom present when dxc rejects -include, i.e. there is still no forced-include option. Once the feature exists the shader compiles and this stops matching."
+}

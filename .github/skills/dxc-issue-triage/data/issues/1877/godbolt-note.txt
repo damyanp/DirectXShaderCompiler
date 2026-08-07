@@ -1,0 +1,11 @@
+#1877: the struct cast (I32)f32 is dropped on the AppendStructuredBuffer path.
+
+Look for a float->int conversion in the DXC pane. There is none:
+  - no `fptosi` anywhere, and
+  - the cbuffer load is `cbufferLoadLegacy.i32`, so the float's BIT PATTERN is
+    read as an int and stored unconverted.
+FXC emits `ftoi`.
+
+Control: the identical cast through an RWStructuredBuffer DOES emit
+`fptosi float %x to i32`. The defect is specific to Append, not to struct casts.
+This is silent wrong code -- no diagnostic, and the module validates.

@@ -1,0 +1,4 @@
+# NOTE: #2427 is a COMMAND-LINE issue, not a shader-codegen issue. The repro is the
+# argument string itself, so it cannot be expressed as a normal cmd.txt line -- the
+# harness would re-quote it. See run-2427.cmd, which is issued through cmd.exe verbatim.
+-T ps_6_0 -E main mySimplePS.hlsl

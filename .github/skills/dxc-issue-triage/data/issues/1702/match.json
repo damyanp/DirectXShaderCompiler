@@ -1,0 +1,5 @@
+{
+  "kind": "not_regex",
+  "value": "(?i)\\berror\\b",
+  "note": "Issue-as-filed symptom: DXC emits no diagnostic at all for an unsized array function parameter, where FXC reports X3072. Note this predicate also stops matching during the era when DXC crashed, because a crash prints 'Internal compiler error'. That is deliberate: bisecting with this predicate locates the point where the crash was replaced by silent acceptance. See match-crash.json for the crash symptom specifically."
+}

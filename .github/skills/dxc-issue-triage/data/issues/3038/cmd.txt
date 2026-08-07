@@ -1,0 +1,4 @@
+# lib_6_5, not lib_6_3: RayQuery/TraceRayInline is DXR 1.1 (SM 6.5). lib_6_3 rejects the
+# repro at validation ("Opcode AllocateRayQuery not valid in shader model lib_6_3"), which
+# would be an invalid probe, not a clean run.
+-T lib_6_5 repro.hlsl

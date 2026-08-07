@@ -1,0 +1,27 @@
+DXC issue #1627 -- force include file
+https://github.com/microsoft/DirectXShaderCompiler/issues/1627
+
+WHAT TO LOOK FOR
+
+Compare the two panes. Both are asked to force-include "forced.h",
+which this shader needs -- it references FORCED_VALUE and defines it
+nowhere.
+
+DXC does not have the option at all:
+
+    dxc failed : Unknown argument: '-include'
+
+Clang, where HLSL support is being rebuilt, does have it -- it is just
+not exposed by the dxc-compatible driver, so it needs -Xclang:
+
+    -Xclang -include -Xclang forced.h
+
+That pane gets a different error:
+
+    <built-in>:2:10: fatal error: 'forced.h' file not found
+
+which is the point. Compiler Explorer is single-file, so forced.h does
+not exist here. DXC fails while parsing arguments, before any file is
+looked for; Clang fails looking for the file, which means the flag was
+accepted and acted on. The capability already exists -- what is
+missing is a driver-level spelling of it.

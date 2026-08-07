@@ -1,0 +1,27 @@
+DXC issue #1306 -- Validation for sync in varying flow control
+https://github.com/microsoft/DirectXShaderCompiler/issues/1306
+
+WHAT TO LOOK FOR
+
+Compare the FXC pane against the two DXC panes.
+
+FXC rejects this shader:
+
+    error X3663: thread sync operation found in varying flow control,
+    consider reformulating your algorithm so all threads will hit the
+    sync simultaneously
+
+Both DXC versions compile it silently and emit code. In the DXIL, the
+barrier really is inside the divergent branch:
+
+    br i1 %5, label %6, label %13
+  ; <label>:6
+    call void @dx.op.barrier(i32 80, i32 9)
+
+The missing diagnostic is the feature request. Nothing here is broken
+in DXC -- the analysis was simply never implemented.
+
+The last pane is Clang, where HLSL support is being rebuilt, and where
+a 2024 comment on this issue suggests the analysis would belong. It
+compiles the shader silently too, so the gap is not yet closed in the
+new front end either.

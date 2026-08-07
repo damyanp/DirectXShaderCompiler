@@ -1,0 +1,16 @@
+What to look for: SV_DispatchThreadID is an integral semantic, but here it is
+declared as float. All three compilers see the same invalid input; only DXC
+fails to say so.
+
+  FXC   error X4555: invalid type used for 'SV_DispatchThreadID' input
+        semantics, must be integral
+  Clang error: attribute 'SV_DispatchThreadID' only applies to a field or
+        parameter of type 'uint/uint2/uint3'
+  DXC   error: cast<X>() argument of incompatible type!
+        -- an internal LLVM assertion message, not an HLSL diagnostic.
+
+Both the predecessor and the successor already emit the right diagnostic, so
+this is a missing diagnostic in DXC rather than a disputed language rule.
+
+Change the parameter to uint3 and it compiles cleanly everywhere. float2,
+float3 and float4 all fail exactly as float does, despite the issue title.

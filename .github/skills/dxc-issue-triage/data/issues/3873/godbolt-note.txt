@@ -1,0 +1,13 @@
+What to look for: DXC does not finish. Compiler Explorer reports
+"Killed - processing time exceeded" rather than any diagnostic.
+
+  DXC   never terminates. A local release build was still running after five
+        minutes; a debug build trips an LLVM assert instead, on the same input.
+  Clang compiles the same source cleanly.
+
+The trigger is the empty struct Helper reached through inheritance: Parent
+holds a Helper, Child derives from Parent and calls a method on it. Give
+Helper a member and the hang goes away.
+
+Restated as a compute shader so Clang can run the same source; the issue's
+original repro is a ps_6_0 and hangs identically.

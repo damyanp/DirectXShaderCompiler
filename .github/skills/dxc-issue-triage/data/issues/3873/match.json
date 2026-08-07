@@ -1,0 +1,8 @@
+{
+  "kind": "any_of",
+  "value": [
+    { "kind": "timeout" },
+    { "kind": "internal_failure" }
+  ],
+  "note": "ONE defect, TWO signatures depending on build config. Measured 2026-08-06: v1.9.2607 (Release) HANGS -- confirmed unbounded, still running after 300s, not merely slow. The clean main DEBUG build instead trips an LLVM assert (0xE0000001) in ~2s. Debug asserts on the broken state that Release spins on, so a plain 'timeout' predicate scores the Debug ground truth as no-repro and would have reported this issue as FIXED. Neither signature alone is the symptom; failing to compile a valid shader is."
+}

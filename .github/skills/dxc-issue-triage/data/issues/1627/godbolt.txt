@@ -1,0 +1,1 @@
+dxc_trunk,hlsl_clang_trunk:-T ps_6_0 -E main -Xclang -include -Xclang forced.h

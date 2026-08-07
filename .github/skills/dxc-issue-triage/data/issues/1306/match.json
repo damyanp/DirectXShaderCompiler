@@ -1,0 +1,5 @@
+{
+  "kind": "not_regex",
+  "value": "(?i)varying flow control|X3663|thread sync",
+  "note": "Symptom present when DXC emits no FXC-X3663-style diagnostic about a thread sync in varying flow control. Matching stops as soon as any such diagnostic is produced."
+}

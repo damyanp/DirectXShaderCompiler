@@ -1,0 +1,13 @@
+What to look for: this should compile, and today it does. The link is here to
+confirm the fix rather than to show the bug.
+
+Expect clean SPIR-V with six OpString entries and a DebugPrintf import, and six
+matching OpExtInst calls in main.
+
+Note this now runs WITHOUT the "-fcgl -Vd" the issue used. That workaround
+dodged a spirv-tools crash of the day; it is obsolete, and dropping it means
+legalization and validation actually run here.
+
+Compiler Explorer cannot show the failure: its oldest DXC is 1.6.2112, which
+is already the release that fixed this. The crash was confined to 1.6.2104 and
+1.6.2106, where it appeared as heap corruption on most but not all runs.

@@ -1,0 +1,126 @@
+# compiler: v1.8.2505
+# exe: <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+# ran: 2026-08-06T19:09:23+00:00
+# cmd: -T lib_6_5 repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -T lib_6_5 repro.hlsl
+[exe] <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       Raytracing tier 1.1 features
+;
+; shader hash: 01a0ee552cbf5ec7fff684e72dc47961
+;
+; Buffer Definitions:
+;
+; Resource bind info for results
+; {
+;
+;   float4 $Element;                                  ; Offset:    0 Size:    16
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; scene                             texture     i32         ras      T0             t0     1
+; results                               UAV  struct         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.RaytracingAccelerationStructure = type { i32 }
+%"class.RWStructuredBuffer<vector<float, 4> >" = type { <4 x float> }
+%struct.Payload = type { <4 x float> }
+%dx.types.Handle = type { i8* }
+
+@"\01?scene@@3URaytracingAccelerationStructure@@A" = external constant %struct.RaytracingAccelerationStructure, align 4
+@"\01?results@@3V?$RWStructuredBuffer@V?$vector@M$03@@@@A" = external constant %"class.RWStructuredBuffer<vector<float, 4> >", align 4
+
+; Function Attrs: nounwind
+define void @"\01?main@@YAXXZ"() #0 {
+  %1 = load %struct.RaytracingAccelerationStructure, %struct.RaytracingAccelerationStructure* @"\01?scene@@3URaytracingAccelerationStructure@@A", align 4
+  %2 = load %"class.RWStructuredBuffer<vector<float, 4> >", %"class.RWStructuredBuffer<vector<float, 4> >"* @"\01?results@@3V?$RWStructuredBuffer@V?$vector@M$03@@@@A", align 4
+  %3 = alloca %struct.Payload, align 8
+  %4 = call %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32 160, %struct.RaytracingAccelerationStructure %1)  ; CreateHandleForLib(Resource)
+  %5 = getelementptr inbounds %struct.Payload, %struct.Payload* %3, i32 0, i32 0
+  store <4 x float> zeroinitializer, <4 x float>* %5, align 8
+  call void @dx.op.traceRay.struct.Payload(i32 157, %dx.types.Handle %4, i32 0, i32 255, i32 0, i32 1, i32 0, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 1.000000e+00, float 1.000000e+03, %struct.Payload* nonnull %3)  ; TraceRay(AccelerationStructure,RayFlags,InstanceInclusionMask,RayContributionToHitGroupIndex,MultiplierForGeometryContributionToShaderIndex,MissShaderIndex,Origin_X,Origin_Y,Origin_Z,TMin,Direction_X,Direction_Y,Direction_Z,TMax,payload)
+  %6 = load <4 x float>, <4 x float>* %5, align 8
+  %7 = call i32 @dx.op.allocateRayQuery(i32 178, i32 4)  ; AllocateRayQuery(constRayFlags)
+  %8 = call %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32 160, %struct.RaytracingAccelerationStructure %1)  ; CreateHandleForLib(Resource)
+  call void @dx.op.rayQuery_TraceRayInline(i32 179, i32 %7, %dx.types.Handle %8, i32 0, i32 255, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 1.000000e+00, float 1.000000e+03)  ; RayQuery_TraceRayInline(rayQueryHandle,accelerationStructure,rayFlags,instanceInclusionMask,origin_X,origin_Y,origin_Z,tMin,direction_X,direction_Y,direction_Z,tMax)
+  %9 = call i1 @dx.op.rayQuery_Proceed.i1(i32 180, i32 %7)  ; RayQuery_Proceed(rayQueryHandle)
+  %10 = call %dx.types.Handle @"dx.op.createHandleForLib.class.RWStructuredBuffer<vector<float, 4> >"(i32 160, %"class.RWStructuredBuffer<vector<float, 4> >" %2)  ; CreateHandleForLib(Resource)
+  %11 = extractelement <4 x float> %6, i64 0
+  %12 = extractelement <4 x float> %6, i64 1
+  %13 = extractelement <4 x float> %6, i64 2
+  %14 = extractelement <4 x float> %6, i64 3
+  call void @dx.op.rawBufferStore.f32(i32 140, %dx.types.Handle %10, i32 0, i32 0, float %11, float %12, float %13, float %14, i8 15, i32 4)  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.rawBufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8, i32) #0
+
+; Function Attrs: nounwind
+declare i32 @dx.op.allocateRayQuery(i32, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.traceRay.struct.Payload(i32, %dx.types.Handle, i32, i32, i32, i32, i32, float, float, float, float, float, float, float, float, %struct.Payload*) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.rayQuery_TraceRayInline(i32, i32, %dx.types.Handle, i32, i32, float, float, float, float, float, float, float, float) #0
+
+; Function Attrs: nounwind
+declare i1 @dx.op.rayQuery_Proceed.i1(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32, %struct.RaytracingAccelerationStructure) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @"dx.op.createHandleForLib.class.RWStructuredBuffer<vector<float, 4> >"(i32, %"class.RWStructuredBuffer<vector<float, 4> >") #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!11}
+!dx.entryPoints = !{!15, !17}
+
+!0 = !{!"dxcoob 1.8.2505.28 (9efbb6c32)"}
+!1 = !{i32 1, i32 5}
+!2 = !{i32 1, i32 9}
+!3 = !{!"lib", i32 6, i32 5}
+!4 = !{!5, !8, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %struct.RaytracingAccelerationStructure* @"\01?scene@@3URaytracingAccelerationStructure@@A", !"scene", i32 0, i32 0, i32 1, i32 16, i32 0, !7}
+!7 = !{i32 0, i32 4}
+!8 = !{!9}
+!9 = !{i32 0, %"class.RWStructuredBuffer<vector<float, 4> >"* @"\01?results@@3V?$RWStructuredBuffer@V?$vector@M$03@@@@A", !"results", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !10}
+!10 = !{i32 1, i32 16}
+!11 = !{i32 1, void ()* @"\01?main@@YAXXZ", !12}
+!12 = !{!13}
+!13 = !{i32 1, !14, !14}
+!14 = !{}
+!15 = !{null, !"", null, !4, !16}
+!16 = !{i32 0, i64 33554448}
+!17 = !{void ()* @"\01?main@@YAXXZ", !"\01?main@@YAXXZ", null, null, !18}
+!18 = !{i32 8, i32 7, i32 5, !19}
+!19 = !{i32 0}
+
+
+--- stderr ---
+

@@ -1,0 +1,29 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-06T19:09:20+00:00
+# cmd: -T lib_6_5 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+
+$ dxc -T lib_6_5 repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:21:3: error: use of undeclared identifier 'RayQuery'
+  RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> q;
+  ^
+repro.hlsl:21:54: error: use of undeclared identifier 'q'
+  RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> q;
+                                                     ^
+repro.hlsl:22:3: error: use of undeclared identifier 'q'
+  q.TraceRayInline(scene, RAY_FLAG_NONE, 0xFF, ray);
+  ^
+repro.hlsl:23:3: error: use of undeclared identifier 'q'
+  q.Proceed();
+  ^
+
+

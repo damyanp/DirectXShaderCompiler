@@ -1,0 +1,46 @@
+DXC issue #1702 -- Array as parameter of function
+https://github.com/microsoft/DirectXShaderCompiler/issues/1702
+
+WHAT TO LOOK FOR
+
+Three compilers, three different answers to the same input.
+
+The construct under test is the unsized array parameter "float4 a[]".
+FXC rejects it outright:
+
+    error X3072: 'a': array dimensions of function parameters must be
+    explicit
+
+DXC accepts it and then miscompiles it. Look at the value stored:
+
+    call void @dx.op.bufferStore.f32(..., float undef, float undef,
+                                          float undef, float undef, i8 15)
+
+The argument never reaches Func(), so undefined values are written.
+DXC's own validator then rejects the module it just produced:
+
+    error: Assignment of undefined values to UAV.
+    Validation failed.
+
+Clang compiles the same source correctly, storing float 1.0.
+
+So whichever answer is right for the language -- reject it like FXC, or
+accept it like Clang -- DXC currently matches neither.
+
+CONTROL: give the parameter an explicit size, "float4 a[2]", and DXC
+compiles cleanly and stores 1.0. The unsized parameter is the variable
+under test, not array passing in general.
+
+NOTE ON THE SHADER STAGE: the issue reports a pixel shader, and that is
+what was tested locally. This is a compute restating of it, because
+Clang's DXIL backend cannot lower any pixel shader writing SV_Target --
+a one-line "float4 main() : SV_Target { return 0; }" fails there too --
+so a ps pane would show an unrelated error and prove nothing. The pixel
+version fails differently but from the same cause: the call is dropped,
+main() is empty, and the only hint is "warning: Declared output
+SV_Target0 not fully written in shader".
+
+NOTE: the assert reported in the issue (SROA_Helper::RewriteBitCast)
+does NOT happen in any release from v1.4.1907 (2019) onward -- the
+oldest that ships a usable dxc, so when it stopped is unknown. Do not
+go looking for it here; its absence does not mean the issue is fixed.

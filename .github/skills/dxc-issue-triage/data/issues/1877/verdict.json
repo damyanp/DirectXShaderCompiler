@@ -1,0 +1,20 @@
+{
+  "batch": "003",
+  "confidence": "high",
+  "created_at": "2019-01-23T15:12:12Z",
+  "godbolt_url": "https://godbolt.org/z/az56sPvs7",
+  "history": "always-repro'd",
+  "labels": "bug",
+  "labels_add": "correctness, fxc-disagrees",
+  "labels_now": "bug",
+  "notes_path": "issues/1877/notes.md",
+  "number": 1877,
+  "repro_quality": "complete",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Struct cast dropped on the AppendStructuredBuffer path: no fptosi, and the cbuffer field is loaded as i32, so float bits are stored raw. RWStructuredBuffer control emits fptosi. FXC emits ftoi. Always repro'd.",
+  "title": "DXC ignores struct cast when writing to an AppendStructuredBuffer",
+  "triaged_at": "2026-08-06T19:17:14+00:00",
+  "triaged_with_commit": "eff900d5",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/1877"
+}

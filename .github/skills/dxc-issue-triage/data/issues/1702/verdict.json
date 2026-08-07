@@ -1,0 +1,22 @@
+{
+  "batch": "batch-001",
+  "confidence": "high",
+  "created_at": "11/13/2018 10:08:10",
+  "expected_symptom": "issues\\1702\\expected.md",
+  "godbolt_url": "https://godbolt.org/z/Tfe5d4fGW",
+  "history": "always-repro'd",
+  "labels": "bug,shader-linking",
+  "labels_add": "fxc-disagrees,incorrect-code,correctness",
+  "labels_now": "bug,shader-linking",
+  "labels_remove": "shader-linking",
+  "notes_path": "issues\\1702\\notes.md",
+  "number": 1702,
+  "repro_quality": "complete",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Unsized array param: no X3072 diagnostic, call silently dropped, empty main() emitted. Reported 2018 crash is absent from every shipping release - issue text is stale.",
+  "title": "Array as parameter of function",
+  "triaged_at": "2026-08-06T03:20:32+00:00",
+  "triaged_with_commit": "eff900d5480cf8f5fe5da59d797f598a8c12cb5d",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/1702"
+}

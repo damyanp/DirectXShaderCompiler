@@ -1,0 +1,21 @@
+{
+  "batch": "batch-001",
+  "confidence": "high",
+  "created_at": "10/24/2018 17:45:28",
+  "expected_symptom": "issues\\1627\\expected.md",
+  "godbolt_url": "https://godbolt.org/z/E1xv7nvPa",
+  "history": "always-repro'd",
+  "labels": "enhancement,low-hanging-fruit",
+  "labels_add": "up-for-grabs, usability",
+  "labels_now": "enhancement,low-hanging-fruit",
+  "notes_path": "issues\\1627\\notes.md",
+  "number": 1627,
+  "repro_quality": "agent-constructed",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "-include never implemented; still rejected on main and every release v1.4.1907-v1.9.2607. Clang has the capability already, reachable as -Xclang -include, so the ask is a driver-level spelling rather than new functionality.",
+  "title": "force include file",
+  "triaged_at": "2026-08-06T03:47:49+00:00",
+  "triaged_with_commit": "eff900d5480cf8f5fe5da59d797f598a8c12cb5d",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/1627"
+}

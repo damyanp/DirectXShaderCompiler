@@ -1,0 +1,21 @@
+{
+  "batch": "batch-001",
+  "confidence": "high",
+  "created_at": "10/13/2017 22:26:20",
+  "expected_symptom": "issues\\0708\\expected.md",
+  "godbolt_url": "https://godbolt.org/z/MsfE6b1v8",
+  "history": "always-repro'd",
+  "labels": "bug",
+  "labels_add": "diagnostic, hlsl-next",
+  "labels_now": "bug",
+  "notes_path": "issues\\0708\\notes.md",
+  "number": 708,
+  "repro_quality": "agent-constructed",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "register(t1[27]) offset silently dropped; resource binds at t1. RegisterOffset is parsed and stored but never read by binding assignment. Unchanged v1.4.1907-v1.9.2607.",
+  "title": "RegisterOffset is being ignored from RegisterAssignment",
+  "triaged_at": "2026-08-06T03:20:31+00:00",
+  "triaged_with_commit": "eff900d5480cf8f5fe5da59d797f598a8c12cb5d",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/708"
+}

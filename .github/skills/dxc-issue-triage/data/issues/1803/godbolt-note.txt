@@ -1,0 +1,12 @@
+#1803: RWStructuredBuffer<matrix> ignores the row_major orientation.
+
+int2x2(11,12,21,22) means m[0][0]=11 m[0][1]=12 m[1][0]=21 m[1][1]=22, so a
+row-major store must write 11,12,21,22 in memory order.
+
+Look at the bufferStore value operands in the DXC pane:
+    ... i32 11, i32 21, i32 12, i32 22 ...   <- column-major; row_major ignored
+FXC's store_structured writes l(11,12,21,22) -- the declared orientation.
+
+Locally, compiling this same shader with column_major substituted for row_major
+produces BYTE-IDENTICAL DXIL, so the attribute is not merely mis-applied, it is
+dropped entirely.

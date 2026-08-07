@@ -1,0 +1,147 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-06T19:04:48+00:00
+# cmd: -T ps_6_0 -E main repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Pipeline Runtime Information: 
+;
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+;
+;
+; Buffer Definitions:
+;
+; cbuffer $Globals
+; {
+;
+;   struct $Globals
+;   {
+;
+;       struct struct.F32
+;       {
+;
+;           float value;                              ; Offset:    0
+;       
+;       } f32;                                        ; Offset:    0
+;
+;   
+;   } $Globals;                                       ; Offset:    0 Size:     4
+;
+; }
+;
+; Resource bind info for output
+; {
+;
+;   struct struct.I32
+;   {
+;
+;       int value;                                    ; Offset:    0
+;   
+;   } $Element;                                       ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; $Globals                          cbuffer      NA          NA     CB0            cb0     1
+; output                                UAV  struct     r/w+cnt      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%"class.AppendStructuredBuffer<I32>" = type { %struct.I32 }
+%struct.I32 = type { i32 }
+%"$Globals" = type { %struct.F32 }
+%struct.F32 = type { float }
+%dx.types.Handle = type { i8* }
+%dx.types.CBufRet.i32 = type { i32, i32, i32, i32 }
+
+@"\01?output@@3V?$AppendStructuredBuffer@UI32@@@@A" = external constant %"class.AppendStructuredBuffer<I32>", align 4
+@"$Globals" = external constant %"$Globals"
+
+define void @main() {
+  %output_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %"$Globals_cbuffer" = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call %dx.types.CBufRet.i32 @dx.op.cbufferLoadLegacy.i32(i32 59, %dx.types.Handle %"$Globals_cbuffer", i32 0)  ; CBufferLoadLegacy(handle,regIndex)
+  %2 = extractvalue %dx.types.CBufRet.i32 %1, 0
+  %3 = call i32 @dx.op.bufferUpdateCounter(i32 70, %dx.types.Handle %output_UAV_structbuf, i8 1)  ; BufferUpdateCounter(uav,inc)
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %output_UAV_structbuf, i32 %3, i32 0, i32 %2, i32 undef, i32 undef, i32 undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.i32 @dx.op.cbufferLoadLegacy.i32(i32, %dx.types.Handle, i32) #0
+
+; Function Attrs: nounwind
+declare i32 @dx.op.bufferUpdateCounter(i32, %dx.types.Handle, i8) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #1
+
+attributes #0 = { nounwind readonly }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!9, !18}
+!dx.entryPoints = !{!22}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 4}
+!3 = !{!"ps", i32 6, i32 0}
+!4 = !{null, !5, !7, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.AppendStructuredBuffer<I32>"* undef, !"output", i32 0, i32 0, i32 1, i32 12, i1 false, i1 true, i1 false, !2}
+!7 = !{!8}
+!8 = !{i32 0, %"$Globals"* undef, !"$Globals", i32 0, i32 0, i32 1, i32 4, null}
+!9 = !{i32 0, %struct.F32 undef, !10, %"class.AppendStructuredBuffer<I32>" undef, !12, %struct.I32 undef, !14, %"$Globals" undef, !16}
+!10 = !{i32 4, !11}
+!11 = !{i32 6, !"value", i32 3, i32 0, i32 7, i32 9}
+!12 = !{i32 4, !13}
+!13 = !{i32 6, !"h", i32 3, i32 0}
+!14 = !{i32 4, !15}
+!15 = !{i32 6, !"value", i32 3, i32 0, i32 7, i32 4}
+!16 = !{i32 4, !17}
+!17 = !{i32 6, !"f32", i32 3, i32 0}
+!18 = !{i32 1, void ()* @main, !19}
+!19 = !{!20}
+!20 = !{i32 1, !21, !21}
+!21 = !{}
+!22 = !{void ()* @main, !"main", null, !4, !23}
+!23 = !{i32 0, i64 16}
+
+
+--- stderr ---
+

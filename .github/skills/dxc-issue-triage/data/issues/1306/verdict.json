@@ -1,0 +1,22 @@
+{
+  "batch": "batch-001",
+  "confidence": "high",
+  "created_at": "05/24/2018 12:08:08",
+  "expected_symptom": "issues\\1306\\expected.md",
+  "godbolt_url": "https://godbolt.org/z/c3ojha8KW",
+  "history": "always-repro'd",
+  "labels": "enhancement,validation",
+  "labels_add": "fxc-disagrees, diagnostic",
+  "labels_now": "enhancement,validation",
+  "labels_remove": "validation",
+  "notes_path": "issues\\1306\\notes.md",
+  "number": 1306,
+  "repro_quality": "complete",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "No FXC-X3663-equivalent diagnostic for barrier in varying flow control; feature never implemented. Blocked on uniformity analysis; likely Clang work.",
+  "title": "Validation for sync in varying flow control",
+  "triaged_at": "2026-08-06T03:28:02+00:00",
+  "triaged_with_commit": "eff900d5480cf8f5fe5da59d797f598a8c12cb5d",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/1306"
+}

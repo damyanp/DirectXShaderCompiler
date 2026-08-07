@@ -1,0 +1,16 @@
+# compiler: v1.6.2106
+# exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+# ran: 2026-08-06T23:55:50+00:00
+# cmd: -T cs_6_0 -E main -spirv repro.hlsl
+# exit: 3221226356
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E main -spirv repro.hlsl
+[exe] C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
+[exit] 3221226356
+--- stdout ---
+
+--- stderr ---
+

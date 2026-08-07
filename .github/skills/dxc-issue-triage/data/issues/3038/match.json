@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Signature-independent by design: reported as a Debug assert ('Val->VTy->ContainedTys was 0xFFFFFFFFFFFFFFFF', 2020) but observed later as 'llvm::cast<X>() argument of incompatible type!' in a Release build (2022). Matching either message string would score the other build clean. CONTROL: control-separate-raydesc.hlsl (@tex3d's workaround) must compile cleanly."
+}

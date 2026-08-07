@@ -1,0 +1,17 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-06T19:09:27+00:00
+# cmd: -T gs_6_0 -E main repro.hlsl
+# exit: 2147483651
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T gs_6_0 -E main repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147483651
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: Terminal Error 0x80000003
+

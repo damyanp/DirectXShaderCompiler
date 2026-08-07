@@ -1,0 +1,1 @@
+-fcgl -Vd -T cs_6_0 -E main -spirv repro.hlsl

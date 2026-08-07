@@ -1,0 +1,12 @@
+What to look for: b.y is never assigned, so `b` is only half initialized.
+
+  FXC   rejects it:  error X4000: variable 'b' used without having been
+        completely initialized.
+  DXC   exits 0 with no diagnostic at all, and emits  i32 undef  as the first
+        operand of IMad. Search the DXIL output for "undef".
+  Clang emits the identical undef and also says nothing.
+
+So the predecessor compiler diagnosed this and neither successor does.
+
+Restated as a compute shader so all three compilers can run the same source;
+the issue's original repro is a vs_6_2 and behaves the same way.

@@ -1,0 +1,19 @@
+{
+  "batch": "002",
+  "confidence": "high",
+  "created_at": "2020-06-30T02:03:10Z",
+  "godbolt_url": "https://godbolt.org/z/5bdo83bTY",
+  "history": "always-repro'd",
+  "labels": "bug,validation",
+  "labels_add": "diagnostic, fxc-disagrees, check-in-clang",
+  "labels_now": "bug,validation",
+  "number": 3009,
+  "repro_quality": "complete",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Uninitialized local silently reaches arithmetic: dxc exits 0, emits 'i32 undef' as an IMad operand, no diagnostic. Reproduces in all 20 releases v1.4.1907..v1.9.2607. Maintainer's SV_Position variant behaves the same with float undef into FMad.",
+  "title": "dxc silently passes uninitialized value as undef",
+  "triaged_at": "2026-08-06T05:00:55+00:00",
+  "triaged_with_commit": "eff900d5",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3009"
+}

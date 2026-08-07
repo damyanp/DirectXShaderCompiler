@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Symptom present when the GS output stream repro makes DXC fail internally rather than compiling or emitting a clean diagnostic. Deliberately not text-matched: the underlying bug surfaces as STATUS_LLVM_ASSERT (0x80000003) in an assert-enabled Debug build, as an access violation (0xC0000005) in v1.4.1907, and as an llvm::cast E_FAIL in v1.9.2607. A text-only predicate reported those releases as clean, which was wrong."
+}

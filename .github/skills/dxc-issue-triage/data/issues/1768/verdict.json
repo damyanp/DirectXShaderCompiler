@@ -1,0 +1,21 @@
+{
+  "batch": "batch-001",
+  "confidence": "high",
+  "created_at": "12/12/2018 23:17:30",
+  "expected_symptom": "issues\\1768\\expected.md",
+  "godbolt_url": "https://godbolt.org/z/b66vK5EPx",
+  "history": "always-repro'd",
+  "labels": "bug",
+  "labels_add": "crash, diagnostic",
+  "labels_now": "bug",
+  "notes_path": "issues\\1768\\notes.md",
+  "number": 1768,
+  "repro_quality": "complete",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "GS stream array-of-structs fails internally in every release: assert (Debug main), access violation (v1.4.1907), llvm::cast E_FAIL (v1.9.2607). Should be re-labelled crash.",
+  "title": "Arrays of structs in GS OutputStreams are not supported",
+  "triaged_at": "2026-08-06T03:20:32+00:00",
+  "triaged_with_commit": "eff900d5480cf8f5fe5da59d797f598a8c12cb5d",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/1768"
+}

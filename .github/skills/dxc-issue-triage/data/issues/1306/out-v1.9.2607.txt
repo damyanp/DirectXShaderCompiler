@@ -1,0 +1,139 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-06T02:14:58+00:00
+# cmd: -T cs_6_0 -E main repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: 859e8a0a4dd7f413336ad4f562376d45
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(64,1,1)
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; g_buf0                                UAV     u32         buf      U0             u0     1
+; g_buf1                                UAV     u32         buf      U1             u1     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%"class.RWBuffer<unsigned int>" = type { i32 }
+
+@"\01?g_scratch@@3PAIA" = external addrspace(3) global [64 x i32], align 4
+
+define void @main() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 1, i32 1, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %3 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %4 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %2, i32 %3, i32 undef)  ; BufferLoad(srv,index,wot)
+  %5 = extractvalue %dx.types.ResRet.i32 %4, 0
+  %6 = getelementptr [64 x i32], [64 x i32] addrspace(3)* @"\01?g_scratch@@3PAIA", i32 0, i32 %3
+  store i32 %5, i32 addrspace(3)* %6, align 4, !tbaa !12
+  %7 = and i32 %3, 1
+  %8 = icmp eq i32 %7, 0
+  br i1 %8, label %9, label %16
+
+; <label>:9                                       ; preds = %0
+  call void @dx.op.barrier(i32 80, i32 9)  ; Barrier(barrierMode)
+  %10 = load i32, i32 addrspace(3)* %6, align 4, !tbaa !12
+  %11 = add i32 %3, 1
+  %12 = getelementptr [64 x i32], [64 x i32] addrspace(3)* @"\01?g_scratch@@3PAIA", i32 0, i32 %11
+  %13 = load i32, i32 addrspace(3)* %12, align 4, !tbaa !12
+  %14 = add i32 %13, %10
+  %15 = lshr i32 %3, 1
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 %15, i32 undef, i32 %14, i32 %14, i32 %14, i32 %14, i8 15)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  br label %16
+
+; <label>:16                                      ; preds = %9, %0
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+
+; Function Attrs: noduplicate nounwind
+declare void @dx.op.barrier(i32, i32) #3
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+attributes #3 = { noduplicate nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!9}
+
+!0 = !{!"dxc(private) 1.9.0.5402 (0d3ee6b55-dirty)"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 9}
+!3 = !{!"cs", i32 6, i32 0}
+!4 = !{null, !5, null, null}
+!5 = !{!6, !8}
+!6 = !{i32 0, %"class.RWBuffer<unsigned int>"* undef, !"", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !7}
+!7 = !{i32 0, i32 5}
+!8 = !{i32 1, %"class.RWBuffer<unsigned int>"* undef, !"", i32 0, i32 1, i32 1, i32 10, i1 false, i1 false, i1 false, !7}
+!9 = !{void ()* @main, !"main", null, !4, !10}
+!10 = !{i32 4, !11}
+!11 = !{i32 64, i32 1, i32 1}
+!12 = !{!13, !13, i64 0}
+!13 = !{!"int", !14, i64 0}
+!14 = !{!"omnipotent char", !15, i64 0}
+!15 = !{!"Simple C/C++ TBAA"}
+
+
+--- stderr ---
+

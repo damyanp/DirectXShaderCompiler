@@ -1,0 +1,31 @@
+DXC issue #708 -- RegisterOffset is being ignored
+https://github.com/microsoft/DirectXShaderCompiler/issues/708
+
+WHAT TO LOOK FOR
+
+This compiles cleanly: no error, no warning. That is the bug.
+
+In the output, find the "Resource Bindings" table:
+
+    ; Name          Type     Format   Dim   ID   HLSL Bind   Count
+    ; tex           texture  f32      2d    T0   t1          1
+                                                 ^^
+
+"HLSL Bind" reads t1. The [27] offset written in register(t1[27]) has
+been silently discarded -- it is parsed, then never used.
+
+What the binding *should* be is an open question (this form is not
+documented for SRVs). The defect being shown here is narrower: DXC
+accepts the syntax and drops it without saying anything.
+
+Both DXC versions agree, so this is long-standing, not a recent change.
+
+The third pane is Clang, which is where HLSL support is being rebuilt.
+It does not accept the syntax at all:
+
+    error: expected ')'
+
+That is a parse rejection rather than a considered diagnostic, but it
+does mean the silent-acceptance behaviour is specific to DXC, and that
+"reject it outright" is already the de facto answer in the new
+front end.

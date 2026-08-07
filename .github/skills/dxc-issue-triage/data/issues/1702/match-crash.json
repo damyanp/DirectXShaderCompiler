@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "The 2018-era symptom: DXC fails internally (assert in SROA_Helper::RewriteBitCast) rather than diagnosing the unsized array parameter. Used to date when DXC stopped failing internally on this input. Exit-code based so it works against Release binaries, which have asserts compiled out."
+}

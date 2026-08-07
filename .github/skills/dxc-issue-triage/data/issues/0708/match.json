@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "^;\\s+tex\\s+texture\\b.*\\bt1\\b\\s+1\\s*$",
+  "note": "Symptom present when the resource binds at t1, i.e. the [27] register offset in register(t1[27]) was silently dropped. If DXC ever honoured the offset the binding would differ; if it diagnosed it, compilation would fail and no binding table would be printed. Either way this stops matching."
+}

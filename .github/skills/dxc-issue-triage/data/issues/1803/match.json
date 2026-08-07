@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "bufferStore\\.i32\\(.*i32 11, i32 21, i32 12, i32 22",
+  "note": "Symptom = row_major ignored, so the matrix is stored column-major: operand order 11,21,12,22 instead of the declared row-major 11,12,21,22. CONTROL: control-colmajor.hlsl is the same shader declared column_major; if it produces identical DXIL then the orientation attribute is provably ignored, which is much stronger evidence than this pattern match alone."
+}

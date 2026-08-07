@@ -1,0 +1,17 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-06T23:55:47+00:00
+# cmd: -T cs_6_0 -E main -spirv repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+
+$ dxc -T cs_6_0 -E main -spirv repro.hlsl
+[exe] C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : SPIR-V CodeGen not available. Please recompile with -DENABLE_SPIRV_CODEGEN=ON.
+

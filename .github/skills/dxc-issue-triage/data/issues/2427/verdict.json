@@ -1,0 +1,20 @@
+{
+  "batch": "003",
+  "confidence": "high",
+  "created_at": "2019-08-26T13:17:01Z",
+  "godbolt_skip": "command-line quoting issue: the defect is in how the shell/CRT splits argv before dxc runs. Compiler Explorer takes arguments as a pre-split list, so it structurally cannot demonstrate this.",
+  "history": "always-repro'd",
+  "labels": "",
+  "labels_add": "enhancement, usability, up-for-grabs",
+  "labels_now": "",
+  "notes_path": "issues/2427/notes.md",
+  "number": 2427,
+  "repro_quality": "complete",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Command line still fails, but correctly so: the trailing backslash escapes the quote during argv splitting, before dxc runs (FXC identical). The real finding is that the agreed fix lapsed - no -Fdd/-Fad exists, and PR #2660 (Fixes #2427) was closed unmerged by an inactivity sweep on 2026-01-22.",
+  "title": "Compiler fails on quoted folder parameters finishing with '\\\\' ",
+  "triaged_at": "2026-08-06T19:17:26+00:00",
+  "triaged_with_commit": "eff900d5",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/2427"
+}

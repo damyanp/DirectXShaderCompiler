@@ -1,0 +1,5 @@
+{
+  "kind": "not_contains",
+  "value": "fptosi",
+  "note": "Symptom = the struct cast (I32)f32 is dropped, so the float reaches bufferStore with no float->int conversion. Present when NO fptosi appears. CONTROL: control-rw.hlsl performs the same cast through an RWStructuredBuffer, which the reporter states does NOT repro - it must contain fptosi, proving the predicate discriminates and that the defect is specific to the Append path."
+}

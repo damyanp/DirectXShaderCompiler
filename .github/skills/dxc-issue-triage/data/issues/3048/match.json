@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Symptom present when dxc fails internally rather than compiling or emitting a clean diagnostic. Exit-code based deliberately: the same bug appears as an assert in Debug, an access violation or an E_FAIL+cast<X>() message in Release. Note E_FAIL alone is NOT internal - dxc returns it for ordinary errors - so the text marker is what carries this case."
+}

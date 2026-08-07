@@ -1,0 +1,15 @@
+# Triage workspace state that is derived, bulky, or machine-specific.
+#
+# The evidence under data/ IS committed: a verdict nobody can re-check is just
+# an assertion. What lives here instead is everything that can be regenerated.
+#
+#   .cache/compilers   ~1.2 GB of downloaded release binaries. Re-fetched on
+#                      demand by `triage.py bisect`, and seeded for free from
+#                      the DXC test tree with:
+#                          triage.py catalog --seed-from build/tools/clang/test/dxc_releases
+#   .cache/triage.db   the index. Rebuild it from the committed evidence with:
+#                          triage.py reindex
+#
+# Note that `git clean -xdf` will delete the compiler cache. Nothing is lost
+# but download time.
+.cache/

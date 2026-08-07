@@ -1,0 +1,23 @@
+DXC issue #1768 -- Arrays of structs in GS OutputStreams
+https://github.com/microsoft/DirectXShaderCompiler/issues/1768
+
+WHAT TO LOOK FOR
+
+Both compilers fail *internally*. This is a compiler crash, not a
+diagnostic. The exact symptom varies by build, and on trunk it varies
+between runs of the same input:
+
+    Program terminated with signal: SIGSEGV
+    error: cast<X>() argument of incompatible type!
+
+Same bug, different symptom -- which is what makes this easy to
+mis-triage. A local Debug build asserts instead; Compiler Explorer
+runs Release builds, where asserts are compiled out. So "no assert
+here" does not mean fixed: look for abnormal termination, not for a
+particular message.
+
+Arrays of structs in a geometry shader output stream were never
+implemented, and the unimplemented path crashes rather than rejecting
+the shader with a message.
+
+No release from v1.4.1907 (2019) to v1.9.2607 handles it.

@@ -1,0 +1,17 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-06T19:09:25+00:00
+# cmd: -T ps_6_0 -E main -include forced.h repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E main -include forced.h repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-include'
+

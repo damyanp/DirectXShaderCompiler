@@ -1,0 +1,11 @@
+#3038: FIXED. This link is a before/after, not a live repro.
+
+TraceRay() and RayQuery::TraceRayInline() sharing one RayDesc instance used to
+crash the compiler.
+
+  dxc_1_6_2112 pane : fails -- this release is inside the broken window.
+  dxc_trunk pane    : compiles cleanly.
+
+Locally the crash spans v1.5.2010 through v1.8.2502 and is gone from v1.8.2505
+onward. @tex3d's 2020 workaround (copy the RayDesc into a second variable) is no
+longer needed on current builds.

@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "@dx\\.op\\.(?:tertiary|binary|unary)\\.[a-z0-9]+\\(i32 \\d+,[^)]*\\b(?:i32|float|half|double) undef",
+  "note": "Symptom present when an uninitialized read reaches an ARITHMETIC dx.op as an undef operand. Text-matched, not exit-code-matched, because the bug IS the silence -- dxc exits 0 and says nothing. Deliberately narrow: a generic 'any undef operand of any dx.op' pattern FALSE-POSITIVES, because several ops carry structurally-undef operands even in correct code -- loadInput's trailing gsVertexAxis is undef for every non-GS shader, and bufferStore's second coordinate is undef for non-structured buffers. Verified against a control (the same shader with b.y also assigned), which must NOT match. Limitation: if codegen ever routes the undef into a non-arithmetic op this pattern misses it, which is the accepted cost of not reporting every clean shader as a repro."
+}

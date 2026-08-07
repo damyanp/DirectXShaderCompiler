@@ -1,0 +1,12 @@
+What to look for: the parameter of f() is a B, but a C is passed to it.
+That derived-to-base conversion is what breaks codegen.
+
+  DXC   crashes (SIGSEGV on Compiler Explorer; an LLVM assert in a local
+        debug build). No diagnostic, no output.
+  Clang compiles the same source cleanly.
+
+Change f's parameter from B to C and DXC compiles it, which isolates the
+conversion rather than the inheritance itself.
+
+Restated as a compute shader so Clang can run the same source; the issue's
+original repro is a ps_6_0 and crashes identically.
