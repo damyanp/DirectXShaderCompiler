@@ -338,6 +338,37 @@ static bool matrixConstructionApplicable(ID3D12Device *Device,
   return true;
 }
 
+// Accumulation store reports its destinations separately: a device may support
+// accumulating into a buffer but not into groupshared memory, or the reverse.
+// Tier 1 requires no formats at all here, so every case is gated.
+static bool
+accumulateStoreApplicable(ID3D12Device *Device, ComponentType CompType,
+                          linalg_test::AtomicDestination Destination,
+                          LPCWSTR CaseName) {
+  bool Supported = false;
+  HRESULT QueryResult = E_INVALIDARG;
+
+  const std::optional<linalg_abi::D3D12_LINEAR_ALGEBRA_DATATYPE> DataType =
+      toCapabilityDataType(CompType);
+  if (DataType.has_value()) {
+    linalg_test::TierSupport Tier;
+    QueryResult = linalg_test::queryTierSupport(Device, Tier);
+    if (SUCCEEDED(QueryResult) && Tier.supported()) {
+      linalg_test::AtomicAccumulateStoreSupport Support;
+      QueryResult =
+          linalg_test::queryAtomicAccumulateStore(Device, {*DataType}, Support);
+      if (SUCCEEDED(QueryResult))
+        Supported = Support.supports(Destination);
+    }
+  }
+
+  return applyApplicability(
+      linalg_test::classifyApplicability(
+          QueryResult, Supported,
+          linalg_test::CapabilityRequirement::CapabilityGated),
+      CaseName);
+}
+
 // Wave matrix multiply needs both the matrices and the operation itself, and
 // both are answered per wave size, so they are resolved in one pass. Fp16 x
 // Fp16 -> Fp16 is Optional at Tier 1, so these cases are gated rather than
@@ -1775,7 +1806,11 @@ static const char LoadStoreDescriptorShader[] = R"(
   RWByteAddressBuffer Input : register(u0);
   RWByteAddressBuffer Output : register(u1);
 
+  #ifdef FORCED_WAVE_SIZE
+  [WaveSize(FORCED_WAVE_SIZE)]
+  #else
   [WaveSize(4, 128)]
+  #endif
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -1793,13 +1828,17 @@ static const char LoadStoreDescriptorShader[] = R"(
 
 static void runLoadStoreDescriptor(ID3D12Device *Device,
                                    dxc::SpecificDllLoader &DxcSupport,
-                                   const MatrixParams &Params, bool Verbose) {
+                                   const MatrixParams &Params, bool Verbose,
+                                   UINT ForcedWaveSize = 0) {
   const size_t NumElements = Params.totalElements();
   const size_t BufferSize = Params.totalBytes();
 
   // TODO: these should be varied by test to ensure full coverage
   std::stringstream ExtraDefs;
   ExtraDefs << " -DOFFSET=" << 0;
+
+  if (ForcedWaveSize != 0)
+    ExtraDefs << " -DFORCED_WAVE_SIZE=" << ForcedWaveSize;
 
   std::string Args = buildCompilerArgs(Params, ExtraDefs.str().c_str());
 
@@ -1842,13 +1881,25 @@ void DxilConf_SM610_LinAlg::LoadStoreDescriptor_Wave_16x16_F16() {
   Params.Layout = MatrixLayout::RowMajor;
   Params.NumThreads = 128;
   Params.Enable16Bit = true;
-  runLoadStoreDescriptor(D3DDevice, DxcSupport, Params, VerboseLogging);
+
+  UINT SelectedWaveSize = 0;
+  if (!matrixConstructionApplicable(D3DDevice, Params, {Params.Use},
+                                    L"LoadStoreDescriptor_Wave_16x16_F16",
+                                    SelectedWaveSize))
+    return;
+
+  runLoadStoreDescriptor(D3DDevice, DxcSupport, Params, VerboseLogging,
+                         SelectedWaveSize);
 }
 
 static const char SplatStoreShader[] = R"(
   RWByteAddressBuffer Output : register(u0);
 
+  #ifdef FORCED_WAVE_SIZE
+  [WaveSize(FORCED_WAVE_SIZE)]
+  #else
   [WaveSize(4, 128)]
+  #endif
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -1866,12 +1917,15 @@ static const char SplatStoreShader[] = R"(
 static void runSplatStore(ID3D12Device *Device,
                           dxc::SpecificDllLoader &DxcSupport,
                           const MatrixParams &Params, float FillValue,
-                          bool Verbose) {
+                          bool Verbose, UINT ForcedWaveSize = 0) {
   const size_t NumElements = Params.totalElements();
   const size_t BufferSize = Params.totalBytes();
 
   std::stringstream ExtraDefs;
   STREAM_FLOAT(ExtraDefs, "FILL_VALUE", FillValue);
+
+  if (ForcedWaveSize != 0)
+    ExtraDefs << " -DFORCED_WAVE_SIZE=" << ForcedWaveSize;
 
   std::string Args = buildCompilerArgs(Params, ExtraDefs.str().c_str());
 
@@ -1904,7 +1958,15 @@ void DxilConf_SM610_LinAlg::SplatStore_Wave_16x16_F16() {
   Params.Layout = MatrixLayout::RowMajor;
   Params.NumThreads = 128;
   Params.Enable16Bit = true;
-  runSplatStore(D3DDevice, DxcSupport, Params, 42.0f, VerboseLogging);
+
+  UINT SelectedWaveSize = 0;
+  if (!matrixConstructionApplicable(D3DDevice, Params, {Params.Use},
+                                    L"SplatStore_Wave_16x16_F16",
+                                    SelectedWaveSize))
+    return;
+
+  runSplatStore(D3DDevice, DxcSupport, Params, 42.0f, VerboseLogging,
+                SelectedWaveSize);
 }
 
 static const char AccumulateDescriptorShader[] = R"(
@@ -1913,7 +1975,11 @@ static const char AccumulateDescriptorShader[] = R"(
   ByteAddressBuffer Input : register(t0);
   RWByteAddressBuffer Output : register(u1);
 
+  #ifdef FORCED_WAVE_SIZE
+  [WaveSize(FORCED_WAVE_SIZE)]
+  #else
   [WaveSize(4, 128)]
+  #endif
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -1934,11 +2000,15 @@ static const char AccumulateDescriptorShader[] = R"(
 static void runAccumulateDescriptor(ID3D12Device *Device,
                                     dxc::SpecificDllLoader &DxcSupport,
                                     const MatrixParams &Params, int FillValue,
-                                    bool Verbose) {
+                                    bool Verbose, UINT ForcedWaveSize = 0) {
   const size_t NumElements = Params.totalElements();
   const size_t BufferSize = Params.totalBytes();
 
-  std::string Args = buildCompilerArgs(Params);
+  std::stringstream ExtraDefs;
+  if (ForcedWaveSize != 0)
+    ExtraDefs << " -DFORCED_WAVE_SIZE=" << ForcedWaveSize;
+
+  std::string Args = buildCompilerArgs(Params, ExtraDefs.str().c_str());
 
   compileShader(DxcSupport, AccumulateDescriptorShader, "cs_6_10", Args,
                 Verbose);
@@ -1980,9 +2050,29 @@ void DxilConf_SM610_LinAlg::AccumulateDescriptor_Wave_16x16_F16() {
   Params.Layout = MatrixLayout::RowMajor;
   Params.NumThreads = 128;
   Params.Enable16Bit = true;
-  runAccumulateDescriptor(D3DDevice, DxcSupport, Params, 12, VerboseLogging);
+
+  UINT SelectedWaveSize = 0;
+  if (!matrixConstructionApplicable(D3DDevice, Params, {Params.Use},
+                                    L"AccumulateDescriptor_Wave_16x16_F16",
+                                    SelectedWaveSize))
+    return;
+  if (!accumulateStoreApplicable(
+          D3DDevice, Params.CompType,
+          linalg_test::AtomicDestination::RWByteAddressBuffer,
+          L"AccumulateDescriptor_Wave_16x16_F16"))
+    return;
+
+  runAccumulateDescriptor(D3DDevice, DxcSupport, Params, 12, VerboseLogging,
+                          SelectedWaveSize);
 }
 
+// Element access constructs a wave-scope matrix and then reads or writes its
+// components, so applicability is exactly MatrixConstruction for the tile the
+// case declares. D3D12LinearAlgebraRuntimeFeatureSupport.md guarantees only
+// that some shape whose largest component is 16 or less is reported for a
+// supported type, and directs applications wanting smaller shapes to query
+// them case by case. Neither Fp32 nor Fp16 matrices are required at Tier 1, so
+// every element-access case is capability gated rather than mandatory.
 static const char ElementAccessShader[] = R"(
   RWByteAddressBuffer Input : register(u0);
   RWByteAddressBuffer Output : register(u1);
@@ -2989,7 +3079,11 @@ static const char MatAccumShader[] = R"(
 
   RWByteAddressBuffer Output : register(u0);
 
+  #ifdef FORCED_WAVE_SIZE
+  [WaveSize(FORCED_WAVE_SIZE)]
+  #else
   [WaveSize(4, 128)]
+  #endif
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -3015,13 +3109,16 @@ static const char MatAccumShader[] = R"(
 static void runMatAccum(ID3D12Device *Device,
                         dxc::SpecificDllLoader &DxcSupport,
                         const MatrixParams &Params, bool Verbose, float LHSFill,
-                        float RHSFill) {
+                        float RHSFill, UINT ForcedWaveSize = 0) {
   const size_t NumElements = Params.totalElements();
   const size_t BufferSize = Params.totalBytes();
 
   std::stringstream ExtraDefs;
   STREAM_FLOAT(ExtraDefs, "LHS_FILL", LHSFill);
   STREAM_FLOAT(ExtraDefs, "RHS_FILL", RHSFill);
+
+  if (ForcedWaveSize != 0)
+    ExtraDefs << " -DFORCED_WAVE_SIZE=" << ForcedWaveSize;
 
   std::string Args = buildCompilerArgs(Params, ExtraDefs.str().c_str());
 
@@ -3052,8 +3149,17 @@ void DxilConf_SM610_LinAlg::MatAccum_Wave_16x16_F16() {
   Params.Layout = MatrixLayout::RowMajor;
   Params.NumThreads = 128;
   Params.Enable16Bit = true;
+
+  // MatAccum builds both an accumulator and an A matrix, and the two roles pin
+  // different extents of the same shape, so both must be constructible.
+  UINT SelectedWaveSize = 0;
+  if (!matrixConstructionApplicable(
+          D3DDevice, Params, {MatrixUse::Accumulator, MatrixUse::A},
+          L"MatAccum_Wave_16x16_F16", SelectedWaveSize))
+    return;
+
   runMatAccum(D3DDevice, DxcSupport, Params, VerboseLogging,
-              /*LHSFill=*/2.0f, /*RHSFill=*/3.0f);
+              /*LHSFill=*/2.0f, /*RHSFill=*/3.0f, SelectedWaveSize);
 }
 
 static const char MatVecMulShader[] = R"(
@@ -3581,7 +3687,11 @@ static const char LoadMemoryShader[] = R"(
 
   #define ELEM_PER_THREAD (M_DIM * N_DIM / NUMTHREADS)
 
+  #ifdef FORCED_WAVE_SIZE
+  [WaveSize(FORCED_WAVE_SIZE)]
+  #else
   [WaveSize(4, 128)]
+  #endif
   [numthreads(NUMTHREADS, 1, 1)]
   void main(uint threadID : SV_GroupIndex) {
     for (uint I = 0; I < ELEM_PER_THREAD; ++I) {
@@ -3606,12 +3716,16 @@ static const char LoadMemoryShader[] = R"(
 
 static void runLoadMemory(ID3D12Device *Device,
                           dxc::SpecificDllLoader &DxcSupport,
-                          const MatrixParams &Params, bool Verbose) {
+                          const MatrixParams &Params, bool Verbose,
+                          UINT ForcedWaveSize = 0) {
   const size_t NumElements = Params.totalElements();
   const size_t BufferSize = Params.totalBytes();
 
   std::stringstream ExtraDefs;
   ExtraDefs << " -DOFFSET=" << 0;
+
+  if (ForcedWaveSize != 0)
+    ExtraDefs << " -DFORCED_WAVE_SIZE=" << ForcedWaveSize;
 
   std::string Args = buildCompilerArgs(Params, ExtraDefs.str().c_str());
 
@@ -3652,14 +3766,26 @@ void DxilConf_SM610_LinAlg::LoadMemory_Wave_16x16_F16() {
   Params.Layout = MatrixLayout::RowMajor;
   Params.NumThreads = 128;
   Params.Enable16Bit = true;
-  runLoadMemory(D3DDevice, DxcSupport, Params, VerboseLogging);
+
+  UINT SelectedWaveSize = 0;
+  if (!matrixConstructionApplicable(D3DDevice, Params, {Params.Use},
+                                    L"LoadMemory_Wave_16x16_F16",
+                                    SelectedWaveSize))
+    return;
+
+  runLoadMemory(D3DDevice, DxcSupport, Params, VerboseLogging,
+                SelectedWaveSize);
 }
 
 static const char StoreMemoryShader[] = R"(
   RWByteAddressBuffer Output : register(u0);
   groupshared ELEM_TYPE GsData[M_DIM * N_DIM];
 
+  #ifdef FORCED_WAVE_SIZE
+  [WaveSize(FORCED_WAVE_SIZE)]
+  #else
   [WaveSize(4, 128)]
+  #endif
   [numthreads(NUMTHREADS, 1, 1)]
   void main() {
     if (GetGroupWaveIndex() != 0)
@@ -3682,13 +3808,16 @@ static const char StoreMemoryShader[] = R"(
 static void runStoreMemory(ID3D12Device *Device,
                            dxc::SpecificDllLoader &DxcSupport,
                            const MatrixParams &Params, bool Verbose,
-                           float FillValue) {
+                           float FillValue, UINT ForcedWaveSize = 0) {
   const size_t NumElements = Params.totalElements();
   const size_t BufferSize = Params.totalBytes();
 
   std::stringstream ExtraDefs;
   ExtraDefs << " -DOFFSET=" << 0;
   STREAM_FLOAT(ExtraDefs, "FILL_VALUE", FillValue);
+
+  if (ForcedWaveSize != 0)
+    ExtraDefs << " -DFORCED_WAVE_SIZE=" << ForcedWaveSize;
 
   std::string Args = buildCompilerArgs(Params, ExtraDefs.str().c_str());
 
@@ -3721,8 +3850,15 @@ void DxilConf_SM610_LinAlg::StoreMemory_Wave_16x16_F16() {
   Params.Layout = MatrixLayout::RowMajor;
   Params.NumThreads = 128;
   Params.Enable16Bit = true;
+
+  UINT SelectedWaveSize = 0;
+  if (!matrixConstructionApplicable(D3DDevice, Params, {Params.Use},
+                                    L"StoreMemory_Wave_16x16_F16",
+                                    SelectedWaveSize))
+    return;
+
   runStoreMemory(D3DDevice, DxcSupport, Params, VerboseLogging,
-                 /*FillValue=*/7.0f);
+                 /*FillValue=*/7.0f, SelectedWaveSize);
 }
 
 static const char AccumulateMemoryShader[] = R"(
@@ -3731,7 +3867,11 @@ static const char AccumulateMemoryShader[] = R"(
 
   #define ELEM_PER_THREAD (M_DIM * N_DIM / NUMTHREADS)
 
+  #ifdef FORCED_WAVE_SIZE
+  [WaveSize(FORCED_WAVE_SIZE)]
+  #else
   [WaveSize(4, 128)]
+  #endif
   [numthreads(NUMTHREADS, 1, 1)]
   void main(uint threadID : SV_GroupIndex) {
     ELEM_TYPE fill = FILL_VALUE;
@@ -3762,13 +3902,16 @@ static const char AccumulateMemoryShader[] = R"(
 static void runAccumulateMemory(ID3D12Device *Device,
                                 dxc::SpecificDllLoader &DxcSupport,
                                 const MatrixParams &Params, bool Verbose,
-                                float FillValue) {
+                                float FillValue, UINT ForcedWaveSize = 0) {
   const size_t NumElements = Params.totalElements();
   const size_t BufferSize = Params.totalBytes();
 
   std::stringstream ExtraDefs;
   ExtraDefs << " -DOFFSET=" << 0;
   STREAM_FLOAT(ExtraDefs, "FILL_VALUE", FillValue);
+
+  if (ForcedWaveSize != 0)
+    ExtraDefs << " -DFORCED_WAVE_SIZE=" << ForcedWaveSize;
 
   std::string Args = buildCompilerArgs(Params, ExtraDefs.str().c_str());
 
@@ -3801,8 +3944,19 @@ void DxilConf_SM610_LinAlg::AccumulateMemory_Wave_16x16_F16() {
   Params.Layout = MatrixLayout::RowMajor;
   Params.NumThreads = 128;
   Params.Enable16Bit = true;
+
+  UINT SelectedWaveSize = 0;
+  if (!matrixConstructionApplicable(D3DDevice, Params, {Params.Use},
+                                    L"AccumulateMemory_Wave_16x16_F16",
+                                    SelectedWaveSize))
+    return;
+  if (!accumulateStoreApplicable(D3DDevice, Params.CompType,
+                                 linalg_test::AtomicDestination::GroupShared,
+                                 L"AccumulateMemory_Wave_16x16_F16"))
+    return;
+
   runAccumulateMemory(D3DDevice, DxcSupport, Params, VerboseLogging,
-                      /*FillValue=*/7.0f);
+                      /*FillValue=*/7.0f, SelectedWaveSize);
 }
 
 static const char ConvertShader[] = R"(
@@ -3887,6 +4041,13 @@ static void runVectorAccumulateDescriptor(ID3D12Device *Device,
 }
 
 void DxilConf_SM610_LinAlg::VectorAccumulateDescriptor_Thread_F16() {
+  // Tier 1 requires no accumulation store formats, so this is gated.
+  if (!accumulateStoreApplicable(
+          D3DDevice, ComponentType::F16,
+          linalg_test::AtomicDestination::RWByteAddressBuffer,
+          L"VectorAccumulateDescriptor_Thread_F16"))
+    return;
+
   runVectorAccumulateDescriptor(D3DDevice, DxcSupport, VerboseLogging);
 }
 
