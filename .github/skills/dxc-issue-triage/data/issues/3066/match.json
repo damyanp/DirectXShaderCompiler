@@ -1,0 +1,36 @@
+{
+  "kind": "all_of",
+  "note": "#3066 asks for DXC's disassembly to print human-readable forms instead of raw values. The symptom is a PRESENCE (raw value still printed) wrapped around an ABSENCE (nothing decodes it), so both vacuity directions are guarded. Clauses 1-2 are the SELF-TEST: they require a complete disassembly listing (a named row in the Resource Bindings table) and require the existing opcode annotator to have run and decoded a hard-coded value ('; FMax(a,b)', the reporter's own baseline in the issue body). A failed compile, a stripped module or a dead annotator therefore scores NO-MATCH rather than manufacturing a clean absence. Clauses 3-6 each pin one whole LINE with a '$' anchor, so the comment must stop exactly where it stops today: (3) ask B, the float constant is still LLVM hex 0x3F1A36E2E0000000 and the comment does not restate 0.0001; (4) ask C, the storeOutput comment names its operands but does not resolve their VALUES (sigId 0 -> SV_Target, component i8 0 -> .x) - this clause also positively demonstrates that the op-name half of ask C is already satisfied; (5) ask D, the store's handle operand is an anonymous '%<digits>' and the comment names no resource; (6) ask E, the ViewID output-dependency rows are bare scalar indices, digits only. CONTROLS, all captured in this directory. (a) variant-zi (-Zi -Qembed_debug, expect no-match): the SAME repro through the SAME compiler, where DXC does print names - the bufferStore handle becomes '%g_luminanceOut_UAV_structbuf' and every dx.op line gains '; line:N col:M'. Clauses 3, 4 and 5 all stop matching, which is the proof this predicate is not satisfied by a disassembly that prints the value by name. (b) control-broken.hlsl (expect no-match): does not compile, emits no disassembly - proves no clause is satisfied by an empty/failed run. (c) control-plain.hlsl (expect no-match): a valid shader with none of the constructs - proves the predicate is not satisfied by any successful compile. Ask A (source file/line/snippet) is not encoded here because it needs -Zi; it is measured in variant-zi and written up in notes.md.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "(?m)^;\\s+g_diffuseTexture\\s+texture\\s+f32\\s+2d\\s+T0\\s+t0\\s+1\\s*$",
+      "note": "SELF-TEST 1: a complete disassembly listing was produced, and the Resource Bindings table already carries the friendly name (the half of ask E that is satisfied)."
+    },
+    {
+      "kind": "contains",
+      "value": "; FMax(a,b)",
+      "note": "SELF-TEST 2: the opcode annotator ran and decoded hard-coded value 35 to a name. This is the baseline the issue body itself quotes."
+    },
+    {
+      "kind": "regex",
+      "value": "(?m)^\\s*%\\S+ = call float @dx\\.op\\.binary\\.f32\\(i32 35,[^)\\n]*0x3F1A36E2E0000000[^)\\n]*\\)\\s+; FMax\\(a,b\\)\\s*$",
+      "note": "ask B: hex float still printed and the comment ends at FMax(a,b) with no decimal restatement."
+    },
+    {
+      "kind": "regex",
+      "value": "(?m)^\\s*call void @dx\\.op\\.storeOutput\\.f32\\(i32 5, i32 0, i32 0, i8 [0-3], float %\\S+\\)\\s+; StoreOutput\\(outputSigId,rowIndex,colIndex,value\\)\\s*$",
+      "note": "ask C: operand NAMES are printed, operand VALUES are not resolved."
+    },
+    {
+      "kind": "regex",
+      "value": "(?m)^\\s*call void @dx\\.op\\.bufferStore\\.f32\\(i32 69, %dx\\.types\\.Handle %\\d+,[^;\\n]*\\)\\s+; BufferStore\\(uav,coord0,coord1,value0,value1,value2,value3,mask\\)\\s*$",
+      "note": "ask D: anonymous handle operand, no resource name in the comment."
+    },
+    {
+      "kind": "regex",
+      "value": "(?m)^;\\s+output 0 depends on inputs: \\{ [0-9]+(?:, [0-9]+)* \\}\\s*$",
+      "note": "ask E: ViewID output-dependency rows are bare scalar indices; digits only inside the braces."
+    }
+  ]
+}

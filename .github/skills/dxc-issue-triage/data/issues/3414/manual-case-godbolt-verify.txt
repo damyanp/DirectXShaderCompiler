@@ -1,0 +1,945 @@
+# Compiler Explorer panes for #3414, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T lib_6_3
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+; shader debug name: 04c1931dc2d38f73a785fa7413f18d1f.pdb
+; shader hash: 04c1931dc2d38f73a785fa7413f18d1f
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; tlas                              texture     i32         ras      T0             t0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.RaytracingAccelerationStructure = type { i32 }
+%struct.Payload = type { <4 x i32> }
+%struct.BuiltInTriangleIntersectionAttributes = type { <2 x float> }
+%dx.types.Handle = type { i8* }
+%struct.RayDesc = type { <3 x float>, float, <3 x float>, float }
+
+@"\01?tlas@@3URaytracingAccelerationStructure@@A" = external constant %struct.RaytracingAccelerationStructure, align 4
+
+; Function Attrs: nounwind
+define void @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"(%struct.Payload* noalias %payload, %struct.BuiltInTriangleIntersectionAttributes* nocapture readnone %attribs) #0 {
+  %1 = load %struct.RaytracingAccelerationStructure, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", align 4, !dbg !81 ; line:40 col:9
+  call void @llvm.dbg.declare(metadata %struct.BuiltInTriangleIntersectionAttributes* %attribs, metadata !84, metadata !85), !dbg !86 ; var:"attribs" !DIExpression() func:"main"
+  call void @llvm.dbg.declare(metadata %struct.Payload* %payload, metadata !87, metadata !85), !dbg !88 ; var:"payload" !DIExpression() func:"main"
+  %WorldRayDirection = call float @dx.op.worldRayDirection.f32(i32 148, i8 0), !dbg !89 ; line:28 col:18  ; WorldRayDirection(col)
+  %WorldRayDirection3 = call float @dx.op.worldRayDirection.f32(i32 148, i8 1), !dbg !89 ; line:28 col:18  ; WorldRayDirection(col)
+  %WorldRayDirection4 = call float @dx.op.worldRayDirection.f32(i32 148, i8 2), !dbg !89 ; line:28 col:18  ; WorldRayDirection(col)
+  call void @llvm.dbg.value(metadata float %WorldRayDirection, i64 0, metadata !90, metadata !91), !dbg !92 ; var:"dir" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection3, i64 0, metadata !90, metadata !93), !dbg !92 ; var:"dir" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection4, i64 0, metadata !90, metadata !94), !dbg !92 ; var:"dir" !DIExpression(DW_OP_bit_piece, 64, 32) func:"main"
+  %RayTCurrent = call float @dx.op.rayTCurrent.f32(i32 154), !dbg !95 ; line:31 col:43  ; RayTCurrent()
+  %2 = getelementptr inbounds %struct.Payload, %struct.Payload* %payload, i32 0, i32 0, !dbg !96 ; line:37 col:13
+  %3 = load <4 x i32>, <4 x i32>* %2, align 4, !dbg !97, !tbaa !98 ; line:37 col:19
+  %.i08 = extractelement <4 x i32> %3, i32 0, !dbg !97 ; line:37 col:19
+  %.i09 = add i32 %.i08, 1, !dbg !97 ; line:37 col:19
+  %.i110 = extractelement <4 x i32> %3, i32 1, !dbg !97 ; line:37 col:19
+  %.i111 = add i32 %.i110, 1, !dbg !97 ; line:37 col:19
+  %.i212 = extractelement <4 x i32> %3, i32 2, !dbg !97 ; line:37 col:19
+  %.i213 = add i32 %.i212, 1, !dbg !97 ; line:37 col:19
+  %.i3 = extractelement <4 x i32> %3, i32 3, !dbg !97 ; line:37 col:19
+  %.i314 = add i32 %.i3, 1, !dbg !97 ; line:37 col:19
+  %.upto015 = insertelement <4 x i32> undef, i32 %.i09, i32 0, !dbg !97 ; line:37 col:19
+  %.upto116 = insertelement <4 x i32> %.upto015, i32 %.i111, i32 1, !dbg !97 ; line:37 col:19
+  %.upto2 = insertelement <4 x i32> %.upto116, i32 %.i213, i32 2, !dbg !97 ; line:37 col:19
+  %4 = insertelement <4 x i32> %.upto2, i32 %.i314, i32 3, !dbg !97 ; line:37 col:19
+  store <4 x i32> %4, <4 x i32>* %2, align 4, !dbg !97, !tbaa !98 ; line:37 col:19
+  %5 = icmp ult i32 %.i09, 30, !dbg !101 ; line:39 col:25
+  br i1 %5, label %6, label %9, !dbg !102 ; line:39 col:9
+
+; <label>:6                                       ; preds = %0
+  %7 = fsub fast float -0.000000e+00, %WorldRayDirection4, !dbg !103 ; line:33 col:42
+  %WorldRayOrigin = call float @dx.op.worldRayOrigin.f32(i32 147, i8 0), !dbg !104 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i0 = fmul fast float %RayTCurrent, %WorldRayDirection, !dbg !105 ; line:31 col:41
+  %.i05 = fadd fast float %WorldRayOrigin, %.i0, !dbg !106 ; line:31 col:35
+  %WorldRayOrigin1 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 1), !dbg !104 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i1 = fmul fast float %RayTCurrent, %WorldRayDirection3, !dbg !105 ; line:31 col:41
+  %.i16 = fadd fast float %WorldRayOrigin1, %.i1, !dbg !106 ; line:31 col:35
+  %WorldRayOrigin2 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 2), !dbg !104 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i2 = fmul fast float %RayTCurrent, %WorldRayDirection4, !dbg !105 ; line:31 col:41
+  %.i27 = fadd fast float %WorldRayOrigin2, %.i2, !dbg !106 ; line:31 col:35
+  %8 = call %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32 160, %struct.RaytracingAccelerationStructure %1), !dbg !81 ; line:40 col:9  ; CreateHandleForLib(Resource)
+  call void @dx.op.traceRay.struct.Payload(i32 157, %dx.types.Handle %8, i32 17, i32 255, i32 0, i32 1, i32 0, float %.i05, float %.i16, float %.i27, float 0x3FB99999A0000000, float %WorldRayDirection, float %WorldRayDirection3, float %7, float 1.000000e+03, %struct.Payload* %payload), !dbg !81 ; line:40 col:9  ; TraceRay(AccelerationStructure,RayFlags,InstanceInclusionMask,RayContributionToHitGroupIndex,MultiplierForGeometryContributionToShaderIndex,MissShaderIndex,Origin_X,Origin_Y,Origin_Z,TMin,Direction_X,Direction_Y,Direction_Z,TMax,payload)
+  br label %9, !dbg !107 ; line:48 col:5
+
+; <label>:9                                       ; preds = %6, %0
+  ret void, !dbg !108 ; line:67 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #1
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayOrigin.f32(i32, i8) #1
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayDirection.f32(i32, i8) #1
+
+; Function Attrs: nounwind readonly
+declare float @dx.op.rayTCurrent.f32(i32) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.traceRay.struct.Payload(i32, %dx.types.Handle, i32, i32, i32, i32, i32, float, float, float, float, float, float, float, float, %struct.Payload*) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32, %struct.RaytracingAccelerationStructure) #2
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!49, !50}
+!llvm.ident = !{!51}
+!dx.source.contents = !{!52}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!53}
+!dx.source.args = !{!54}
+!dx.version = !{!55}
+!dx.valver = !{!56}
+!dx.shaderModel = !{!57}
+!dx.resources = !{!58}
+!dx.typeAnnotations = !{!62, !72}
+!dx.entryPoints = !{!77, !78}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !26, globals: !43)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4, !15}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, line: 28, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, line: 28, size: 96, align: 32, elements: !6, templateParams: !11)
+!6 = !{!7, !9, !10}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !{!12, !13}
+!12 = !DITemplateTypeParameter(name: "element", type: !8)
+!13 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 3)
+!14 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!15 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint4", file: !1, baseType: !16)
+!16 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 4>", file: !1, size: 128, align: 32, elements: !17, templateParams: !23)
+!17 = !{!18, !20, !21, !22}
+!18 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !16, file: !1, baseType: !19, size: 32, align: 32, flags: DIFlagPublic)
+!19 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!23 = !{!24, !25}
+!24 = !DITemplateTypeParameter(name: "element", type: !19)
+!25 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 4)
+!26 = !{!27}
+!27 = !DISubprogram(name: "main", linkageName: "\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", scope: !1, file: !1, line: 27, type: !28, isLocal: false, isDefinition: true, scopeLine: 27, flags: DIFlagPrototyped, isOptimized: false, function: void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z")
+!28 = !DISubroutineType(types: !29)
+!29 = !{null, !30, !34}
+!30 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !31)
+!31 = !DICompositeType(tag: DW_TAG_structure_type, name: "Payload", file: !1, line: 20, size: 128, align: 32, elements: !32)
+!32 = !{!33}
+!33 = !DIDerivedType(tag: DW_TAG_member, name: "data0", scope: !31, file: !1, line: 21, baseType: !15, size: 128, align: 32)
+!34 = !DICompositeType(tag: DW_TAG_structure_type, name: "BuiltInTriangleIntersectionAttributes", file: !1, size: 64, align: 32, elements: !35)
+!35 = !{!36}
+!36 = !DIDerivedType(tag: DW_TAG_member, name: "barycentrics", scope: !34, file: !1, baseType: !37, size: 64, align: 32)
+!37 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, size: 64, align: 32, elements: !38, templateParams: !41)
+!38 = !{!39, !40}
+!39 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !37, file: !1, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!40 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !37, file: !1, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!41 = !{!12, !42}
+!42 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 2)
+!43 = !{!44, !46, !47}
+!44 = !DIGlobalVariable(name: "RAY_FLAG_FORCE_OPAQUE", scope: !0, file: !1, line: 41, type: !45, isLocal: true, isDefinition: true, variable: i32 1)
+!45 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !19)
+!46 = !DIGlobalVariable(name: "RAY_FLAG_CULL_BACK_FACING_TRIANGLES", scope: !0, file: !1, line: 41, type: !45, isLocal: true, isDefinition: true, variable: i32 16)
+!47 = !DIGlobalVariable(name: "tlas", linkageName: "\01?tlas@@3URaytracingAccelerationStructure@@A", scope: !0, file: !1, line: 24, type: !48, isLocal: false, isDefinition: true, variable: %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A")
+!48 = !DICompositeType(tag: DW_TAG_structure_type, name: "RaytracingAccelerationStructure", file: !1, line: 24, size: 32, align: 32, elements: !2)
+!49 = !{i32 2, !"Dwarf Version", i32 4}
+!50 = !{i32 2, !"Debug Info Version", i32 3}
+!51 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!52 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// This is the shader from issue 3414, unmodified, at the profile used in the thread.\0A//\0A// In each pane, compare the last argument of the \22call void @dx.op.traceRay\22 line with the\0A// payload parameter named in the \22define void @...main...\22 line at the top of the function.\0A//\0A// In the DXC 1.6.2112 and DXC 1.8.2502 panes those two are the same value: the recursive\0A// TraceRay is handed the closest-hit shader's own inout payload object, so the caller and the\0A// recursive call share one payload instead of the copy that HLSL copy-in/copy-out requires.\0A//\0A// In the DXC 1.8.2505 and trunk panes the TraceRay argument is a separate local allocation\0A// instead, written on the line immediately before the call and read back immediately after it.\0A// That is the copy-in/copy-out, and it is exactly what the reporter's workaround forced by hand\0A// by introducing a second Payload variable.\0A//==========================================================================//\0A\0A#define RECURSION_DEPTH 30\0A#define BUGGED 1\0A\0Astruct Payload {\0A    uint4 data0;\0A};\0A\0ARaytracingAccelerationStructure tlas : register(t0, space0);\0A\0A[shader(\22closesthit\22)] void\0Amain(inout Payload payload, in BuiltInTriangleIntersectionAttributes attribs) {\0A    float3 dir = WorldRayDirection();\0A\0A    RayDesc ray;\0A    ray.Origin = WorldRayOrigin() + dir * RayTCurrent();\0A    ray.TMin = 0.1;\0A    ray.Direction = float3(dir.x, dir.y, -dir.z);\0A    ray.TMax = 1000.0;\0A\0A#if BUGGED\0A    payload.data0 += uint4(1,1,1,1);\0A\0A    if (payload.data0.x < RECURSION_DEPTH) {\0A        TraceRay(tlas,\0A                RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES |\0A                    0, // flags\0A                0xff,  // instance inclusion mask\0A                0,     // RayContributionToHitGroupIndex\0A                1,     // MultiplierForGeometryContributionToHitGroupIndex\0A                0,     // MissShaderIndex\0A                ray, payload);\0A    }\0A#else\0A    Payload new_payload;\0A    new_payload = payload;\0A    new_payload.data0 += uint4(1,1,1,1);\0A\0A    if (new_payload.data0.x < RECURSION_DEPTH) {\0A        TraceRay(tlas,\0A                 RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES |\0A                     0, // flags\0A                 0xff,  // instance inclusion mask\0A                 0,     // RayContributionToHitGroupIndex\0A                 1,     // MultiplierForGeometryContributionToHitGroupIndex\0A                 0,     // MissShaderIndex\0A                 ray, new_payload);\0A\0A        payload = new_payload;\0A    }\0A#endif\0A}\0A"}
+!53 = !{!"/app/example.hlsl"}
+!54 = !{!"-E", !"lib.no::entry", !"-T", !"lib_6_3", !"-Zi", !"-Qembed_debug"}
+!55 = !{i32 1, i32 3}
+!56 = !{i32 1, i32 6}
+!57 = !{!"lib", i32 6, i32 3}
+!58 = !{!59, null, null, null}
+!59 = !{!60}
+!60 = !{i32 0, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", !"tlas", i32 0, i32 0, i32 1, i32 16, i32 0, !61}
+!61 = !{i32 0, i32 4}
+!62 = !{i32 0, %struct.Payload undef, !63, %struct.BuiltInTriangleIntersectionAttributes undef, !65, %struct.RayDesc undef, !67}
+!63 = !{i32 16, !64}
+!64 = !{i32 6, !"data0", i32 3, i32 0, i32 7, i32 5}
+!65 = !{i32 8, !66}
+!66 = !{i32 6, !"barycentrics", i32 3, i32 0, i32 7, i32 9}
+!67 = !{i32 32, !68, !69, !70, !71}
+!68 = !{i32 6, !"Origin", i32 3, i32 0, i32 7, i32 9}
+!69 = !{i32 6, !"TMin", i32 3, i32 12, i32 7, i32 9}
+!70 = !{i32 6, !"Direction", i32 3, i32 16, i32 7, i32 9}
+!71 = !{i32 6, !"TMax", i32 3, i32 28, i32 7, i32 9}
+!72 = !{i32 1, void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !73}
+!73 = !{!74, !75, !76}
+!74 = !{i32 1, !2, !2}
+!75 = !{i32 2, !2, !2}
+!76 = !{i32 0, !2, !2}
+!77 = !{null, !"", null, !58, null}
+!78 = !{void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", null, null, !79}
+!79 = !{i32 8, i32 10, i32 6, i32 16, i32 7, i32 8, i32 5, !80}
+!80 = !{i32 0}
+!81 = !DILocation(line: 40, column: 9, scope: !82)
+!82 = distinct !DILexicalBlock(scope: !83, file: !1, line: 39, column: 44)
+!83 = distinct !DILexicalBlock(scope: !27, file: !1, line: 39, column: 9)
+!84 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "attribs", arg: 2, scope: !27, file: !1, line: 27, type: !34)
+!85 = !DIExpression()
+!86 = !DILocation(line: 27, column: 70, scope: !27)
+!87 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "payload", arg: 1, scope: !27, file: !1, line: 27, type: !31)
+!88 = !DILocation(line: 27, column: 20, scope: !27)
+!89 = !DILocation(line: 28, column: 18, scope: !27)
+!90 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "dir", scope: !27, file: !1, line: 28, type: !4)
+!91 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!92 = !DILocation(line: 28, column: 12, scope: !27)
+!93 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!94 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!95 = !DILocation(line: 31, column: 43, scope: !27)
+!96 = !DILocation(line: 37, column: 13, scope: !27)
+!97 = !DILocation(line: 37, column: 19, scope: !27)
+!98 = !{!99, !99, i64 0}
+!99 = !{!"omnipotent char", !100, i64 0}
+!100 = !{!"Simple C/C++ TBAA"}
+!101 = !DILocation(line: 39, column: 25, scope: !83)
+!102 = !DILocation(line: 39, column: 9, scope: !27)
+!103 = !DILocation(line: 33, column: 42, scope: !27)
+!104 = !DILocation(line: 31, column: 18, scope: !27)
+!105 = !DILocation(line: 31, column: 41, scope: !27)
+!106 = !DILocation(line: 31, column: 35, scope: !27)
+!107 = !DILocation(line: 48, column: 5, scope: !82)
+!108 = !DILocation(line: 67, column: 1, scope: !27)
+
+==========================================================================
+# compiler: dxc_1_8_2502
+# args:     -T lib_6_3
+# exit:     0
+
+; shader debug name: a164d377ca7ee5acf1d2cb3f5532d1b7.pdb
+; shader hash: a164d377ca7ee5acf1d2cb3f5532d1b7
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; tlas                              texture     i32         ras      T0             t0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.RaytracingAccelerationStructure = type { i32 }
+%struct.Payload = type { <4 x i32> }
+%struct.BuiltInTriangleIntersectionAttributes = type { <2 x float> }
+%dx.types.Handle = type { i8* }
+
+@"\01?tlas@@3URaytracingAccelerationStructure@@A" = external constant %struct.RaytracingAccelerationStructure, align 4
+
+; Function Attrs: nounwind
+define void @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"(%struct.Payload* noalias %payload, %struct.BuiltInTriangleIntersectionAttributes* nocapture readnone %attribs) #0 {
+  %1 = load %struct.RaytracingAccelerationStructure, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", align 4, !dbg !76 ; line:40 col:9
+  call void @llvm.dbg.declare(metadata %struct.BuiltInTriangleIntersectionAttributes* %attribs, metadata !79, metadata !80), !dbg !81 ; var:"attribs" !DIExpression() func:"main"
+  call void @llvm.dbg.declare(metadata %struct.Payload* %payload, metadata !82, metadata !80), !dbg !83 ; var:"payload" !DIExpression() func:"main"
+  %WorldRayDirection = call float @dx.op.worldRayDirection.f32(i32 148, i8 0), !dbg !84 ; line:28 col:18  ; WorldRayDirection(col)
+  %WorldRayDirection3 = call float @dx.op.worldRayDirection.f32(i32 148, i8 1), !dbg !84 ; line:28 col:18  ; WorldRayDirection(col)
+  %WorldRayDirection4 = call float @dx.op.worldRayDirection.f32(i32 148, i8 2), !dbg !84 ; line:28 col:18  ; WorldRayDirection(col)
+  call void @llvm.dbg.value(metadata float %WorldRayDirection, i64 0, metadata !85, metadata !86), !dbg !87 ; var:"dir" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection3, i64 0, metadata !85, metadata !88), !dbg !87 ; var:"dir" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection4, i64 0, metadata !85, metadata !89), !dbg !87 ; var:"dir" !DIExpression(DW_OP_bit_piece, 64, 32) func:"main"
+  %RayTCurrent = call float @dx.op.rayTCurrent.f32(i32 154), !dbg !90 ; line:31 col:43  ; RayTCurrent()
+  %2 = getelementptr inbounds %struct.Payload, %struct.Payload* %payload, i32 0, i32 0, !dbg !91 ; line:37 col:13
+  %3 = load <4 x i32>, <4 x i32>* %2, align 4, !dbg !92, !tbaa !93 ; line:37 col:19
+  %.i08 = extractelement <4 x i32> %3, i32 0, !dbg !92 ; line:37 col:19
+  %.i09 = add i32 %.i08, 1, !dbg !92 ; line:37 col:19
+  %.i110 = extractelement <4 x i32> %3, i32 1, !dbg !92 ; line:37 col:19
+  %.i111 = add i32 %.i110, 1, !dbg !92 ; line:37 col:19
+  %.i212 = extractelement <4 x i32> %3, i32 2, !dbg !92 ; line:37 col:19
+  %.i213 = add i32 %.i212, 1, !dbg !92 ; line:37 col:19
+  %.i3 = extractelement <4 x i32> %3, i32 3, !dbg !92 ; line:37 col:19
+  %.i314 = add i32 %.i3, 1, !dbg !92 ; line:37 col:19
+  %.upto015 = insertelement <4 x i32> undef, i32 %.i09, i32 0, !dbg !92 ; line:37 col:19
+  %.upto116 = insertelement <4 x i32> %.upto015, i32 %.i111, i32 1, !dbg !92 ; line:37 col:19
+  %.upto2 = insertelement <4 x i32> %.upto116, i32 %.i213, i32 2, !dbg !92 ; line:37 col:19
+  %4 = insertelement <4 x i32> %.upto2, i32 %.i314, i32 3, !dbg !92 ; line:37 col:19
+  store <4 x i32> %4, <4 x i32>* %2, align 4, !dbg !92, !tbaa !93 ; line:37 col:19
+  %5 = icmp ult i32 %.i09, 30, !dbg !96 ; line:39 col:25
+  br i1 %5, label %6, label %9, !dbg !97 ; line:39 col:9
+
+; <label>:6                                       ; preds = %0
+  %7 = fsub fast float -0.000000e+00, %WorldRayDirection4, !dbg !98 ; line:33 col:42
+  %WorldRayOrigin = call float @dx.op.worldRayOrigin.f32(i32 147, i8 0), !dbg !99 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i0 = fmul fast float %RayTCurrent, %WorldRayDirection, !dbg !100 ; line:31 col:41
+  %.i05 = fadd fast float %WorldRayOrigin, %.i0, !dbg !101 ; line:31 col:35
+  %WorldRayOrigin1 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 1), !dbg !99 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i1 = fmul fast float %RayTCurrent, %WorldRayDirection3, !dbg !100 ; line:31 col:41
+  %.i16 = fadd fast float %WorldRayOrigin1, %.i1, !dbg !101 ; line:31 col:35
+  %WorldRayOrigin2 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 2), !dbg !99 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i2 = fmul fast float %RayTCurrent, %WorldRayDirection4, !dbg !100 ; line:31 col:41
+  %.i27 = fadd fast float %WorldRayOrigin2, %.i2, !dbg !101 ; line:31 col:35
+  %8 = call %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32 160, %struct.RaytracingAccelerationStructure %1), !dbg !76 ; line:40 col:9  ; CreateHandleForLib(Resource)
+  call void @dx.op.traceRay.struct.Payload(i32 157, %dx.types.Handle %8, i32 17, i32 255, i32 0, i32 1, i32 0, float %.i05, float %.i16, float %.i27, float 0x3FB99999A0000000, float %WorldRayDirection, float %WorldRayDirection3, float %7, float 1.000000e+03, %struct.Payload* %payload), !dbg !76 ; line:40 col:9  ; TraceRay(AccelerationStructure,RayFlags,InstanceInclusionMask,RayContributionToHitGroupIndex,MultiplierForGeometryContributionToShaderIndex,MissShaderIndex,Origin_X,Origin_Y,Origin_Z,TMin,Direction_X,Direction_Y,Direction_Z,TMax,payload)
+  br label %9, !dbg !102 ; line:48 col:5
+
+; <label>:9                                       ; preds = %6, %0
+  ret void, !dbg !103 ; line:67 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #1
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayOrigin.f32(i32, i8) #1
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayDirection.f32(i32, i8) #1
+
+; Function Attrs: nounwind readonly
+declare float @dx.op.rayTCurrent.f32(i32) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.traceRay.struct.Payload(i32, %dx.types.Handle, i32, i32, i32, i32, i32, float, float, float, float, float, float, float, float, %struct.Payload*) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32, %struct.RaytracingAccelerationStructure) #2
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!49, !50}
+!llvm.ident = !{!51}
+!dx.source.contents = !{!52}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!53}
+!dx.source.args = !{!54}
+!dx.version = !{!55}
+!dx.valver = !{!56}
+!dx.shaderModel = !{!57}
+!dx.resources = !{!58}
+!dx.typeAnnotations = !{!62, !67}
+!dx.entryPoints = !{!72, !73}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.8.0.1 (b4711839)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !26, globals: !43)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4, !15}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, line: 28, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, line: 28, size: 96, align: 32, elements: !6, templateParams: !11)
+!6 = !{!7, !9, !10}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !{!12, !13}
+!12 = !DITemplateTypeParameter(name: "element", type: !8)
+!13 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 3)
+!14 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!15 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint4", file: !1, baseType: !16)
+!16 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 4>", file: !1, size: 128, align: 32, elements: !17, templateParams: !23)
+!17 = !{!18, !20, !21, !22}
+!18 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !16, file: !1, baseType: !19, size: 32, align: 32, flags: DIFlagPublic)
+!19 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!23 = !{!24, !25}
+!24 = !DITemplateTypeParameter(name: "element", type: !19)
+!25 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 4)
+!26 = !{!27}
+!27 = !DISubprogram(name: "main", linkageName: "\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", scope: !1, file: !1, line: 27, type: !28, isLocal: false, isDefinition: true, scopeLine: 27, flags: DIFlagPrototyped, isOptimized: false, function: void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z")
+!28 = !DISubroutineType(types: !29)
+!29 = !{null, !30, !34}
+!30 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !31)
+!31 = !DICompositeType(tag: DW_TAG_structure_type, name: "Payload", file: !1, line: 20, size: 128, align: 32, elements: !32)
+!32 = !{!33}
+!33 = !DIDerivedType(tag: DW_TAG_member, name: "data0", scope: !31, file: !1, line: 21, baseType: !15, size: 128, align: 32)
+!34 = !DICompositeType(tag: DW_TAG_structure_type, name: "BuiltInTriangleIntersectionAttributes", file: !1, size: 64, align: 32, elements: !35)
+!35 = !{!36}
+!36 = !DIDerivedType(tag: DW_TAG_member, name: "barycentrics", scope: !34, file: !1, baseType: !37, size: 64, align: 32)
+!37 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, size: 64, align: 32, elements: !38, templateParams: !41)
+!38 = !{!39, !40}
+!39 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !37, file: !1, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!40 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !37, file: !1, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!41 = !{!12, !42}
+!42 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 2)
+!43 = !{!44, !46, !47}
+!44 = !DIGlobalVariable(name: "RAY_FLAG_FORCE_OPAQUE", scope: !0, file: !1, line: 41, type: !45, isLocal: true, isDefinition: true, variable: i32 1)
+!45 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !19)
+!46 = !DIGlobalVariable(name: "RAY_FLAG_CULL_BACK_FACING_TRIANGLES", scope: !0, file: !1, line: 41, type: !45, isLocal: true, isDefinition: true, variable: i32 16)
+!47 = !DIGlobalVariable(name: "tlas", linkageName: "\01?tlas@@3URaytracingAccelerationStructure@@A", scope: !0, file: !1, line: 24, type: !48, isLocal: false, isDefinition: true, variable: %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A")
+!48 = !DICompositeType(tag: DW_TAG_structure_type, name: "RaytracingAccelerationStructure", file: !1, line: 24, size: 32, align: 32, elements: !2)
+!49 = !{i32 2, !"Dwarf Version", i32 4}
+!50 = !{i32 2, !"Debug Info Version", i32 3}
+!51 = !{!"dxc(private) 1.8.0.1 (b4711839)"}
+!52 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// This is the shader from issue 3414, unmodified, at the profile used in the thread.\0A//\0A// In each pane, compare the last argument of the \22call void @dx.op.traceRay\22 line with the\0A// payload parameter named in the \22define void @...main...\22 line at the top of the function.\0A//\0A// In the DXC 1.6.2112 and DXC 1.8.2502 panes those two are the same value: the recursive\0A// TraceRay is handed the closest-hit shader's own inout payload object, so the caller and the\0A// recursive call share one payload instead of the copy that HLSL copy-in/copy-out requires.\0A//\0A// In the DXC 1.8.2505 and trunk panes the TraceRay argument is a separate local allocation\0A// instead, written on the line immediately before the call and read back immediately after it.\0A// That is the copy-in/copy-out, and it is exactly what the reporter's workaround forced by hand\0A// by introducing a second Payload variable.\0A//==========================================================================//\0A\0A#define RECURSION_DEPTH 30\0A#define BUGGED 1\0A\0Astruct Payload {\0A    uint4 data0;\0A};\0A\0ARaytracingAccelerationStructure tlas : register(t0, space0);\0A\0A[shader(\22closesthit\22)] void\0Amain(inout Payload payload, in BuiltInTriangleIntersectionAttributes attribs) {\0A    float3 dir = WorldRayDirection();\0A\0A    RayDesc ray;\0A    ray.Origin = WorldRayOrigin() + dir * RayTCurrent();\0A    ray.TMin = 0.1;\0A    ray.Direction = float3(dir.x, dir.y, -dir.z);\0A    ray.TMax = 1000.0;\0A\0A#if BUGGED\0A    payload.data0 += uint4(1,1,1,1);\0A\0A    if (payload.data0.x < RECURSION_DEPTH) {\0A        TraceRay(tlas,\0A                RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES |\0A                    0, // flags\0A                0xff,  // instance inclusion mask\0A                0,     // RayContributionToHitGroupIndex\0A                1,     // MultiplierForGeometryContributionToHitGroupIndex\0A                0,     // MissShaderIndex\0A                ray, payload);\0A    }\0A#else\0A    Payload new_payload;\0A    new_payload = payload;\0A    new_payload.data0 += uint4(1,1,1,1);\0A\0A    if (new_payload.data0.x < RECURSION_DEPTH) {\0A        TraceRay(tlas,\0A                 RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES |\0A                     0, // flags\0A                 0xff,  // instance inclusion mask\0A                 0,     // RayContributionToHitGroupIndex\0A                 1,     // MultiplierForGeometryContributionToHitGroupIndex\0A                 0,     // MissShaderIndex\0A                 ray, new_payload);\0A\0A        payload = new_payload;\0A    }\0A#endif\0A}\0A"}
+!53 = !{!"/app/example.hlsl"}
+!54 = !{!"-E", !"lib.no::entry", !"-T", !"lib_6_3", !"-Zi", !"-Qembed_debug"}
+!55 = !{i32 1, i32 3}
+!56 = !{i32 1, i32 8}
+!57 = !{!"lib", i32 6, i32 3}
+!58 = !{!59, null, null, null}
+!59 = !{!60}
+!60 = !{i32 0, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", !"tlas", i32 0, i32 0, i32 1, i32 16, i32 0, !61}
+!61 = !{i32 0, i32 4}
+!62 = !{i32 0, %struct.Payload undef, !63, %struct.BuiltInTriangleIntersectionAttributes undef, !65}
+!63 = !{i32 16, !64}
+!64 = !{i32 6, !"data0", i32 3, i32 0, i32 7, i32 5}
+!65 = !{i32 8, !66}
+!66 = !{i32 6, !"barycentrics", i32 3, i32 0, i32 7, i32 9}
+!67 = !{i32 1, void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !68}
+!68 = !{!69, !70, !71}
+!69 = !{i32 1, !2, !2}
+!70 = !{i32 2, !2, !2}
+!71 = !{i32 0, !2, !2}
+!72 = !{null, !"", null, !58, null}
+!73 = !{void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", null, null, !74}
+!74 = !{i32 8, i32 10, i32 6, i32 16, i32 7, i32 8, i32 5, !75}
+!75 = !{i32 0}
+!76 = !DILocation(line: 40, column: 9, scope: !77)
+!77 = distinct !DILexicalBlock(scope: !78, file: !1, line: 39, column: 44)
+!78 = distinct !DILexicalBlock(scope: !27, file: !1, line: 39, column: 9)
+!79 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "attribs", arg: 2, scope: !27, file: !1, line: 27, type: !34)
+!80 = !DIExpression()
+!81 = !DILocation(line: 27, column: 70, scope: !27)
+!82 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "payload", arg: 1, scope: !27, file: !1, line: 27, type: !31)
+!83 = !DILocation(line: 27, column: 20, scope: !27)
+!84 = !DILocation(line: 28, column: 18, scope: !27)
+!85 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "dir", scope: !27, file: !1, line: 28, type: !4)
+!86 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!87 = !DILocation(line: 28, column: 12, scope: !27)
+!88 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!89 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!90 = !DILocation(line: 31, column: 43, scope: !27)
+!91 = !DILocation(line: 37, column: 13, scope: !27)
+!92 = !DILocation(line: 37, column: 19, scope: !27)
+!93 = !{!94, !94, i64 0}
+!94 = !{!"omnipotent char", !95, i64 0}
+!95 = !{!"Simple C/C++ TBAA"}
+!96 = !DILocation(line: 39, column: 25, scope: !78)
+!97 = !DILocation(line: 39, column: 9, scope: !27)
+!98 = !DILocation(line: 33, column: 42, scope: !27)
+!99 = !DILocation(line: 31, column: 18, scope: !27)
+!100 = !DILocation(line: 31, column: 41, scope: !27)
+!101 = !DILocation(line: 31, column: 35, scope: !27)
+!102 = !DILocation(line: 48, column: 5, scope: !77)
+!103 = !DILocation(line: 67, column: 1, scope: !27)
+
+==========================================================================
+# compiler: dxc_1_8_2505
+# args:     -T lib_6_3
+# exit:     0
+
+; shader debug name: 5d173907852686f500bde19f5d1b1e8f.pdb
+; shader hash: 5d173907852686f500bde19f5d1b1e8f
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; tlas                              texture     i32         ras      T0             t0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.RaytracingAccelerationStructure = type { i32 }
+%struct.Payload = type { <4 x i32> }
+%struct.BuiltInTriangleIntersectionAttributes = type { <2 x float> }
+%dx.types.Handle = type { i8* }
+
+@"\01?tlas@@3URaytracingAccelerationStructure@@A" = external constant %struct.RaytracingAccelerationStructure, align 4
+
+; Function Attrs: nounwind
+define void @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"(%struct.Payload* noalias nocapture %payload, %struct.BuiltInTriangleIntersectionAttributes* nocapture readnone %attribs) #0 {
+  %1 = load %struct.RaytracingAccelerationStructure, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", align 4, !dbg !76 ; line:40 col:9
+  %2 = alloca %struct.Payload, align 8
+  call void @llvm.dbg.declare(metadata %struct.BuiltInTriangleIntersectionAttributes* %attribs, metadata !79, metadata !80), !dbg !81 ; var:"attribs" !DIExpression() func:"main"
+  call void @llvm.dbg.declare(metadata %struct.Payload* %payload, metadata !82, metadata !80), !dbg !83 ; var:"payload" !DIExpression() func:"main"
+  %WorldRayDirection = call float @dx.op.worldRayDirection.f32(i32 148, i8 0), !dbg !84 ; line:28 col:18  ; WorldRayDirection(col)
+  %WorldRayDirection3 = call float @dx.op.worldRayDirection.f32(i32 148, i8 1), !dbg !84 ; line:28 col:18  ; WorldRayDirection(col)
+  %WorldRayDirection4 = call float @dx.op.worldRayDirection.f32(i32 148, i8 2), !dbg !84 ; line:28 col:18  ; WorldRayDirection(col)
+  call void @llvm.dbg.value(metadata float %WorldRayDirection, i64 0, metadata !85, metadata !86), !dbg !87 ; var:"dir" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection3, i64 0, metadata !85, metadata !88), !dbg !87 ; var:"dir" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection4, i64 0, metadata !85, metadata !89), !dbg !87 ; var:"dir" !DIExpression(DW_OP_bit_piece, 64, 32) func:"main"
+  %RayTCurrent = call float @dx.op.rayTCurrent.f32(i32 154), !dbg !90 ; line:31 col:43  ; RayTCurrent()
+  call void @llvm.dbg.value(metadata float %.i05, i64 0, metadata !91, metadata !86), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %.i16, i64 0, metadata !91, metadata !88), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %.i27, i64 0, metadata !91, metadata !89), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 64, 32) func:"main"
+  call void @llvm.dbg.value(metadata float 0x3FB99999A0000000, i64 0, metadata !91, metadata !99), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 96, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection, i64 0, metadata !91, metadata !100), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 128, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection3, i64 0, metadata !91, metadata !101), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 160, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %8, i64 0, metadata !91, metadata !102), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 192, 32) func:"main"
+  call void @llvm.dbg.value(metadata float 1.000000e+03, i64 0, metadata !91, metadata !103), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 224, 32) func:"main"
+  %3 = getelementptr inbounds %struct.Payload, %struct.Payload* %payload, i32 0, i32 0, !dbg !104 ; line:37 col:13
+  %4 = load <4 x i32>, <4 x i32>* %3, align 4, !dbg !105, !tbaa !106 ; line:37 col:19
+  %.i08 = extractelement <4 x i32> %4, i32 0, !dbg !105 ; line:37 col:19
+  %.i09 = add i32 %.i08, 1, !dbg !105 ; line:37 col:19
+  %.i110 = extractelement <4 x i32> %4, i32 1, !dbg !105 ; line:37 col:19
+  %.i111 = add i32 %.i110, 1, !dbg !105 ; line:37 col:19
+  %.i212 = extractelement <4 x i32> %4, i32 2, !dbg !105 ; line:37 col:19
+  %.i213 = add i32 %.i212, 1, !dbg !105 ; line:37 col:19
+  %.i3 = extractelement <4 x i32> %4, i32 3, !dbg !105 ; line:37 col:19
+  %.i314 = add i32 %.i3, 1, !dbg !105 ; line:37 col:19
+  %.upto015 = insertelement <4 x i32> undef, i32 %.i09, i32 0, !dbg !105 ; line:37 col:19
+  %.upto116 = insertelement <4 x i32> %.upto015, i32 %.i111, i32 1, !dbg !105 ; line:37 col:19
+  %.upto2 = insertelement <4 x i32> %.upto116, i32 %.i213, i32 2, !dbg !105 ; line:37 col:19
+  %5 = insertelement <4 x i32> %.upto2, i32 %.i314, i32 3, !dbg !76 ; line:40 col:9
+  store <4 x i32> %5, <4 x i32>* %3, align 4, !dbg !105, !tbaa !106 ; line:37 col:19
+  %6 = icmp ult i32 %.i09, 30, !dbg !109 ; line:39 col:25
+  br i1 %6, label %7, label %12, !dbg !110 ; line:39 col:9
+
+; <label>:7                                       ; preds = %0
+  %8 = fsub fast float -0.000000e+00, %WorldRayDirection4, !dbg !111 ; line:33 col:42
+  %WorldRayOrigin2 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 2), !dbg !112 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i2 = fmul fast float %RayTCurrent, %WorldRayDirection4, !dbg !113 ; line:31 col:41
+  %.i27 = fadd fast float %WorldRayOrigin2, %.i2, !dbg !114 ; line:31 col:35
+  %WorldRayOrigin1 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 1), !dbg !112 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i1 = fmul fast float %RayTCurrent, %WorldRayDirection3, !dbg !113 ; line:31 col:41
+  %.i16 = fadd fast float %WorldRayOrigin1, %.i1, !dbg !114 ; line:31 col:35
+  %WorldRayOrigin = call float @dx.op.worldRayOrigin.f32(i32 147, i8 0), !dbg !112 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i0 = fmul fast float %RayTCurrent, %WorldRayDirection, !dbg !113 ; line:31 col:41
+  %.i05 = fadd fast float %WorldRayOrigin, %.i0, !dbg !114 ; line:31 col:35
+  %9 = call %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32 160, %struct.RaytracingAccelerationStructure %1), !dbg !76 ; line:40 col:9  ; CreateHandleForLib(Resource)
+  %10 = getelementptr inbounds %struct.Payload, %struct.Payload* %2, i32 0, i32 0, !dbg !76 ; line:40 col:9
+  store <4 x i32> %5, <4 x i32>* %10, align 8, !dbg !76 ; line:40 col:9
+  call void @dx.op.traceRay.struct.Payload(i32 157, %dx.types.Handle %9, i32 17, i32 255, i32 0, i32 1, i32 0, float %.i05, float %.i16, float %.i27, float 0x3FB99999A0000000, float %WorldRayDirection, float %WorldRayDirection3, float %8, float 1.000000e+03, %struct.Payload* nonnull %2), !dbg !76 ; line:40 col:9  ; TraceRay(AccelerationStructure,RayFlags,InstanceInclusionMask,RayContributionToHitGroupIndex,MultiplierForGeometryContributionToShaderIndex,MissShaderIndex,Origin_X,Origin_Y,Origin_Z,TMin,Direction_X,Direction_Y,Direction_Z,TMax,payload)
+  %11 = load <4 x i32>, <4 x i32>* %10, align 8, !dbg !115 ; line:48 col:5
+  store <4 x i32> %11, <4 x i32>* %3, align 4, !dbg !115 ; line:48 col:5
+  br label %12, !dbg !115 ; line:48 col:5
+
+; <label>:12                                      ; preds = %7, %0
+  ret void, !dbg !116 ; line:67 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #1
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayOrigin.f32(i32, i8) #1
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayDirection.f32(i32, i8) #1
+
+; Function Attrs: nounwind readonly
+declare float @dx.op.rayTCurrent.f32(i32) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.traceRay.struct.Payload(i32, %dx.types.Handle, i32, i32, i32, i32, i32, float, float, float, float, float, float, float, float, %struct.Payload*) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32, %struct.RaytracingAccelerationStructure) #2
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!49, !50}
+!llvm.ident = !{!51}
+!dx.source.contents = !{!52}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!53}
+!dx.source.args = !{!54}
+!dx.version = !{!55}
+!dx.valver = !{!56}
+!dx.shaderModel = !{!57}
+!dx.resources = !{!58}
+!dx.typeAnnotations = !{!62, !67}
+!dx.entryPoints = !{!72, !73}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.8.0.1 (9efbb6c3)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !26, globals: !43)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4, !15}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, line: 28, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, line: 28, size: 96, align: 32, elements: !6, templateParams: !11)
+!6 = !{!7, !9, !10}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !{!12, !13}
+!12 = !DITemplateTypeParameter(name: "element", type: !8)
+!13 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 3)
+!14 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!15 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint4", file: !1, baseType: !16)
+!16 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 4>", file: !1, size: 128, align: 32, elements: !17, templateParams: !23)
+!17 = !{!18, !20, !21, !22}
+!18 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !16, file: !1, baseType: !19, size: 32, align: 32, flags: DIFlagPublic)
+!19 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!23 = !{!24, !25}
+!24 = !DITemplateTypeParameter(name: "element", type: !19)
+!25 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 4)
+!26 = !{!27}
+!27 = !DISubprogram(name: "main", linkageName: "\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", scope: !1, file: !1, line: 27, type: !28, isLocal: false, isDefinition: true, scopeLine: 27, flags: DIFlagPrototyped, isOptimized: false, function: void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z")
+!28 = !DISubroutineType(types: !29)
+!29 = !{null, !30, !34}
+!30 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !31)
+!31 = !DICompositeType(tag: DW_TAG_structure_type, name: "Payload", file: !1, line: 20, size: 128, align: 32, elements: !32)
+!32 = !{!33}
+!33 = !DIDerivedType(tag: DW_TAG_member, name: "data0", scope: !31, file: !1, line: 21, baseType: !15, size: 128, align: 32)
+!34 = !DICompositeType(tag: DW_TAG_structure_type, name: "BuiltInTriangleIntersectionAttributes", file: !1, size: 64, align: 32, elements: !35)
+!35 = !{!36}
+!36 = !DIDerivedType(tag: DW_TAG_member, name: "barycentrics", scope: !34, file: !1, baseType: !37, size: 64, align: 32)
+!37 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, size: 64, align: 32, elements: !38, templateParams: !41)
+!38 = !{!39, !40}
+!39 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !37, file: !1, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!40 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !37, file: !1, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!41 = !{!12, !42}
+!42 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 2)
+!43 = !{!44, !46, !47}
+!44 = !DIGlobalVariable(name: "RAY_FLAG_FORCE_OPAQUE", scope: !0, file: !1, line: 41, type: !45, isLocal: true, isDefinition: true, variable: i32 1)
+!45 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !19)
+!46 = !DIGlobalVariable(name: "RAY_FLAG_CULL_BACK_FACING_TRIANGLES", scope: !0, file: !1, line: 41, type: !45, isLocal: true, isDefinition: true, variable: i32 16)
+!47 = !DIGlobalVariable(name: "tlas", linkageName: "\01?tlas@@3URaytracingAccelerationStructure@@A", scope: !0, file: !1, line: 24, type: !48, isLocal: false, isDefinition: true, variable: %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A")
+!48 = !DICompositeType(tag: DW_TAG_structure_type, name: "RaytracingAccelerationStructure", file: !1, line: 24, size: 32, align: 32, elements: !2)
+!49 = !{i32 2, !"Dwarf Version", i32 4}
+!50 = !{i32 2, !"Debug Info Version", i32 3}
+!51 = !{!"dxc(private) 1.8.0.1 (9efbb6c3)"}
+!52 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// This is the shader from issue 3414, unmodified, at the profile used in the thread.\0A//\0A// In each pane, compare the last argument of the \22call void @dx.op.traceRay\22 line with the\0A// payload parameter named in the \22define void @...main...\22 line at the top of the function.\0A//\0A// In the DXC 1.6.2112 and DXC 1.8.2502 panes those two are the same value: the recursive\0A// TraceRay is handed the closest-hit shader's own inout payload object, so the caller and the\0A// recursive call share one payload instead of the copy that HLSL copy-in/copy-out requires.\0A//\0A// In the DXC 1.8.2505 and trunk panes the TraceRay argument is a separate local allocation\0A// instead, written on the line immediately before the call and read back immediately after it.\0A// That is the copy-in/copy-out, and it is exactly what the reporter's workaround forced by hand\0A// by introducing a second Payload variable.\0A//==========================================================================//\0A\0A#define RECURSION_DEPTH 30\0A#define BUGGED 1\0A\0Astruct Payload {\0A    uint4 data0;\0A};\0A\0ARaytracingAccelerationStructure tlas : register(t0, space0);\0A\0A[shader(\22closesthit\22)] void\0Amain(inout Payload payload, in BuiltInTriangleIntersectionAttributes attribs) {\0A    float3 dir = WorldRayDirection();\0A\0A    RayDesc ray;\0A    ray.Origin = WorldRayOrigin() + dir * RayTCurrent();\0A    ray.TMin = 0.1;\0A    ray.Direction = float3(dir.x, dir.y, -dir.z);\0A    ray.TMax = 1000.0;\0A\0A#if BUGGED\0A    payload.data0 += uint4(1,1,1,1);\0A\0A    if (payload.data0.x < RECURSION_DEPTH) {\0A        TraceRay(tlas,\0A                RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES |\0A                    0, // flags\0A                0xff,  // instance inclusion mask\0A                0,     // RayContributionToHitGroupIndex\0A                1,     // MultiplierForGeometryContributionToHitGroupIndex\0A                0,     // MissShaderIndex\0A                ray, payload);\0A    }\0A#else\0A    Payload new_payload;\0A    new_payload = payload;\0A    new_payload.data0 += uint4(1,1,1,1);\0A\0A    if (new_payload.data0.x < RECURSION_DEPTH) {\0A        TraceRay(tlas,\0A                 RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES |\0A                     0, // flags\0A                 0xff,  // instance inclusion mask\0A                 0,     // RayContributionToHitGroupIndex\0A                 1,     // MultiplierForGeometryContributionToHitGroupIndex\0A                 0,     // MissShaderIndex\0A                 ray, new_payload);\0A\0A        payload = new_payload;\0A    }\0A#endif\0A}\0A"}
+!53 = !{!"/app/example.hlsl"}
+!54 = !{!"-E", !"lib.no::entry", !"-T", !"lib_6_3", !"-Zi", !"-Qembed_debug"}
+!55 = !{i32 1, i32 3}
+!56 = !{i32 1, i32 9}
+!57 = !{!"lib", i32 6, i32 3}
+!58 = !{!59, null, null, null}
+!59 = !{!60}
+!60 = !{i32 0, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", !"tlas", i32 0, i32 0, i32 1, i32 16, i32 0, !61}
+!61 = !{i32 0, i32 4}
+!62 = !{i32 0, %struct.Payload undef, !63, %struct.BuiltInTriangleIntersectionAttributes undef, !65}
+!63 = !{i32 16, !64}
+!64 = !{i32 6, !"data0", i32 3, i32 0, i32 7, i32 5}
+!65 = !{i32 8, !66}
+!66 = !{i32 6, !"barycentrics", i32 3, i32 0, i32 7, i32 9}
+!67 = !{i32 1, void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !68}
+!68 = !{!69, !70, !71}
+!69 = !{i32 1, !2, !2}
+!70 = !{i32 2, !2, !2}
+!71 = !{i32 0, !2, !2}
+!72 = !{null, !"", null, !58, null}
+!73 = !{void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", null, null, !74}
+!74 = !{i32 8, i32 10, i32 6, i32 16, i32 7, i32 8, i32 5, !75}
+!75 = !{i32 0}
+!76 = !DILocation(line: 40, column: 9, scope: !77)
+!77 = distinct !DILexicalBlock(scope: !78, file: !1, line: 39, column: 44)
+!78 = distinct !DILexicalBlock(scope: !27, file: !1, line: 39, column: 9)
+!79 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "attribs", arg: 2, scope: !27, file: !1, line: 27, type: !34)
+!80 = !DIExpression()
+!81 = !DILocation(line: 27, column: 70, scope: !27)
+!82 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "payload", arg: 1, scope: !27, file: !1, line: 27, type: !31)
+!83 = !DILocation(line: 27, column: 20, scope: !27)
+!84 = !DILocation(line: 28, column: 18, scope: !27)
+!85 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "dir", scope: !27, file: !1, line: 28, type: !4)
+!86 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!87 = !DILocation(line: 28, column: 12, scope: !27)
+!88 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!89 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!90 = !DILocation(line: 31, column: 43, scope: !27)
+!91 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "ray", scope: !27, file: !1, line: 30, type: !92)
+!92 = !DICompositeType(tag: DW_TAG_structure_type, name: "RayDesc", file: !1, line: 30, size: 256, align: 32, elements: !93)
+!93 = !{!94, !95, !96, !97}
+!94 = !DIDerivedType(tag: DW_TAG_member, name: "Origin", scope: !92, file: !1, line: 30, baseType: !5, size: 96, align: 32)
+!95 = !DIDerivedType(tag: DW_TAG_member, name: "TMin", scope: !92, file: !1, line: 30, baseType: !8, size: 32, align: 32, offset: 96)
+!96 = !DIDerivedType(tag: DW_TAG_member, name: "Direction", scope: !92, file: !1, line: 30, baseType: !5, size: 96, align: 32, offset: 128)
+!97 = !DIDerivedType(tag: DW_TAG_member, name: "TMax", scope: !92, file: !1, line: 30, baseType: !8, size: 32, align: 32, offset: 224)
+!98 = !DILocation(line: 30, column: 13, scope: !27)
+!99 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!100 = !DIExpression(DW_OP_bit_piece, 128, 32)
+!101 = !DIExpression(DW_OP_bit_piece, 160, 32)
+!102 = !DIExpression(DW_OP_bit_piece, 192, 32)
+!103 = !DIExpression(DW_OP_bit_piece, 224, 32)
+!104 = !DILocation(line: 37, column: 13, scope: !27)
+!105 = !DILocation(line: 37, column: 19, scope: !27)
+!106 = !{!107, !107, i64 0}
+!107 = !{!"omnipotent char", !108, i64 0}
+!108 = !{!"Simple C/C++ TBAA"}
+!109 = !DILocation(line: 39, column: 25, scope: !78)
+!110 = !DILocation(line: 39, column: 9, scope: !27)
+!111 = !DILocation(line: 33, column: 42, scope: !27)
+!112 = !DILocation(line: 31, column: 18, scope: !27)
+!113 = !DILocation(line: 31, column: 41, scope: !27)
+!114 = !DILocation(line: 31, column: 35, scope: !27)
+!115 = !DILocation(line: 48, column: 5, scope: !77)
+!116 = !DILocation(line: 67, column: 1, scope: !27)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T lib_6_3
+# exit:     0
+
+; shader debug name: 42d360335397265b2a1f575335706abc.pdb
+; shader hash: 42d360335397265b2a1f575335706abc
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; tlas                              texture     i32         ras      T0             t0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.RaytracingAccelerationStructure = type { i32 }
+%struct.Payload = type { <4 x i32> }
+%struct.BuiltInTriangleIntersectionAttributes = type { <2 x float> }
+%dx.types.Handle = type { i8* }
+
+@"\01?tlas@@3URaytracingAccelerationStructure@@A" = external constant %struct.RaytracingAccelerationStructure, align 4
+
+; Function Attrs: nounwind
+define void @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"(%struct.Payload* noalias nocapture %payload, %struct.BuiltInTriangleIntersectionAttributes* nocapture readnone %attribs) #0 {
+  %1 = load %struct.RaytracingAccelerationStructure, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", align 4, !dbg !76 ; line:40 col:9
+  %2 = alloca %struct.Payload, align 8
+  call void @llvm.dbg.declare(metadata %struct.BuiltInTriangleIntersectionAttributes* %attribs, metadata !79, metadata !80), !dbg !81 ; var:"attribs" !DIExpression() func:"main"
+  call void @llvm.dbg.declare(metadata %struct.Payload* %payload, metadata !82, metadata !80), !dbg !83 ; var:"payload" !DIExpression() func:"main"
+  %WorldRayDirection = call float @dx.op.worldRayDirection.f32(i32 148, i8 0), !dbg !84 ; line:28 col:18  ; WorldRayDirection(col)
+  %WorldRayDirection3 = call float @dx.op.worldRayDirection.f32(i32 148, i8 1), !dbg !84 ; line:28 col:18  ; WorldRayDirection(col)
+  %WorldRayDirection4 = call float @dx.op.worldRayDirection.f32(i32 148, i8 2), !dbg !84 ; line:28 col:18  ; WorldRayDirection(col)
+  call void @llvm.dbg.value(metadata float %WorldRayDirection, i64 0, metadata !85, metadata !86), !dbg !87 ; var:"dir" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection3, i64 0, metadata !85, metadata !88), !dbg !87 ; var:"dir" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection4, i64 0, metadata !85, metadata !89), !dbg !87 ; var:"dir" !DIExpression(DW_OP_bit_piece, 64, 32) func:"main"
+  %RayTCurrent = call float @dx.op.rayTCurrent.f32(i32 154), !dbg !90 ; line:31 col:43  ; RayTCurrent()
+  call void @llvm.dbg.value(metadata float %.i05, i64 0, metadata !91, metadata !86), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %.i16, i64 0, metadata !91, metadata !88), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %.i27, i64 0, metadata !91, metadata !89), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 64, 32) func:"main"
+  call void @llvm.dbg.value(metadata float 0x3FB99999A0000000, i64 0, metadata !91, metadata !99), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 96, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection, i64 0, metadata !91, metadata !100), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 128, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %WorldRayDirection3, i64 0, metadata !91, metadata !101), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 160, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %8, i64 0, metadata !91, metadata !102), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 192, 32) func:"main"
+  call void @llvm.dbg.value(metadata float 1.000000e+03, i64 0, metadata !91, metadata !103), !dbg !98 ; var:"ray" !DIExpression(DW_OP_bit_piece, 224, 32) func:"main"
+  %3 = getelementptr inbounds %struct.Payload, %struct.Payload* %payload, i32 0, i32 0, !dbg !104 ; line:37 col:13
+  %4 = load <4 x i32>, <4 x i32>* %3, align 4, !dbg !105, !tbaa !106 ; line:37 col:19
+  %.i08 = extractelement <4 x i32> %4, i32 0, !dbg !105 ; line:37 col:19
+  %.i09 = add i32 %.i08, 1, !dbg !105 ; line:37 col:19
+  %.i110 = extractelement <4 x i32> %4, i32 1, !dbg !105 ; line:37 col:19
+  %.i111 = add i32 %.i110, 1, !dbg !105 ; line:37 col:19
+  %.i212 = extractelement <4 x i32> %4, i32 2, !dbg !105 ; line:37 col:19
+  %.i213 = add i32 %.i212, 1, !dbg !105 ; line:37 col:19
+  %.i3 = extractelement <4 x i32> %4, i32 3, !dbg !105 ; line:37 col:19
+  %.i314 = add i32 %.i3, 1, !dbg !105 ; line:37 col:19
+  %.upto015 = insertelement <4 x i32> undef, i32 %.i09, i32 0, !dbg !105 ; line:37 col:19
+  %.upto116 = insertelement <4 x i32> %.upto015, i32 %.i111, i32 1, !dbg !105 ; line:37 col:19
+  %.upto2 = insertelement <4 x i32> %.upto116, i32 %.i213, i32 2, !dbg !105 ; line:37 col:19
+  %5 = insertelement <4 x i32> %.upto2, i32 %.i314, i32 3, !dbg !76 ; line:40 col:9
+  store <4 x i32> %5, <4 x i32>* %3, align 4, !dbg !105, !tbaa !106 ; line:37 col:19
+  %6 = icmp ult i32 %.i09, 30, !dbg !109 ; line:39 col:25
+  br i1 %6, label %7, label %12, !dbg !110 ; line:39 col:9
+
+; <label>:7                                       ; preds = %0
+  %8 = fsub fast float -0.000000e+00, %WorldRayDirection4, !dbg !111 ; line:33 col:42
+  %WorldRayOrigin2 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 2), !dbg !112 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i2 = fmul fast float %RayTCurrent, %WorldRayDirection4, !dbg !113 ; line:31 col:41
+  %.i27 = fadd fast float %WorldRayOrigin2, %.i2, !dbg !114 ; line:31 col:35
+  %WorldRayOrigin1 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 1), !dbg !112 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i1 = fmul fast float %RayTCurrent, %WorldRayDirection3, !dbg !113 ; line:31 col:41
+  %.i16 = fadd fast float %WorldRayOrigin1, %.i1, !dbg !114 ; line:31 col:35
+  %WorldRayOrigin = call float @dx.op.worldRayOrigin.f32(i32 147, i8 0), !dbg !112 ; line:31 col:18  ; WorldRayOrigin(col)
+  %.i0 = fmul fast float %RayTCurrent, %WorldRayDirection, !dbg !113 ; line:31 col:41
+  %.i05 = fadd fast float %WorldRayOrigin, %.i0, !dbg !114 ; line:31 col:35
+  %9 = call %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32 160, %struct.RaytracingAccelerationStructure %1), !dbg !76 ; line:40 col:9  ; CreateHandleForLib(Resource)
+  %10 = getelementptr inbounds %struct.Payload, %struct.Payload* %2, i32 0, i32 0, !dbg !76 ; line:40 col:9
+  store <4 x i32> %5, <4 x i32>* %10, align 8, !dbg !76 ; line:40 col:9
+  call void @dx.op.traceRay.struct.Payload(i32 157, %dx.types.Handle %9, i32 17, i32 255, i32 0, i32 1, i32 0, float %.i05, float %.i16, float %.i27, float 0x3FB99999A0000000, float %WorldRayDirection, float %WorldRayDirection3, float %8, float 1.000000e+03, %struct.Payload* nonnull %2), !dbg !76 ; line:40 col:9  ; TraceRay(AccelerationStructure,RayFlags,InstanceInclusionMask,RayContributionToHitGroupIndex,MultiplierForGeometryContributionToShaderIndex,MissShaderIndex,Origin_X,Origin_Y,Origin_Z,TMin,Direction_X,Direction_Y,Direction_Z,TMax,payload)
+  %11 = load <4 x i32>, <4 x i32>* %10, align 8, !dbg !115 ; line:48 col:5
+  store <4 x i32> %11, <4 x i32>* %3, align 4, !dbg !115 ; line:48 col:5
+  br label %12, !dbg !115 ; line:48 col:5
+
+; <label>:12                                      ; preds = %7, %0
+  ret void, !dbg !116 ; line:67 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #1
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayOrigin.f32(i32, i8) #1
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayDirection.f32(i32, i8) #1
+
+; Function Attrs: nounwind readonly
+declare float @dx.op.rayTCurrent.f32(i32) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.traceRay.struct.Payload(i32, %dx.types.Handle, i32, i32, i32, i32, i32, float, float, float, float, float, float, float, float, %struct.Payload*) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32, %struct.RaytracingAccelerationStructure) #2
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!49, !50}
+!llvm.ident = !{!51}
+!dx.source.contents = !{!52}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!53}
+!dx.source.args = !{!54}
+!dx.version = !{!55}
+!dx.valver = !{!56}
+!dx.shaderModel = !{!57}
+!dx.resources = !{!58}
+!dx.typeAnnotations = !{!62, !67}
+!dx.entryPoints = !{!72, !73}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !26, globals: !43)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4, !15}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, line: 28, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, line: 28, size: 96, align: 32, elements: !6, templateParams: !11)
+!6 = !{!7, !9, !10}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, line: 28, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !{!12, !13}
+!12 = !DITemplateTypeParameter(name: "element", type: !8)
+!13 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 3)
+!14 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!15 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint4", file: !1, baseType: !16)
+!16 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 4>", file: !1, size: 128, align: 32, elements: !17, templateParams: !23)
+!17 = !{!18, !20, !21, !22}
+!18 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !16, file: !1, baseType: !19, size: 32, align: 32, flags: DIFlagPublic)
+!19 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !16, file: !1, baseType: !19, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!23 = !{!24, !25}
+!24 = !DITemplateTypeParameter(name: "element", type: !19)
+!25 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 4)
+!26 = !{!27}
+!27 = !DISubprogram(name: "main", linkageName: "\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", scope: !1, file: !1, line: 27, type: !28, isLocal: false, isDefinition: true, scopeLine: 27, flags: DIFlagPrototyped, isOptimized: false, function: void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z")
+!28 = !DISubroutineType(types: !29)
+!29 = !{null, !30, !34}
+!30 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !31)
+!31 = !DICompositeType(tag: DW_TAG_structure_type, name: "Payload", file: !1, line: 20, size: 128, align: 32, elements: !32)
+!32 = !{!33}
+!33 = !DIDerivedType(tag: DW_TAG_member, name: "data0", scope: !31, file: !1, line: 21, baseType: !15, size: 128, align: 32)
+!34 = !DICompositeType(tag: DW_TAG_structure_type, name: "BuiltInTriangleIntersectionAttributes", file: !1, size: 64, align: 32, elements: !35)
+!35 = !{!36}
+!36 = !DIDerivedType(tag: DW_TAG_member, name: "barycentrics", scope: !34, file: !1, baseType: !37, size: 64, align: 32)
+!37 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, size: 64, align: 32, elements: !38, templateParams: !41)
+!38 = !{!39, !40}
+!39 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !37, file: !1, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!40 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !37, file: !1, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!41 = !{!12, !42}
+!42 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 2)
+!43 = !{!44, !46, !47}
+!44 = !DIGlobalVariable(name: "RAY_FLAG_FORCE_OPAQUE", scope: !0, file: !1, line: 41, type: !45, isLocal: true, isDefinition: true, variable: i32 1)
+!45 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !19)
+!46 = !DIGlobalVariable(name: "RAY_FLAG_CULL_BACK_FACING_TRIANGLES", scope: !0, file: !1, line: 41, type: !45, isLocal: true, isDefinition: true, variable: i32 16)
+!47 = !DIGlobalVariable(name: "tlas", linkageName: "\01?tlas@@3URaytracingAccelerationStructure@@A", scope: !0, file: !1, line: 24, type: !48, isLocal: false, isDefinition: true, variable: %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A")
+!48 = !DICompositeType(tag: DW_TAG_structure_type, name: "RaytracingAccelerationStructure", file: !1, line: 24, size: 32, align: 32, elements: !2)
+!49 = !{i32 2, !"Dwarf Version", i32 4}
+!50 = !{i32 2, !"Debug Info Version", i32 3}
+!51 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!52 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// This is the shader from issue 3414, unmodified, at the profile used in the thread.\0A//\0A// In each pane, compare the last argument of the \22call void @dx.op.traceRay\22 line with the\0A// payload parameter named in the \22define void @...main...\22 line at the top of the function.\0A//\0A// In the DXC 1.6.2112 and DXC 1.8.2502 panes those two are the same value: the recursive\0A// TraceRay is handed the closest-hit shader's own inout payload object, so the caller and the\0A// recursive call share one payload instead of the copy that HLSL copy-in/copy-out requires.\0A//\0A// In the DXC 1.8.2505 and trunk panes the TraceRay argument is a separate local allocation\0A// instead, written on the line immediately before the call and read back immediately after it.\0A// That is the copy-in/copy-out, and it is exactly what the reporter's workaround forced by hand\0A// by introducing a second Payload variable.\0A//==========================================================================//\0A\0A#define RECURSION_DEPTH 30\0A#define BUGGED 1\0A\0Astruct Payload {\0A    uint4 data0;\0A};\0A\0ARaytracingAccelerationStructure tlas : register(t0, space0);\0A\0A[shader(\22closesthit\22)] void\0Amain(inout Payload payload, in BuiltInTriangleIntersectionAttributes attribs) {\0A    float3 dir = WorldRayDirection();\0A\0A    RayDesc ray;\0A    ray.Origin = WorldRayOrigin() + dir * RayTCurrent();\0A    ray.TMin = 0.1;\0A    ray.Direction = float3(dir.x, dir.y, -dir.z);\0A    ray.TMax = 1000.0;\0A\0A#if BUGGED\0A    payload.data0 += uint4(1,1,1,1);\0A\0A    if (payload.data0.x < RECURSION_DEPTH) {\0A        TraceRay(tlas,\0A                RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES |\0A                    0, // flags\0A                0xff,  // instance inclusion mask\0A                0,     // RayContributionToHitGroupIndex\0A                1,     // MultiplierForGeometryContributionToHitGroupIndex\0A                0,     // MissShaderIndex\0A                ray, payload);\0A    }\0A#else\0A    Payload new_payload;\0A    new_payload = payload;\0A    new_payload.data0 += uint4(1,1,1,1);\0A\0A    if (new_payload.data0.x < RECURSION_DEPTH) {\0A        TraceRay(tlas,\0A                 RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES |\0A                     0, // flags\0A                 0xff,  // instance inclusion mask\0A                 0,     // RayContributionToHitGroupIndex\0A                 1,     // MultiplierForGeometryContributionToHitGroupIndex\0A                 0,     // MissShaderIndex\0A                 ray, new_payload);\0A\0A        payload = new_payload;\0A    }\0A#endif\0A}\0A"}
+!53 = !{!"/app/example.hlsl"}
+!54 = !{!"-E", !"lib.no::entry", !"-T", !"lib_6_3", !"-Zi", !"-Qembed_debug"}
+!55 = !{i32 1, i32 3}
+!56 = !{i32 1, i32 10}
+!57 = !{!"lib", i32 6, i32 3}
+!58 = !{!59, null, null, null}
+!59 = !{!60}
+!60 = !{i32 0, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", !"tlas", i32 0, i32 0, i32 1, i32 16, i32 0, !61}
+!61 = !{i32 0, i32 4}
+!62 = !{i32 0, %struct.Payload undef, !63, %struct.BuiltInTriangleIntersectionAttributes undef, !65}
+!63 = !{i32 16, !64}
+!64 = !{i32 6, !"data0", i32 3, i32 0, i32 7, i32 5}
+!65 = !{i32 8, !66}
+!66 = !{i32 6, !"barycentrics", i32 3, i32 0, i32 7, i32 9}
+!67 = !{i32 1, void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !68}
+!68 = !{!69, !70, !71}
+!69 = !{i32 1, !2, !2}
+!70 = !{i32 2, !2, !2}
+!71 = !{i32 0, !2, !2}
+!72 = !{null, !"", null, !58, null}
+!73 = !{void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", null, null, !74}
+!74 = !{i32 8, i32 10, i32 6, i32 16, i32 7, i32 8, i32 5, !75}
+!75 = !{i32 0}
+!76 = !DILocation(line: 40, column: 9, scope: !77)
+!77 = distinct !DILexicalBlock(scope: !78, file: !1, line: 39, column: 44)
+!78 = distinct !DILexicalBlock(scope: !27, file: !1, line: 39, column: 9)
+!79 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "attribs", arg: 2, scope: !27, file: !1, line: 27, type: !34)
+!80 = !DIExpression()
+!81 = !DILocation(line: 27, column: 70, scope: !27)
+!82 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "payload", arg: 1, scope: !27, file: !1, line: 27, type: !31)
+!83 = !DILocation(line: 27, column: 20, scope: !27)
+!84 = !DILocation(line: 28, column: 18, scope: !27)
+!85 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "dir", scope: !27, file: !1, line: 28, type: !4)
+!86 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!87 = !DILocation(line: 28, column: 12, scope: !27)
+!88 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!89 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!90 = !DILocation(line: 31, column: 43, scope: !27)
+!91 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "ray", scope: !27, file: !1, line: 30, type: !92)
+!92 = !DICompositeType(tag: DW_TAG_structure_type, name: "RayDesc", file: !1, line: 30, size: 256, align: 32, elements: !93)
+!93 = !{!94, !95, !96, !97}
+!94 = !DIDerivedType(tag: DW_TAG_member, name: "Origin", scope: !92, file: !1, line: 30, baseType: !5, size: 96, align: 32)
+!95 = !DIDerivedType(tag: DW_TAG_member, name: "TMin", scope: !92, file: !1, line: 30, baseType: !8, size: 32, align: 32, offset: 96)
+!96 = !DIDerivedType(tag: DW_TAG_member, name: "Direction", scope: !92, file: !1, line: 30, baseType: !5, size: 96, align: 32, offset: 128)
+!97 = !DIDerivedType(tag: DW_TAG_member, name: "TMax", scope: !92, file: !1, line: 30, baseType: !8, size: 32, align: 32, offset: 224)
+!98 = !DILocation(line: 30, column: 13, scope: !27)
+!99 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!100 = !DIExpression(DW_OP_bit_piece, 128, 32)
+!101 = !DIExpression(DW_OP_bit_piece, 160, 32)
+!102 = !DIExpression(DW_OP_bit_piece, 192, 32)
+!103 = !DIExpression(DW_OP_bit_piece, 224, 32)
+!104 = !DILocation(line: 37, column: 13, scope: !27)
+!105 = !DILocation(line: 37, column: 19, scope: !27)
+!106 = !{!107, !107, i64 0}
+!107 = !{!"omnipotent char", !108, i64 0}
+!108 = !{!"Simple C/C++ TBAA"}
+!109 = !DILocation(line: 39, column: 25, scope: !78)
+!110 = !DILocation(line: 39, column: 9, scope: !27)
+!111 = !DILocation(line: 33, column: 42, scope: !27)
+!112 = !DILocation(line: 31, column: 18, scope: !27)
+!113 = !DILocation(line: 31, column: 41, scope: !27)
+!114 = !DILocation(line: 31, column: 35, scope: !27)
+!115 = !DILocation(line: 48, column: 5, scope: !77)
+!116 = !DILocation(line: 67, column: 1, scope: !27)

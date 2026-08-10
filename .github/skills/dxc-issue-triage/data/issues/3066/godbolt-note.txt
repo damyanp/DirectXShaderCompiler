@@ -1,0 +1,39 @@
+Issue 3066 asks for DXC's disassembly listing to print decoded, human-readable
+forms where it currently prints raw values. Read the listing text, not the exit
+status: every pane compiles successfully.
+
+Read this caveat first. Compiler Explorer appends debug-info flags to every DXC
+pane whatever arguments are given, which you can confirm in the dx.source.args
+metadata node at the bottom of a DXC pane. So these panes show DXC at its most
+readable, not its default. A plain command line without debug info prints less
+than you see here: no per-instruction source location, and numbered SSA values
+in place of the value names derived from resource declarations. Those same
+flags also embed this file, comments and all, into a metadata node at the
+bottom of each pane, so search the instruction listing by eye rather than by
+text search.
+
+In the DXC panes, three places.
+
+First, the line calling dx.op.binary.f32. Two of its arguments are the operands
+of the max(); one is a floating-point constant that the listing leaves in
+LLVM's hexadecimal form. The trailing comment on that line decodes the opcode
+number to a name and lists the operand names, then stops. That comment is the
+one the issue quotes, and the issue's second request is for it to also carry
+the constant in decimal.
+
+Second, the line calling dx.op.bufferStore.f32. Its trailing comment ends at
+the operand-name list, so the comment itself never says which of the four rows
+of the Resource Bindings table further up the listing is being written; the
+issue's fourth request is for that name to appear there. In these panes the
+handle argument does carry a value name derived from the resource declaration,
+because of the debug-info flags described above. The same applies to the
+dx.op.sample.f32 and dx.op.cbufferLoadLegacy.f32 lines.
+
+Third, the ViewId state block in the comment header, in the rows reading
+"output N depends on inputs". Both sides of that relation are printed as bare
+scalar element indices rather than as signature element names, and the
+debug-info flags make no difference to them. That is the issue's last request.
+
+The two panes are Compiler Explorer's oldest DXC and its trunk build. They
+print the same text, so nothing in this range of versions has changed the
+listing in the places above.

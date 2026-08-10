@@ -25,6 +25,7 @@ closes an issue.
 
 import argparse
 import contextlib
+import hashlib
 import json
 import os
 import re
@@ -401,6 +402,67 @@ def _has_positive_clause(issue, match_file="match.json"):
     return walk(m)
 
 
+def predicate_clause_signature(issue, text, rc, timed_out,
+                               match_file="match.json"):
+    """Return leaf results plus whether any positive observation succeeded.
+
+    Spelling re-probes need evidence that an alternate spelling was honoured,
+    not merely tolerated. Comparing the predicate's leaf results with the same
+    command minus that option ties acceptance to the output the issue actually
+    cares about and avoids trusting a silently ignored `/` option.
+    """
+    path = os.path.join(issue_dir(issue), match_file)
+    try:
+        with open(path, encoding="utf-8") as f:
+            root = json.load(f)
+    except (OSError, ValueError):
+        return (), False
+
+    results = []
+    positive_hits = []
+
+    def walk(node):
+        kind = node.get("kind") if isinstance(node, dict) else None
+        if kind in ("any_of", "all_of"):
+            for sub in node.get("value") or []:
+                walk(sub)
+            return
+        hit = _eval_match(node, text, rc, timed_out, path)
+        results.append(bool(hit))
+        inverted = bool(node.get("invert", False))
+        positive = (
+            (kind in ("contains", "regex", "internal_failure", "timeout")
+             and not inverted)
+            or (kind in ("not_contains", "not_regex") and inverted)
+        )
+        positive_hits.append(positive and bool(hit))
+
+    walk(root)
+    return tuple(results), any(positive_hits)
+
+
+def spelling_reprobe_evidence(issue, match_file, candidate, baseline):
+    """Explain why an alternate option spelling is observably effective.
+
+    The candidate must reach at least one positive predicate anchor and change
+    at least one predicate clause relative to the same command with the option
+    removed. Exit zero and absence of an "Unknown argument" diagnostic are not
+    evidence: unrecognised `/` options are silently ignored on Windows.
+    """
+    candidate_sig, positive = predicate_clause_signature(
+        issue, candidate["text"], candidate["rc"], candidate["timed_out"],
+        match_file)
+    baseline_sig, _ = predicate_clause_signature(
+        issue, baseline["text"], baseline["rc"], baseline["timed_out"],
+        match_file)
+    if not candidate_sig or not positive or candidate_sig == baseline_sig:
+        return None
+    changed = [str(i + 1) for i, (a, b) in
+               enumerate(zip(candidate_sig, baseline_sig)) if a != b]
+    return ("predicate clause(s) " + ",".join(changed)
+            + " differ from the same command with the option removed")
+
+
 def _predicate_quotes(issue, match_file, marker):
     """True if the issue's OWN predicate spells out the diagnostic `marker`.
 
@@ -771,8 +833,73 @@ def cmd_fetch(a):
     print(f"  comments: {len(j['comments'])}  -> {d}")
 
 
-VALUE_FLAGS = {"-i", "-e", "-t", "-d", "-fo", "-fh", "-fc", "-fe", "-fd",
-               "-fre", "-frs", "-fsh", "-vn", "-exports", "-x", "-include"}
+# Options that consume following argv tokens. Keep this in sync with every
+# JoinedOrSeparate, Separate and MultiArg entry in HLSLOptions.td, plus the
+# Clang options DXC forwards. `retarget_cmd`, `ce_args`, the spelling re-probe
+# control and probe-input protection all use the same table; an omission can
+# turn an option value into a source file. #3044 exposed the missing `-Fi`.
+VALUE_FLAG_ARITY = {
+    "-d": 1, "-i": 1, "-import-binding-table": 1,
+    "-binding-table-define": 1, "-memdep-block-scan-limit": 1,
+    "-opt-disable": 1, "-opt-enable": 1, "-opt-select": 2,
+    "-mf": 1, "-external": 1, "-external-fn": 1, "-hv": 1,
+    "-rootsig-define": 1, "-auto-binding-space": 1, "-exports": 1,
+    "-default-linkage": 1, "-precise-output": 1, "-encoding": 1,
+    "-validator-version": 1, "-print-before": 1, "-print-after": 1,
+    "-ignore-semdef": 1, "-override-semdef": 1,
+    "-fvk-b-shift": 2, "-fvk-t-shift": 2, "-fvk-s-shift": 2,
+    "-fvk-u-shift": 2, "-fvk-bind-globals": 2,
+    "-fvk-bind-register": 4, "-vkbr": 4, "-fspv-max-id": 1,
+    "-fvk-bind-resource-heap": 2, "-fvk-bind-sampler-heap": 2,
+    "-fvk-bind-counter-heap": 2,
+    "-t": 1, "-e": 1, "-denorm": 1,
+    "-fo": 1, "-fc": 1, "-fh": 1, "-fe": 1, "-fd": 1,
+    "-fre": 1, "-frs": 1, "-fsh": 1, "-fi": 1, "-vn": 1,
+    "-setrootsignature": 1, "-verifyrootsignature": 1,
+    "-force-rootsig-ver": 1, "-force_rootsig_ver": 1,
+    "-setprivate": 1, "-getprivate": 1,
+    # Forwarded Clang/common options not defined by HLSLOptions.td.
+    "-x": 1, "-include": 1,
+}
+VALUE_FLAGS = set(VALUE_FLAG_ARITY)
+
+# Existing files named by these options are expected to change. Everything
+# else named on the command line is evidence and is protected from mutation.
+OUTPUT_VALUE_FLAGS = {
+    "-mf", "-fo", "-fc", "-fh", "-fe", "-fd", "-fre", "-frs", "-fsh",
+    "-fi", "-setprivate", "-getprivate",
+}
+
+
+def option_key(token):
+    """Canonicalise one complete option token for the argv tables above."""
+    token = token.lower().rstrip(":=")
+    if token.startswith("/") and len(token) > 1:
+        token = "-" + token[1:]
+    return token
+
+
+def option_arity(token):
+    """Number of following argv tokens consumed by this separate spelling."""
+    key = option_key(token)
+    # `-Foo=bar` and joined spellings consume no following token.
+    if "=" in token or ":" in token:
+        return 0
+    return VALUE_FLAG_ARITY.get(key, 0)
+
+
+def command_token_roles(line):
+    """Return argv plus indexes consumed as option values."""
+    toks = split_cmd(line)
+    values = set()
+    i = 0
+    while i < len(toks):
+        arity = option_arity(toks[i])
+        for j in range(1, arity + 1):
+            if i + j < len(toks):
+                values.add(i + j)
+        i += 1 + arity
+    return toks, values
 
 
 def split_cmd(line):
@@ -803,19 +930,18 @@ def retarget_cmd(line, shader):
     a path, `-Fo` a filename -- and must survive untouched, or the control
     stops differing from the repro in exactly one way.
     """
-    toks = line.split()
-    out, replaced, prev = [], False, ""
-    for tok in toks:
+    toks, values = command_token_roles(line)
+    out, replaced = [], False
+    for i, tok in enumerate(toks):
         is_source = (not replaced
                      and tok.lower().endswith(".hlsl")
                      and not tok.startswith(("-", "/"))
-                     and prev.lower().rstrip(":=") not in VALUE_FLAGS)
+                     and i not in values)
         out.append(shader if is_source else tok)
         replaced = replaced or is_source
-        prev = tok
     if not replaced:
         raise SystemExit(f"no source file to replace in: {line}")
-    return " ".join(out)
+    return subprocess.list2cmdline(out)
 
 
 UNKNOWN_ARGUMENT_RE = re.compile(
@@ -879,6 +1005,36 @@ def replace_argument_spelling(cmds, old, new):
         changed = changed or line_changed
         rewritten.append(subprocess.list2cmdline(out) if line_changed else line)
     return rewritten if changed else None
+
+
+def remove_argument(cmds, arg):
+    """Remove one option and its separate value tokens from every command."""
+    rewritten, changed = [], False
+    for line in cmds:
+        toks = split_cmd(line)
+        out, i, line_changed = [], 0, False
+        while i < len(toks):
+            if toks[i].lower() == arg.lower():
+                i += 1 + option_arity(toks[i])
+                changed = line_changed = True
+                continue
+            out.append(toks[i])
+            i += 1
+        rewritten.append(subprocess.list2cmdline(out) if line_changed else line)
+    return rewritten if changed else None
+
+
+def command_option_tokens(cmds):
+    """Distinct option tokens, excluding values that happen to start with `/`."""
+    result = []
+    for line in cmds:
+        toks, values = command_token_roles(line)
+        for i, tok in enumerate(toks):
+            if i in values or not tok.startswith(("-", "/")):
+                continue
+            if tok not in result:
+                result.append(tok)
+    return result
 
 
 def classify(issue, text, rc, timed_out, match_file="match.json", explain=False):
@@ -997,6 +1153,21 @@ def classify(issue, text, rc, timed_out, match_file="match.json", explain=False)
     return out(verdict)
 
 
+def classify_capture(issue, meta, text, match_file=None, explain=False):
+    """Score archived output, including proof attached to spelling re-probes."""
+    mf = match_file or meta.get("match", "match.json")
+    rc = None if meta.get("exit") in (None, "None", "TIMEOUT") \
+        else int(meta["exit"])
+    verdict, reason = classify(
+        issue, text, rc, meta.get("timed_out") == "1", mf, explain=True)
+    if meta.get("argument-spelling-reprobe") \
+            and not meta.get("argument-spelling-evidence"):
+        verdict = "invalid-probe"
+        reason = ("legacy spelling re-probe has no behavioural control proving "
+                  "the accepted spelling changed compiler output")
+    return (verdict, reason) if explain else verdict
+
+
 def probe_path(d, compiler, match_file="match.json", label=None):
     """Where a probe's output is filed.
 
@@ -1064,9 +1235,115 @@ def stamp_reason(path, reason):
         f.writelines(lines)
 
 
+def _file_hash(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _tree_hashes(root):
+    result = {}
+    for base, dirs, files in os.walk(root):
+        dirs[:] = [d for d in dirs if d != "__pycache__"]
+        for name in files:
+            path = os.path.join(base, name)
+            if os.path.islink(path):
+                continue
+            result[os.path.relpath(path, root)] = _file_hash(path)
+    return result
+
+
+def _local_file_token(root, token):
+    """Resolve a command-line file token only when it is inside the issue."""
+    if token.startswith("@"):
+        token = token[1:]
+    path = token if os.path.isabs(token) else os.path.join(root, token)
+    path = os.path.abspath(path)
+    try:
+        if os.path.commonpath((root, path)) != os.path.abspath(root):
+            return None
+    except ValueError:
+        return None
+    return os.path.relpath(path, root) if os.path.isfile(path) else None
+
+
+def probe_input_paths(root, cmds):
+    """Files named by the command that are evidence, not declared outputs."""
+    referenced, outputs = set(), set()
+    for line in cmds:
+        toks, _ = command_token_roles(line)
+        i = 0
+        while i < len(toks):
+            arity = option_arity(toks[i])
+            key = option_key(toks[i])
+            for j in range(1, arity + 1):
+                if i + j >= len(toks):
+                    break
+                rel = _local_file_token(root, toks[i + j])
+                if rel:
+                    referenced.add(rel)
+                    if key in OUTPUT_VALUE_FLAGS:
+                        outputs.add(rel)
+            if arity == 0:
+                rel = _local_file_token(root, toks[i])
+                if rel:
+                    referenced.add(rel)
+            i += 1 + arity
+    return referenced - outputs
+
+
+def _sync_probe_outputs(source, scratch, before, after, protected):
+    """Copy compiler-created output back, never a protected input."""
+    for rel, digest in after.items():
+        if rel in protected or before.get(rel) == digest:
+            continue
+        src = os.path.join(scratch, rel)
+        dst = os.path.join(source, rel)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy2(src, dst)
+
+
+def _run_probe_command_list(exe, d, cmds, protect_cmds=None,
+                            sync_outputs=False):
+    """Run one probe in an isolated copy and reject input mutation.
+
+    A spelling retry can change an option's grammar. #3044's `/Fi` retry made
+    an old `-P` treat the repro as its output and silently overwrote it at exit
+    zero. Every attempt now runs in a fresh copy, and every file named as an
+    input by the requested command is hashed before and after. Only generated
+    outputs are copied back after a safe run.
+    """
+    scratch_root = os.path.join(CACHE_ROOT, "scratch")
+    os.makedirs(scratch_root, exist_ok=True)
+    scratch = os.path.join(
+        scratch_root,
+        f"probe-{os.path.basename(d)}-{os.getpid()}-{time.time_ns()}")
+    protected = probe_input_paths(d, protect_cmds or cmds)
+    shutil.copytree(d, scratch)
+    before = _tree_hashes(scratch)
+    try:
+        rc, timed_out, text, observations = _run_command_list(exe, scratch, cmds)
+        after = _tree_hashes(scratch)
+        mutated = [rel for rel in sorted(protected)
+                   if before.get(rel) != after.get(rel)]
+        if mutated:
+            raise SystemExit(
+                "probe modified its own input evidence: "
+                + ", ".join(mutated)
+                + ". The run was isolated and no issue artifact was changed.")
+        if sync_outputs:
+            _sync_probe_outputs(d, scratch, before, after, protected)
+        return {"rc": rc, "timed_out": timed_out, "text": text,
+                "observations": observations}
+    finally:
+        shutil.rmtree(scratch, ignore_errors=True)
+
+
 def _run_command_list(exe, d, cmds):
     """Run one or more dxc command lines and return their combined capture."""
-    chunks, worst_rc, timed_out = [], 0, False
+    chunks, observations, worst_rc, timed_out = [], [], 0, False
     for line in cmds:
         try:
             p = subprocess.run([exe] + split_cmd(line), cwd=d,
@@ -1079,10 +1356,11 @@ def _run_command_list(exe, d, cmds):
         timed_out = timed_out or to
         if rc not in (0, None) and worst_rc == 0:
             worst_rc = rc
+        observations.append((rc, to, out, err))
         chunks.append(f"$ dxc {line}\n[exe] {display_exe(exe)}\n"
                       f"[exit] {'TIMEOUT' if to else rc}\n"
                       f"--- stdout ---\n{out}\n--- stderr ---\n{err}\n")
-    return worst_rc, timed_out, "\n".join(chunks)
+    return worst_rc, timed_out, "\n".join(chunks), tuple(observations)
 
 
 def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
@@ -1188,39 +1466,95 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
         cmds = [retarget_cmd(line, shader) for line in cmds]
 
     requested_cmds = list(cmds)
-    worst_rc, timed_out, text = _run_command_list(exe, d, cmds)
+    probe = _run_probe_command_list(
+        exe, d, cmds, protect_cmds=requested_cmds, sync_outputs=True)
+    worst_rc, timed_out, text = (
+        probe["rc"], probe["timed_out"], probe["text"])
+    observations = probe["observations"]
     verdict, reason = classify(issue, text, worst_rc, timed_out, match_file,
                                explain=True)
     spelling_reprobes = []
+    spelling_evidence = []
     # "Unknown argument" is not yet evidence that the feature is absent. Older
     # releases may accept an underscore or slash spelling of the same option.
-    # Retry before preserving an invalid-probe; otherwise a spelling change
-    # becomes a fake feature boundary. Keep the accepted command in the
-    # capture, and the requested command in a header so reindex can still
-    # detect a genuinely stale cmd.txt.
+    # A failed old driver can also be completely silent, so the diagnostic is
+    # not the trigger of record: for a silent failure, try each option token.
+    #
+    # Acceptance is behavioural. The candidate must change the issue's own
+    # predicate relative to the same command with that option removed, and at
+    # least one positive anchor must hold. This rejects the Windows `/` trap,
+    # where an unknown option exits zero because it was silently ignored.
     for _ in range(8):
         rejected = unknown_argument_token(text) \
             if verdict == "invalid-probe" else None
-        if not rejected:
+        silent_failure = (
+            worst_rc not in (0, None)
+            and not timed_out
+            and all(not str(out).strip() and not str(err).strip()
+                    for _rc, _to, out, err in observations)
+            and not is_internal_failure(text, worst_rc, timed_out)
+        )
+        targets = [rejected] if rejected else (
+            command_option_tokens(cmds)
+            if silent_failure and _has_positive_clause(issue, match_file)
+            else [])
+        if not targets:
             break
         accepted = None
-        for candidate in argument_spelling_variants(rejected):
-            candidate_cmds = replace_argument_spelling(cmds, rejected, candidate)
-            if not candidate_cmds:
+        for target in targets:
+            baseline_cmds = remove_argument(cmds, target)
+            if not baseline_cmds:
                 continue
-            candidate_rc, candidate_to, candidate_text = _run_command_list(
-                exe, d, candidate_cmds)
-            candidate_rejected = unknown_argument_token(candidate_text)
-            if candidate_rejected \
-                    and candidate_rejected.lower() == candidate.lower():
-                continue
-            accepted = (candidate, candidate_cmds, candidate_rc, candidate_to,
-                        candidate_text)
-            break
+            baseline = _run_probe_command_list(
+                exe, d, baseline_cmds, protect_cmds=requested_cmds)
+            for candidate in argument_spelling_variants(target):
+                candidate_cmds = replace_argument_spelling(
+                    cmds, target, candidate)
+                if not candidate_cmds:
+                    continue
+                trial = _run_probe_command_list(
+                    exe, d, candidate_cmds, protect_cmds=requested_cmds)
+                candidate_rejected = unknown_argument_token(trial["text"])
+                if candidate_rejected \
+                        and candidate_rejected.lower() == candidate.lower():
+                    continue
+                candidate_verdict = classify(
+                    issue, trial["text"], trial["rc"], trial["timed_out"],
+                    match_file)
+                evidence = spelling_reprobe_evidence(
+                    issue, match_file, trial, baseline)
+                if candidate_verdict == "invalid-probe" or not evidence:
+                    continue
+                # Run once more to preserve the accepted spelling's generated
+                # outputs. It is still isolated, and must show the same proof.
+                final = _run_probe_command_list(
+                    exe, d, candidate_cmds, protect_cmds=requested_cmds,
+                    sync_outputs=True)
+                final_evidence = spelling_reprobe_evidence(
+                    issue, match_file, final, baseline)
+                final_verdict = classify(
+                    issue, final["text"], final["rc"], final["timed_out"],
+                    match_file)
+                if final_verdict == "invalid-probe" \
+                        or final_evidence != evidence:
+                    continue
+                accepted = (target, candidate, candidate_cmds, final,
+                            final_evidence)
+                break
+            if accepted:
+                break
         if not accepted:
+            if silent_failure and verdict == "no-repro":
+                verdict = "invalid-probe"
+                reason = ("the compiler failed with no output and no spelling "
+                          "variant produced the predicate's positive anchor")
             break
-        candidate, cmds, worst_rc, timed_out, text = accepted
+        rejected, candidate, cmds, probe, evidence = accepted
+        worst_rc, timed_out, text = (
+            probe["rc"], probe["timed_out"], probe["text"])
+        observations = probe["observations"]
         spelling_reprobes.append((rejected, candidate))
+        spelling_evidence.append(evidence)
         verdict, reason = classify(issue, text, worst_rc, timed_out, match_file,
                                    explain=True)
     if spelling_reprobes:
@@ -1256,6 +1590,8 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
                    f"# argument-spelling-reprobe: "
                    + ", ".join(f"{old} -> {new}"
                                for old, new in spelling_reprobes) + "\n"
+                   + "# argument-spelling-evidence: "
+                   + " | ".join(spelling_evidence) + "\n"
                    if spelling_reprobes else "")
                 + f"# exit: {worst_rc}\n# timed_out: {int(timed_out)}\n"
                 f"# match: {match_file}\n# verdict: {verdict}\n"
@@ -1530,6 +1866,25 @@ def split_release_search_rows(rows, issue_data, include_prereleases=()):
     return included, excluded, included_prereleases
 
 
+def mid_history_window_warning(issue_data, release_rows, first_tag, last_tag,
+                               state):
+    """Warn when agreeing clean endpoints can hide the issue's own era."""
+    if state != "never-repro'd-in-releases":
+        return None
+    created = str(issue_data.get("createdAt") or "")[:10]
+    dates = {row["tag"]: str(row["build_date"] or "")[:10]
+             for row in release_rows}
+    first, last = dates.get(first_tag, ""), dates.get(last_tag, "")
+    if first and created and last and first <= created <= last:
+        return (
+            f"warning: both endpoints are clean, but this issue was filed "
+            f"{created}, inside the {first_tag}..{last_tag} release range. "
+            f"Agreeing endpoints are the signature of a possible mid-history "
+            f"regression window; rerun with --linear before treating "
+            f"never-repro'd-in-releases as a result.")
+    return None
+
+
 def cmd_bisect(a):
     """Binary-search the release sequence for the behaviour transition.
 
@@ -1640,6 +1995,10 @@ def cmd_bisect(a):
             note_bits.append(excluded_note)
         note = f" ({'; '.join(note_bits)})" if note_bits else ""
         print(f"\nresult: {state} across {rels[0]}..{rels[-1]}{note}")
+        warning = mid_history_window_warning(
+            issue_data, release_rows, rels[0], rels[-1], state)
+        if warning:
+            print(warning)
         warn_release_blind(a.issue, state)
         return
 
@@ -1836,13 +2195,14 @@ def ce_args(issue):
                  if ln.strip() and not ln.startswith("#")]
     if len(lines) > 1:
         print("  warning: multi-invocation cmd.txt; linking the first only")
-    toks, keep = split_cmd(lines[0]), []
+    toks, values = command_token_roles(lines[0])
+    keep = []
     for i, t in enumerate(toks):
-        positional = i == 0 or toks[i - 1].lower().rstrip(":=") not in VALUE_FLAGS
+        positional = i not in values
         if positional and os.path.exists(os.path.join(d, t)):
             continue
         keep.append(t)
-    return " ".join(keep), lines[0]
+    return subprocess.list2cmdline(keep), lines[0]
 
 
 # DXC emits the resource-binding table and signature tables as *comments* in
@@ -2286,8 +2646,7 @@ def cmd_expect(a):
         sys.exit(f"{a.capture} has no recorded exit status; it is not a capture")
 
     mf = meta.get("match", "match.json")
-    rc = None if meta["exit"] in ("None", "TIMEOUT") else int(meta["exit"])
-    v = classify(a.issue, text, rc, meta.get("timed_out") == "1", mf)
+    v = classify_capture(a.issue, meta, text, mf)
     if expectation_violated(a.expect, v):
         sys.exit(f"refusing: {a.capture} scores {v!r}, so declaring "
                  f"{a.expect!r} would be false on the next reindex")
@@ -2393,9 +2752,8 @@ def cmd_reindex(a):
             mf = meta.get("match", "match.json")
             if "exit" not in meta or not os.path.isfile(os.path.join(d, mf)):
                 continue
-            rc = None if meta["exit"] in ("None", "TIMEOUT") else int(meta["exit"])
-            v, why = classify(number, text, rc, meta.get("timed_out") == "1",
-                              mf, explain=True)
+            v, why = classify_capture(
+                number, meta, text, mf, explain=True)
             if meta.get("expect") and expectation_violated(meta["expect"], v):
                 changed.append(f"#{number} {var}: control declared "
                                f"{meta['expect']} but now scores {v}")
@@ -2444,16 +2802,16 @@ def cmd_reindex(a):
             if not os.path.isfile(os.path.join(d, match_file)):
                 verdict = meta.get("verdict") or "unscored"
             else:
-                verdict = classify(number, text, rc, to, match_file)
+                verdict = classify_capture(number, meta, text, match_file)
                 if a.verify and meta.get("verdict") and meta["verdict"] != verdict:
                     if a.accept:
                         restamp(path, "verdict", verdict)
                         # Keep the demotion's explanation with the verdict it
                         # explains; a restamp that left the old reason behind
                         # would be worse than no reason at all.
-                        stamp_reason(path, classify(number, text, rc, to,
-                                                    match_file,
-                                                    explain=True)[1])
+                        stamp_reason(path, classify_capture(
+                            number, meta, text, match_file,
+                            explain=True)[1])
                         accepted.append(f"#{number} {meta['compiler']}: "
                                         f"{meta['verdict']} -> {verdict}")
                     else:

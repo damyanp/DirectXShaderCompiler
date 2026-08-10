@@ -1,0 +1,21 @@
+{
+  "kind": "all_of",
+  "note": "SECOND PREDICATE for #3066, isolating ask D only: 'for store & loads from buffers/inputs/outputs, add the friendly name of the resource'. Present-symptom = the store instruction identifies its resource by an anonymous SSA handle, so a reader cannot tell which HLSL resource it writes without cross-referencing metadata by hand. Clause 3 is the symptom; clauses 1-2 are the self-test and they are what stop this from being a free absence. Clause 1 requires the g_luminanceOut row of the Resource Bindings table, which proves at once that a complete listing was produced, that the shader really did declare the resource (so the clause is not vacuously true on a shader that never mentions it) and that the compiler knows the friendly name it is not printing. Clause 2 requires the opcode annotator to have run. CONTROL: variant-zi-* (-Zi -Qembed_debug) scores no-match on ground truth and on v1.5.2010, because there the handle operand is '%g_luminanceOut_UAV_structbuf'; that is the proof this predicate detects the name when the name is printed. The primary match.json's clause matrix (manual-case-clause-matrix.txt) shows the same flip on v1.4.1907.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "(?m)^;\\s+g_luminanceOut\\s+UAV\\s+struct\\s+r/w\\s+U0\\s+u0\\s+1\\s*$",
+      "note": "SELF-TEST: complete listing, resource declared, friendly name known to the compiler."
+    },
+    {
+      "kind": "contains",
+      "value": "; FMax(a,b)",
+      "note": "SELF-TEST: the dx.op annotator ran."
+    },
+    {
+      "kind": "regex",
+      "value": "(?m)^\\s*call void @dx\\.op\\.bufferStore\\.f32\\(i32 69, %dx\\.types\\.Handle %\\d+,",
+      "note": "ask D symptom: the store's resource operand is an anonymous SSA value, not the resource's name."
+    }
+  ]
+}

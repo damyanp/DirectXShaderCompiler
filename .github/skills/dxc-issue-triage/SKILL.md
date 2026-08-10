@@ -230,25 +230,22 @@ The lesson generalised into tooling rather than a reminder: `run --shader X --la
 makes capturing a control the easy path, because a step that depends on remembering to do it by
 hand is a step that will be skipped. **A control nobody can re-run is not a control.**
 
-> **The agent `grep` tool silently returns zero matches here. Use `Select-String`.**
+> **The agent `grep`/ripgrep tool silently returns zero matches under `.github/`. Use
+> `Select-String` (or explicit `rg --hidden`).**
 >
-> Measured, back to back, same pattern and same directory: **with** a `glob` filter it finds
-> the file; **without** one it answers `No matches found`. It does not error. A worker and I
-> hit this independently and my first diagnosis — that ripgrep was skipping `.github` because
-> it is hidden — was wrong; controlled probes located the trigger as the **missing `glob`
-> filter**. 7 of 7 glob-less queries across the triage tree false-zeroed, and 4 of 4 glob'd
-> queries were accurate. `glob` and `view` are unaffected, which makes it worse: you can list
-> a file, then fail to search it.
+> Ripgrep skips dot-directories by default. In this skill that failure is silent: the answer is
+> `No matches found`, exactly the same text as a true negative. It was hit repeatedly while
+> searching for identifiers known to exist in `triage.py`. `glob` and `view` are unaffected,
+> which makes it worse: you can list a file, then fail to search it.
 >
 > This matters because the checks that carry the most weight here are **absence** checks — "no
 > issue tag in this message", "no absolute path in a committed file", "that unsupported claim
 > is gone from the draft". Each returns a confident false clean, and is then recorded as
 > having passed. An absence check run with the wrong tool is worse than no check at all.
 >
-> **Rule: whenever a *zero* result would be meaningful, use `Select-String` or `git grep`.**
-> Passing a `glob` does appear to restore accuracy, but do not rely on it for a verdict — the
-> failure is silent, so a mistake is invisible. Scans of git **commit messages** are safe:
-> they read `git log` output rather than files on disk.
+> **Rule: for every search under this skill — especially when a zero result would be
+> meaningful — use PowerShell `Select-String`, `git grep`, or `rg --hidden`.** Scans of git
+> **commit messages** are safe because they read `git log` output rather than files on disk.
 
 ## Setup
 
@@ -274,6 +271,12 @@ python triage.py catalog --seed-from <repo>/build/tools/clang/test/dxc_releases
 encoded in the asset name**, not the publish date — servicing patches ship long after the
 snapshot they were built from. `--seed-from` adopts release trees the DXC test infrastructure
 already downloaded, for free.
+
+The catalog is also the reconciliation layer for the two physical release roots: downloaded
+assets under `.cache` and test-seeded trees under
+`build/tools/clang/test/dxc_releases`. Its `releases.cached_path` / `seed_local` records point
+at the usable tree. Release-matrix scripts should query the database rather than walking one
+root and silently missing the other.
 
 ### `reindex` is a regression test over every past batch
 
@@ -567,6 +570,11 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 > over `dxc` will find it. Measured on #2923, and it is what let that issue's draft say
 > "`lib/DxilPIXPasses`" instead of "somewhere between these two releases".
 
+**Before writing a predicate, find where the mode writes its result.** `dxc -P` writes only
+to a file, so a stdout predicate sees nothing; #3044 compiled the generated `.i` with `-Zi`
+in a second invocation to put the text into `!dx.source.contents`. A file-producing mode
+needs a command chain or harness that brings that artifact into the scored capture.
+
 ### 4. Define the symptom predicate
 
 `match.json` encodes "the symptom is present" so the same test is applied to every compiler
@@ -635,9 +643,12 @@ Add `"invert": true` to negate.
 > `0x80AA001D` appears as exit 29 and `0x80004005` as exit 5. Compare the diagnostic class,
 > not the decimal CE exit number, when correlating a pane with a Windows capture.
 
-> Unrecognised `/`-style flags are **silently ignored** — `/ZZZNONSENSE` exits 0. Never infer
-> that a flag was honoured from a clean exit; make it fail (point it at a missing file) to
-> prove it was parsed at all.
+> Unrecognised `/`-style flags are **silently ignored** — `/ZZZNONSENSE` can exit 0. Position
+> matters: DXC may instead treat it as an input path and fail "file not found", which still
+> does not mean the option was parsed. Put the nonsense control where the real option goes and
+> compare the produced artifact byte-for-byte with the same command **without** the option.
+> Exit status and absence of an `Unknown argument` diagnostic are both insufficient. On #3044,
+> `/C`, `/CC`, `/ZZZNONSENSE` and no flag produced identical SHA-256 values on every build.
 
 > **Message text is not portable.** The same failure is worded differently across platforms:
 > the Windows build prints `llvm::cast<X>()` where the Linux build behind Compiler Explorer
@@ -652,6 +663,13 @@ Add `"invert": true` to negate.
 > invented a fix boundary at the exact release the issue was filed against. This is the reason
 > `internal_failure` is defined on the exit status first and the text second — never write a
 > crash predicate that depends on the crash saying anything.
+>
+> **IR/disassembly text is no more portable than diagnostics.** v1.4.1907 emits named SSA
+> values where later releases emit `%1`, `%2`, ...; #3414's numeric-register anchor therefore
+> false-negatived only on the oldest release. Explore old output before finalising a regex and
+> prefer structural anchors such as `%[\w.]+` over a modern build's spelling. Predicates use
+> `re.MULTILINE`, not `DOTALL`: `.` never crosses a line, so use `[\s\S]` or an explicit
+> line-by-line gap when matching across IR lines.
 
 **An issue may need more than one predicate.** When the reported symptom differs from current
 behaviour, add e.g. `match-crash.json` and bisect each separately. That is how you distinguish
@@ -677,6 +695,25 @@ you happen to run will report it fixed:
 > broken state that Release spins on. A bare `timeout` predicate scores the Debug ground truth
 > as `no-repro` and reports this open, always-reproducing bug as **fixed**. Neither signature
 > alone is the symptom; failing to compile a valid shader is.
+
+**Decompose multi-ask issues before choosing one verdict.** A request with five bullets can
+contain already-satisfied, partly-satisfied and still-missing pieces at the same time. Record
+each ask in `expected.md`, score it separately, and let the overall action follow the remaining
+work rather than forcing one bit across the list. #3066 had one half satisfied at filing, two
+open gaps and a later regression.
+
+**An `all_of` result hides which clause moved.** Investigate every `no-repro` release instead
+of reading the conjunction as "the feature once worked". For more than a few clauses, emit a
+clause-by-capture matrix; if one clause has its own history, isolate it in a second predicate
+and bisect that. Keep self-test clauses in the matrix so a flip proves the subject changed,
+not that output disappeared.
+
+**Score controls against the instrument, not an unrelated anchor.** If the full predicate is
+`all_of[diagnostic anchor, mangling detector]`, a different-message control fails the anchor
+and says nothing about the detector. Put the detector alone in `match-*.json` and run controls
+against that. A good control for output-quality issues is a well-formed message about the
+*same subject* — #3439 contrasted a mangled CodeGen name with Sema naming the same function
+readably.
 
 When matching DXIL signature layouts, remember that disassembly prints a second set of
 signature-like PSV runtime tables. Anchor a row on a column unique to the table you mean
@@ -755,8 +792,10 @@ real absence from a typo in a regex.
 >
 > With a multi-invocation `cmd.txt`, `run --shader` retargets **every** line, so a control
 > source must define every entry point those lines name. `run --args` still represents only
-> one invocation and cannot express a per-stage variation of a multi-line repro; use a
-> command-echoing matrix harness for that case.
+> one invocation and cannot express a per-stage variation of a multi-line repro. A chain that
+> includes a non-HLSL input (`.i`, `.bc`, `.dxil`) cannot be retargeted with `--shader` at all,
+> because that line has no source token to replace. Use labelled `--args` captures for single
+> arms or a command-echoing matrix harness for the whole chain.
 
 > **`audit` wants a tool-made capture for every `.hlsl` in the directory.** A matrix driven by
 > a hand-written script leaves shaders with no `variant-*.txt` beside them, and the audit is
@@ -808,6 +847,15 @@ enough by itself — read the translator body and confirm it actually uses the o
 entirely true — release packaging, documentation or policy issues are common examples — the
 compiler is not the instrument. State why no probe exists and capture the metadata or process
 evidence instead.
+
+**That does not mean "static analysis only"; find the producing instrument.** A build-system
+issue may be measurable through a generated build tree, install manifest or package rather
+than `dxc`. #3276 used two configure-only CMake trees differing in one variable and parsed
+their generated `cmake_install.cmake` files — faster and more complete than installs that
+aborted on unbuilt targets. Pre-register predicates about the artifact, prefer a controlled
+A/B over code reading, and keep a self-test in any parser or harness. `match.json` and
+`cmd.txt` may be deliberately absent when compiler output cannot answer the question; do not
+manufacture a hollow predicate merely to make the directory look complete.
 
 > **Name the population in metadata censuses.** "All releases" is ambiguous when drafts exist.
 > On #3686, 26 published releases carried 73 assets; one unpublished draft was separate.
@@ -943,9 +991,20 @@ across issues.
 > re-probes those variants before preserving `invalid-probe`, records the accepted spelling in
 > the capture header, and leaves the requested command there for stale-capture checking.
 > #3362's v1.4.1907 result changed from "feature unavailable" to a valid probe when
-> `-pack-optimized` became `-pack_optimized`. Because unrecognised `/` flags can be silently
-> ignored, the positive control must also run on that release and prove the option affected
-> the output.
+> `-pack-optimized` became `-pack_optimized`.
+>
+> **Acceptance must be positive and behavioural.** A candidate is accepted only when the
+> issue predicate changes relative to the same command with that option removed and a positive
+> anchor is present. Absence of an error is unfalsifiable for `/` spellings, which may be
+> silently ignored, and error text misses the opposite case where an old tool fails silently.
+> Trigger on "the expected anchor did not appear", not on one diagnostic string.
+>
+> **Every attempt runs in an isolated issue-directory copy and hashes command inputs.** A
+> spelling change can alter the grammar, not merely the spelling: on old releases #3044's
+> `/Fi` retry made `-P` consume `repro.hlsl` as its output and overwrote the evidence at exit
+> zero whenever the following value token already named a file. A probe that modifies any
+> input hard-errors and no issue artifact is changed. Do not special-case `-P`; the invariant
+> is that an option retry may never mutate its own evidence.
 
 > **The same trap fires one level up, in the front end.** A release predating a language
 > *feature* — a type, an intrinsic, an attribute — rejects the repro with an ordinary semantic
@@ -1133,6 +1192,12 @@ across issues.
 > whenever the issue history mentions a fix, a revert, or a re-opening. It costs one run per
 > release, but every release is cached after the first issue that needs it.
 >
+> Treat matching **clean endpoints** as a warning even when the thread mentions no history.
+> They prove only endpoint agreement, not that every intermediate release is clean. Inspect
+> the issue's filing date and every prior reference, and linear-scan when a hidden mid-history
+> window is plausible. #3414 was old-buggy, fixed, later regressed, then fixed again; a scan
+> beginning at a clean v1.8.2403 could otherwise have erased the earlier regression.
+>
 > Measured on #3768: clean → **broken in v1.6.2104 and v1.6.2106** → clean from v1.6.2112. A
 > binary search sees a clean v1.5.2010 and a clean v1.9.2607 and concludes the bug never
 > existed. The linear scan found the two-release window, which matched the report date and
@@ -1146,6 +1211,11 @@ across issues.
 > Endpoint agreement supports "always/never under the monotonic assumption"; it does not
 > support "none of N releases". #6727's claim that no shipped stable compiler exposed an
 > intrinsic needed every stable release visited and its skipped prereleases named.
+>
+> **Per-release controls currently need an issue-local matrix.** Catalogued releases are not
+> registered compiler IDs, and `run --shader` retargets only the registered ground truth.
+> Query the release table for each executable, print and validate `--version`, and run repro
+> and control on the same binary. #3414 and #3044 independently needed this pattern.
 
 > **Search `tools/clang/test/` before bisecting an accept/reject issue.** On #3708, one test
 > already asserted the exact diagnostic, marked it `fxc-pass`, and said support was desirable.
@@ -1178,6 +1248,11 @@ to conclude the bug is gone — name the exact thing to check: the `HLSL Bind` c
 repro stays exactly what was tested locally; the banner is presentation, not evidence. Write
 plain prose, not leading `//`; `annotate()` owns the marker and strips one if supplied so old
 notes cannot publish as `// //`.
+
+**CE's DXC panes always include debug-info flags.** The generated arguments append
+`-Zi -Qembed_debug -Fc -`, so tests whose output is mode-sensitive need a local control
+compiled with those same flags. #3044's preprocess/comment evidence required that control
+before CE could corroborate it.
 
 **Not every issue deserves a link.** If the whole behaviour is a one-line error, or the issue
 is a pure feature request with nothing to see, record that decision instead of forcing one:
@@ -1250,6 +1325,12 @@ compute restatement invalidates every pane. `godbolt` now refuses that ambiguous
 > flags and confirm the difference does not survive.** Where the backend is the blocker,
 > `-fsyntax-only` asks the narrower question the front end can still answer.
 >
+> For a **silence** claim, use a same-subject semantic near-miss as well as a trivial compile.
+> A generic valid shader proves the pane runs, not that the other compiler recognises the API
+> family under test. #3066 paired the allegedly silent method family with a nearby invalid
+> overload that Clang did diagnose, separating "this class of call is not checked" from "the
+> compiler never reached Sema".
+>
 > **Reach for `-fsyntax-only` first whenever the symptom is a front-end diagnostic**, but only
 > when you need to: the rule is whether the front end *hard-errors*. If it does, the backend
 > never runs and the pane is already clean — #3055's Clang pane needs no `-fsyntax-only`
@@ -1294,13 +1375,20 @@ The same discipline applies to argument handling: `dxc_trunk` appears to accept 
 but so does `/ZZZNONSENSE` — on CE's Linux builds a `/`-prefixed argument looks like a path, so
 MSVC-style flags are not testable there at all.
 
-Three limits, all of which bound how much the link can be trusted:
+Four limits, all of which bound how much the link can be trusted:
 
 | Limit | Consequence |
 | --- | --- |
 | CE runs **Release** builds | Debug-only asserts look clean. CE corroborates the local build, never overrules it |
 | CE's oldest DXC is **1.6.2112** | Cannot date a fix older than that; use `bisect` for history |
 | CE is **single-file** | Multi-file repros are partial at best; say so in the notes |
+| CE appends `-Zi -Qembed_debug -Fc -` to DXC panes | It cannot prove debug-derived names, line tables or embedded source are absent under the requested command |
+
+For linker diagnostics there is an additional practical limit: CE gives you the current toolchain,
+not a stable-release linker matrix. Use it to corroborate today's wording and date the
+behaviour with local release assets. No stable archive in the current catalog ships
+`dxl.exe`, so a linker-only symptom cannot be bisected from those binaries. Stable archives
+may also have other packaging gaps; source blame cannot replace missing executable evidence.
 
 > **Do not fold a multi-file repro into one file without a control.** The obvious device for
 > #8527 — a header that includes *itself* under a different spelling — appears to reproduce the

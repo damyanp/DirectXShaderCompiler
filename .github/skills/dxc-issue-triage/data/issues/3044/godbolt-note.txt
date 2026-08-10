@@ -1,0 +1,20 @@
+Issue #3044 asks for a preprocess-only mode that keeps comments. The source
+below is a small pixel shader with one deliberate property: the text carried in
+its comments appears nowhere else in the file, and the body relies on a macro,
+so a successful preprocess is distinguishable from a copy of the input.
+
+The panes do not show a preprocess run, because they cannot: dxc writes
+preprocessed text to a file rather than to stdout, so a plain preprocess-only
+run answers "<No output file>" here and shows nothing. What the panes do show
+is the question that actually decides this request -- whether the flag exists
+at all. Each pane appends clang's comment-retention flag, in the spelling that
+build's option grammar accepts, and each answers "Unknown argument". The flag
+is absent from dxc's option table from the oldest build Compiler Explorer
+offers through trunk.
+
+Locally, the underlying capability is present: clang's preprocessor supports
+comment retention, and dxc's driver hardcodes it off when it builds the
+preprocessor output options. Only the driver-side plumbing is missing.
+
+Compiler Explorer runs Linux Release builds; they corroborate the Windows
+Debug build used for triage and never overrule it.

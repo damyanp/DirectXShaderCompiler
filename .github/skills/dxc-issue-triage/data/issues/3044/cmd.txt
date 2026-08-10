@@ -1,0 +1,24 @@
+# Do not use the generic bisection result as this issue's release history.
+# dxc's preprocess option changed grammar twice (`P : Separate` -> `P : Flag` +
+# `Fi`, 8bf2b087c / PR 4624, 2022-08-31). Releases <= v1.7.2207 reject `-Fi`
+# with "Unknown argument". Before batch 012, run()'s `/Fi` spelling retry was
+# SILENTLY DESTRUCTIVE on those releases: with
+# `P : Separate`, `-P repro.hlsl /Fi preprocessed.i` makes repro.hlsl the
+# OUTPUT file and overwrites it with preprocessed text, exit 0. The runner now
+# probes in an isolated scratch copy and hard-fails input mutation, so the
+# committed repro is protected. The generic command still cannot express both
+# historical grammars, however. Release history therefore comes from
+# manual-case-release-history.txt, which uses the spelling each release accepts.
+#
+# 1-2: the repro. Preprocess, then bring the preprocessed text back onto stdout
+#      by compiling it with -Zi, which embeds the compiled file's source in
+#      !dx.source.contents. `dxc -P` writes to a file, so nothing else puts the
+#      artifact under test where a predicate can score it.
+# 3-4: the same chain over control-token-in-code.hlsl, which differs from the
+#      repro in exactly one way: `keepme3044` also appears as a code
+#      identifier. Its presence is a required clause of match.json, so a broken
+#      instrument scores no-match instead of manufacturing a clean absence.
+-P repro.hlsl -Fi preprocessed.i
+-T ps_6_0 -E main -Zi preprocessed.i
+-P control-token-in-code.hlsl -Fi control-token-in-code.i
+-T ps_6_0 -E main -Zi control-token-in-code.i

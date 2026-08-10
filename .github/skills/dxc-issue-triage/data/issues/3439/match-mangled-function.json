@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "\\?[A-Za-z_][A-Za-z0-9_]*(?:@[A-Za-z_][A-Za-z0-9_]*)*@@[A-Z][A-Z0-9]",
+  "note": "Clause 2 of match.json in isolation: 'this output names a function by its Microsoft-mangled symbol'. Kept as a separate predicate so the controls test the INSTRUMENT rather than the diagnostic anchor -- a control scored by the full match.json could score no-match merely because it is a different diagnostic, which would prove nothing about whether the mangling clause discriminates. Used to score the other reproduced cases (case-export-resource.hlsl) and the negative controls (control-redefinition.hlsl, control-good.hlsl, case-validator-payload.hlsl). Measured on main-debug: matches ?CallMeMaybe@@YA, ?TakesAResource@@YA and ?NotDefinedAnywhere@@YA; does not match the redefinition diagnostic, a clean compile, or the validator's readable `entry 'AmplifyWithHugePayload'` message (whose only mangled token is the DATA symbol \\01?gs_payload@@3U..., excluded by requiring a letter after @@). Not used for bisect -- match.json is."
+}

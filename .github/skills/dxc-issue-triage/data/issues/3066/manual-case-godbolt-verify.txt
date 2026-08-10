@@ -1,0 +1,594 @@
+# Compiler Explorer panes for #3066, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E main
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float       
+; TEXCOORD                 0   xy          1     NONE   float   xy  
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader debug name: 946fd67466b8b2694fedf4ab4ab9584e.pdb
+; shader hash: 946fd67466b8b2694fedf4ab4ab9584e
+;
+; Pipeline Runtime Information: 
+;
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; TEXCOORD                 0                 linear       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+; cbuffer PerFrame
+; {
+;
+;   struct PerFrame
+;   {
+;
+;       float g_exposure;                             ; Offset:    0
+;   
+;   } PerFrame;                                       ; Offset:    0 Size:     4
+;
+; }
+;
+; Resource bind info for g_luminanceOut
+; {
+;
+;   float $Element;                                   ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; PerFrame                          cbuffer      NA          NA     CB0            cb0     1
+; g_linearSampler                   sampler      NA          NA      S0             s0     1
+; g_diffuseTexture                  texture     f32          2d      T0             t0     1
+; g_luminanceOut                        UAV  struct         r/w      U0             u0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 6, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 4, 5 }
+;   output 1 depends on inputs: { 4, 5 }
+;   output 2 depends on inputs: { 4, 5 }
+;   output 3 depends on inputs: { 4, 5 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.f32 = type { float, float, float, float, i32 }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+%"class.Texture2D<vector<float, 4> >" = type { <4 x float>, %"class.Texture2D<vector<float, 4> >::mips_type" }
+%"class.Texture2D<vector<float, 4> >::mips_type" = type { i32 }
+%"class.RWStructuredBuffer<float>" = type { float }
+%PerFrame = type { float }
+%struct.SamplerState = type { i32 }
+
+define void @main() {
+  %g_luminanceOut_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !91 ; line:68 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %g_diffuseTexture_texture_2d = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !91 ; line:68 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %g_linearSampler_sampler = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 3, i32 0, i32 0, i1 false), !dbg !91 ; line:68 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %PerFrame_cbuffer = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 0, i32 0, i1 false), !dbg !91 ; line:68 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 0, i32 undef), !dbg !92 ; line:67 col:21  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 1, i32 undef), !dbg !92 ; line:67 col:21  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !93, metadata !94), !dbg !92 ; var:"input" !DIExpression(DW_OP_bit_piece, 128, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !93, metadata !95), !dbg !92 ; var:"input" !DIExpression(DW_OP_bit_piece, 160, 32) func:"main"
+  %3 = call %dx.types.ResRet.f32 @dx.op.sample.f32(i32 60, %dx.types.Handle %g_diffuseTexture_texture_2d, %dx.types.Handle %g_linearSampler_sampler, float %1, float %2, float undef, float undef, i32 0, i32 0, i32 undef, float undef), !dbg !91 ; line:68 col:18  ; Sample(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,offset2,clamp)
+  call void @llvm.dbg.value(metadata %dx.types.ResRet.f32 %3, i64 0, metadata !96, metadata !97), !dbg !98 ; var:"texel" !DIExpression() func:"main"
+  %4 = extractvalue %dx.types.ResRet.f32 %3, 0, !dbg !91 ; line:68 col:18
+  %5 = extractvalue %dx.types.ResRet.f32 %3, 1, !dbg !91 ; line:68 col:18
+  %6 = extractvalue %dx.types.ResRet.f32 %3, 2, !dbg !91 ; line:68 col:18
+  %7 = extractvalue %dx.types.ResRet.f32 %3, 3, !dbg !91 ; line:68 col:18
+  %8 = call float @dx.op.dot3.f32(i32 55, float %4, float %5, float %6, float 0x3FD322D0E0000000, float 0x3FE2C8B440000000, float 0x3FBD2F1AA0000000), !dbg !99 ; line:69 col:15  ; Dot3(ax,ay,az,bx,by,bz)
+  call void @llvm.dbg.value(metadata float %8, i64 0, metadata !100, metadata !97), !dbg !101 ; var:"lum" !DIExpression() func:"main"
+  %9 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %PerFrame_cbuffer, i32 0), !dbg !102 ; line:70 col:26  ; CBufferLoadLegacy(handle,regIndex)
+  %10 = extractvalue %dx.types.CBufRet.f32 %9, 0, !dbg !102 ; line:70 col:26
+  %11 = fmul fast float %10, %8, !dbg !103 ; line:70 col:24
+  %FMax = call float @dx.op.binary.f32(i32 35, float %11, float 0x3F1A36E2E0000000), !dbg !104 ; line:70 col:16  ; FMax(a,b)
+  call void @llvm.dbg.value(metadata float %FMax, i64 0, metadata !105, metadata !97), !dbg !106 ; var:"safe" !DIExpression() func:"main"
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %g_luminanceOut_UAV_structbuf, i32 0, i32 0, float %FMax, float undef, float undef, float undef, i8 1), !dbg !107 ; line:71 col:21  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  %.i0 = fdiv fast float %4, %FMax, !dbg !108 ; line:72 col:27
+  %.i1 = fdiv fast float %5, %FMax, !dbg !108 ; line:72 col:27
+  %.i2 = fdiv fast float %6, %FMax, !dbg !108 ; line:72 col:27
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %.i0), !dbg !109 ; line:72 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %.i1), !dbg !109 ; line:72 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %.i2), !dbg !109 ; line:72 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %7), !dbg !109 ; line:72 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !109 ; line:72 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.f32 @dx.op.sample.f32(i32, %dx.types.Handle, %dx.types.Handle, float, float, float, float, i32, i32, i32, float) #2
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.dot3.f32(i32, float, float, float, float, float, float) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.binary.f32(i32, float, float) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!51, !52}
+!llvm.ident = !{!53}
+!dx.source.contents = !{!54}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!55}
+!dx.source.args = !{!56}
+!dx.version = !{!57}
+!dx.valver = !{!58}
+!dx.shaderModel = !{!59}
+!dx.resources = !{!60}
+!dx.typeAnnotations = !{!71, !76}
+!dx.viewIdState = !{!79}
+!dx.entryPoints = !{!80}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !24, globals: !39)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4, !15}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, line: 69, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, line: 69, size: 96, align: 32, elements: !6, templateParams: !11)
+!6 = !{!7, !9, !10}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 69, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 69, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, line: 69, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !{!12, !13}
+!12 = !DITemplateTypeParameter(name: "element", type: !8)
+!13 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 3)
+!14 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!15 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, line: 59, baseType: !16)
+!16 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, line: 59, size: 128, align: 32, elements: !17, templateParams: !22)
+!17 = !{!18, !19, !20, !21}
+!18 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !16, file: !1, line: 59, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!19 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !16, file: !1, line: 59, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !16, file: !1, line: 59, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !16, file: !1, line: 59, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!22 = !{!12, !23}
+!23 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 4)
+!24 = !{!25}
+!25 = !DISubprogram(name: "main", scope: !1, file: !1, line: 67, type: !26, isLocal: false, isDefinition: true, scopeLine: 67, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!26 = !DISubroutineType(types: !27)
+!27 = !{!15, !28}
+!28 = !DICompositeType(tag: DW_TAG_structure_type, name: "PSInput", file: !1, line: 62, size: 192, align: 32, elements: !29)
+!29 = !{!30, !31}
+!30 = !DIDerivedType(tag: DW_TAG_member, name: "pos", scope: !28, file: !1, line: 63, baseType: !15, size: 128, align: 32)
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "uv", scope: !28, file: !1, line: 64, baseType: !32, size: 64, align: 32, offset: 128)
+!32 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, line: 59, baseType: !33)
+!33 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, line: 59, size: 64, align: 32, elements: !34, templateParams: !37)
+!34 = !{!35, !36}
+!35 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !33, file: !1, line: 59, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!36 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !33, file: !1, line: 59, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!37 = !{!12, !38}
+!38 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 2)
+!39 = !{!40, !42, !46, !48}
+!40 = !DIGlobalVariable(name: "g_exposure", linkageName: "\01?g_exposure@PerFrame@@3MB", scope: !0, file: !1, line: 59, type: !41, isLocal: false, isDefinition: true)
+!41 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !8)
+!42 = !DIGlobalVariable(name: "g_diffuseTexture", linkageName: "\01?g_diffuseTexture@@3V?$Texture2D@V?$vector@M$03@@@@A", scope: !0, file: !1, line: 54, type: !43, isLocal: false, isDefinition: true)
+!43 = !DICompositeType(tag: DW_TAG_class_type, name: "Texture2D<vector<float, 4> >", file: !1, line: 54, size: 160, align: 32, elements: !2, templateParams: !44)
+!44 = !{!45}
+!45 = !DITemplateTypeParameter(name: "element", type: !16)
+!46 = !DIGlobalVariable(name: "g_linearSampler", linkageName: "\01?g_linearSampler@@3USamplerState@@A", scope: !0, file: !1, line: 55, type: !47, isLocal: false, isDefinition: true)
+!47 = !DICompositeType(tag: DW_TAG_structure_type, name: "SamplerState", file: !1, line: 55, size: 32, align: 32, elements: !2)
+!48 = !DIGlobalVariable(name: "g_luminanceOut", linkageName: "\01?g_luminanceOut@@3V?$RWStructuredBuffer@M@@A", scope: !0, file: !1, line: 56, type: !49, isLocal: false, isDefinition: true)
+!49 = !DICompositeType(tag: DW_TAG_class_type, name: "RWStructuredBuffer<float>", file: !1, line: 56, size: 32, align: 32, elements: !2, templateParams: !50)
+!50 = !{!12}
+!51 = !{i32 2, !"Dwarf Version", i32 4}
+!52 = !{i32 2, !"Debug Info Version", i32 3}
+!53 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!54 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 3066 asks for DXC's disassembly listing to print decoded, human-readable\0A// forms where it currently prints raw values. Read the listing text, not the exit\0A// status: every pane compiles successfully.\0A//\0A// Read this caveat first. Compiler Explorer appends debug-info flags to every DXC\0A// pane whatever arguments are given, which you can confirm in the dx.source.args\0A// metadata node at the bottom of a DXC pane. So these panes show DXC at its most\0A// readable, not its default. A plain command line without debug info prints less\0A// than you see here: no per-instruction source location, and numbered SSA values\0A// in place of the value names derived from resource declarations. Those same\0A// flags also embed this file, comments and all, into a metadata node at the\0A// bottom of each pane, so search the instruction listing by eye rather than by\0A// text search.\0A//\0A// In the DXC panes, three places.\0A//\0A// First, the line calling dx.op.binary.f32. Two of its arguments are the operands\0A// of the max(); one is a floating-point constant that the listing leaves in\0A// LLVM's hexadecimal form. The trailing comment on that line decodes the opcode\0A// number to a name and lists the operand names, then stops. That comment is the\0A// one the issue quotes, and the issue's second request is for it to also carry\0A// the constant in decimal.\0A//\0A// Second, the line calling dx.op.bufferStore.f32. Its trailing comment ends at\0A// the operand-name list, so the comment itself never says which of the four rows\0A// of the Resource Bindings table further up the listing is being written; the\0A// issue's fourth request is for that name to appear there. In these panes the\0A// handle argument does carry a value name derived from the resource declaration,\0A// because of the debug-info flags described above. The same applies to the\0A// dx.op.sample.f32 and dx.op.cbufferLoadLegacy.f32 lines.\0A//\0A// Third, the ViewId state block in the comment header, in the rows reading\0A// \22output N depends on inputs\22. Both sides of that relation are printed as bare\0A// scalar element indices rather than as signature element names, and the\0A// debug-info flags make no difference to them. That is the issue's last request.\0A//\0A// The two panes are Compiler Explorer's oldest DXC and its trunk build. They\0A// print the same text, so nothing in this range of versions has changed the\0A// listing in the places above.\0A//==========================================================================//\0A\0A// Repro for issue #3066 -- \22Improved human-readable values in disassembly\22.\0A// Agent-constructed: the issue quotes one disassembly line and ships no shader.\0A//\0A// Built so that a single disassembly listing contains one instance of each of\0A// the five things the reporter asked to be made readable:\0A//   B  a float constant feeding a binary dx.op  -> max(..., 0.0001)\0A//   C  non-unary/binary dx.op classes           -> loadInput / storeOutput\0A//   D  loads and stores through a named resource\0A//   E  the Resource Bindings table, and the ViewID output-dependency table\0A//   A  per-instruction source location          -> needs -Zi -Qembed_debug\0A\0ATexture2D<float4> g_diffuseTexture : register(t0);\0ASamplerState g_linearSampler : register(s0);\0ARWStructuredBuffer<float> g_luminanceOut : register(u0);\0A\0Acbuffer PerFrame : register(b0) {\0A  float g_exposure;\0A}\0A\0Astruct PSInput {\0A  float4 pos : SV_Position;\0A  float2 uv : TEXCOORD0;\0A};\0A\0Afloat4 main(PSInput input) : SV_Target {\0A  float4 texel = g_diffuseTexture.Sample(g_linearSampler, input.uv);\0A  float lum = dot(texel.rgb, float3(0.299, 0.587, 0.114));\0A  float safe = max(lum * g_exposure, 0.0001);\0A  g_luminanceOut[0] = safe;\0A  return float4(texel.rgb / safe, texel.a);\0A}\0A"}
+!55 = !{!"/app/example.hlsl"}
+!56 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug"}
+!57 = !{i32 1, i32 0}
+!58 = !{i32 1, i32 6}
+!59 = !{!"ps", i32 6, i32 0}
+!60 = !{!61, !64, !67, !69}
+!61 = !{!62}
+!62 = !{i32 0, %"class.Texture2D<vector<float, 4> >"* undef, !"g_diffuseTexture", i32 0, i32 0, i32 1, i32 2, i32 0, !63}
+!63 = !{i32 0, i32 9}
+!64 = !{!65}
+!65 = !{i32 0, %"class.RWStructuredBuffer<float>"* undef, !"g_luminanceOut", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !66}
+!66 = !{i32 1, i32 4}
+!67 = !{!68}
+!68 = !{i32 0, %PerFrame* undef, !"PerFrame", i32 0, i32 0, i32 1, i32 4, null}
+!69 = !{!70}
+!70 = !{i32 0, %struct.SamplerState* undef, !"g_linearSampler", i32 0, i32 0, i32 1, i32 0, null}
+!71 = !{i32 0, %"class.RWStructuredBuffer<float>" undef, !72, %PerFrame undef, !74}
+!72 = !{i32 4, !73}
+!73 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 9}
+!74 = !{i32 4, !75}
+!75 = !{i32 6, !"g_exposure", i32 3, i32 0, i32 7, i32 9}
+!76 = !{i32 1, void ()* @main, !77}
+!77 = !{!78}
+!78 = !{i32 0, !2, !2}
+!79 = !{[8 x i32] [i32 6, i32 4, i32 0, i32 0, i32 0, i32 0, i32 15, i32 15]}
+!80 = !{void ()* @main, !"main", !81, !60, !90}
+!81 = !{!82, !87, null}
+!82 = !{!83, !85}
+!83 = !{i32 0, !"SV_Position", i8 9, i8 3, !84, i8 4, i32 1, i8 4, i32 0, i8 0, null}
+!84 = !{i32 0}
+!85 = !{i32 1, !"TEXCOORD", i8 9, i8 0, !84, i8 2, i32 1, i8 2, i32 1, i8 0, !86}
+!86 = !{i32 3, i32 3}
+!87 = !{!88}
+!88 = !{i32 0, !"SV_Target", i8 9, i8 16, !84, i8 0, i32 1, i8 4, i32 0, i8 0, !89}
+!89 = !{i32 3, i32 15}
+!90 = !{i32 0, i64 16}
+!91 = !DILocation(line: 68, column: 18, scope: !25)
+!92 = !DILocation(line: 67, column: 21, scope: !25)
+!93 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "input", arg: 1, scope: !25, file: !1, line: 67, type: !28)
+!94 = !DIExpression(DW_OP_bit_piece, 128, 32)
+!95 = !DIExpression(DW_OP_bit_piece, 160, 32)
+!96 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "texel", scope: !25, file: !1, line: 68, type: !15)
+!97 = !DIExpression()
+!98 = !DILocation(line: 68, column: 10, scope: !25)
+!99 = !DILocation(line: 69, column: 15, scope: !25)
+!100 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "lum", scope: !25, file: !1, line: 69, type: !8)
+!101 = !DILocation(line: 69, column: 9, scope: !25)
+!102 = !DILocation(line: 70, column: 26, scope: !25)
+!103 = !DILocation(line: 70, column: 24, scope: !25)
+!104 = !DILocation(line: 70, column: 16, scope: !25)
+!105 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "safe", scope: !25, file: !1, line: 70, type: !8)
+!106 = !DILocation(line: 70, column: 9, scope: !25)
+!107 = !DILocation(line: 71, column: 21, scope: !25)
+!108 = !DILocation(line: 72, column: 27, scope: !25)
+!109 = !DILocation(line: 72, column: 3, scope: !25)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float       
+; TEXCOORD                 0   xy          1     NONE   float   xy  
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader debug name: f06bfe90b5af413b95a691368127e346.pdb
+; shader hash: f06bfe90b5af413b95a691368127e346
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 2
+; SigOutputElements: 1
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 2
+; SigOutputVectors[0]: 1
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; TEXCOORD                 0                 linear       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+; cbuffer PerFrame
+; {
+;
+;   struct PerFrame
+;   {
+;
+;       float g_exposure;                             ; Offset:    0
+;   
+;   } PerFrame;                                       ; Offset:    0 Size:     4
+;
+; }
+;
+; Resource bind info for g_luminanceOut
+; {
+;
+;   float $Element;                                   ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; PerFrame                          cbuffer      NA          NA     CB0            cb0     1
+; g_linearSampler                   sampler      NA          NA      S0             s0     1
+; g_diffuseTexture                  texture     f32          2d      T0             t0     1
+; g_luminanceOut                        UAV  struct         r/w      U0             u0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 6, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 4, 5 }
+;   output 1 depends on inputs: { 4, 5 }
+;   output 2 depends on inputs: { 4, 5 }
+;   output 3 depends on inputs: { 4, 5 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.f32 = type { float, float, float, float, i32 }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+%"class.Texture2D<vector<float, 4> >" = type { <4 x float>, %"class.Texture2D<vector<float, 4> >::mips_type" }
+%"class.Texture2D<vector<float, 4> >::mips_type" = type { i32 }
+%"class.RWStructuredBuffer<float>" = type { float }
+%PerFrame = type { float }
+%struct.SamplerState = type { i32 }
+
+define void @main() {
+  %g_luminanceOut_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !91 ; line:68 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %g_diffuseTexture_texture_2d = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !91 ; line:68 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %g_linearSampler_sampler = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 3, i32 0, i32 0, i1 false), !dbg !91 ; line:68 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %PerFrame_cbuffer = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 0, i32 0, i1 false), !dbg !91 ; line:68 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 0, i32 undef), !dbg !92 ; line:67 col:21  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 1, i32 undef), !dbg !92 ; line:67 col:21  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !93, metadata !94), !dbg !92 ; var:"input" !DIExpression(DW_OP_bit_piece, 128, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !93, metadata !95), !dbg !92 ; var:"input" !DIExpression(DW_OP_bit_piece, 160, 32) func:"main"
+  %3 = call %dx.types.ResRet.f32 @dx.op.sample.f32(i32 60, %dx.types.Handle %g_diffuseTexture_texture_2d, %dx.types.Handle %g_linearSampler_sampler, float %1, float %2, float undef, float undef, i32 0, i32 0, i32 undef, float undef), !dbg !91 ; line:68 col:18  ; Sample(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,offset2,clamp)
+  call void @llvm.dbg.value(metadata %dx.types.ResRet.f32 %3, i64 0, metadata !96, metadata !97), !dbg !98 ; var:"texel" !DIExpression() func:"main"
+  %4 = extractvalue %dx.types.ResRet.f32 %3, 0, !dbg !91 ; line:68 col:18
+  %5 = extractvalue %dx.types.ResRet.f32 %3, 1, !dbg !91 ; line:68 col:18
+  %6 = extractvalue %dx.types.ResRet.f32 %3, 2, !dbg !91 ; line:68 col:18
+  %7 = extractvalue %dx.types.ResRet.f32 %3, 3, !dbg !91 ; line:68 col:18
+  %8 = call float @dx.op.dot3.f32(i32 55, float %4, float %5, float %6, float 0x3FD322D0E0000000, float 0x3FE2C8B440000000, float 0x3FBD2F1AA0000000), !dbg !99 ; line:69 col:15  ; Dot3(ax,ay,az,bx,by,bz)
+  call void @llvm.dbg.value(metadata float %8, i64 0, metadata !100, metadata !97), !dbg !101 ; var:"lum" !DIExpression() func:"main"
+  %9 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %PerFrame_cbuffer, i32 0), !dbg !102 ; line:70 col:26  ; CBufferLoadLegacy(handle,regIndex)
+  %10 = extractvalue %dx.types.CBufRet.f32 %9, 0, !dbg !102 ; line:70 col:26
+  %11 = fmul fast float %10, %8, !dbg !103 ; line:70 col:24
+  %FMax = call float @dx.op.binary.f32(i32 35, float %11, float 0x3F1A36E2E0000000), !dbg !104 ; line:70 col:16  ; FMax(a,b)
+  call void @llvm.dbg.value(metadata float %FMax, i64 0, metadata !105, metadata !97), !dbg !106 ; var:"safe" !DIExpression() func:"main"
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %g_luminanceOut_UAV_structbuf, i32 0, i32 0, float %FMax, float undef, float undef, float undef, i8 1), !dbg !107 ; line:71 col:21  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  %.i0 = fdiv fast float %4, %FMax, !dbg !108 ; line:72 col:27
+  %.i1 = fdiv fast float %5, %FMax, !dbg !108 ; line:72 col:27
+  %.i2 = fdiv fast float %6, %FMax, !dbg !108 ; line:72 col:27
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %.i0), !dbg !109 ; line:72 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %.i1), !dbg !109 ; line:72 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %.i2), !dbg !109 ; line:72 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %7), !dbg !109 ; line:72 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !109 ; line:72 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.f32 @dx.op.sample.f32(i32, %dx.types.Handle, %dx.types.Handle, float, float, float, float, i32, i32, i32, float) #2
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.dot3.f32(i32, float, float, float, float, float, float) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.binary.f32(i32, float, float) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!51, !52}
+!llvm.ident = !{!53}
+!dx.source.contents = !{!54}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!55}
+!dx.source.args = !{!56}
+!dx.version = !{!57}
+!dx.valver = !{!58}
+!dx.shaderModel = !{!59}
+!dx.resources = !{!60}
+!dx.typeAnnotations = !{!71, !76}
+!dx.viewIdState = !{!79}
+!dx.entryPoints = !{!80}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !24, globals: !39)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4, !15}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, line: 69, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, line: 69, size: 96, align: 32, elements: !6, templateParams: !11)
+!6 = !{!7, !9, !10}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 69, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 69, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, line: 69, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !{!12, !13}
+!12 = !DITemplateTypeParameter(name: "element", type: !8)
+!13 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 3)
+!14 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!15 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, line: 59, baseType: !16)
+!16 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, line: 59, size: 128, align: 32, elements: !17, templateParams: !22)
+!17 = !{!18, !19, !20, !21}
+!18 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !16, file: !1, line: 59, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!19 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !16, file: !1, line: 59, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !16, file: !1, line: 59, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !16, file: !1, line: 59, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!22 = !{!12, !23}
+!23 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 4)
+!24 = !{!25}
+!25 = !DISubprogram(name: "main", scope: !1, file: !1, line: 67, type: !26, isLocal: false, isDefinition: true, scopeLine: 67, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!26 = !DISubroutineType(types: !27)
+!27 = !{!15, !28}
+!28 = !DICompositeType(tag: DW_TAG_structure_type, name: "PSInput", file: !1, line: 62, size: 192, align: 32, elements: !29)
+!29 = !{!30, !31}
+!30 = !DIDerivedType(tag: DW_TAG_member, name: "pos", scope: !28, file: !1, line: 63, baseType: !15, size: 128, align: 32)
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "uv", scope: !28, file: !1, line: 64, baseType: !32, size: 64, align: 32, offset: 128)
+!32 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, line: 59, baseType: !33)
+!33 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, line: 59, size: 64, align: 32, elements: !34, templateParams: !37)
+!34 = !{!35, !36}
+!35 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !33, file: !1, line: 59, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!36 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !33, file: !1, line: 59, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!37 = !{!12, !38}
+!38 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 2)
+!39 = !{!40, !42, !46, !48}
+!40 = !DIGlobalVariable(name: "g_exposure", linkageName: "\01?g_exposure@PerFrame@@3MB", scope: !0, file: !1, line: 59, type: !41, isLocal: false, isDefinition: true)
+!41 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !8)
+!42 = !DIGlobalVariable(name: "g_diffuseTexture", linkageName: "\01?g_diffuseTexture@@3V?$Texture2D@V?$vector@M$03@@@@A", scope: !0, file: !1, line: 54, type: !43, isLocal: false, isDefinition: true)
+!43 = !DICompositeType(tag: DW_TAG_class_type, name: "Texture2D<vector<float, 4> >", file: !1, line: 54, size: 160, align: 32, elements: !2, templateParams: !44)
+!44 = !{!45}
+!45 = !DITemplateTypeParameter(name: "element", type: !16)
+!46 = !DIGlobalVariable(name: "g_linearSampler", linkageName: "\01?g_linearSampler@@3USamplerState@@A", scope: !0, file: !1, line: 55, type: !47, isLocal: false, isDefinition: true)
+!47 = !DICompositeType(tag: DW_TAG_structure_type, name: "SamplerState", file: !1, line: 55, size: 32, align: 32, elements: !2)
+!48 = !DIGlobalVariable(name: "g_luminanceOut", linkageName: "\01?g_luminanceOut@@3V?$RWStructuredBuffer@M@@A", scope: !0, file: !1, line: 56, type: !49, isLocal: false, isDefinition: true)
+!49 = !DICompositeType(tag: DW_TAG_class_type, name: "RWStructuredBuffer<float>", file: !1, line: 56, size: 32, align: 32, elements: !2, templateParams: !50)
+!50 = !{!12}
+!51 = !{i32 2, !"Dwarf Version", i32 4}
+!52 = !{i32 2, !"Debug Info Version", i32 3}
+!53 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!54 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 3066 asks for DXC's disassembly listing to print decoded, human-readable\0A// forms where it currently prints raw values. Read the listing text, not the exit\0A// status: every pane compiles successfully.\0A//\0A// Read this caveat first. Compiler Explorer appends debug-info flags to every DXC\0A// pane whatever arguments are given, which you can confirm in the dx.source.args\0A// metadata node at the bottom of a DXC pane. So these panes show DXC at its most\0A// readable, not its default. A plain command line without debug info prints less\0A// than you see here: no per-instruction source location, and numbered SSA values\0A// in place of the value names derived from resource declarations. Those same\0A// flags also embed this file, comments and all, into a metadata node at the\0A// bottom of each pane, so search the instruction listing by eye rather than by\0A// text search.\0A//\0A// In the DXC panes, three places.\0A//\0A// First, the line calling dx.op.binary.f32. Two of its arguments are the operands\0A// of the max(); one is a floating-point constant that the listing leaves in\0A// LLVM's hexadecimal form. The trailing comment on that line decodes the opcode\0A// number to a name and lists the operand names, then stops. That comment is the\0A// one the issue quotes, and the issue's second request is for it to also carry\0A// the constant in decimal.\0A//\0A// Second, the line calling dx.op.bufferStore.f32. Its trailing comment ends at\0A// the operand-name list, so the comment itself never says which of the four rows\0A// of the Resource Bindings table further up the listing is being written; the\0A// issue's fourth request is for that name to appear there. In these panes the\0A// handle argument does carry a value name derived from the resource declaration,\0A// because of the debug-info flags described above. The same applies to the\0A// dx.op.sample.f32 and dx.op.cbufferLoadLegacy.f32 lines.\0A//\0A// Third, the ViewId state block in the comment header, in the rows reading\0A// \22output N depends on inputs\22. Both sides of that relation are printed as bare\0A// scalar element indices rather than as signature element names, and the\0A// debug-info flags make no difference to them. That is the issue's last request.\0A//\0A// The two panes are Compiler Explorer's oldest DXC and its trunk build. They\0A// print the same text, so nothing in this range of versions has changed the\0A// listing in the places above.\0A//==========================================================================//\0A\0A// Repro for issue #3066 -- \22Improved human-readable values in disassembly\22.\0A// Agent-constructed: the issue quotes one disassembly line and ships no shader.\0A//\0A// Built so that a single disassembly listing contains one instance of each of\0A// the five things the reporter asked to be made readable:\0A//   B  a float constant feeding a binary dx.op  -> max(..., 0.0001)\0A//   C  non-unary/binary dx.op classes           -> loadInput / storeOutput\0A//   D  loads and stores through a named resource\0A//   E  the Resource Bindings table, and the ViewID output-dependency table\0A//   A  per-instruction source location          -> needs -Zi -Qembed_debug\0A\0ATexture2D<float4> g_diffuseTexture : register(t0);\0ASamplerState g_linearSampler : register(s0);\0ARWStructuredBuffer<float> g_luminanceOut : register(u0);\0A\0Acbuffer PerFrame : register(b0) {\0A  float g_exposure;\0A}\0A\0Astruct PSInput {\0A  float4 pos : SV_Position;\0A  float2 uv : TEXCOORD0;\0A};\0A\0Afloat4 main(PSInput input) : SV_Target {\0A  float4 texel = g_diffuseTexture.Sample(g_linearSampler, input.uv);\0A  float lum = dot(texel.rgb, float3(0.299, 0.587, 0.114));\0A  float safe = max(lum * g_exposure, 0.0001);\0A  g_luminanceOut[0] = safe;\0A  return float4(texel.rgb / safe, texel.a);\0A}\0A"}
+!55 = !{!"/app/example.hlsl"}
+!56 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug"}
+!57 = !{i32 1, i32 0}
+!58 = !{i32 1, i32 10}
+!59 = !{!"ps", i32 6, i32 0}
+!60 = !{!61, !64, !67, !69}
+!61 = !{!62}
+!62 = !{i32 0, %"class.Texture2D<vector<float, 4> >"* undef, !"g_diffuseTexture", i32 0, i32 0, i32 1, i32 2, i32 0, !63}
+!63 = !{i32 0, i32 9}
+!64 = !{!65}
+!65 = !{i32 0, %"class.RWStructuredBuffer<float>"* undef, !"g_luminanceOut", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !66}
+!66 = !{i32 1, i32 4}
+!67 = !{!68}
+!68 = !{i32 0, %PerFrame* undef, !"PerFrame", i32 0, i32 0, i32 1, i32 4, null}
+!69 = !{!70}
+!70 = !{i32 0, %struct.SamplerState* undef, !"g_linearSampler", i32 0, i32 0, i32 1, i32 0, null}
+!71 = !{i32 0, %"class.RWStructuredBuffer<float>" undef, !72, %PerFrame undef, !74}
+!72 = !{i32 4, !73}
+!73 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 9}
+!74 = !{i32 4, !75}
+!75 = !{i32 6, !"g_exposure", i32 3, i32 0, i32 7, i32 9}
+!76 = !{i32 1, void ()* @main, !77}
+!77 = !{!78}
+!78 = !{i32 0, !2, !2}
+!79 = !{[8 x i32] [i32 6, i32 4, i32 0, i32 0, i32 0, i32 0, i32 15, i32 15]}
+!80 = !{void ()* @main, !"main", !81, !60, !90}
+!81 = !{!82, !87, null}
+!82 = !{!83, !85}
+!83 = !{i32 0, !"SV_Position", i8 9, i8 3, !84, i8 4, i32 1, i8 4, i32 0, i8 0, null}
+!84 = !{i32 0}
+!85 = !{i32 1, !"TEXCOORD", i8 9, i8 0, !84, i8 2, i32 1, i8 2, i32 1, i8 0, !86}
+!86 = !{i32 3, i32 3}
+!87 = !{!88}
+!88 = !{i32 0, !"SV_Target", i8 9, i8 16, !84, i8 0, i32 1, i8 4, i32 0, i8 0, !89}
+!89 = !{i32 3, i32 15}
+!90 = !{i32 0, i64 16}
+!91 = !DILocation(line: 68, column: 18, scope: !25)
+!92 = !DILocation(line: 67, column: 21, scope: !25)
+!93 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "input", arg: 1, scope: !25, file: !1, line: 67, type: !28)
+!94 = !DIExpression(DW_OP_bit_piece, 128, 32)
+!95 = !DIExpression(DW_OP_bit_piece, 160, 32)
+!96 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "texel", scope: !25, file: !1, line: 68, type: !15)
+!97 = !DIExpression()
+!98 = !DILocation(line: 68, column: 10, scope: !25)
+!99 = !DILocation(line: 69, column: 15, scope: !25)
+!100 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "lum", scope: !25, file: !1, line: 69, type: !8)
+!101 = !DILocation(line: 69, column: 9, scope: !25)
+!102 = !DILocation(line: 70, column: 26, scope: !25)
+!103 = !DILocation(line: 70, column: 24, scope: !25)
+!104 = !DILocation(line: 70, column: 16, scope: !25)
+!105 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "safe", scope: !25, file: !1, line: 70, type: !8)
+!106 = !DILocation(line: 70, column: 9, scope: !25)
+!107 = !DILocation(line: 71, column: 21, scope: !25)
+!108 = !DILocation(line: 72, column: 27, scope: !25)
+!109 = !DILocation(line: 72, column: 3, scope: !25)

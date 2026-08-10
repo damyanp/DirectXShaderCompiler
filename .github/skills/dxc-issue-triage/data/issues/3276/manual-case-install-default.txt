@@ -1,0 +1,85 @@
+# label: default install target (no --component), Windows/VS generator
+# build: <build>  (config Release)
+# prefix: <prefix>  (scratch, outside the repository)
+# components: <default: all>
+
+$ "cmake" --install <build> --config Release --prefix <prefix>
+# 41 lines of install output; first 15 and last 5 shown
+-- Installing: <prefix>/lib/LLVMSupport.lib
+-- Installing: <prefix>/lib/LLVMMSSupport.lib
+-- Installing: <prefix>/lib/LLVMTableGen.lib
+-- Installing: <prefix>/bin/llvm-tblgen.exe
+-- Installing: <prefix>/include/dxc/config.h
+-- Installing: <prefix>/include/dxc/dxcapi.h
+-- Installing: <prefix>/include/dxc/dxcerrors.h
+-- Installing: <prefix>/include/dxc/dxcisense.h
+-- Installing: <prefix>/lib/LLVMCore.lib
+-- Installing: <prefix>/lib/LLVMIRReader.lib
+-- Installing: <prefix>/lib/LLVMBitReader.lib
+-- Installing: <prefix>/lib/LLVMBitWriter.lib
+-- Installing: <prefix>/lib/LLVMTransformUtils.lib
+-- Installing: <prefix>/lib/LLVMInstCombine.lib
+-- Installing: <prefix>/lib/LLVMScalarOpts.lib
+...
+-- Installing: <prefix>/lib/LLVMDxcBindingTable.lib
+-- Installing: <prefix>/lib/LLVMDxrFallback.lib
+-- Installing: <prefix>/lib/LLVMDxilCompression.lib
+-- Installing: <prefix>/bin/llvm-config.exe
+-- Installing: <prefix>/bin/opt.exe
+CMake Error at <build>/tools/llvm-as/cmake_install.cmake:39 (file):
+  file INSTALL cannot find
+  "<build>/Release/bin/llvm-as.exe": File exists.
+Call Stack (most recent call first):
+  <build>/tools/cmake_install.cmake:47 (include)
+  <build>/cmake_install.cmake:122 (include)
+
+
+# exit: 1
+
+# installed files: 41
+      34  <prefix>/lib/
+       4  <prefix>/include/dxc
+       3  <prefix>/bin/
+
+# every file, sorted (destinations relative to the install prefix):
+<prefix>/bin/llvm-config.exe
+<prefix>/bin/llvm-tblgen.exe
+<prefix>/bin/opt.exe
+<prefix>/include/dxc/config.h
+<prefix>/include/dxc/dxcapi.h
+<prefix>/include/dxc/dxcerrors.h
+<prefix>/include/dxc/dxcisense.h
+<prefix>/lib/LLVMAnalysis.lib
+<prefix>/lib/LLVMAsmParser.lib
+<prefix>/lib/LLVMBitReader.lib
+<prefix>/lib/LLVMBitWriter.lib
+<prefix>/lib/LLVMCore.lib
+<prefix>/lib/LLVMDXIL.lib
+<prefix>/lib/LLVMDxcBindingTable.lib
+<prefix>/lib/LLVMDxcSupport.lib
+<prefix>/lib/LLVMDxilCompression.lib
+<prefix>/lib/LLVMDxilContainer.lib
+<prefix>/lib/LLVMDxilDia.lib
+<prefix>/lib/LLVMDxilHash.lib
+<prefix>/lib/LLVMDxilPIXPasses.lib
+<prefix>/lib/LLVMDxilPdbInfo.lib
+<prefix>/lib/LLVMDxilRootSignature.lib
+<prefix>/lib/LLVMDxilValidation.lib
+<prefix>/lib/LLVMDxrFallback.lib
+<prefix>/lib/LLVMHLSL.lib
+<prefix>/lib/LLVMIRReader.lib
+<prefix>/lib/LLVMInstCombine.lib
+<prefix>/lib/LLVMLinker.lib
+<prefix>/lib/LLVMMSSupport.lib
+<prefix>/lib/LLVMOption.lib
+<prefix>/lib/LLVMPassPrinters.lib
+<prefix>/lib/LLVMPasses.lib
+<prefix>/lib/LLVMProfileData.lib
+<prefix>/lib/LLVMScalarOpts.lib
+<prefix>/lib/LLVMSupport.lib
+<prefix>/lib/LLVMTableGen.lib
+<prefix>/lib/LLVMTarget.lib
+<prefix>/lib/LLVMTransformUtils.lib
+<prefix>/lib/LLVMVectorize.lib
+<prefix>/lib/LLVMipa.lib
+<prefix>/lib/LLVMipo.lib

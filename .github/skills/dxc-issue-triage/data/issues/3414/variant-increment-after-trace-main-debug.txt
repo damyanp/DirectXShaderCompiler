@@ -1,0 +1,137 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T03:54:19+00:00
+# cmd: -T lib_6_3 control-increment-after-trace.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: increment-after-trace (control-increment-after-trace.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 control-increment-after-trace.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; shader hash: 23c4e6ade0ceb7e792f4fa10068a69e0
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; tlas                              texture     i32         ras      T0             t0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.RaytracingAccelerationStructure = type { i32 }
+%struct.Payload = type { <4 x i32> }
+%struct.BuiltInTriangleIntersectionAttributes = type { <2 x float> }
+%dx.types.Handle = type { i8* }
+
+@"\01?tlas@@3URaytracingAccelerationStructure@@A" = external constant %struct.RaytracingAccelerationStructure, align 4
+
+; Function Attrs: nounwind
+define void @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"(%struct.Payload* noalias nocapture %payload, %struct.BuiltInTriangleIntersectionAttributes* nocapture readnone %attribs) #0 {
+  %1 = alloca %struct.Payload, align 8
+  %2 = call float @dx.op.worldRayDirection.f32(i32 148, i8 0)  ; WorldRayDirection(col)
+  %3 = call float @dx.op.worldRayDirection.f32(i32 148, i8 1)  ; WorldRayDirection(col)
+  %4 = call float @dx.op.worldRayDirection.f32(i32 148, i8 2)  ; WorldRayDirection(col)
+  %5 = call float @dx.op.rayTCurrent.f32(i32 154)  ; RayTCurrent()
+  %6 = getelementptr inbounds %struct.Payload, %struct.Payload* %payload, i32 0, i32 0
+  %7 = load <4 x i32>, <4 x i32>* %6, align 4
+  %8 = extractelement <4 x i32> %7, i32 0
+  %9 = icmp ult i32 %8, 30
+  br i1 %9, label %10, label %37
+
+; <label>:10                                      ; preds = %0
+  %11 = fsub fast float -0.000000e+00, %4
+  %12 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 2)  ; WorldRayOrigin(col)
+  %13 = fmul fast float %5, %4
+  %14 = fadd fast float %12, %13
+  %15 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 1)  ; WorldRayOrigin(col)
+  %16 = fmul fast float %5, %3
+  %17 = fadd fast float %15, %16
+  %18 = call float @dx.op.worldRayOrigin.f32(i32 147, i8 0)  ; WorldRayOrigin(col)
+  %19 = fmul fast float %5, %2
+  %20 = fadd fast float %18, %19
+  %21 = load %struct.RaytracingAccelerationStructure, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", align 4
+  %22 = call %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32 160, %struct.RaytracingAccelerationStructure %21)  ; CreateHandleForLib(Resource)
+  %23 = getelementptr inbounds %struct.Payload, %struct.Payload* %1, i32 0, i32 0
+  store <4 x i32> %7, <4 x i32>* %23, align 8
+  call void @dx.op.traceRay.struct.Payload(i32 157, %dx.types.Handle %22, i32 17, i32 255, i32 0, i32 1, i32 0, float %20, float %17, float %14, float 0x3FB99999A0000000, float %2, float %3, float %11, float 1.000000e+03, %struct.Payload* nonnull %1)  ; TraceRay(AccelerationStructure,RayFlags,InstanceInclusionMask,RayContributionToHitGroupIndex,MultiplierForGeometryContributionToShaderIndex,MissShaderIndex,Origin_X,Origin_Y,Origin_Z,TMin,Direction_X,Direction_Y,Direction_Z,TMax,payload)
+  %24 = load <4 x i32>, <4 x i32>* %23, align 8
+  %25 = extractelement <4 x i32> %24, i32 0
+  %26 = add i32 %25, 1
+  %27 = extractelement <4 x i32> %24, i32 1
+  %28 = add i32 %27, 1
+  %29 = extractelement <4 x i32> %24, i32 2
+  %30 = add i32 %29, 1
+  %31 = extractelement <4 x i32> %24, i32 3
+  %32 = add i32 %31, 1
+  %33 = insertelement <4 x i32> undef, i32 %26, i32 0
+  %34 = insertelement <4 x i32> %33, i32 %28, i32 1
+  %35 = insertelement <4 x i32> %34, i32 %30, i32 2
+  %36 = insertelement <4 x i32> %35, i32 %32, i32 3
+  store <4 x i32> %36, <4 x i32>* %6, align 4, !tbaa !18
+  br label %37
+
+; <label>:37                                      ; preds = %10, %0
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayOrigin.f32(i32, i8) #1
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.worldRayDirection.f32(i32, i8) #1
+
+; Function Attrs: nounwind readonly
+declare float @dx.op.rayTCurrent.f32(i32) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.traceRay.struct.Payload(i32, %dx.types.Handle, i32, i32, i32, i32, i32, float, float, float, float, float, float, float, float, %struct.Payload*) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32, %struct.RaytracingAccelerationStructure) #2
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+attributes #2 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!8}
+!dx.entryPoints = !{!14, !15}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 10}
+!3 = !{!"lib", i32 6, i32 3}
+!4 = !{!5, null, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", !"tlas", i32 0, i32 0, i32 1, i32 16, i32 0, !7}
+!7 = !{i32 0, i32 4}
+!8 = !{i32 1, void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !9}
+!9 = !{!10, !12, !13}
+!10 = !{i32 1, !11, !11}
+!11 = !{}
+!12 = !{i32 2, !11, !11}
+!13 = !{i32 0, !11, !11}
+!14 = !{null, !"", null, !4, null}
+!15 = !{void (%struct.Payload*, %struct.BuiltInTriangleIntersectionAttributes*)* @"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", !"\01?main@@YAXUPayload@@UBuiltInTriangleIntersectionAttributes@@@Z", null, null, !16}
+!16 = !{i32 8, i32 10, i32 6, i32 16, i32 7, i32 8, i32 5, !17}
+!17 = !{i32 0}
+!18 = !{!19, !19, i64 0}
+!19 = !{!"omnipotent char", !20, i64 0}
+!20 = !{!"Simple C/C++ TBAA"}
+
+
+--- stderr ---
+

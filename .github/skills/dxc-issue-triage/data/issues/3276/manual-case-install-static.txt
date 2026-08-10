@@ -1,0 +1,303 @@
+# Static evidence for #3276 'Install target installs lots of unnecessary LLVM outputs'
+# Repository root redacted to <repo>. Install destinations are relative to the install prefix.
+
+$ git rev-parse HEAD
+# tree these observations describe
+dd2df0cfafef4441f8edd1703211f1f835522367
+# exit: 0
+
+$ git grep -c install( -- *.cmake *CMakeLists.txt
+# files carrying install() rules
+CMakeLists.txt:2
+cmake/modules/AddLLVM.cmake:4
+cmake/modules/AddOCaml.cmake:2
+cmake/modules/AddSphinxTarget.cmake:2
+cmake/modules/CMakeLists.txt:3
+cmake/modules/TableGen.cmake:1
+docs/CMakeLists.txt:2
+include/dxc/CMakeLists.txt:1
+projects/dxilconv/unittests/CMakeLists.txt:1
+tools/clang/CMakeLists.txt:6
+tools/clang/docs/CMakeLists.txt:1
+tools/clang/lib/Headers/CMakeLists.txt:1
+tools/clang/tools/clang-check/CMakeLists.txt:1
+tools/clang/tools/clang-format/CMakeLists.txt:7
+tools/clang/tools/driver/CMakeLists.txt:2
+tools/clang/tools/dxa/CMakeLists.txt:1
+tools/clang/tools/dxc/CMakeLists.txt:1
+tools/clang/tools/dxcompiler/CMakeLists.txt:1
+tools/clang/tools/dxl/CMakeLists.txt:1
+tools/clang/tools/dxopt/CMakeLists.txt:1
+tools/clang/tools/dxr/CMakeLists.txt:1
+tools/clang/tools/dxv/CMakeLists.txt:1
+tools/clang/unittests/DxrFallback/CMakeLists.txt:1
+tools/clang/unittests/HLSLErrors/CMakeLists.txt:1
+tools/clang/unittests/HLSLHost/CMakeLists.txt:1
+tools/clang/unittests/dxc_batch/CMakeLists.txt:1
+tools/lto/CMakeLists.txt:1
+tools/msbuild/CMakeLists.txt:15
+# exit: 0
+
+--- <repo>/CMakeLists.txt lines 769-782 ---
+# LLVM headers: installed unless LLVM_INSTALL_TOOLCHAIN_ONLY. No platform guard, so this applies on Linux too.
+  769| if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+  770|   install(DIRECTORY include/llvm include/llvm-c
+  771|     DESTINATION include
+  772|     COMPONENT llvm-headers
+  773|     FILES_MATCHING
+  774|     PATTERN "*.def"
+  775|     PATTERN "*.h"
+  776|     PATTERN "*.td"
+  777|     PATTERN "*.inc"
+  778|     PATTERN "LICENSE.TXT"
+  779|     PATTERN ".svn" EXCLUDE
+  780|     )
+  781| 
+  782|   install(DIRECTORY ${LLVM_INCLUDE_DIR}/llvm
+
+--- <repo>/tools/clang/CMakeLists.txt lines 407-420 ---
+# Clang headers: same single guard. This rule is what produced the 487 include/clang* lines in the reporter's 2020 listing.
+  407| if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+  408|   install(DIRECTORY include/clang include/clang-c
+  409|     DESTINATION include
+  410|     FILES_MATCHING
+  411|     PATTERN "*.def"
+  412|     PATTERN "*.h"
+  413|     PATTERN "config.h" EXCLUDE
+  414|     PATTERN ".svn" EXCLUDE
+  415|     )
+  416| 
+  417|   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/clang
+  418|     DESTINATION include
+  419|     FILES_MATCHING
+  420|     PATTERN "CMakeFiles" EXCLUDE
+
+--- <repo>/cmake/modules/AddLLVM.cmake lines 568-586 ---
+# add_llvm_library(): every LLVM library gets an install() rule by default. The WIN32 branch only chooses RUNTIME vs LIBRARY.
+  568|     set_target_properties( ${name} PROPERTIES EXCLUDE_FROM_ALL ON)
+  569|   elseif(NOT _is_gtest)
+  570|     if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY OR ${name} STREQUAL "LTO")
+  571|       if(ARG_SHARED OR BUILD_SHARED_LIBS)
+  572|         if(WIN32 OR CYGWIN)
+  573|           set(install_type RUNTIME)
+  574|         else()
+  575|           set(install_type LIBRARY)
+  576|         endif()
+  577|       else()
+  578|         set(install_type ARCHIVE)
+  579|       endif()
+  580| 
+  581|       install(TARGETS ${name}
+  582|             EXPORT LLVMExports
+  583|             ${install_type} DESTINATION lib${LLVM_LIBDIR_SUFFIX}
+  584|             COMPONENT ${name})
+  585| 
+  586|       if (NOT CMAKE_CONFIGURATION_TYPES)
+
+--- <repo>/cmake/modules/AddLLVM.cmake lines 680-695 ---
+# add_llvm_tool(): every LLVM tool is installed unless LLVM_INSTALL_TOOLCHAIN_ONLY, in which case only llvm-ar and llvm-objdump survive - neither of which DXC builds.
+  680| 
+  681|   list(FIND LLVM_TOOLCHAIN_TOOLS ${name} LLVM_IS_${name}_TOOLCHAIN_TOOL)
+  682|   if (LLVM_IS_${name}_TOOLCHAIN_TOOL GREATER -1 OR NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+  683|     if( LLVM_BUILD_TOOLS )
+  684|       install(TARGETS ${name}
+  685|               EXPORT LLVMExports
+  686|               RUNTIME DESTINATION bin
+  687|               COMPONENT ${name})
+  688| 
+  689|       if (NOT CMAKE_CONFIGURATION_TYPES)
+  690|         add_custom_target(install-${name}
+  691|                           DEPENDS ${name}
+  692|                           COMMAND "${CMAKE_COMMAND}"
+  693|                                   -DCMAKE_INSTALL_COMPONENT=${name}
+  694|                                   -P "${CMAKE_BINARY_DIR}/cmake_install.cmake")
+  695|       endif()
+
+--- <repo>/CMakeLists.txt lines 70-70 ---
+# The single knob that suppresses most of the above. Default OFF.
+   70| option(LLVM_INSTALL_TOOLCHAIN_ONLY "Only include toolchain files in the 'install' target." OFF)
+
+--- <repo>/CMakeLists.txt lines 807-825 ---
+# DXC's own trimmed install path: LLVM_DISTRIBUTION_COMPONENTS defaults to dxc;dxcompiler;dxc-headers and drives install-distribution. Not platform-guarded.
+  807| # HLSL Change begin - Set default distribution value.
+  808| set(LLVM_DISTRIBUTION_COMPONENTS "dxc;dxcompiler;dxc-headers" CACHE STRING "")
+  809| # HLSL Change end - Set default distribution value.
+  810| 
+  811| # This must be at the end of the LLVM root CMakeLists file because it must run
+  812| # after all targets are created.
+  813| if(LLVM_DISTRIBUTION_COMPONENTS)
+  814|   # HLSL Change - Deleted restriction for non-IDE builds. This works with Visual
+  815|   # Studio for DXC because of the limited number of targets.
+  816|   
+  817|   add_custom_target(install-distribution)
+  818|   foreach(target ${LLVM_DISTRIBUTION_COMPONENTS})
+  819|     if(TARGET install-${target})
+  820|       add_dependencies(install-distribution install-${target})
+  821|     else()
+  822|       message(FATAL_ERROR "Specified distribution component '${target}' doesn't have an install target")
+  823|     endif()
+  824|   endforeach()
+  825| endif()
+
+--- <repo>/include/dxc/CMakeLists.txt lines 24-48 ---
+# dxc-headers component: an explicit FILES list, so no CMakeLists.txt and no d3dx12.h reach the install tree. WinAdapter.h is added on non-Windows only.
+   24|     ${CMAKE_CURRENT_BINARY_DIR}/config.h
+   25|     ${CMAKE_CURRENT_SOURCE_DIR}/dxcapi.h
+   26|     ${CMAKE_CURRENT_SOURCE_DIR}/dxcerrors.h
+   27|     ${CMAKE_CURRENT_SOURCE_DIR}/dxcisense.h)
+   28| 
+   29| if (NOT WIN32)
+   30|   set(DXC_PLATFORM_PUBLIC_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/WinAdapter.h)
+   31| endif()
+   32| 
+   33| # This target just needs to exist for the distribution build, it doesn't need to
+   34| # actually build anything since the headers are static.
+   35| add_custom_target(dxc-headers)
+   36| 
+   37| install(FILES 
+   38|     ${DXC_PUBLIC_HEADERS}
+   39|     ${DXC_PLATFORM_PUBLIC_HEADERS}
+   40|     DESTINATION include/dxc
+   41|     COMPONENT dxc-headers
+   42|     )
+   43| 
+   44| add_custom_target(install-dxc-headers
+   45|     DEPENDS dxc-headers
+   46|     COMMAND "${CMAKE_COMMAND}"
+   47|             -DCMAKE_INSTALL_COMPONENT=dxc-headers
+   48|             -P "${CMAKE_BINARY_DIR}/cmake_install.cmake")
+
+--- <repo>/tools/clang/tools/dxcompiler/CMakeLists.txt lines 155-168 ---
+# dxcompiler install destination is platform-conditional: bin/ on Windows, lib/ elsewhere. This is the one place the reporter's Linux layout differs from what was measured here.
+  155|   set(install_dest RUNTIME DESTINATION bin)
+  156| else()
+  157|   set(install_dest LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+  158| endif()
+  159| 
+  160| install(TARGETS dxcompiler
+  161|   ${install_dest}
+  162|   COMPONENT dxcompiler)
+  163| 
+  164| add_custom_target(install-dxcompiler
+  165|   DEPENDS dxcompiler
+  166|   COMMAND "${CMAKE_COMMAND}"
+  167|           -DCMAKE_INSTALL_COMPONENT=dxcompiler
+  168|           -P "${CMAKE_BINARY_DIR}/cmake_install.cmake")
+
+--- <repo>/gcp-pipelines/x86_64-linux-clang.yml lines 36-45 ---
+# DXC's own Linux CI builds its artifact with install-distribution, not with the default install target.
+   36|     args:
+   37|       - ninja
+   38|       - '-C'
+   39|       - build
+   40|       - install-distribution
+   41|   - name: 'gcr.io/shaderc-build/shader-compiler-team:kokoro-dxc-builder'
+   42|     script: |
+   43|       #!/usr/bin/env bash
+   44|       zip -r dxc-artifacts.zip /workspace/artifacts/*
+   45| logsBucket: 'gs://public-github-building-logs'
+
+$ git log --oneline "--format=%h %ad %s" --date=short -1 4f5e4d1b7
+# the commit that added install-distribution to DXC
+4f5e4d1b7 2023-04-18 Setup `install-distribution` target for DXC (#5154)
+# exit: 0
+
+$ git tag --contains 4f5e4d1b7 --sort=creatordate
+# releases carrying it (first entry = earliest tag)
+v1.8.2306-preview
+v1.7.2308
+v1.8.2403
+v1.8.2403.1
+v1.8.2403.2
+v1.8.2405
+v1.8.2405-mesh-nodes-preview
+v1.8.2407
+v1.8.2502
+aaa
+v1.8.2505
+v1.8.2505.1
+v1.9.2602
+v1.10.2605.2
+v1.9.2602.24
+v1.10.2605.24
+v1.9.2607
+# exit: 0
+
+$ git log --oneline "--format=%h %ad %s" --date=short --since=2020-11-20 -- CMakeLists.txt cmake/modules/AddLLVM.cmake tools/clang/CMakeLists.txt
+# ABSENCE CHECK: commits touching the three files that carry the LLVM/Clang header and library install rules, since the issue was filed. Looking for any that trims the default install set.
+ea7e9100a 2025-10-16 Workaround broken ARM64X / MSVC_BUILD_AS_X builds (#7827)
+5f18e2bac 2025-04-15 Add HctGen of DXIL.rst back to build without LLVM_BUILD_DOCS required (#7346)
+3035d316c 2025-04-01 Require CMake 3.17, remove CMP0051 (#7287)
+eb0234398 2025-03-20 NFC: Make hlsl::IntrinsicOp enum values stable (#7231)
+91b348912 2024-08-01 Add llvm assertions trap and no strings (#6838)
+b6f7ff81e 2024-07-29 Use llvm_assert/assert.h on all platforms, not just Windows (#6815)
+b18fe8763 2024-07-12 Add CMake option DXC_CODEGEN_EXCEPTIONS_TRAP (#6764)
+0eebec69d 2024-06-25 CMake: Add initial support for MinGW-w64 (#6715)
+1f8f79688 2024-06-20 CMake: Use find_package(Python3) (#6675)
+98bb80a1e 2024-06-17 Remove Windows C++ redist hack (#6692)
+0b9acdb75 2024-06-11 Workaround broken GitHub runner images (#6683)
+37a082651 2023-11-22 CMake dxc as subproject fixes (#6050)
+89710e569 2023-11-10 [Build] remove VS_STARTUP_PROJECT to avoid require cmake3.4 (#5994)
+8caace9aa 2023-10-18 Revert mistaken debug changes to hctbuild (#5888)
+a56078a99 2023-10-17 Make hctbuild cmake gen consistent with asserts (#5881)
+b157edec9 2023-09-19 Fix build on ARM with non-VS generator (#5684)
+50c4c887f 2023-08-31 Add CET Shadow Stack Compatible flag (#5637)
+f6a90f07c 2023-08-22 [C++17] Force C++17 when build DXC (#5520)
+d2a0baf16 2023-08-21 [ClangCL] exception related fix for ClangCL (#5496)
+92ee02e9b 2023-07-27 [lit] Make lit the only test runner (#5402)
+3c06afb98 2023-07-25 Update required CMake version to 3.17.2 (#5418)
+44f883393 2023-07-17 Add macro to disable usage of allocator overrides (#5296)
+5f931c3f1 2023-06-30 Add link-time detection of LLVM_ABI_BREAKING_CHECKS mismatch (#5380)
+4f5e4d1b7 2023-04-18 Setup `install-distribution` target for DXC (#5154)
+39481d9d5 2023-04-05 Extend add_lit_testsuites to cover more cases (#4801)
+5eb7c77d7 2023-02-28 Move WinAdapter into interface directory (#5066)
+46eb82e0e 2023-02-10 Remove SO version from unix binaries (#5010)
+00da3abfc 2023-02-09 Correct WinAdapter path assumptions in public headers (#5003)
+3ae705421 2022-12-01 Tweaks and fixes to clang build and test configs (#4832)
+14a55b773 2022-11-23 [linux] Enable Reflection on *nix platforms (#4810)
+fb6b287c2 2022-11-22 Remove DXC_BUILD_ARCH variable (#4156)
+90b293558 2022-11-22 Workarounds for arm64ec build (#4808)
+3962ff2f8 2022-11-15 Bring in code coverage tooling (#4759)
+eb4d0ec38 2022-09-19 Add `LLVM_OPTIMZIE_SANITIZED_BUIDS` option (#4667)
+20ddfe85f 2022-06-16 [dxil2spv] Remove dxil2spv prototype (#4512)
+d3c7fac3c 2022-05-12 Enable control flow guard (#4457)
+c45db48d5 2022-01-26 Add initial dxil2spv executable (#4199)
+6cf0a6f7d 2021-11-02 Automate generating of intrinsic code (#4001)
+344953a46 2021-10-28 NFC. Cleanup CMake warnings (#4045)
+3d17803ba 2021-10-21 Enable building LLVM testing tools (#4023)
+0a0ed9f50 2021-10-20 Make it possible to enable building LLVM & Clang unit tests (#4020)
+4ca3a0425 2021-10-19 Restore LLVM Testing Infrastructure (#4012)
+e621158fb 2021-04-29 Disable regeneration target for official builds as they always run a full clean build. (#3725)
+e09223cc4 2021-03-26 Enable debugging from kernel mode (#3637)
+# exit: 0
+
+$ git grep -n LLVM_INSTALL_TOOLCHAIN_ONLY -- *.cmake *CMakeLists.txt
+# every use of the suppression knob
+CMakeLists.txt:70:option(LLVM_INSTALL_TOOLCHAIN_ONLY "Only include toolchain files in the 'install' target." OFF)
+CMakeLists.txt:769:if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+cmake/modules/AddLLVM.cmake:570:    if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY OR ${name} STREQUAL "LTO")
+cmake/modules/AddLLVM.cmake:608:      if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+cmake/modules/AddLLVM.cmake:682:  if (LLVM_IS_${name}_TOOLCHAIN_TOOL GREATER -1 OR NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+cmake/modules/AddSphinxTarget.cmake:49:    if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+cmake/modules/CMakeLists.txt:76:if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+cmake/modules/TableGen.cmake:119:  if (${project} STREQUAL LLVM AND NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+docs/CMakeLists.txt:95:  if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+docs/CMakeLists.txt:154:  if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+tools/clang/CMakeLists.txt:94:  option(LLVM_INSTALL_TOOLCHAIN_ONLY
+tools/clang/CMakeLists.txt:377:    if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY OR ${name} STREQUAL "libclang")
+tools/clang/CMakeLists.txt:407:if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+tools/clang/docs/CMakeLists.txt:86:  if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+# exit: 0
+
+$ git grep -n -i install-distribution -- *.md *.rst *.txt *.cmd *.sh *.yml
+# ABSENCE CHECK: is the trimmed install path documented anywhere a user would look? Only a CI file is expected to match.
+CMakeLists.txt:817:  add_custom_target(install-distribution)
+CMakeLists.txt:820:      add_dependencies(install-distribution install-${target})
+gcp-pipelines/x86_64-linux-clang.yml:40:      - install-distribution
+# exit: 0
+
+$ git ls-files include/dxc/Support/d3dx12.h include/dxc/CMakeLists.txt
+# the two things the reporter's follow-up comment names are still in the source tree (they are no longer installed)
+include/dxc/CMakeLists.txt
+include/dxc/Support/d3dx12.h
+# exit: 0

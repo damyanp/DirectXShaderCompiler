@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T03:54:14+00:00
+# cmd: -T ps_6_0 -E main control-broken.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: broken (control-broken.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main control-broken.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-broken.hlsl:10:33: error: expected ';' after return statement
+  return float4(0.0001, 0, 0, 1)
+                                ^
+                                ;
+
+

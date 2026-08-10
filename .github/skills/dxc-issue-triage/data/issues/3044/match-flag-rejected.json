@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "Unknown argument: '--?CC?'",
+  "note": "Was this spelling of clang's comment-retention flag PARSED by dxc? Fires when dxc rejects it outright. Used only by the labelled flag variants, never by the primary probe. It quotes the `Unknown argument` diagnostic verbatim on purpose: that string is one of classify()'s feature-absence markers, and _predicate_quotes() suppresses the invalid-probe demotion (and therefore run()'s automatic `-`/`_`/`/` spelling re-probe) only when the issue's own predicate spells the marker out. Without that, the capture would silently record the re-probed `/C` spelling instead of the rejection being measured. The `-` variants must MATCH (`--expect match`) and the `/` variants must NOT (`--expect no-match`): DXC does not diagnose an unknown `/` flag at all -- placed before the input file it is swallowed and the compile exits 0. variant-flag-slash-zzznonsense is the control for that: it behaves identically to /C, so a clean exit is not evidence that /C was understood."
+}

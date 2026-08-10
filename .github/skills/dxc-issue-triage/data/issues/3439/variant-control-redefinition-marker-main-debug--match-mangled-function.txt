@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T03:54:41+00:00
+# cmd: -T ps_6_0 -E main control-redefinition.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-mangled-function.json
+# verdict: no-repro
+# variant: control-redefinition-marker (control-redefinition.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main control-redefinition.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-redefinition.hlsl:10:5: error: redefinition of 'CallMeMaybe'
+int CallMeMaybe(float f, bool b) {
+    ^
+control-redefinition.hlsl:6:5: note: previous definition is here
+int CallMeMaybe(float f, bool b) {
+    ^
+
+

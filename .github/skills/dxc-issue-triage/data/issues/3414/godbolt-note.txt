@@ -1,0 +1,13 @@
+This is the shader from issue 3414, unmodified, at the profile used in the thread.
+
+In each pane, compare the last argument of the "call void @dx.op.traceRay" line with the
+payload parameter named in the "define void @...main..." line at the top of the function.
+
+In the DXC 1.6.2112 and DXC 1.8.2502 panes those two are the same value: the recursive
+TraceRay is handed the closest-hit shader's own inout payload object, so the caller and the
+recursive call share one payload instead of the copy that HLSL copy-in/copy-out requires.
+
+In the DXC 1.8.2505 and trunk panes the TraceRay argument is a separate local allocation
+instead, written on the line immediately before the call and read back immediately after it.
+That is the copy-in/copy-out, and it is exactly what the reporter's workaround forced by hand
+by introducing a second Payload variable.

@@ -1,0 +1,399 @@
+# #3439 -- the DXIL linker half, driven by measure-link.py
+# Every command below is echoed by the script that ran it.
+# 'mangled' means the linker's own error named the function
+# with its MSVC-mangled symbol rather than its HLSL name.
+#
+# No release ships dxl.exe, so release rows are a RELEASE MATRIX:
+# the local dxc.exe/dxl.exe drivers are held fixed beside each
+# release's own dxcompiler.dll, which is the component that
+# implements IDxcLinker and emits the message under test.
+# Rows tagged (prerelease) are outside the stable sequence and
+# outside the headline population count, per SKILL.md step 6.
+
+===== ground truth =====
+----- main-debug -----
+$ <repo>\build\Debug\bin\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+
+$ <repo>\build\Debug\bin\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-main-debug.dxil
+[exit] 0x00000000
+
+$ <repo>\build\Debug\bin\dxl.exe -T ps_6_3 -E main link-main-debug.dxil -Fo linked-main-debug.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.4.1907 (release matrix: local drivers + v1.4.1907 dxcompiler.dll) =====
+----- v1.4.1907 -----
+$ <scratch>\v1.4.1907\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.5(2275-582a59e8) - 1.4.1907.0
+
+$ <scratch>\v1.4.1907\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.4.1907.dxil
+[exit] 0x80070057
+Unknown argument: '-Fo'
+
+compile failed; retrying with the '/Fo' spelling before demoting this row
+$ <scratch>\v1.4.1907\dxc.exe -T lib_6_3 case-link-undef.hlsl /Fo link-v1.4.1907.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.4.1907\dxl.exe -T ps_6_3 -E main link-v1.4.1907.dxil -Fo linked-v1.4.1907.dxil
+[exit] 0x00000001
+
+anchor absent; retrying the link step with the '/Fo' spelling before demoting this row
+$ <scratch>\v1.4.1907\dxl.exe -T ps_6_3 -E main link-v1.4.1907.dxil /Fo linked-v1.4.1907.dxil
+[exit] 0x00000001
+Link failed:
+Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+A
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.5.2003 (release matrix: local drivers + v1.5.2003 dxcompiler.dll) =====
+----- v1.5.2003 -----
+$ <scratch>\v1.5.2003\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.5(2586-c5d04493) - 1.5.2003.22 (c5d044938)
+
+$ <scratch>\v1.5.2003\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.5.2003.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.5.2003\dxl.exe -T ps_6_3 -E main link-v1.5.2003.dxil -Fo linked-v1.5.2003.dxil
+[exit] 0x00000001
+Link failed:
+Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.5.2010 (release matrix: local drivers + v1.5.2010 dxcompiler.dll) =====
+----- v1.5.2010 -----
+$ <scratch>\v1.5.2010\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.5(2823-b640fa4b) - 1.5.2010.6 (b640fa4ba)
+
+$ <scratch>\v1.5.2010\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.5.2010.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.5.2010\dxl.exe -T ps_6_3 -E main link-v1.5.2010.dxil -Fo linked-v1.5.2010.dxil
+[exit] 0x00000001
+Link failed:
+Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.6.2104 (release matrix: local drivers + v1.6.2104 dxcompiler.dll) =====
+----- v1.6.2104 -----
+$ <scratch>\v1.6.2104\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.6(3086-e09a454e)(1.6.2104.52) - 1.6.2104.52 (e09a454eb)
+
+$ <scratch>\v1.6.2104\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.6.2104.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.6.2104\dxl.exe -T ps_6_3 -E main link-v1.6.2104.dxil -Fo linked-v1.6.2104.dxil
+[exit] 0x00000001
+Link failed:
+Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.6.2106 (release matrix: local drivers + v1.6.2106 dxcompiler.dll) =====
+----- v1.6.2106 -----
+$ <scratch>\v1.6.2106\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.6(3194-dad1cfc3)(1.6.2106.3) - 1.6.2106.3 (dad1cfc30)
+
+$ <scratch>\v1.6.2106\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.6.2106.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.6.2106\dxl.exe -T ps_6_3 -E main link-v1.6.2106.dxil -Fo linked-v1.6.2106.dxil
+[exit] 0x00000001
+Link failed:
+Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.6.2112 (release matrix: local drivers + v1.6.2112 dxcompiler.dll) =====
+----- v1.6.2112 -----
+$ <scratch>\v1.6.2112\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.6(3368-770ac0cc)(1.6.2112.12) - 1.6.2112.12 (770ac0cc1)
+
+$ <scratch>\v1.6.2112\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.6.2112.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.6.2112\dxl.exe -T ps_6_3 -E main link-v1.6.2112.dxil -Fo linked-v1.6.2112.dxil
+[exit] 0x00000001
+Link failed:
+Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.7.2207 (release matrix: local drivers + v1.7.2207 dxcompiler.dll) =====
+----- v1.7.2207 -----
+$ <scratch>\v1.7.2207\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.7(3605-e9137cd1)(1.7.2207.3) - 1.7.2207.3 (e9137cd1d)
+
+$ <scratch>\v1.7.2207\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.7.2207.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.7.2207\dxl.exe -T ps_6_3 -E main link-v1.7.2207.dxil -Fo linked-v1.7.2207.dxil
+[exit] 0x00000001
+Link failed:
+Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.7.2212 (release matrix: local drivers + v1.7.2212 dxcompiler.dll) =====
+----- v1.7.2212 -----
+$ <scratch>\v1.7.2212\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.7(3759-8c9d92be)(1.7.2212.12) - 1.7.2212.12 (8c9d92be7)
+
+$ <scratch>\v1.7.2212\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.7.2212.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.7.2212\dxl.exe -T ps_6_3 -E main link-v1.7.2212.dxil -Fo linked-v1.7.2212.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.7.2212.1 (release matrix: local drivers + v1.7.2212.1 dxcompiler.dll) =====
+----- v1.7.2212.1 -----
+$ <scratch>\v1.7.2212.1\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.7(3787-e043f4a1)(1.7.2212.40) - 1.7.2212.40 (e043f4a12)
+
+$ <scratch>\v1.7.2212.1\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.7.2212.1.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.7.2212.1\dxl.exe -T ps_6_3 -E main link-v1.7.2212.1.dxil -Fo linked-v1.7.2212.1.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.7.2308 (release matrix: local drivers + v1.7.2308 dxcompiler.dll) =====
+----- v1.7.2308 -----
+$ <scratch>\v1.7.2308\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.7(4006-69e54e29)(1.7.2308.7) - 1.7.2308.7 (69e54e290)
+
+$ <scratch>\v1.7.2308\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.7.2308.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.7.2308\dxl.exe -T ps_6_3 -E main link-v1.7.2308.dxil -Fo linked-v1.7.2308.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.8.2403 (release matrix: local drivers + v1.8.2403 dxcompiler.dll) =====
+----- v1.8.2403 -----
+$ <scratch>\v1.8.2403\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.8(4458-c9660a8c)(1.8.2403.34) - 1.8.2403.34 (c9660a8c0)
+
+$ <scratch>\v1.8.2403\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.8.2403.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.8.2403\dxl.exe -T ps_6_3 -E main link-v1.8.2403.dxil -Fo linked-v1.8.2403.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.8.2403.1 (release matrix: local drivers + v1.8.2403.1 dxcompiler.dll) =====
+----- v1.8.2403.1 -----
+$ <scratch>\v1.8.2403.1\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.8(4460-9c2b8287)(1.8.2403.36) - 1.8.2403.36 (9c2b82878)
+
+$ <scratch>\v1.8.2403.1\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.8.2403.1.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.8.2403.1\dxl.exe -T ps_6_3 -E main link-v1.8.2403.1.dxil -Fo linked-v1.8.2403.1.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.8.2403.2 (release matrix: local drivers + v1.8.2403.2 dxcompiler.dll) =====
+----- v1.8.2403.2 -----
+$ <scratch>\v1.8.2403.2\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.8(4461-11e1318c)(1.8.2403.37) - 1.8.2403.37 (11e1318c3)
+
+$ <scratch>\v1.8.2403.2\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.8.2403.2.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.8.2403.2\dxl.exe -T ps_6_3 -E main link-v1.8.2403.2.dxil -Fo linked-v1.8.2403.2.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.8.2405 (release matrix: local drivers + v1.8.2405 dxcompiler.dll) =====
+----- v1.8.2405 -----
+$ <scratch>\v1.8.2405\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.8(4597-fd7e54bc)(1.8.2405.15) - 1.8.2405.15 (fd7e54bcd)
+
+$ <scratch>\v1.8.2405\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.8.2405.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.8.2405\dxl.exe -T ps_6_3 -E main link-v1.8.2405.dxil -Fo linked-v1.8.2405.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.8.2407 (release matrix: local drivers + v1.8.2407 dxcompiler.dll) =====
+----- v1.8.2407 -----
+$ <scratch>\v1.8.2407\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.8(4662-416fab6b)(1.8.2407.7) - 1.8.2407.7 (416fab6b5)
+
+$ <scratch>\v1.8.2407\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.8.2407.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.8.2407\dxl.exe -T ps_6_3 -E main link-v1.8.2407.dxil -Fo linked-v1.8.2407.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.8.2502 (release matrix: local drivers + v1.8.2502 dxcompiler.dll) =====
+----- v1.8.2502 -----
+$ <scratch>\v1.8.2502\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.8(4789-b4711839)(1.8.2502.8) - 1.8.2502.8 (b4711839e)
+
+$ <scratch>\v1.8.2502\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.8.2502.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.8.2502\dxl.exe -T ps_6_3 -E main link-v1.8.2502.dxil -Fo linked-v1.8.2502.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.8.2505 (release matrix: local drivers + v1.8.2505 dxcompiler.dll) =====
+----- v1.8.2505 -----
+$ <scratch>\v1.8.2505\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.9(4946-9efbb6c3)(1.8.2505.28) - 1.8.2505.28 (9efbb6c32)
+
+$ <scratch>\v1.8.2505\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.8.2505.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.8.2505\dxl.exe -T ps_6_3 -E main link-v1.8.2505.dxil -Fo linked-v1.8.2505.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.8.2505.1 (release matrix: local drivers + v1.8.2505.1 dxcompiler.dll) =====
+----- v1.8.2505.1 -----
+$ <scratch>\v1.8.2505.1\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.9(4950-b106a961)(1.8.2505.32) - 1.8.2505.32 (b106a961d)
+
+$ <scratch>\v1.8.2505.1\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.8.2505.1.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.8.2505.1\dxl.exe -T ps_6_3 -E main link-v1.8.2505.1.dxil -Fo linked-v1.8.2505.1.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.9.2602 (release matrix: local drivers + v1.9.2602 dxcompiler.dll) =====
+----- v1.9.2602 -----
+$ <scratch>\v1.9.2602\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.9(5184-21d28f72)(1.9.2602.17) - 1.9.2602.17 (21d28f727)
+
+$ <scratch>\v1.9.2602\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.9.2602.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.9.2602\dxl.exe -T ps_6_3 -E main link-v1.9.2602.dxil -Fo linked-v1.9.2602.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.9.2602.24 (release matrix: local drivers + v1.9.2602.24 dxcompiler.dll) =====
+----- v1.9.2602.24 -----
+$ <scratch>\v1.9.2602.24\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.9(5191-d355aa83)(1.9.2602.24) - 1.9.2602.24 (d355aa836)
+
+$ <scratch>\v1.9.2602.24\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.9.2602.24.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.9.2602.24\dxl.exe -T ps_6_3 -E main link-v1.9.2602.24.dxil -Fo linked-v1.9.2602.24.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== v1.9.2607 (release matrix: local drivers + v1.9.2607 dxcompiler.dll) =====
+----- v1.9.2607 -----
+$ <scratch>\v1.9.2607\dxc.exe --version
+[exit] 0x00000000
+dxcompiler.dll: 1.9(5402-0d3ee6b5)(1.9.0.5402) - 1.9.0.5402 (0d3ee6b55-dirty)
+
+$ <scratch>\v1.9.2607\dxc.exe -T lib_6_3 case-link-undef.hlsl -Fo link-v1.9.2607.dxil
+[exit] 0x00000000
+
+$ <scratch>\v1.9.2607\dxl.exe -T ps_6_3 -E main link-v1.9.2607.dxil -Fo linked-v1.9.2607.dxil
+[exit] 0x00000001
+Link failed:
+error: Cannot find definition of function ?NotDefinedAnywhere@@YA?AV?$vector@M$03@@V1@I@Z
+
+anchor=present  mangled-function-name=?NotDefinedAnywhere@@YA  -> mangled
+
+===== summary =====
+main-debug       mangled
+v1.4.1907        mangled
+v1.5.2003        mangled (prerelease)
+v1.5.2010        mangled
+v1.6.2104        mangled
+v1.6.2106        mangled
+v1.6.2112        mangled
+v1.7.2207        mangled
+v1.7.2212        mangled
+v1.7.2212.1      mangled
+v1.7.2308        mangled
+v1.8.2403        mangled
+v1.8.2403.1      mangled
+v1.8.2403.2      mangled
+v1.8.2405        mangled
+v1.8.2407        mangled
+v1.8.2502        mangled
+v1.8.2505        mangled
+v1.8.2505.1      mangled
+v1.9.2602        mangled
+v1.9.2602.24     mangled
+v1.9.2607        mangled
+
+stable releases probed: 20; mangled: 20; readable: 0; invalid-probe: 0

@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "External function used in non-library profile"
+    },
+    {
+      "kind": "regex",
+      "value": "\\?[A-Za-z_][A-Za-z0-9_]*(?:@[A-Za-z_][A-Za-z0-9_]*)*@@[A-Z][A-Z0-9]"
+    }
+  ],
+  "note": "The symptom is a DIAGNOSTIC-QUALITY defect: a compiler error names a function with its Microsoft-mangled LLVM symbol instead of its HLSL name. It is NOT a crash and NOT an exit code -- on Windows every ordinary diagnosed error is E_FAIL (0x80004005), so `nonzero_exit` would fire on any rejected shader, and the reported behaviour is a correct rejection with a bad message. CLAUSE 1 is the positive anchor and the self-test: `External function used in non-library profile` is emitted only from CGHLSLMSFinishCodeGen.cpp:3405, so a run that failed to parse, was rejected for an unsupported profile, or crashed cannot satisfy it -- which is what stops a broken probe from scoring either way for free (SKILL.md step 6, presence-finding mirror rule). Its wording has been unchanged since 4ade2fccc (2018-06-20), a year before the oldest probeable release, so it is safe to pin. CLAUSE 2 is the instrument: an MSVC-mangled FUNCTION symbol -- an identifier introduced by `?`, optionally scope-qualified with `@`, terminated by `@@` and followed by two type-encoding characters starting with a letter (`?CallMeMaybe@@YA...`). It deliberately does NOT match `@@3` (mangled DATA symbols such as `\\01?gs_payload@@3U...`), because this issue is about function names, and it deliberately does not simply look for `?` or `@@` alone, which would fire on ordinary punctuation. CONTROLS -- all captured, all scored by match-mangled-function.json, which is clause 2 ON ITS OWN so that the discrimination is attributed to the instrument and not to clause 1: (a) variant-control-redefinition-marker-main-debug.txt, control-redefinition.hlsl, an error naming the SAME function well (`error: redefinition of 'CallMeMaybe'`) -- expect no-match, and this is the load-bearing one, since a naive `there was an error` or `output contains ?` predicate fires on it; (b) variant-control-good-marker-main-debug.txt, control-good.hlsl, the repro with the missing overload supplied so it compiles cleanly -- expect no-match; (c) variant-case-validator-payload-main-debug.txt, a DXIL VALIDATOR error emitted even later than the repro's, which names its entry point readably (`For amplification shader with entry 'AmplifyWithHugePayload'`) -- expect no-match, and it is what makes the verdict `partial` rather than blanket. The same two controls are also run under this full predicate (variant-control-*-main-debug.txt, expect no-match)."
+}

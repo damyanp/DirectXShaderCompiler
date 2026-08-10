@@ -1,0 +1,20 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T03:54:53+00:00
+# cmd: -T lib_6_3 case-export-resource.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-mangled-function.json
+# verdict: repro
+# variant: case-export-resource (case-export-resource.hlsl)
+# expect: match
+
+$ dxc -T lib_6_3 case-export-resource.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: Exported function \01?TakesAResource@@YA?AV?$vector@M$03@@V?$Texture2D@V?$vector@M$03@@@@V?$vector@I$01@@@Z must not contain a resource in parameter or return type.
+
+

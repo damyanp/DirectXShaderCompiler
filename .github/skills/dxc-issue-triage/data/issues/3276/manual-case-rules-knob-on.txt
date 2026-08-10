@@ -1,0 +1,141 @@
+# CONTROLLED CONFIGURE: LLVM_INSTALL_TOOLCHAIN_ONLY=ON
+# configured from <repo> into a scratch tree OUTSIDE the repo with:
+#   cmake -S <repo> -B <scratch>/cfg-toolchain-only -G "Visual Studio 18 2026" -A x64 \
+#         -C <repo>/cmake/caches/PredefinedParams.cmake -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON
+# Configure only -- nothing was built and nothing was installed from these trees.
+
+# build tree: <build>
+# cmake_install.cmake scripts found: 175
+
+# RULE-PARSE-SELFTEST=pass
+
+# install rules per component (a component is what `cmake --install --component <name>` selects;
+#  the default `install` target runs ALL of them)
+
+component                     rules  example destinations
+Unspecified                     115  <prefix>/SPIRV-Tools-diff/cmake, <prefix>/SPIRV-Tools-link/cmake, <prefix>/SPIRV-Tools-lint/cmake
+dxc                               4  <prefix>/bin
+dxcompiler                        4  <prefix>/bin
+dxc-headers                       1  <prefix>/include/dxc
+
+# category summary for <prefix>/bin and <prefix>/lib (counted from the rules above, not by eye)
+   0  lib: LLVM* archives (LLVM proper + DXC's own LLVM-style libs)
+      
+   1  lib: clang*/libclang archives
+      libclang.lib
+   7  lib: SPIRV-Tools* archives
+      SPIRV-Tools-diff.lib, SPIRV-Tools-link.lib, SPIRV-Tools-lint.lib, SPIRV-Tools-opt.lib, SPIRV-Tools-reduce.lib, SPIRV-Tools-shared.lib, SPIRV-Tools.lib
+   0  bin: LLVM developer tools
+      
+   4  bin: test binaries
+      HLSLErrors.exe, HLSLHost.exe, dxc_batch.exe, test_DxrFallback.exe
+   1  bin: dxc distribution component
+      dxc.exe
+
+# distinct file names per destination
+   6  <prefix>/SPIRV-Tools-diff/cmake
+   6  <prefix>/SPIRV-Tools-link/cmake
+   6  <prefix>/SPIRV-Tools-lint/cmake
+   6  <prefix>/SPIRV-Tools-opt/cmake
+   6  <prefix>/SPIRV-Tools-reduce/cmake
+   6  <prefix>/SPIRV-Tools/cmake
+  13  <prefix>/bin
+   1  <prefix>/include
+   4  <prefix>/include/dxc
+   4  <prefix>/include/spirv-tools
+   8  <prefix>/lib
+   2  <prefix>/lib/pkgconfig
+
+# every rule, grouped by destination
+
+<prefix>/SPIRV-Tools-diff/cmake   (6 rules)
+    SPIRV-Tools-diffConfig.cmake [Unspecified]
+    SPIRV-Tools-diffTargets-debug.cmake [Unspecified]
+    SPIRV-Tools-diffTargets-minsizerel.cmake [Unspecified]
+    SPIRV-Tools-diffTargets-release.cmake [Unspecified]
+    SPIRV-Tools-diffTargets-relwithdebinfo.cmake [Unspecified]
+    SPIRV-Tools-diffTargets.cmake [Unspecified]
+
+<prefix>/SPIRV-Tools-link/cmake   (6 rules)
+    SPIRV-Tools-linkConfig.cmake [Unspecified]
+    SPIRV-Tools-linkTargets-debug.cmake [Unspecified]
+    SPIRV-Tools-linkTargets-minsizerel.cmake [Unspecified]
+    SPIRV-Tools-linkTargets-release.cmake [Unspecified]
+    SPIRV-Tools-linkTargets-relwithdebinfo.cmake [Unspecified]
+    SPIRV-Tools-linkTargets.cmake [Unspecified]
+
+<prefix>/SPIRV-Tools-lint/cmake   (6 rules)
+    SPIRV-Tools-lintConfig.cmake [Unspecified]
+    SPIRV-Tools-lintTargets-debug.cmake [Unspecified]
+    SPIRV-Tools-lintTargets-minsizerel.cmake [Unspecified]
+    SPIRV-Tools-lintTargets-release.cmake [Unspecified]
+    SPIRV-Tools-lintTargets-relwithdebinfo.cmake [Unspecified]
+    SPIRV-Tools-lintTargets.cmake [Unspecified]
+
+<prefix>/SPIRV-Tools-opt/cmake   (6 rules)
+    SPIRV-Tools-optConfig.cmake [Unspecified]
+    SPIRV-Tools-optTargets-debug.cmake [Unspecified]
+    SPIRV-Tools-optTargets-minsizerel.cmake [Unspecified]
+    SPIRV-Tools-optTargets-release.cmake [Unspecified]
+    SPIRV-Tools-optTargets-relwithdebinfo.cmake [Unspecified]
+    SPIRV-Tools-optTargets.cmake [Unspecified]
+
+<prefix>/SPIRV-Tools-reduce/cmake   (6 rules)
+    SPIRV-Tools-reduceConfig.cmake [Unspecified]
+    SPIRV-Tools-reduceTarget-debug.cmake [Unspecified]
+    SPIRV-Tools-reduceTarget-minsizerel.cmake [Unspecified]
+    SPIRV-Tools-reduceTarget-release.cmake [Unspecified]
+    SPIRV-Tools-reduceTarget-relwithdebinfo.cmake [Unspecified]
+    SPIRV-Tools-reduceTarget.cmake [Unspecified]
+
+<prefix>/SPIRV-Tools/cmake   (6 rules)
+    SPIRV-ToolsConfig.cmake [Unspecified]
+    SPIRV-ToolsTarget-debug.cmake [Unspecified]
+    SPIRV-ToolsTarget-minsizerel.cmake [Unspecified]
+    SPIRV-ToolsTarget-release.cmake [Unspecified]
+    SPIRV-ToolsTarget-relwithdebinfo.cmake [Unspecified]
+    SPIRV-ToolsTarget.cmake [Unspecified]
+
+<prefix>/bin   (52 rules)
+    HLSLErrors.exe [Unspecified]
+    HLSLHost.exe [Unspecified]
+    SPIRV-Tools-shared.dll [Unspecified]
+    dxa.exe [Unspecified]
+    dxc.exe [dxc]
+    dxc_batch.exe [Unspecified]
+    dxcompiler.dll [dxcompiler]
+    dxilconv-tests.dll [Unspecified]
+    dxl.exe [Unspecified]
+    dxopt.exe [Unspecified]
+    dxr.exe [Unspecified]
+    dxv.exe [Unspecified]
+    test_DxrFallback.exe [Unspecified]
+
+<prefix>/include   (1 rules)
+    clang-c (FILES_MATCHING) [Unspecified]
+
+<prefix>/include/dxc   (1 rules)
+    config.h [dxc-headers]
+    dxcapi.h [dxc-headers]
+    dxcerrors.h [dxc-headers]
+    dxcisense.h [dxc-headers]
+
+<prefix>/include/spirv-tools   (1 rules)
+    libspirv.h [Unspecified]
+    libspirv.hpp [Unspecified]
+    linker.hpp [Unspecified]
+    optimizer.hpp [Unspecified]
+
+<prefix>/lib   (32 rules)
+    SPIRV-Tools-diff.lib [Unspecified]
+    SPIRV-Tools-link.lib [Unspecified]
+    SPIRV-Tools-lint.lib [Unspecified]
+    SPIRV-Tools-opt.lib [Unspecified]
+    SPIRV-Tools-reduce.lib [Unspecified]
+    SPIRV-Tools-shared.lib [Unspecified]
+    SPIRV-Tools.lib [Unspecified]
+    libclang.lib [Unspecified]
+
+<prefix>/lib/pkgconfig   (1 rules)
+    SPIRV-Tools-shared.pc [Unspecified]
+    SPIRV-Tools.pc [Unspecified]

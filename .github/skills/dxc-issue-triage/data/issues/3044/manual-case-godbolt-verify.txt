@@ -1,0 +1,28 @@
+# Compiler Explorer panes for #3044, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -P out.i -CC
+# exit:     1
+
+dxc failed : Unknown argument: '-CC'
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -P -Fi out.i -CC
+# exit:     1
+
+dxc failed : Unknown argument: '-CC'
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -P -Fi out.i -C
+# exit:     1
+
+dxc failed : Unknown argument: '-C'
+<Compilation failed>

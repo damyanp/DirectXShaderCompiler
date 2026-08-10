@@ -1,0 +1,23 @@
+{
+  "batch": "batch-012",
+  "confidence": "high",
+  "created_at": "2021-02-09T22:33:55Z",
+  "expected_symptom": "A DXC diagnostic names a function by its mangled LLVM symbol instead of the HLSL declaration the user wrote.",
+  "godbolt_url": "https://godbolt.org/z/e6xsGc8YE",
+  "history": "always-repro'd",
+  "labels": "enhancement,tech-debt",
+  "labels_add": "diagnostic",
+  "labels_now": "enhancement,tech-debt",
+  "notes_path": "issues/3439/notes.md",
+  "number": 3439,
+  "repro_quality": "complete",
+  "reviewed_by": "Claude Sonnet independent review (batch-012 step-10; blind 3414)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Reproduces verbatim on main and on all 20 stable releases v1.4.1907..v1.9.2607: 'error: External function used in non-library profile: \\01?CallMeMaybe@@YAHM_N@Z'. The emitter (CGHLSLMSFinishCodeGen.cpp:3405) prints PrintEscapedString(f.getName()) with no demangling, even though hlsl::dxilutil::DemangleFunctionName has existed since 47958a941 (2018-02-12), four months before the diagnostic was added in 4ade2fccc (2018-06-20), and is already called from three other sites. Two further mangled messages reproduced (export-param check at CGHLSLMSFinishCodeGen.cpp:3233; linker kUndefFunction at DxilLinker.cpp:401, also 20/20 releases). Partial, not blanket: DXIL-validator errors naming a library entry point come out readable. Control: the same compiler names the same function correctly in a Sema diagnostic ('redefinition of CallMeMaybe'). Demangling would give the bare name only; llvm-beanz's suggestion to move the diagnostic to Sema is what yields a signature. Clang trunk exits 0 and emits no diagnostic at all for this input (control confirms its diagnostics do surface in that pane), so the rewrite has not solved it.",
+  "title": "Better demangling for improved error messages",
+  "triaged_at": "2026-08-10T04:16:35+00:00",
+  "triaged_by": "claude-opus-4.6",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3439"
+}

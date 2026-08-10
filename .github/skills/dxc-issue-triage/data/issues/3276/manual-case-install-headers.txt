@@ -1,0 +1,481 @@
+# label: header/unspecified components (llvm-headers, Unspecified)
+# build: <build>  (config Release)
+# prefix: <prefix>  (scratch, outside the repository)
+# components: llvm-headers,Unspecified
+
+$ "cmake" --install <build> --config Release --prefix <prefix> --component llvm-headers
+# 816 lines of install output; first 12 and last 3 shown
+-- Installing: <prefix>/include/llvm
+-- Installing: <prefix>/include/llvm/ADT
+-- Installing: <prefix>/include/llvm/ADT/APFloat.h
+-- Installing: <prefix>/include/llvm/ADT/APInt.h
+-- Installing: <prefix>/include/llvm/ADT/APSInt.h
+-- Installing: <prefix>/include/llvm/ADT/ArrayRef.h
+-- Installing: <prefix>/include/llvm/ADT/BitVector.h
+-- Installing: <prefix>/include/llvm/ADT/DAGDeltaAlgorithm.h
+-- Installing: <prefix>/include/llvm/ADT/DeltaAlgorithm.h
+-- Installing: <prefix>/include/llvm/ADT/DenseMap.h
+-- Installing: <prefix>/include/llvm/ADT/DenseMapInfo.h
+-- Installing: <prefix>/include/llvm/ADT/DenseSet.h
+...
+-- Installing: <prefix>/include/llvm/IR/x64/Release/intrinsics_gen/intrinsics_gen.tlog
+-- Up-to-date: <prefix>/include/llvm/Support
+-- Installing: <prefix>/include/llvm/Support/DataTypes.h
+# exit: 0
+$ "cmake" --install <build> --config Release --prefix <prefix> --component Unspecified
+# 891 lines of install output; first 12 and last 3 shown
+-- Installing: <prefix>/bin/llvm-tblgen.exe
+-- Installing: <prefix>/include/clang
+-- Installing: <prefix>/include/clang/Analysis
+-- Installing: <prefix>/include/clang/Analysis/Analyses
+-- Installing: <prefix>/include/clang/Analysis/Analyses/CFGReachabilityAnalysis.h
+-- Installing: <prefix>/include/clang/Analysis/Analyses/Consumed.h
+-- Installing: <prefix>/include/clang/Analysis/Analyses/Dominators.h
+-- Installing: <prefix>/include/clang/Analysis/Analyses/FormatString.h
+-- Installing: <prefix>/include/clang/Analysis/Analyses/LiveVariables.h
+-- Installing: <prefix>/include/clang/Analysis/Analyses/PostOrderCFGView.h
+-- Installing: <prefix>/include/clang/Analysis/Analyses/PseudoConstantAnalysis.h
+-- Installing: <prefix>/include/clang/Analysis/Analyses/ReachableCode.h
+...
+-- Installing: <prefix>/lib/clangTooling.lib
+-- Installing: <prefix>/lib/clangIndex.lib
+-- Installing: <prefix>/lib/clangFormat.lib
+CMake Error at <build>/tools/clang/lib/SPIRV/cmake_install.cmake:39 (file):
+  file INSTALL cannot find
+  "<build>/Release/lib/clangSPIRV.lib": File
+  exists.
+Call Stack (most recent call first):
+  <build>/tools/clang/lib/cmake_install.cmake:117 (include)
+  <build>/tools/clang/cmake_install.cmake:62 (include)
+  <build>/tools/cmake_install.cmake:92 (include)
+  <build>/cmake_install.cmake:122 (include)
+
+
+# exit: 1
+
+# installed files: 1221
+     731  <prefix>/include/llvm
+     445  <prefix>/include/clang
+      19  <prefix>/include/llvm-c
+      18  <prefix>/lib/
+       7  <prefix>/include/clang-c
+       1  <prefix>/bin/
+
+# installed files, sorted (destinations relative to the install prefix); first 8 per directory:
+<prefix>/bin/llvm-tblgen.exe
+<prefix>/include/clang-c/BuildSystem.h
+<prefix>/include/clang-c/CXCompilationDatabase.h
+<prefix>/include/clang-c/CXErrorCode.h
+<prefix>/include/clang-c/CXString.h
+<prefix>/include/clang-c/Documentation.h
+<prefix>/include/clang-c/Index.h
+<prefix>/include/clang-c/Platform.h
+<prefix>/include/clang/ARCMigrate/ARCMT.h
+<prefix>/include/clang/ARCMigrate/ARCMTActions.h
+<prefix>/include/clang/ARCMigrate/FileRemapper.h
+<prefix>/include/clang/AST/APValue.h
+<prefix>/include/clang/AST/AST.h
+<prefix>/include/clang/AST/ASTConsumer.h
+<prefix>/include/clang/AST/ASTContext.h
+<prefix>/include/clang/AST/ASTDiagnostic.h
+<prefix>/include/clang/AST/ASTFwd.h
+<prefix>/include/clang/AST/ASTImporter.h
+<prefix>/include/clang/AST/ASTLambda.h
+<prefix>/include/clang/AST/  ... and 87 more
+<prefix>/include/clang/ASTMatchers/ASTMatchFinder.h
+<prefix>/include/clang/ASTMatchers/ASTMatchers.h
+<prefix>/include/clang/ASTMatchers/ASTMatchersInternal.h
+<prefix>/include/clang/ASTMatchers/ASTMatchersMacros.h
+<prefix>/include/clang/ASTMatchers/Dynamic/Diagnostics.h
+<prefix>/include/clang/ASTMatchers/Dynamic/Parser.h
+<prefix>/include/clang/ASTMatchers/Dynamic/Registry.h
+<prefix>/include/clang/ASTMatchers/Dynamic/VariantValue.h
+<prefix>/include/clang/Analysis/AnalysisContext.h
+<prefix>/include/clang/Analysis/AnalysisDiagnostic.h
+<prefix>/include/clang/Analysis/CFG.h
+<prefix>/include/clang/Analysis/CFGStmtMap.h
+<prefix>/include/clang/Analysis/CallGraph.h
+<prefix>/include/clang/Analysis/CodeInjector.h
+<prefix>/include/clang/Analysis/ProgramPoint.h
+<prefix>/include/clang/Analysis/Analyses/CFGReachabilityAnalysis.h
+<prefix>/include/clang/Analysis/Analyses/Consumed.h
+<prefix>/include/clang/Analysis/Analyses/Dominators.h
+<prefix>/include/clang/Analysis/Analyses/FormatString.h
+<prefix>/include/clang/Analysis/Analyses/LiveVariables.h
+<prefix>/include/clang/Analysis/Analyses/PostOrderCFGView.h
+<prefix>/include/clang/Analysis/Analyses/PseudoConstantAnalysis.h
+<prefix>/include/clang/Analysis/Analyses/ReachableCode.h
+<prefix>/include/clang/Analysis/Analyses/  ... and 8 more
+<prefix>/include/clang/Analysis/DomainSpecific/CocoaConventions.h
+<prefix>/include/clang/Analysis/DomainSpecific/ObjCNoReturn.h
+<prefix>/include/clang/Analysis/FlowSensitive/DataflowValues.h
+<prefix>/include/clang/Analysis/Support/BumpVector.h
+<prefix>/include/clang/Basic/ABI.h
+<prefix>/include/clang/Basic/AddressSpaces.h
+<prefix>/include/clang/Basic/AllDiagnostics.h
+<prefix>/include/clang/Basic/AttrHasAttributeImpl.inc
+<prefix>/include/clang/Basic/AttrKinds.h
+<prefix>/include/clang/Basic/AttrList.inc
+<prefix>/include/clang/Basic/Attributes.h
+<prefix>/include/clang/Basic/Builtins.def
+<prefix>/include/clang/Basic/  ... and 78 more
+<prefix>/include/clang/CodeGen/BackendUtil.h
+<prefix>/include/clang/CodeGen/CGFunctionInfo.h
+<prefix>/include/clang/CodeGen/CodeGenABITypes.h
+<prefix>/include/clang/CodeGen/CodeGenAction.h
+<prefix>/include/clang/CodeGen/ModuleBuilder.h
+<prefix>/include/clang/CodeGen/ObjectFilePCHContainerOperations.h
+<prefix>/include/clang/Config/config.h
+<prefix>/include/clang/Driver/Action.h
+<prefix>/include/clang/Driver/Compilation.h
+<prefix>/include/clang/Driver/Driver.h
+<prefix>/include/clang/Driver/DriverDiagnostic.h
+<prefix>/include/clang/Driver/Job.h
+<prefix>/include/clang/Driver/Multilib.h
+<prefix>/include/clang/Driver/Options.h
+<prefix>/include/clang/Driver/Options.inc
+<prefix>/include/clang/Driver/  ... and 7 more
+<prefix>/include/clang/Edit/Commit.h
+<prefix>/include/clang/Edit/EditedSource.h
+<prefix>/include/clang/Edit/EditsReceiver.h
+<prefix>/include/clang/Edit/FileOffset.h
+<prefix>/include/clang/Edit/Rewriters.h
+<prefix>/include/clang/Format/Format.h
+<prefix>/include/clang/Frontend/ASTConsumers.h
+<prefix>/include/clang/Frontend/ASTUnit.h
+<prefix>/include/clang/Frontend/ChainedDiagnosticConsumer.h
+<prefix>/include/clang/Frontend/CodeGenOptions.def
+<prefix>/include/clang/Frontend/CodeGenOptions.h
+<prefix>/include/clang/Frontend/CommandLineSourceLoc.h
+<prefix>/include/clang/Frontend/CompilerInstance.h
+<prefix>/include/clang/Frontend/CompilerInvocation.h
+<prefix>/include/clang/Frontend/  ... and 23 more
+<prefix>/include/clang/FrontendTool/Utils.h
+<prefix>/include/clang/Index/CommentToXML.h
+<prefix>/include/clang/Index/USRGeneration.h
+<prefix>/include/clang/Lex/CodeCompletionHandler.h
+<prefix>/include/clang/Lex/DirectoryLookup.h
+<prefix>/include/clang/Lex/ExternalPreprocessorSource.h
+<prefix>/include/clang/Lex/HLSLEmbeddedHeaders.h
+<prefix>/include/clang/Lex/HLSLMacroExpander.h
+<prefix>/include/clang/Lex/HeaderMap.h
+<prefix>/include/clang/Lex/HeaderSearch.h
+<prefix>/include/clang/Lex/HeaderSearchOptions.h
+<prefix>/include/clang/Lex/  ... and 21 more
+<prefix>/include/clang/Parse/AttrParserStringSwitches.inc
+<prefix>/include/clang/Parse/ParseAST.h
+<prefix>/include/clang/Parse/ParseDiagnostic.h
+<prefix>/include/clang/Parse/ParseHLSL.h
+<prefix>/include/clang/Parse/Parser.h
+<prefix>/include/clang/Rewrite/Core/DeltaTree.h
+<prefix>/include/clang/Rewrite/Core/HTMLRewrite.h
+<prefix>/include/clang/Rewrite/Core/RewriteBuffer.h
+<prefix>/include/clang/Rewrite/Core/RewriteRope.h
+<prefix>/include/clang/Rewrite/Core/Rewriter.h
+<prefix>/include/clang/Rewrite/Core/TokenRewriter.h
+<prefix>/include/clang/Rewrite/Frontend/ASTConsumers.h
+<prefix>/include/clang/Rewrite/Frontend/FixItRewriter.h
+<prefix>/include/clang/Rewrite/Frontend/FrontendActions.h
+<prefix>/include/clang/Rewrite/Frontend/Rewriters.h
+<prefix>/include/clang/SPIRV/AstTypeProbe.h
+<prefix>/include/clang/SPIRV/BitwiseCast.h
+<prefix>/include/clang/SPIRV/EmitSpirvAction.h
+<prefix>/include/clang/SPIRV/FeatureManager.h
+<prefix>/include/clang/SPIRV/SpirvBasicBlock.h
+<prefix>/include/clang/SPIRV/SpirvBuilder.h
+<prefix>/include/clang/SPIRV/SpirvContext.h
+<prefix>/include/clang/SPIRV/SpirvFunction.h
+<prefix>/include/clang/SPIRV/  ... and 5 more
+<prefix>/include/clang/Sema/AnalysisBasedWarnings.h
+<prefix>/include/clang/Sema/AttrParsedAttrImpl.inc
+<prefix>/include/clang/Sema/AttrParsedAttrKinds.inc
+<prefix>/include/clang/Sema/AttrParsedAttrList.inc
+<prefix>/include/clang/Sema/AttrSpellingListIndex.inc
+<prefix>/include/clang/Sema/AttrTemplateInstantiate.inc
+<prefix>/include/clang/Sema/AttributeList.h
+<prefix>/include/clang/Sema/CXXFieldCollector.h
+<prefix>/include/clang/Sema/  ... and 30 more
+<prefix>/include/clang/Serialization/ASTBitCodes.h
+<prefix>/include/clang/Serialization/ASTDeserializationListener.h
+<prefix>/include/clang/Serialization/ASTReader.h
+<prefix>/include/clang/Serialization/ASTWriter.h
+<prefix>/include/clang/Serialization/AttrPCHRead.inc
+<prefix>/include/clang/Serialization/AttrPCHWrite.inc
+<prefix>/include/clang/Serialization/ContinuousRangeMap.h
+<prefix>/include/clang/Serialization/GlobalModuleIndex.h
+<prefix>/include/clang/Serialization/  ... and 3 more
+<prefix>/include/clang/StaticAnalyzer/Checkers/ClangCheckers.h
+<prefix>/include/clang/StaticAnalyzer/Checkers/LocalCheckers.h
+<prefix>/include/clang/StaticAnalyzer/Checkers/ObjCRetainCount.h
+<prefix>/include/clang/StaticAnalyzer/Core/Analyses.def
+<prefix>/include/clang/StaticAnalyzer/Core/AnalyzerOptions.h
+<prefix>/include/clang/StaticAnalyzer/Core/Checker.h
+<prefix>/include/clang/StaticAnalyzer/Core/CheckerManager.h
+<prefix>/include/clang/StaticAnalyzer/Core/CheckerOptInfo.h
+<prefix>/include/clang/StaticAnalyzer/Core/CheckerRegistry.h
+<prefix>/include/clang/StaticAnalyzer/Core/PathDiagnosticConsumers.h
+<prefix>/include/clang/StaticAnalyzer/Core/BugReporter/BugReporter.h
+<prefix>/include/clang/StaticAnalyzer/Core/BugReporter/BugReporterVisitor.h
+<prefix>/include/clang/StaticAnalyzer/Core/BugReporter/BugType.h
+<prefix>/include/clang/StaticAnalyzer/Core/BugReporter/CommonBugCategories.h
+<prefix>/include/clang/StaticAnalyzer/Core/BugReporter/PathDiagnostic.h
+<prefix>/include/clang/StaticAnalyzer/Core/PathSensitive/APSIntType.h
+<prefix>/include/clang/StaticAnalyzer/Core/PathSensitive/AnalysisManager.h
+<prefix>/include/clang/StaticAnalyzer/Core/PathSensitive/BasicValueFactory.h
+<prefix>/include/clang/StaticAnalyzer/Core/PathSensitive/BlockCounter.h
+<prefix>/include/clang/StaticAnalyzer/Core/PathSensitive/CallEvent.h
+<prefix>/include/clang/StaticAnalyzer/Core/PathSensitive/CheckerContext.h
+<prefix>/include/clang/StaticAnalyzer/Core/PathSensitive/CheckerHelpers.h
+<prefix>/include/clang/StaticAnalyzer/Core/PathSensitive/ConstraintManager.h
+<prefix>/include/clang/StaticAnalyzer/Core/PathSensitive/  ... and 20 more
+<prefix>/include/clang/StaticAnalyzer/Frontend/AnalysisConsumer.h
+<prefix>/include/clang/StaticAnalyzer/Frontend/CheckerRegistration.h
+<prefix>/include/clang/StaticAnalyzer/Frontend/FrontendActions.h
+<prefix>/include/clang/StaticAnalyzer/Frontend/ModelConsumer.h
+<prefix>/include/clang/Tooling/ArgumentsAdjusters.h
+<prefix>/include/clang/Tooling/CommonOptionsParser.h
+<prefix>/include/clang/Tooling/CompilationDatabase.h
+<prefix>/include/clang/Tooling/CompilationDatabasePluginRegistry.h
+<prefix>/include/clang/Tooling/FileMatchTrie.h
+<prefix>/include/clang/Tooling/JSONCompilationDatabase.h
+<prefix>/include/clang/Tooling/Refactoring.h
+<prefix>/include/clang/Tooling/RefactoringCallbacks.h
+<prefix>/include/clang/Tooling/  ... and 2 more
+<prefix>/include/clang/Tooling/Core/Replacement.h
+<prefix>/include/llvm/InitializePasses.h
+<prefix>/include/llvm/LinkAllIR.h
+<prefix>/include/llvm/LinkAllPasses.h
+<prefix>/include/llvm/Pass.h
+<prefix>/include/llvm/PassAnalysisSupport.h
+<prefix>/include/llvm/PassInfo.h
+<prefix>/include/llvm/PassRegistry.h
+<prefix>/include/llvm/PassSupport.h
+<prefix>/include/llvm-c/Analysis.h
+<prefix>/include/llvm-c/BitReader.h
+<prefix>/include/llvm-c/BitWriter.h
+<prefix>/include/llvm-c/Core.h
+<prefix>/include/llvm-c/Disassembler.h
+<prefix>/include/llvm-c/ExecutionEngine.h
+<prefix>/include/llvm-c/IRReader.h
+<prefix>/include/llvm-c/Initialization.h
+<prefix>/include/llvm-c/  ... and 7 more
+<prefix>/include/llvm-c/Transforms/IPO.h
+<prefix>/include/llvm-c/Transforms/PassManagerBuilder.h
+<prefix>/include/llvm-c/Transforms/Scalar.h
+<prefix>/include/llvm-c/Transforms/Vectorize.h
+<prefix>/include/llvm/ADT/APFloat.h
+<prefix>/include/llvm/ADT/APInt.h
+<prefix>/include/llvm/ADT/APSInt.h
+<prefix>/include/llvm/ADT/ArrayRef.h
+<prefix>/include/llvm/ADT/BitVector.h
+<prefix>/include/llvm/ADT/DAGDeltaAlgorithm.h
+<prefix>/include/llvm/ADT/DeltaAlgorithm.h
+<prefix>/include/llvm/ADT/DenseMap.h
+<prefix>/include/llvm/ADT/  ... and 52 more
+<prefix>/include/llvm/Analysis/AliasAnalysis.h
+<prefix>/include/llvm/Analysis/AliasSetTracker.h
+<prefix>/include/llvm/Analysis/AssumptionCache.h
+<prefix>/include/llvm/Analysis/BlockFrequencyInfo.h
+<prefix>/include/llvm/Analysis/BlockFrequencyInfoImpl.h
+<prefix>/include/llvm/Analysis/BranchProbabilityInfo.h
+<prefix>/include/llvm/Analysis/CFG.h
+<prefix>/include/llvm/Analysis/CFGPrinter.h
+<prefix>/include/llvm/Analysis/  ... and 60 more
+<prefix>/include/llvm/AsmParser/Parser.h
+<prefix>/include/llvm/AsmParser/SlotMapping.h
+<prefix>/include/llvm/Bitcode/BitCodes.h
+<prefix>/include/llvm/Bitcode/BitcodeWriterPass.h
+<prefix>/include/llvm/Bitcode/BitstreamReader.h
+<prefix>/include/llvm/Bitcode/BitstreamWriter.h
+<prefix>/include/llvm/Bitcode/LLVMBitCodes.h
+<prefix>/include/llvm/Bitcode/ReaderWriter.h
+<prefix>/include/llvm/CodeGen/Analysis.h
+<prefix>/include/llvm/CodeGen/AsmPrinter.h
+<prefix>/include/llvm/CodeGen/BasicTTIImpl.h
+<prefix>/include/llvm/CodeGen/CalcSpillWeights.h
+<prefix>/include/llvm/CodeGen/CallingConvLower.h
+<prefix>/include/llvm/CodeGen/CommandFlags.h
+<prefix>/include/llvm/CodeGen/DAGCombine.h
+<prefix>/include/llvm/CodeGen/DFAPacketizer.h
+<prefix>/include/llvm/CodeGen/  ... and 84 more
+<prefix>/include/llvm/CodeGen/MIRParser/MIRParser.h
+<prefix>/include/llvm/CodeGen/PBQP/CostAllocator.h
+<prefix>/include/llvm/CodeGen/PBQP/Graph.h
+<prefix>/include/llvm/CodeGen/PBQP/Math.h
+<prefix>/include/llvm/CodeGen/PBQP/ReductionRules.h
+<prefix>/include/llvm/CodeGen/PBQP/Solution.h
+<prefix>/include/llvm/Config/AsmParsers.def
+<prefix>/include/llvm/Config/AsmPrinters.def
+<prefix>/include/llvm/Config/Disassemblers.def
+<prefix>/include/llvm/Config/Targets.def
+<prefix>/include/llvm/Config/abi-breaking.h
+<prefix>/include/llvm/Config/llvm-config.h
+<prefix>/include/llvm/DebugInfo/DIContext.h
+<prefix>/include/llvm/DebugInfo/DWARF/DWARFAbbreviationDeclaration.h
+<prefix>/include/llvm/DebugInfo/DWARF/DWARFAcceleratorTable.h
+<prefix>/include/llvm/DebugInfo/DWARF/DWARFCompileUnit.h
+<prefix>/include/llvm/DebugInfo/DWARF/DWARFContext.h
+<prefix>/include/llvm/DebugInfo/DWARF/DWARFDebugAbbrev.h
+<prefix>/include/llvm/DebugInfo/DWARF/DWARFDebugArangeSet.h
+<prefix>/include/llvm/DebugInfo/DWARF/DWARFDebugAranges.h
+<prefix>/include/llvm/DebugInfo/DWARF/DWARFDebugFrame.h
+<prefix>/include/llvm/DebugInfo/DWARF/  ... and 9 more
+<prefix>/include/llvm/DebugInfo/PDB/ConcreteSymbolEnumerator.h
+<prefix>/include/llvm/DebugInfo/PDB/IPDBDataStream.h
+<prefix>/include/llvm/DebugInfo/PDB/IPDBEnumChildren.h
+<prefix>/include/llvm/DebugInfo/PDB/IPDBLineNumber.h
+<prefix>/include/llvm/DebugInfo/PDB/IPDBRawSymbol.h
+<prefix>/include/llvm/DebugInfo/PDB/IPDBSession.h
+<prefix>/include/llvm/DebugInfo/PDB/IPDBSourceFile.h
+<prefix>/include/llvm/DebugInfo/PDB/PDB.h
+<prefix>/include/llvm/DebugInfo/PDB/  ... and 36 more
+<prefix>/include/llvm/DebugInfo/PDB/DIA/DIADataStream.h
+<prefix>/include/llvm/DebugInfo/PDB/DIA/DIAEnumDebugStreams.h
+<prefix>/include/llvm/DebugInfo/PDB/DIA/DIAEnumLineNumbers.h
+<prefix>/include/llvm/DebugInfo/PDB/DIA/DIAEnumSourceFiles.h
+<prefix>/include/llvm/DebugInfo/PDB/DIA/DIAEnumSymbols.h
+<prefix>/include/llvm/DebugInfo/PDB/DIA/DIALineNumber.h
+<prefix>/include/llvm/DebugInfo/PDB/DIA/DIARawSymbol.h
+<prefix>/include/llvm/DebugInfo/PDB/DIA/DIASession.h
+<prefix>/include/llvm/DebugInfo/PDB/DIA/  ... and 2 more
+<prefix>/include/llvm/ExecutionEngine/ExecutionEngine.h
+<prefix>/include/llvm/ExecutionEngine/GenericValue.h
+<prefix>/include/llvm/ExecutionEngine/Interpreter.h
+<prefix>/include/llvm/ExecutionEngine/JITEventListener.h
+<prefix>/include/llvm/ExecutionEngine/JITSymbolFlags.h
+<prefix>/include/llvm/ExecutionEngine/MCJIT.h
+<prefix>/include/llvm/ExecutionEngine/OProfileWrapper.h
+<prefix>/include/llvm/ExecutionEngine/ObjectCache.h
+<prefix>/include/llvm/ExecutionEngine/  ... and 6 more
+<prefix>/include/llvm/ExecutionEngine/Orc/CompileOnDemandLayer.h
+<prefix>/include/llvm/ExecutionEngine/Orc/CompileUtils.h
+<prefix>/include/llvm/ExecutionEngine/Orc/ExecutionUtils.h
+<prefix>/include/llvm/ExecutionEngine/Orc/IRCompileLayer.h
+<prefix>/include/llvm/ExecutionEngine/Orc/IRTransformLayer.h
+<prefix>/include/llvm/ExecutionEngine/Orc/IndirectionUtils.h
+<prefix>/include/llvm/ExecutionEngine/Orc/JITSymbol.h
+<prefix>/include/llvm/ExecutionEngine/Orc/LambdaResolver.h
+<prefix>/include/llvm/ExecutionEngine/Orc/  ... and 6 more
+<prefix>/include/llvm/IR/Argument.h
+<prefix>/include/llvm/IR/AssemblyAnnotationWriter.h
+<prefix>/include/llvm/IR/Attributes.h
+<prefix>/include/llvm/IR/AutoUpgrade.h
+<prefix>/include/llvm/IR/BasicBlock.h
+<prefix>/include/llvm/IR/CFG.h
+<prefix>/include/llvm/IR/CallSite.h
+<prefix>/include/llvm/IR/CallingConv.h
+<prefix>/include/llvm/IR/  ... and 80 more
+<prefix>/include/llvm/IRReader/IRReader.h
+<prefix>/include/llvm/LTO/LTOCodeGenerator.h
+<prefix>/include/llvm/LTO/LTOModule.h
+<prefix>/include/llvm/LibDriver/LibDriver.h
+<prefix>/include/llvm/LineEditor/LineEditor.h
+<prefix>/include/llvm/Linker/Linker.h
+<prefix>/include/llvm/MC/ConstantPools.h
+<prefix>/include/llvm/MC/MCAsmBackend.h
+<prefix>/include/llvm/MC/MCAsmInfo.h
+<prefix>/include/llvm/MC/MCAsmInfoCOFF.h
+<prefix>/include/llvm/MC/MCAsmInfoDarwin.h
+<prefix>/include/llvm/MC/MCAsmInfoELF.h
+<prefix>/include/llvm/MC/MCAsmLayout.h
+<prefix>/include/llvm/MC/MCAssembler.h
+<prefix>/include/llvm/MC/  ... and 53 more
+<prefix>/include/llvm/MC/MCParser/AsmCond.h
+<prefix>/include/llvm/MC/MCParser/AsmLexer.h
+<prefix>/include/llvm/MC/MCParser/MCAsmLexer.h
+<prefix>/include/llvm/MC/MCParser/MCAsmParser.h
+<prefix>/include/llvm/MC/MCParser/MCAsmParserExtension.h
+<prefix>/include/llvm/MC/MCParser/MCAsmParserUtils.h
+<prefix>/include/llvm/MC/MCParser/MCParsedAsmOperand.h
+<prefix>/include/llvm/Object/Archive.h
+<prefix>/include/llvm/Object/ArchiveWriter.h
+<prefix>/include/llvm/Object/Binary.h
+<prefix>/include/llvm/Object/COFF.h
+<prefix>/include/llvm/Object/COFFYAML.h
+<prefix>/include/llvm/Object/ELF.h
+<prefix>/include/llvm/Object/ELFObjectFile.h
+<prefix>/include/llvm/Object/ELFTypes.h
+<prefix>/include/llvm/Object/  ... and 10 more
+<prefix>/include/llvm/Option/Arg.h
+<prefix>/include/llvm/Option/ArgList.h
+<prefix>/include/llvm/Option/OptParser.td
+<prefix>/include/llvm/Option/OptSpecifier.h
+<prefix>/include/llvm/Option/OptTable.h
+<prefix>/include/llvm/Option/Option.h
+<prefix>/include/llvm/PassPrinters/PassPrinters.h
+<prefix>/include/llvm/Passes/PassBuilder.h
+<prefix>/include/llvm/ProfileData/CoverageMapping.h
+<prefix>/include/llvm/ProfileData/CoverageMappingReader.h
+<prefix>/include/llvm/ProfileData/CoverageMappingWriter.h
+<prefix>/include/llvm/ProfileData/InstrProf.h
+<prefix>/include/llvm/ProfileData/InstrProfReader.h
+<prefix>/include/llvm/ProfileData/InstrProfWriter.h
+<prefix>/include/llvm/ProfileData/SampleProf.h
+<prefix>/include/llvm/ProfileData/SampleProfReader.h
+<prefix>/include/llvm/ProfileData/  ... and 1 more
+<prefix>/include/llvm/Support/AIXDataTypesFix.h
+<prefix>/include/llvm/Support/ARMBuildAttributes.h
+<prefix>/include/llvm/Support/ARMEHABI.h
+<prefix>/include/llvm/Support/ARMWinEH.h
+<prefix>/include/llvm/Support/AlignOf.h
+<prefix>/include/llvm/Support/Allocator.h
+<prefix>/include/llvm/Support/ArrayRecycler.h
+<prefix>/include/llvm/Support/Atomic.h
+<prefix>/include/llvm/Support/  ... and 104 more
+<prefix>/include/llvm/Support/ELFRelocs/AArch64.def
+<prefix>/include/llvm/Support/ELFRelocs/ARM.def
+<prefix>/include/llvm/Support/ELFRelocs/Hexagon.def
+<prefix>/include/llvm/Support/ELFRelocs/Mips.def
+<prefix>/include/llvm/Support/ELFRelocs/PowerPC.def
+<prefix>/include/llvm/Support/ELFRelocs/PowerPC64.def
+<prefix>/include/llvm/Support/ELFRelocs/Sparc.def
+<prefix>/include/llvm/Support/ELFRelocs/SystemZ.def
+<prefix>/include/llvm/Support/ELFRelocs/  ... and 2 more
+<prefix>/include/llvm/TableGen/Error.h
+<prefix>/include/llvm/TableGen/Main.h
+<prefix>/include/llvm/TableGen/Record.h
+<prefix>/include/llvm/TableGen/SetTheory.h
+<prefix>/include/llvm/TableGen/StringMatcher.h
+<prefix>/include/llvm/TableGen/StringToOffsetTable.h
+<prefix>/include/llvm/TableGen/TableGenBackend.h
+<prefix>/include/llvm/Target/CostTable.h
+<prefix>/include/llvm/Target/Target.td
+<prefix>/include/llvm/Target/TargetCallingConv.h
+<prefix>/include/llvm/Target/TargetCallingConv.td
+<prefix>/include/llvm/Target/TargetFrameLowering.h
+<prefix>/include/llvm/Target/TargetInstrInfo.h
+<prefix>/include/llvm/Target/TargetIntrinsicInfo.h
+<prefix>/include/llvm/Target/TargetItinerary.td
+<prefix>/include/llvm/Target/  ... and 11 more
+<prefix>/include/llvm/Transforms/IPO.h
+<prefix>/include/llvm/Transforms/Instrumentation.h
+<prefix>/include/llvm/Transforms/ObjCARC.h
+<prefix>/include/llvm/Transforms/Scalar.h
+<prefix>/include/llvm/Transforms/Vectorize.h
+<prefix>/include/llvm/Transforms/IPO/InlinerPass.h
+<prefix>/include/llvm/Transforms/IPO/LowerBitSets.h
+<prefix>/include/llvm/Transforms/IPO/PassManagerBuilder.h
+<prefix>/include/llvm/Transforms/InstCombine/InstCombine.h
+<prefix>/include/llvm/Transforms/InstCombine/InstCombineWorklist.h
+<prefix>/include/llvm/Transforms/Scalar/EarlyCSE.h
+<prefix>/include/llvm/Transforms/Scalar/LowerExpectIntrinsic.h
+<prefix>/include/llvm/Transforms/Scalar/SimplifyCFG.h
+<prefix>/include/llvm/Transforms/Utils/ASanStackFrameLayout.h
+<prefix>/include/llvm/Transforms/Utils/BasicBlockUtils.h
+<prefix>/include/llvm/Transforms/Utils/BuildLibCalls.h
+<prefix>/include/llvm/Transforms/Utils/BypassSlowDivision.h
+<prefix>/include/llvm/Transforms/Utils/Cloning.h
+<prefix>/include/llvm/Transforms/Utils/CmpInstAnalysis.h
+<prefix>/include/llvm/Transforms/Utils/CodeExtractor.h
+<prefix>/include/llvm/Transforms/Utils/CtorUtils.h
+<prefix>/include/llvm/Transforms/Utils/  ... and 16 more
+<prefix>/include/llvm/llvm_assert/assert.h
+<prefix>/lib/clangAST.lib
+<prefix>/lib/clangASTMatchers.lib
+<prefix>/lib/clangAnalysis.lib
+<prefix>/lib/clangBasic.lib
+<prefix>/lib/clangCodeGen.lib
+<prefix>/lib/clangDriver.lib
+<prefix>/lib/clangEdit.lib
+<prefix>/lib/clangFormat.lib
+<prefix>/lib/  ... and 10 more

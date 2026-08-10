@@ -587,6 +587,122 @@ _rewritten = triage.replace_argument_spelling(
 check("rewrites the rejected flag in every invocation",
       [triage.split_cmd(line)[2] for line in _rewritten],
       ["-pack_optimized", "-pack_optimized"])
+check("-Fi is recognised as a value-taking flag",
+      triage.option_arity("-Fi"), 1)
+check("removing a rejected value flag removes its value too",
+      triage.remove_argument(
+          ["-P repro.hlsl -Fi preprocessed.i"], "-Fi"),
+      ["-P repro.hlsl"])
+
+# Audit the argv table against every active HLSLOptions.td option that can take
+# a separate value. The table is shared by --shader, CE argument derivation,
+# spelling controls and input protection, so another omission is not local.
+_td = open(_os.path.join(triage.REPO_ROOT, "include", "dxc", "Support",
+                         "HLSLOptions.td"), encoding="utf-8").read()
+_td = _re.sub(r"/\*.*?\*/", "", _td, flags=_re.S)
+_td = "\n".join(line.split("//", 1)[0] for line in _td.splitlines())
+_td_values = {}
+for _m in _re.finditer(
+        r"def\s+\w+\s*:\s*(JoinedOrSeparate|Separate|MultiArg)"
+        r"<\s*\[[^]]+\]\s*,\s*\"([^\"]+)\"(?:\s*,\s*(\d+))?",
+        _td, _re.S):
+    _kind, _spelling, _arity = _m.groups()
+    _td_values["-" + _spelling.lower()] = int(_arity or 1)
+check("VALUE_FLAG_ARITY covers every HLSLOptions.td separate value",
+      {k: v for k, v in _td_values.items()
+       if triage.VALUE_FLAG_ARITY.get(k) != v},
+      {})
+
+# The #3044 failure needs both halves in the regression test. With the value
+# token present, old `-P` grammar can reinterpret the retry and overwrite the
+# repro at exit zero; with it absent, the same command fails harmlessly.
+_hazard = _tf.mkdtemp()
+_hazard_cache = _tf.mkdtemp()
+_old_cache_root = triage.CACHE_ROOT
+_old_run = triage.subprocess.run
+triage.CACHE_ROOT = _hazard_cache
+_os.makedirs(triage.CACHE_ROOT, exist_ok=True)
+with open(_os.path.join(_hazard, "repro.hlsl"), "w", encoding="utf-8") as f:
+    f.write("ORIGINAL\n")
+
+
+def _fake_old_preprocessor(argv, cwd=None, **_kwargs):
+    if "/Fi" in argv:
+        value = argv[argv.index("/Fi") + 1]
+        if _os.path.exists(_os.path.join(cwd, value)):
+            with open(_os.path.join(cwd, "repro.hlsl"), "w",
+                      encoding="utf-8") as f:
+                f.write("CLOBBERED\n")
+            return subprocess.CompletedProcess(argv, 0, "", "")
+        return subprocess.CompletedProcess(
+            argv, 1, "", "The system cannot find the file specified")
+    return subprocess.CompletedProcess(
+        argv, 1, "", "dxc failed : Unknown argument: '-Fi'")
+
+
+triage.subprocess.run = _fake_old_preprocessor
+try:
+    with open(_os.path.join(_hazard, "preprocessed.i"), "w",
+              encoding="utf-8") as f:
+        f.write("armed\n")
+    try:
+        triage._run_probe_command_list(
+            "fake-dxc", _hazard,
+            ["-P repro.hlsl /Fi preprocessed.i"],
+            protect_cmds=["-P repro.hlsl -Fi preprocessed.i"])
+    except SystemExit as e:
+        check("present value token is clobber-detected and refused",
+              "repro.hlsl" in str(e), True)
+    else:
+        check("present value token is clobber-detected and refused",
+              "no error", "SystemExit")
+    check("the isolated destructive retry leaves evidence untouched",
+          open(_os.path.join(_hazard, "repro.hlsl"),
+               encoding="utf-8").read(), "ORIGINAL\n")
+
+    _os.remove(_os.path.join(_hazard, "preprocessed.i"))
+    _safe = triage._run_probe_command_list(
+        "fake-dxc", _hazard,
+        ["-P repro.hlsl /Fi preprocessed.i"],
+        protect_cmds=["-P repro.hlsl -Fi preprocessed.i"])
+    check("absent value token keeps the old harmless failure",
+          _safe["rc"], 1)
+    check("absent value token does not modify the repro",
+          open(_os.path.join(_hazard, "repro.hlsl"),
+               encoding="utf-8").read(), "ORIGINAL\n")
+finally:
+    triage.subprocess.run = _old_run
+    triage.CACHE_ROOT = _old_cache_root
+
+# Opposite acceptance directions from #3044 and #3439. A silently ignored `/`
+# spelling is indistinguishable from deleting the flag and must be rejected.
+# A silent original failure may still be recovered when the alternate spelling
+# makes the predicate's positive anchor appear.
+_write_pred({"kind": "all_of", "value": [
+    {"kind": "contains", "value": "ANCHOR"},
+    {"kind": "not_contains", "value": "RAW"}]})
+_same = {"text": "ANCHOR RAW", "rc": 0, "timed_out": False}
+check("a silently ignored slash spelling has no positive acceptance proof",
+      triage.spelling_reprobe_evidence(
+          1877, "match.json", _same, dict(_same)),
+      None)
+_working = {"text": "ANCHOR", "rc": 0, "timed_out": False}
+_silent = {"text": "", "rc": 1, "timed_out": False}
+check("a spelling that recovers the expected anchor from a silent failure",
+      triage.spelling_reprobe_evidence(
+          1877, "match.json", _working, _silent) is not None,
+      True)
+check("silent failures still expose option tokens for spelling attempts",
+      "-Fo" in triage.command_option_tokens(
+          ["-T lib_6_3 -Fo out.dxil repro.hlsl"]),
+      True)
+
+_legacy_meta = {
+    "exit": "0", "timed_out": "0", "match": "match.json",
+    "argument-spelling-reprobe": "-old -> /old"}
+check("legacy accepted spellings without behavioural proof are invalidated",
+      triage.classify_capture(1877, _legacy_meta, "ANCHOR"),
+      "invalid-probe")
 
 # `bisect` may vary dxc itself, never an API/pass harness that happens to be
 # registered as a compiler. That substitution has produced the inverse result
@@ -679,6 +795,20 @@ check("an issue may explicitly name a release without the v prefix",
       triage.issue_filing_names_release(
           {"title": "regression in 1.5.2003", "body": ""}, "v1.5.2003"),
       True)
+_window_rows = [
+    {"tag": "old", "build_date": "2019-07-01"},
+    {"tag": "new", "build_date": "2026-07-01"},
+]
+check("clean endpoints warn when the filing date lies inside the range",
+      triage.mid_history_window_warning(
+          {"createdAt": "2021-02-01T00:00:00Z"}, _window_rows,
+          "old", "new", "never-repro'd-in-releases") is not None,
+      True)
+check("a linear/positive history does not get the endpoint warning",
+      triage.mid_history_window_warning(
+          {"createdAt": "2021-02-01T00:00:00Z"}, _window_rows,
+          "old", "new", "always-repro'd"),
+      None)
 _policy_dir = _tf.mkdtemp()
 _old_issue_dir = triage.issue_dir
 triage.issue_dir = lambda _n: _policy_dir

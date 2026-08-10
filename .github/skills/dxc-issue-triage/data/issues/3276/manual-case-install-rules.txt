@@ -1,0 +1,277 @@
+# build tree: <build>
+# cmake_install.cmake scripts found: 164
+
+# RULE-PARSE-SELFTEST=pass
+
+# install rules per component (a component is what `cmake --install --component <name>` selects;
+#  the default `install` target runs ALL of them)
+
+component                     rules  example destinations
+Unspecified                     268  <prefix>/SPIRV-Tools-diff/cmake, <prefix>/SPIRV-Tools-link/cmake, <prefix>/SPIRV-Tools-lint/cmake
+LLVMAnalysis                      4  <prefix>/lib
+LLVMAsmParser                     4  <prefix>/lib
+LLVMBitReader                     4  <prefix>/lib
+LLVMBitWriter                     4  <prefix>/lib
+LLVMCore                          4  <prefix>/lib
+LLVMDXIL                          4  <prefix>/lib
+LLVMDxcBindingTable               4  <prefix>/lib
+LLVMDxcSupport                    4  <prefix>/lib
+LLVMDxilCompression               4  <prefix>/lib
+LLVMDxilContainer                 4  <prefix>/lib
+LLVMDxilDia                       4  <prefix>/lib
+LLVMDxilHash                      4  <prefix>/lib
+LLVMDxilPIXPasses                 4  <prefix>/lib
+LLVMDxilPdbInfo                   4  <prefix>/lib
+LLVMDxilRootSignature             4  <prefix>/lib
+LLVMDxilValidation                4  <prefix>/lib
+LLVMDxrFallback                   4  <prefix>/lib
+LLVMHLSL                          4  <prefix>/lib
+LLVMIRReader                      4  <prefix>/lib
+LLVMInstCombine                   4  <prefix>/lib
+LLVMLinker                        4  <prefix>/lib
+LLVMMSSupport                     4  <prefix>/lib
+LLVMOption                        4  <prefix>/lib
+LLVMPassPrinters                  4  <prefix>/lib
+LLVMPasses                        4  <prefix>/lib
+LLVMProfileData                   4  <prefix>/lib
+LLVMScalarOpts                    4  <prefix>/lib
+LLVMSupport                       4  <prefix>/lib
+LLVMTableGen                      4  <prefix>/lib
+LLVMTarget                        4  <prefix>/lib
+LLVMTransformUtils                4  <prefix>/lib
+LLVMVectorize                     4  <prefix>/lib
+LLVMipa                           4  <prefix>/lib
+LLVMipo                           4  <prefix>/lib
+dxc                               4  <prefix>/bin
+dxcompiler                        4  <prefix>/bin
+dxexp                             4  <prefix>/bin
+llvm-as                           4  <prefix>/bin
+llvm-bcanalyzer                   4  <prefix>/bin
+llvm-config                       4  <prefix>/bin
+llvm-diff                         4  <prefix>/bin
+llvm-dis                          4  <prefix>/bin
+llvm-extract                      4  <prefix>/bin
+llvm-link                         4  <prefix>/bin
+llvm-stress                       4  <prefix>/bin
+opt                               4  <prefix>/bin
+verify-uselistorder               4  <prefix>/bin
+llvm-headers                      2  <prefix>/include
+dxc-headers                       1  <prefix>/include/dxc
+
+# category summary for <prefix>/bin and <prefix>/lib (counted from the rules above, not by eye)
+  34  lib: LLVM* archives (LLVM proper + DXC's own LLVM-style libs)
+      LLVMAnalysis.lib, LLVMAsmParser.lib, LLVMBitReader.lib, LLVMBitWriter.lib, LLVMCore.lib, LLVMDXIL.lib, LLVMDxcBindingTable.lib, LLVMDxcSupport.lib, LLVMDxilCompression.lib, LLVMDxilContainer.lib, LLVMDxilDia.lib, LLVMDxilHash.lib, LLVMDxilPIXPasses.lib, LLVMDxilPdbInfo.lib, LLVMDxilRootSignature.lib, LLVMDxilValidation.lib, LLVMDxrFallback.lib, LLVMHLSL.lib, LLVMIRReader.lib, LLVMInstCombine.lib, LLVMLinker.lib, LLVMMSSupport.lib, LLVMOption.lib, LLVMPassPrinters.lib, LLVMPasses.lib, LLVMProfileData.lib, LLVMScalarOpts.lib, LLVMSupport.lib, LLVMTableGen.lib, LLVMTarget.lib, LLVMTransformUtils.lib, LLVMVectorize.lib, LLVMipa.lib, LLVMipo.lib
+  20  lib: clang*/libclang archives
+      clangAST.lib, clangASTMatchers.lib, clangAnalysis.lib, clangBasic.lib, clangCodeGen.lib, clangDriver.lib, clangEdit.lib, clangFormat.lib, clangFrontend.lib, clangFrontendTool.lib, clangIndex.lib, clangLex.lib, clangParse.lib, clangRewrite.lib, clangRewriteFrontend.lib, clangSPIRV.lib, clangSema.lib, clangTooling.lib, clangToolingCore.lib, libclang.lib
+   7  lib: SPIRV-Tools* archives
+      SPIRV-Tools-diff.lib, SPIRV-Tools-link.lib, SPIRV-Tools-lint.lib, SPIRV-Tools-opt.lib, SPIRV-Tools-reduce.lib, SPIRV-Tools-shared.lib, SPIRV-Tools.lib
+  11  bin: LLVM developer tools
+      llvm-as.exe, llvm-bcanalyzer.exe, llvm-config.exe, llvm-diff.exe, llvm-dis.exe, llvm-extract.exe, llvm-link.exe, llvm-stress.exe, llvm-tblgen.exe, opt.exe, verify-uselistorder.exe
+   6  bin: test binaries
+      ClangHLSLTests.dll, ExecHLSLTests.dll, HLSLErrors.exe, HLSLHost.exe, dxc_batch.exe, test_DxrFallback.exe
+   1  bin: dxc distribution component
+      dxc.exe
+
+# distinct file names per destination
+   6  <prefix>/SPIRV-Tools-diff/cmake
+   6  <prefix>/SPIRV-Tools-link/cmake
+   6  <prefix>/SPIRV-Tools-lint/cmake
+   6  <prefix>/SPIRV-Tools-opt/cmake
+   6  <prefix>/SPIRV-Tools-reduce/cmake
+   6  <prefix>/SPIRV-Tools/cmake
+  30  <prefix>/bin
+   4  <prefix>/include
+   4  <prefix>/include/dxc
+   4  <prefix>/include/spirv-tools
+  71  <prefix>/lib
+   2  <prefix>/lib/pkgconfig
+   9  <prefix>/share/llvm/cmake
+
+# every rule, grouped by destination
+
+<prefix>/SPIRV-Tools-diff/cmake   (6 rules)
+    SPIRV-Tools-diffConfig.cmake [Unspecified]
+    SPIRV-Tools-diffTargets-debug.cmake [Unspecified]
+    SPIRV-Tools-diffTargets-minsizerel.cmake [Unspecified]
+    SPIRV-Tools-diffTargets-release.cmake [Unspecified]
+    SPIRV-Tools-diffTargets-relwithdebinfo.cmake [Unspecified]
+    SPIRV-Tools-diffTargets.cmake [Unspecified]
+
+<prefix>/SPIRV-Tools-link/cmake   (6 rules)
+    SPIRV-Tools-linkConfig.cmake [Unspecified]
+    SPIRV-Tools-linkTargets-debug.cmake [Unspecified]
+    SPIRV-Tools-linkTargets-minsizerel.cmake [Unspecified]
+    SPIRV-Tools-linkTargets-release.cmake [Unspecified]
+    SPIRV-Tools-linkTargets-relwithdebinfo.cmake [Unspecified]
+    SPIRV-Tools-linkTargets.cmake [Unspecified]
+
+<prefix>/SPIRV-Tools-lint/cmake   (6 rules)
+    SPIRV-Tools-lintConfig.cmake [Unspecified]
+    SPIRV-Tools-lintTargets-debug.cmake [Unspecified]
+    SPIRV-Tools-lintTargets-minsizerel.cmake [Unspecified]
+    SPIRV-Tools-lintTargets-release.cmake [Unspecified]
+    SPIRV-Tools-lintTargets-relwithdebinfo.cmake [Unspecified]
+    SPIRV-Tools-lintTargets.cmake [Unspecified]
+
+<prefix>/SPIRV-Tools-opt/cmake   (6 rules)
+    SPIRV-Tools-optConfig.cmake [Unspecified]
+    SPIRV-Tools-optTargets-debug.cmake [Unspecified]
+    SPIRV-Tools-optTargets-minsizerel.cmake [Unspecified]
+    SPIRV-Tools-optTargets-release.cmake [Unspecified]
+    SPIRV-Tools-optTargets-relwithdebinfo.cmake [Unspecified]
+    SPIRV-Tools-optTargets.cmake [Unspecified]
+
+<prefix>/SPIRV-Tools-reduce/cmake   (6 rules)
+    SPIRV-Tools-reduceConfig.cmake [Unspecified]
+    SPIRV-Tools-reduceTarget-debug.cmake [Unspecified]
+    SPIRV-Tools-reduceTarget-minsizerel.cmake [Unspecified]
+    SPIRV-Tools-reduceTarget-release.cmake [Unspecified]
+    SPIRV-Tools-reduceTarget-relwithdebinfo.cmake [Unspecified]
+    SPIRV-Tools-reduceTarget.cmake [Unspecified]
+
+<prefix>/SPIRV-Tools/cmake   (6 rules)
+    SPIRV-ToolsConfig.cmake [Unspecified]
+    SPIRV-ToolsTarget-debug.cmake [Unspecified]
+    SPIRV-ToolsTarget-minsizerel.cmake [Unspecified]
+    SPIRV-ToolsTarget-release.cmake [Unspecified]
+    SPIRV-ToolsTarget-relwithdebinfo.cmake [Unspecified]
+    SPIRV-ToolsTarget.cmake [Unspecified]
+
+<prefix>/bin   (124 rules)
+    ClangHLSLTests.dll [Unspecified]
+    ExecHLSLTests.dll [Unspecified]
+    HLSLErrors.exe [Unspecified]
+    HLSLHost.exe [Unspecified]
+    SPIRV-Tools-shared.dll [Unspecified]
+    d3dcompiler_dxc_bridge.dll [Unspecified]
+    dxa.exe [Unspecified]
+    dxc.exe [dxc]
+    dxc_batch.exe [Unspecified]
+    dxcompiler.dll [Unspecified]
+    dxcompiler.dll [dxcompiler]
+    dxexp.exe [dxexp]
+    dxil.dll [Unspecified]
+    dxl.exe [Unspecified]
+    dxlib_sample.dll [Unspecified]
+    dxopt.exe [Unspecified]
+    dxr.exe [Unspecified]
+    dxrfallbackcompiler.dll [Unspecified]
+    dxv.exe [Unspecified]
+    llvm-as.exe [llvm-as]
+    llvm-bcanalyzer.exe [llvm-bcanalyzer]
+    llvm-config.exe [llvm-config]
+    llvm-diff.exe [llvm-diff]
+    llvm-dis.exe [llvm-dis]
+    llvm-extract.exe [llvm-extract]
+    llvm-link.exe [llvm-link]
+    llvm-stress.exe [llvm-stress]
+    llvm-tblgen.exe [Unspecified]
+    opt.exe [opt]
+    test_DxrFallback.exe [Unspecified]
+    verify-uselistorder.exe [verify-uselistorder]
+
+<prefix>/include   (5 rules)
+    clang (FILES_MATCHING) [Unspecified]
+    clang-c (FILES_MATCHING) [Unspecified]
+    llvm (FILES_MATCHING) [llvm-headers]
+    llvm-c (FILES_MATCHING) [llvm-headers]
+
+<prefix>/include/dxc   (1 rules)
+    config.h [dxc-headers]
+    dxcapi.h [dxc-headers]
+    dxcerrors.h [dxc-headers]
+    dxcisense.h [dxc-headers]
+
+<prefix>/include/spirv-tools   (1 rules)
+    libspirv.h [Unspecified]
+    libspirv.hpp [Unspecified]
+    linker.hpp [Unspecified]
+    optimizer.hpp [Unspecified]
+
+<prefix>/lib   (284 rules)
+    ClangHLSLTests.lib [Unspecified]
+    ExecHLSLTests.lib [Unspecified]
+    HLSLTestLib.lib [Unspecified]
+    LLVMAnalysis.lib [LLVMAnalysis]
+    LLVMAsmParser.lib [LLVMAsmParser]
+    LLVMBitReader.lib [LLVMBitReader]
+    LLVMBitWriter.lib [LLVMBitWriter]
+    LLVMCore.lib [LLVMCore]
+    LLVMDXIL.lib [LLVMDXIL]
+    LLVMDxcBindingTable.lib [LLVMDxcBindingTable]
+    LLVMDxcSupport.lib [LLVMDxcSupport]
+    LLVMDxilCompression.lib [LLVMDxilCompression]
+    LLVMDxilContainer.lib [LLVMDxilContainer]
+    LLVMDxilDia.lib [LLVMDxilDia]
+    LLVMDxilHash.lib [LLVMDxilHash]
+    LLVMDxilPIXPasses.lib [LLVMDxilPIXPasses]
+    LLVMDxilPdbInfo.lib [LLVMDxilPdbInfo]
+    LLVMDxilRootSignature.lib [LLVMDxilRootSignature]
+    LLVMDxilValidation.lib [LLVMDxilValidation]
+    LLVMDxrFallback.lib [LLVMDxrFallback]
+    LLVMHLSL.lib [LLVMHLSL]
+    LLVMIRReader.lib [LLVMIRReader]
+    LLVMInstCombine.lib [LLVMInstCombine]
+    LLVMLinker.lib [LLVMLinker]
+    LLVMMSSupport.lib [LLVMMSSupport]
+    LLVMOption.lib [LLVMOption]
+    LLVMPassPrinters.lib [LLVMPassPrinters]
+    LLVMPasses.lib [LLVMPasses]
+    LLVMProfileData.lib [LLVMProfileData]
+    LLVMScalarOpts.lib [LLVMScalarOpts]
+    LLVMSupport.lib [LLVMSupport]
+    LLVMTableGen.lib [LLVMTableGen]
+    LLVMTarget.lib [LLVMTarget]
+    LLVMTransformUtils.lib [LLVMTransformUtils]
+    LLVMVectorize.lib [LLVMVectorize]
+    LLVMipa.lib [LLVMipa]
+    LLVMipo.lib [LLVMipo]
+    SPIRV-Tools-diff.lib [Unspecified]
+    SPIRV-Tools-link.lib [Unspecified]
+    SPIRV-Tools-lint.lib [Unspecified]
+    SPIRV-Tools-opt.lib [Unspecified]
+    SPIRV-Tools-reduce.lib [Unspecified]
+    SPIRV-Tools-shared.lib [Unspecified]
+    SPIRV-Tools.lib [Unspecified]
+    clangAST.lib [Unspecified]
+    clangASTMatchers.lib [Unspecified]
+    clangAnalysis.lib [Unspecified]
+    clangBasic.lib [Unspecified]
+    clangCodeGen.lib [Unspecified]
+    clangDriver.lib [Unspecified]
+    clangEdit.lib [Unspecified]
+    clangFormat.lib [Unspecified]
+    clangFrontend.lib [Unspecified]
+    clangFrontendTool.lib [Unspecified]
+    clangIndex.lib [Unspecified]
+    clangLex.lib [Unspecified]
+    clangParse.lib [Unspecified]
+    clangRewrite.lib [Unspecified]
+    clangRewriteFrontend.lib [Unspecified]
+    clangSPIRV.lib [Unspecified]
+    clangSema.lib [Unspecified]
+    clangTooling.lib [Unspecified]
+    clangToolingCore.lib [Unspecified]
+    d3dcompiler_dxc_bridge.lib [Unspecified]
+    dxclib.lib [Unspecified]
+    dxcompiler.lib [Unspecified]
+    dxcvalidator.lib [Unspecified]
+    dxil.lib [Unspecified]
+    dxlib_sample.lib [Unspecified]
+    dxrfallbackcompiler.lib [Unspecified]
+    libclang.lib [Unspecified]
+
+<prefix>/lib/pkgconfig   (1 rules)
+    SPIRV-Tools-shared.pc [Unspecified]
+    SPIRV-Tools.pc [Unspecified]
+
+<prefix>/share/llvm/cmake   (7 rules)
+    . (FILES_MATCHING) [Unspecified]
+    LLVM-Config.cmake [Unspecified]
+    LLVMConfig.cmake [Unspecified]
+    LLVMConfigVersion.cmake [Unspecified]
+    LLVMExports-debug.cmake [Unspecified]
+    LLVMExports-minsizerel.cmake [Unspecified]
+    LLVMExports-release.cmake [Unspecified]
+    LLVMExports-relwithdebinfo.cmake [Unspecified]
+    LLVMExports.cmake [Unspecified]

@@ -1,0 +1,83 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T03:54:20+00:00
+# cmd: -T lib_6_3 control-hello.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: hello (control-hello.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 control-hello.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; shader hash: f7f97e19ac957e2c1c0c006d72430d94
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; tlas                              texture     i32         ras      T0             t0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.RaytracingAccelerationStructure = type { i32 }
+%struct.Payload = type { <4 x i32> }
+%dx.types.Handle = type { i8* }
+
+@"\01?tlas@@3URaytracingAccelerationStructure@@A" = external constant %struct.RaytracingAccelerationStructure, align 4
+
+; Function Attrs: nounwind
+define void @"\01?rgs@@YAXXZ"() #0 {
+  %1 = load %struct.RaytracingAccelerationStructure, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", align 4
+  %2 = alloca %struct.Payload, align 8
+  %3 = call %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32 160, %struct.RaytracingAccelerationStructure %1)  ; CreateHandleForLib(Resource)
+  %4 = getelementptr inbounds %struct.Payload, %struct.Payload* %2, i32 0, i32 0
+  store <4 x i32> zeroinitializer, <4 x i32>* %4, align 8
+  call void @dx.op.traceRay.struct.Payload(i32 157, %dx.types.Handle %3, i32 1, i32 255, i32 0, i32 1, i32 0, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0x3FB99999A0000000, float 0.000000e+00, float 0.000000e+00, float 1.000000e+00, float 1.000000e+03, %struct.Payload* nonnull %2)  ; TraceRay(AccelerationStructure,RayFlags,InstanceInclusionMask,RayContributionToHitGroupIndex,MultiplierForGeometryContributionToShaderIndex,MissShaderIndex,Origin_X,Origin_Y,Origin_Z,TMin,Direction_X,Direction_Y,Direction_Z,TMax,payload)
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.traceRay.struct.Payload(i32, %dx.types.Handle, i32, i32, i32, i32, i32, float, float, float, float, float, float, float, float, %struct.Payload*) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.struct.RaytracingAccelerationStructure(i32, %struct.RaytracingAccelerationStructure) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!8}
+!dx.entryPoints = !{!12, !13}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 10}
+!3 = !{!"lib", i32 6, i32 3}
+!4 = !{!5, null, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %struct.RaytracingAccelerationStructure* @"\01?tlas@@3URaytracingAccelerationStructure@@A", !"tlas", i32 0, i32 0, i32 1, i32 16, i32 0, !7}
+!7 = !{i32 0, i32 4}
+!8 = !{i32 1, void ()* @"\01?rgs@@YAXXZ", !9}
+!9 = !{!10}
+!10 = !{i32 1, !11, !11}
+!11 = !{}
+!12 = !{null, !"", null, !4, null}
+!13 = !{void ()* @"\01?rgs@@YAXXZ", !"\01?rgs@@YAXXZ", null, null, !14}
+!14 = !{i32 8, i32 7, i32 5, !15}
+!15 = !{i32 0}
+
+
+--- stderr ---
+

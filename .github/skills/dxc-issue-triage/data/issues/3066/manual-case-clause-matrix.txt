@@ -1,0 +1,21 @@
+Per-clause scoring of match.json against every capture.
+A '.' means the clause did not match; 'X' means it did.
+
+captures, in column order:
+  repro    out-main-debug.txt             the repro, ground truth -- expect ALL match
+  zi       variant-zi-main-debug.txt      same repro + -Zi -Qembed_debug -- control: names/locations ARE printed
+  plain    variant-plain-main-debug.txt   trivial valid shader -- control: constructs absent
+  broken   variant-broken-main-debug.txt  shader that does not compile -- control: no disassembly emitted
+  1.4      out-v1.4.1907.txt              the repro, oldest release -- scored no-repro by the scan; this says which clause
+  1.5      out-v1.5.2010.txt              the repro, next release -- scored repro
+  1.9      out-v1.9.2607.txt              the repro, newest release -- scored repro
+
+clause        repro       zi    plain   broken      1.4      1.5      1.9   note
+root[0]           X        X        .        .        X        X        X   SELF-TEST 1: a complete disassembly listing was produced, and the Resource Bindings table already carries the friendly name (the half of ask E that is satisfied).
+root[1]           X        X        .        .        X        X        X   SELF-TEST 2: the opcode annotator ran and decoded hard-coded value 35 to a name. This is the baseline the issue body itself quotes.
+root[2]           X        .        .        .        X        X        X   ask B: hex float still printed and the comment ends at FMax(a,b) with no decimal restatement.
+root[3]           X        .        .        .        X        X        X   ask C: operand NAMES are printed, operand VALUES are not resolved.
+root[4]           X        .        .        .        .        X        X   ask D: anonymous handle operand, no resource name in the comment.
+root[5]           X        X        .        .        X        X        X   ask E: ViewID output-dependency rows are bare scalar indices; digits only inside the braces.
+
+A control is only meaningful if at least one clause flips; the columns above are that proof.

@@ -1,0 +1,23 @@
+{
+  "batch": "batch-012",
+  "confidence": "high",
+  "created_at": "2020-07-16T20:26:38Z",
+  "expected_symptom": "dxc -P strips comments and there is no flag to keep them",
+  "godbolt_url": "https://godbolt.org/z/rc8jz9ve7",
+  "history": "always-repro'd",
+  "labels": "enhancement",
+  "labels_add": "low-hanging-fruit, usability",
+  "labels_now": "enhancement",
+  "notes_path": "issues/3044/notes.md",
+  "number": 3044,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "Claude Sonnet independent review (batch-012 step-10; blind 3414)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Never implemented: comments are dropped by -P on all 20 stable releases and main, and -C/-CC are rejected as Unknown argument. The capability is already in the library - PrintPreprocessedOutput honours ShowComments/ShowMacroComments and CompilerInvocation parses -C/-CC on the cc1 path - but dxcompilerobj.cpp builds PreprocessorOutputOptions by hand and hardcodes both to 0, and HLSLOptions.td has no C/CC entry. So this is option plumbing, not a new capability, matching pow2clk's 2020 assessment.",
+  "title": "Feature request: option to preprocess without removing comments",
+  "triaged_at": "2026-08-10T04:10:32+00:00",
+  "triaged_by": "GitHub Copilot CLI (claude-opus-4.6)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3044"
+}

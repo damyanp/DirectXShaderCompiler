@@ -1,0 +1,18 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T03:54:54+00:00
+# cmd: -T lib_6_3 case-link-undef.hlsl -Fo case-link-undef.dxil
+# exit: 0
+# timed_out: 0
+# match: match-mangled-function.json
+# verdict: no-repro
+# variant: case-link-undef-compile (case-link-undef.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 case-link-undef.hlsl -Fo case-link-undef.dxil
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

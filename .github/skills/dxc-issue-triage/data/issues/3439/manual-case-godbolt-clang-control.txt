@@ -1,0 +1,33 @@
+# Compiler Explorer panes for #3439, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main
+# exit:     5
+
+<source>:37:5: error: redefinition of 'CallMeMaybe'
+int CallMeMaybe(float f, bool b) {
+    ^
+<source>:33:5: note: previous definition is here
+int CallMeMaybe(float f, bool b) {
+    ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T ps_6_0 -E main
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:37:5: [0m[0;1;31merror: [0m[1mredefinition of 'CallMeMaybe'[0m
+   37 | [0;34mint[0m CallMeMaybe([0;34mfloat[0m f, [0;34mbool[0m b) {[0m
+      | [0;1;32m    ^
+[0m[1m<source>:33:5: [0m[0;1;36mnote: [0mprevious definition is here[0m
+   33 | [0;34mint[0m CallMeMaybe([0;34mfloat[0m f, [0;34mbool[0m b) {[0m
+      | [0;1;32m    ^
+[0m1 error generated.
+<Compilation failed>

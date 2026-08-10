@@ -1,0 +1,24 @@
+What to look for: the two DXC panes and the Clang pane behave differently, and
+the point of the link is the wording of the DXC panes, not whether a pane fails.
+
+In both DXC panes, read the single error line. Its subject is the callee
+rendered as the LLVM symbol the front end generated for it, not as the HLSL
+declaration a few lines above in this source. That is issue 3439. Contrast it
+with any front-end diagnostic from the same compiler, which names a function as
+written and in quotes; the difference is visible without knowing anything about
+DXC internals. The message itself is correct -- the shader really does leave a
+declared overload undefined -- so nothing here is a miscompile.
+
+The Clang pane answers a different question, and answers it in an unexpected
+way: it succeeds. Scroll its output to the call inside the body of main, then
+to the declaration a few lines below it, and note that the callee is declared
+and never defined, with no diagnostic of any kind. Read Clang diagnostics
+rather than its exit code in general, because its DXIL backend is still
+incomplete; the narrower caveat here is that Compiler Explorer runs this pane
+in assembly-listing mode rather than producing a validated container, so a
+later stage might still object.
+
+The source is a compute restatement of the pixel-shader repro in the issue
+body, because Clang's backend cannot lower a pixel shader that writes to a
+render target. DXC emits the same message for both spellings; the pixel version
+as filed is the one measured locally.

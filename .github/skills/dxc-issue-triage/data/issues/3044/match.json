@@ -1,0 +1,26 @@
+{
+  "kind": "all_of",
+  "note": "SYMPTOM: `dxc /P` strips comments and no option preserves them (issue #3044 asks for clang's -C/-CC). The symptom is an ABSENCE, so every clause below exists to stop the absence being satisfied for free. Clause 1 anchors on the preprocess command of THIS run exiting 0: `dxc /P` writes its output to a file, so the chain in cmd.txt has to compile that file with -Zi to get the text onto stdout, and without this clause a probe whose preprocess step failed would score a textbook reproduction off a stale preprocessed.i left by an earlier probe. Clause 2 requires the embedded source to be the preprocessor's own output for repro.hlsl (it opens with the `#line 1 \"repro.hlsl\"` marker dxc writes), which a failed compile cannot emit. Clause 3 is the positive anchor AND the self-test: `return selftest3044 + macroexpanded3044;` exists only after preprocessing -- the source says `EXPANDED3044` -- so it proves the preprocessor ran, and it proves ordinary source text of the same shape as the sentinel does reach the capture through this channel. Clause 4 is the CONTROL, and it runs inside every probe rather than beside it: control-token-in-code.hlsl differs from repro.hlsl in exactly one way, `keepme3044` also appears as a code identifier, and its preprocessed output must contain it. A broken instrument (wrong metadata shape, wrong file name, unreadable output) therefore scores no-match instead of manufacturing a clean absence. Clause 5 is the finding: in the repro's preprocessed output, where `keepme3044` occurs only inside comments, it is gone. Clauses 4 and 5 are anchored to their own !dx.source.contents entry by file name because both preprocessed files are in the same capture. SEPARATE CAPTURED CONTROLS: variant-control-no-preprocess-main-debug.txt runs this same predicate against a preprocess of a file that does not exist and must score no-match (`--expect no-match`), which is the direct test that a run that never preprocessed cannot satisfy the absence; variant-flag-dash-c/-cc and variant-flag-slash-c/-slash-zzznonsense record how each candidate spelling is parsed, with /ZZZNONSENSE as the control for the fact that DXC ignores unknown `/` flags silently. LIMIT: the predicate tracks default `/P` behaviour. If comment retention is ever added under a spelling other than the ones probed here, this predicate will still score `repro` and a new probe is needed.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "\\$ dxc [-/]P repro\\.hlsl [-/]Fi preprocessed\\.i\\r?\\n\\[exe\\][^\\n]*\\r?\\n\\[exit\\] 0\\r?\\n"
+    },
+    {
+      "kind": "contains",
+      "value": "!{!\"preprocessed.i\", !\"#line 1 \\22repro.hlsl\\22"
+    },
+    {
+      "kind": "regex",
+      "value": "!\\{!\"preprocessed\\.i\", !\"[^\"\\n]*return selftest3044 \\+ macroexpanded3044;"
+    },
+    {
+      "kind": "regex",
+      "value": "!\\{!\"control-token-in-code\\.i\", !\"[^\"\\n]*keepme3044"
+    },
+    {
+      "kind": "not_regex",
+      "value": "!\\{!\"preprocessed\\.i\", !\"[^\"\\n]*keepme3044"
+    }
+  ]
+}

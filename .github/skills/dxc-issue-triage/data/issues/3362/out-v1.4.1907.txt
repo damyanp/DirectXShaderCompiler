@@ -1,9 +1,10 @@
 # compiler: v1.4.1907
 # exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
-# ran: 2026-08-10T02:17:55+00:00
+# ran: 2026-08-10T04:34:40+00:00
 # cmd: -T ds_6_0 -E DSMain -pack_optimized -Qstrip_debug -Qstrip_reflect repro.hlsl ; -T ps_6_0 -E PSMain -pack_optimized -Qstrip_debug -Qstrip_reflect repro.hlsl
 # requested-cmd: -T ds_6_0 -E DSMain -pack-optimized -Qstrip_debug -Qstrip_reflect repro.hlsl ; -T ps_6_0 -E PSMain -pack-optimized -Qstrip_debug -Qstrip_reflect repro.hlsl
 # argument-spelling-reprobe: -pack-optimized -> -pack_optimized
+# argument-spelling-evidence: predicate clause(s) 1,2 differ from the same command with the option removed
 # exit: 0
 # timed_out: 0
 # match: match.json

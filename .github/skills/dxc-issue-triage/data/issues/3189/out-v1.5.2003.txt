@@ -1,20 +1,18 @@
 # compiler: v1.5.2003
 # exe: <cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe
-# ran: 2026-08-10T02:18:33+00:00
-# cmd: -T ps_6_0 -E mainPS -spirv /fvk-auto-shift-bindings -fvk-t-shift 100 0 -fvk-s-shift 200 0 repro.hlsl
-# requested-cmd: -T ps_6_0 -E mainPS -spirv -fvk-auto-shift-bindings -fvk-t-shift 100 0 -fvk-s-shift 200 0 repro.hlsl
-# argument-spelling-reprobe: -fvk-auto-shift-bindings -> /fvk-auto-shift-bindings
+# ran: 2026-08-10T04:35:04+00:00
+# cmd: -T ps_6_0 -E mainPS -spirv -fvk-auto-shift-bindings -fvk-t-shift 100 0 -fvk-s-shift 200 0 repro.hlsl
 # exit: 1
 # timed_out: 0
 # match: match.json
 # verdict: invalid-probe
-# invalid-probe-reason: output matched the feature-absence marker "CodeGen not available", so this build did not reach the code under test
+# invalid-probe-reason: output matched the feature-absence marker "Unknown argument", so this build did not reach the code under test
 
-$ dxc -T ps_6_0 -E mainPS -spirv /fvk-auto-shift-bindings -fvk-t-shift 100 0 -fvk-s-shift 200 0 repro.hlsl
+$ dxc -T ps_6_0 -E mainPS -spirv -fvk-auto-shift-bindings -fvk-t-shift 100 0 -fvk-s-shift 200 0 repro.hlsl
 [exe] <cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe
 [exit] 1
 --- stdout ---
 
 --- stderr ---
-dxc failed : SPIR-V CodeGen not available. Please recompile with -DENABLE_SPIRV_CODEGEN=ON.
+dxc failed : Unknown argument: '-fvk-auto-shift-bindings'
 

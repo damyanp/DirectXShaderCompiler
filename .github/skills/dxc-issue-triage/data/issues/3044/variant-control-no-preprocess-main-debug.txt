@@ -1,0 +1,20 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T04:01:23+00:00
+# cmd: -P missing3044.hlsl -Fi preprocessed.i
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-no-preprocess (missing3044.hlsl)
+# expect: no-match
+
+$ dxc -P missing3044.hlsl -Fi preprocessed.i
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 1
+--- stdout ---
+
+
+--- stderr ---
+The system cannot find the file specified. missing3044.hlsl
+

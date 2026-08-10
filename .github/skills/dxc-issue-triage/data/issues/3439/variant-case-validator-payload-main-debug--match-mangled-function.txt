@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T03:54:54+00:00
+# cmd: -T lib_6_6 case-validator-payload.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-mangled-function.json
+# verdict: no-repro
+# variant: case-validator-payload (case-validator-payload.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_6 case-validator-payload.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+case-validator-payload.hlsl:15:3: error: For amplification shader with entry 'AmplifyWithHugePayload', payload size 32768 is greater than maximum size of 16384 bytes.
+note: at 'call void @dx.op.dispatchMesh.struct.HugeMeshPayload.0(i32 173, i32 1, i32 1, i32 1, %struct.HugeMeshPayload.0 addrspace(3)* nonnull @"\01?gs_payload@@3UHugeMeshPayload@@A.1")' in block '#0' of function 'AmplifyWithHugePayload'.
+Validation failed.
+
+
+

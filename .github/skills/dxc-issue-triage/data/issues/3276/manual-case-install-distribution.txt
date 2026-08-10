@@ -1,0 +1,29 @@
+# label: install-distribution components (dxc;dxcompiler;dxc-headers)
+# build: <build>  (config Release)
+# prefix: <prefix>  (scratch, outside the repository)
+# components: dxc,dxcompiler,dxc-headers
+
+$ "cmake" --install <build> --config Release --prefix <prefix> --component dxc
+-- Installing: <prefix>/bin/dxc.exe
+# exit: 0
+$ "cmake" --install <build> --config Release --prefix <prefix> --component dxcompiler
+-- Installing: <prefix>/bin/dxcompiler.dll
+# exit: 0
+$ "cmake" --install <build> --config Release --prefix <prefix> --component dxc-headers
+-- Installing: <prefix>/include/dxc/config.h
+-- Installing: <prefix>/include/dxc/dxcapi.h
+-- Installing: <prefix>/include/dxc/dxcerrors.h
+-- Installing: <prefix>/include/dxc/dxcisense.h
+# exit: 0
+
+# installed files: 6
+       4  <prefix>/include/dxc
+       2  <prefix>/bin/
+
+# every file, sorted (destinations relative to the install prefix):
+<prefix>/bin/dxc.exe
+<prefix>/bin/dxcompiler.dll
+<prefix>/include/dxc/config.h
+<prefix>/include/dxc/dxcapi.h
+<prefix>/include/dxc/dxcerrors.h
+<prefix>/include/dxc/dxcisense.h
