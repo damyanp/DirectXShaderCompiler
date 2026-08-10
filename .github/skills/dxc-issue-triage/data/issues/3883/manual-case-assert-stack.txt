@@ -1,0 +1,76 @@
+# Trimmed cdb transcript for #3883, produced by:
+#     cmd /c .\assert-stack.cmd > raw-cdb.txt 2>&1
+#     python trim-cdb.py raw-cdb.txt > manual-case-assert-stack.txt
+# Both scripts are committed beside this file; raw-cdb.txt is not (it is noise and is
+# re-derivable). The `### $ cdb ...` lines are echoed by the harness, so they are the
+# commands that actually ran rather than a transcription of them. Re-running the pipeline
+# reproduces this file exactly apart from the per-run (pid.tid) prefixes.
+#
+# Compiler: main-debug, <repo>/build/Debug/bin/dxc.exe
+#           dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+#           (upstream-equivalent commit 13730886e; the self-reported ab5400907 is fork-local)
+
+### CASE 1: repro.hlsl -- the repro, with the arguments in cmd.txt.
+### Two asserts fire in turn, then NDEBUG-emulated execution shows the Release symptom.
+### $ cdb -c "sxe -c \"kb 9; gh\" e0000001; g; q" "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T ps_6_0 -E PSMain repro.hlsl
+(1b30.8530): Break instruction exception - code 80000003 (first chance)
+Error: assert(this->getType()->isVectorTy() && "Only valid for vectors!")
+File:
+<repo>\lib\IR\Constants.cpp(1419)
+Func:	llvm::Constant::getSplatValue
+(1b30.8530): Unknown exception - code e0000001 (first chance)
+    KERNELBASE!RaiseException+0x8a
+    dxcompiler!llvm_assert+0x51
+    dxcompiler!llvm::Constant::getSplatValue+0x4f
+    dxcompiler!llvm::Constant::getUniqueInteger+0x50
+    dxcompiler!`anonymous namespace'::TranslateCBGepLegacy+0x158
+    dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x14bc
+    dxcompiler!`anonymous namespace'::TranslateCBOperationsLegacy+0x114
+    dxcompiler!TranslateHLSubscript+0xef
+    dxcompiler!TranslateSubscriptOperation+0xf5
+Error: assert(this->getSplatValue() && "Doesn't contain a unique integer!")
+File:
+<repo>\lib\IR\Constants.cpp(1446)
+Func:	llvm::Constant::getUniqueInteger
+(1b30.8530): Unknown exception - code e0000001 (first chance)
+    KERNELBASE!RaiseException+0x8a
+    dxcompiler!llvm_assert+0x51
+    dxcompiler!llvm::Constant::getUniqueInteger+0x81
+    dxcompiler!`anonymous namespace'::TranslateCBGepLegacy+0x158
+    dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x14bc
+    dxcompiler!`anonymous namespace'::TranslateCBOperationsLegacy+0x114
+    dxcompiler!TranslateHLSubscript+0xef
+    dxcompiler!TranslateSubscriptOperation+0xf5
+    dxcompiler!TranslateHLBuiltinOperation+0x845
+(1b30.8530): C++ EH exception - code e06d7363 (first chance)
+repro.hlsl:8:18: warning: variable 'index' is uninitialized when used within its own initialization [-Wuninitialized]
+    uint index = index; // Initializing a variable to itself is bad!
+         ~~~~~   ^~~~~
+error: llvm::cast<X>() argument of incompatible type!
+### CASE 2: control-initialised.hlsl -- `uint index = 0;`. Must reach no assert at all.
+### The only break below is the loader's; no `Error: assert` line appears, and the
+### compile exits 0 (see variant-control-initialised-main-debug.txt).
+### $ cdb -c "sxe -c \"kb 4; gh\" e0000001; g; q" "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T ps_6_0 -E PSMain control-initialised.hlsl
+(2450.8420): Break instruction exception - code 80000003 (first chance)
+### CASE 3: where the RELEASE build actually dies. Both asserts are gone (`gh` past
+### them, which is what NDEBUG does), and the next break is the hlsl::Exception thrown
+### by the failing cast -- so this names the cast rather than inferring it from source.
+### $ cdb -c "sxe -c \"gh\" e0000001; sxe -c \"kb 6\" e06d7363; g; q" "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T ps_6_0 -E PSMain repro.hlsl
+(5ddc.13ec): Break instruction exception - code 80000003 (first chance)
+Error: assert(this->getType()->isVectorTy() && "Only valid for vectors!")
+File:
+<repo>\lib\IR\Constants.cpp(1419)
+Func:	llvm::Constant::getSplatValue
+(5ddc.13ec): Unknown exception - code e0000001 (first chance)
+Error: assert(this->getSplatValue() && "Doesn't contain a unique integer!")
+File:
+<repo>\lib\IR\Constants.cpp(1446)
+Func:	llvm::Constant::getUniqueInteger
+(5ddc.13ec): Unknown exception - code e0000001 (first chance)
+(5ddc.13ec): C++ EH exception - code e06d7363 (first chance)
+    KERNELBASE!RaiseException+0x8a
+    VCRUNTIME140D!_CxxThrowException+0x132
+    dxcompiler!llvm::llvm_cast_assert_internal+0xa2
+    dxcompiler!llvm::cast<llvm::StructType,llvm::Type const >+0x27
+    dxcompiler!llvm::Type::getStructNumElements+0x14
+    dxcompiler!llvm::UndefValue::getNumElements+0x69

@@ -2,28 +2,18 @@
 
 **Ground truth:** clean `main` **Debug** build,
 `dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)`.
-All five `verdict.json` files carry `triaged_with_commit: 13730886e` — corrected after the
-fact; they originally recorded `ab5400907`, which the binary self-reports.
+All five `verdict.json` files cite public upstream `13730886e`; the fork-local SHA in the
+verbatim version string is evidence only.
 **History:** 20 official release binaries, v1.4.1907 → v1.9.2607, plus v1.5.2003 fetched by
 hand for #2923.
 **Nothing was posted, edited, labelled or closed. No DXC source was modified.**
 
-> ### The ground-truth SHA no longer exists, and the build is still valid — verified by tree
+> ### The fork-local ground-truth SHA no longer exists, and the build is still valid
 >
-> `main-debug` is registered at commit **`ab5400907`**, which the batch-007 commit-message
-> rewrite replaced with **`950b58792`**. Collation re-verified rather than trusting the
-> handover:
->
-> ```
-> git rev-parse ab5400907^{tree}   ->  574a2bd25a0b57ea1f450ea3dc0776919fcfe108
-> git rev-parse 950b58792^{tree}   ->  574a2bd25a0b57ea1f450ea3dc0776919fcfe108
-> git diff --name-only ab5400907 HEAD  ->  759 files, ALL under .github/skills/dxc-issue-triage/
->                                          0 files of compiler source
-> ```
->
-> Identical trees, and every difference to `HEAD` is inside the triage skill directory. The
-> binary is a faithful `main` and **was not rebuilt**. `SKILL.md` now documents verifying
-> provenance by tree rather than by SHA; this batch is the first to rely on it.
+> Collation verified that every difference between the binary's built source and public
+> upstream `13730886e` is inside this triage skill: zero compiler-source files differ. The
+> binary is therefore a faithful `main` and **was not rebuilt**. Full command evidence is in
+> `provenance-correction.md`.
 >
 > Batches 005–008 all measure the same tree and are directly comparable. Batches 001–004
 > measured `eff900d5` and are not.
@@ -647,16 +637,16 @@ generator that produced them.
 
 ### 14. `triaged_with_commit` stores a SHA that a history rewrite kills
 
-**#3693 proposed it and this batch proved it.** `triaged_with_commit` recorded `ab5400907`,
-a commit that no longer exists. The tree hash does not change under a message rewrite —
+**#3693 proposed it and this batch proved it.** `triaged_with_commit` recorded a fork-local
+commit that no longer exists. The tree hash does not change under a message rewrite —
 `574a2bd25…` is identical across both SHAs — so storing it alongside would make the provenance
 record self-verifying instead of requiring a note in a handover document. **Storing the tree
 hash is still unimplemented** (it is a schema change and every existing row would need
 backfilling); recorded as a proposal.
 
 **Resolved for the recorded data.** All 25 affected `verdict.json` files were later corrected
-to the publicly-resolvable upstream SHA `13730886e`, verified equivalent by
-`git diff --name-only ab5400907 13730886e`, which reports no file outside this skill directory
+to the publicly-resolvable upstream SHA `13730886e`, verified equivalent by a
+tree diff that reports no file outside this skill directory
 (control: the same diff against `eff900d54` reports 32). Captures, `.ll`/`.pdb` artifacts and
 `notes.md` were deliberately left untouched — they are evidence, and several notes discuss the
 orphaned SHA by name or record commands that were actually run against it.
@@ -849,7 +839,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2923](https://github.com/microsoft/DirectXShaderCompiler/issues/2923).
 
-@damyanp — yes, **this still misbehaves on `main`** (`1.9.0.5433`, `ab5400907`).
+@damyanp — yes, **this still misbehaves on `main`** (`1.9.0.5433`, `13730886e`).
 
 No modified unit test is needed: `repro.hlsl` is
 `PixStructAnnotation_SequentialFloatN`'s shader with the edit the issue asks
@@ -947,7 +937,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3092](https://github.com/microsoft/DirectXShaderCompiler/issues/3092).
 
-**Still absent.** Tested on `main` (`1.9.0.5433`, ab5400907) and on all 19 SPIR-V-capable
+**Still absent.** Tested on `main` (`1.9.0.5433`, 13730886e) and on all 19 SPIR-V-capable
 releases in the catalog from v1.5.2010 (2020-10) to v1.9.2607 — every one rejects it with the
 same error. v1.4.1907, the only older one probed, answers `SPIR-V CodeGen not available` and is
 not a valid probe.
@@ -1020,7 +1010,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3377](https://github.com/microsoft/DirectXShaderCompiler/issues/3377).
 
-**Still reproduces on `main` (1.9.0.5433, `ab5400907`), and on every one of the 20 release
+**Still reproduces on `main` (1.9.0.5433, `13730886e`), and on every one of the 20 release
 binaries from v1.4.1907 (2019-07) to v1.9.2607.** The oldest predates the report by 18 months
 and already fails. The repro in the body works exactly as filed, with no edits.
 
@@ -1116,7 +1106,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3693](https://github.com/microsoft/DirectXShaderCompiler/issues/3693).
 
-Still reproduces on `main` (1.9.0.5433, ab5400907), and on every release back to v1.6.2104
+Still reproduces on `main` (1.9.0.5433, 13730886e), and on every release back to v1.6.2104
 (the oldest that accepts `lib_6_6`).
 
 **DXC already has this diagnostic, but does not reach it in this position.** Hoisting the

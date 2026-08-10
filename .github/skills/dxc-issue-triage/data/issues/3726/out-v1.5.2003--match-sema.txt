@@ -1,0 +1,198 @@
+# compiler: v1.5.2003
+# exe: <cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe
+# ran: 2026-08-10T02:18:35+00:00
+# cmd: -T ps_6_0 -E main repro.hlsl ; -T ps_6_0 -E main -spirv repro.hlsl ; -T ps_6_0 -E main -fcgl repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-sema.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "CodeGen not available", so this build did not reach the code under test
+
+$ dxc -T ps_6_0 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: ?x0@@3V?$Texture2D@V?$vector@M$03@@@@A
+error: local resource not guaranteed to map to unique global resource. Use /Zi for source location.
+error: ?x2@@3URWByteAddressBuffer@@A
+error: local resource not guaranteed to map to unique global resource. Use /Zi for source location.
+error: ?x1@@3USamplerState@@A
+error: local resource not guaranteed to map to unique global resource. Use /Zi for source location.
+
+
+
+$ dxc -T ps_6_0 -E main -spirv repro.hlsl
+[exe] <cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : SPIR-V CodeGen not available. Please recompile with -DENABLE_SPIRV_CODEGEN=ON.
+
+
+$ dxc -T ps_6_0 -E main -fcgl repro.hlsl
+[exe] <cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Buffer Definitions:
+;
+; cbuffer $Globals
+; {
+;
+;   [0 x i8] (type annotation not present)
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; $Globals                          cbuffer      NA          NA     CB0   cb4294967295     1
+; r1                                sampler      NA          NA      S0s4294967295,space4294967295     1
+; x1                                sampler      NA          NA      S1s4294967295,space4294967295     1
+; r0                                texture     f32          2d      T0t4294967295,space4294967295     1
+; x0                                texture     f32          2d      T1t4294967295,space4294967295     1
+; r2                                    UAV    byte         r/w      U0u4294967295,space4294967295     1
+; x2                                    UAV    byte         r/w      U1u4294967295,space4294967295     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%"class.Texture2D<vector<float, 4> >" = type { <4 x float>, %"class.Texture2D<vector<float, 4> >::mips_type" }
+%"class.Texture2D<vector<float, 4> >::mips_type" = type { i32 }
+%struct.SamplerState = type { i32 }
+%struct.RWByteAddressBuffer = type { i32 }
+%ConstantBuffer = type opaque
+%dx.types.Handle = type { i8* }
+%dx.types.ResourceProperties = type { i32, i32 }
+
+@"\01?r0@@3V?$Texture2D@V?$vector@M$03@@@@A" = external global %"class.Texture2D<vector<float, 4> >", align 4
+@"\01?r1@@3USamplerState@@A" = external global %struct.SamplerState, align 4
+@"\01?r2@@3URWByteAddressBuffer@@A" = external global %struct.RWByteAddressBuffer, align 4
+@"\01?x0@@3V?$Texture2D@V?$vector@M$03@@@@A" = external global %"class.Texture2D<vector<float, 4> >", align 4
+@"\01?x1@@3USamplerState@@A" = external global %struct.SamplerState, align 4
+@"\01?x2@@3URWByteAddressBuffer@@A" = external global %struct.RWByteAddressBuffer, align 4
+@"$Globals" = external constant %ConstantBuffer
+
+; Function Attrs: nounwind
+define <4 x float> @main() #0 {
+  %1 = alloca %struct.RWByteAddressBuffer
+  %2 = alloca %struct.SamplerState
+  %3 = alloca %"class.Texture2D<vector<float, 4> >"
+  call void @"\01?getResource@@YAXV?$Texture2D@V?$vector@M$03@@@@USamplerState@@URWByteAddressBuffer@@@Z"(%"class.Texture2D<vector<float, 4> >"* @"\01?x0@@3V?$Texture2D@V?$vector@M$03@@@@A", %struct.SamplerState* @"\01?x1@@3USamplerState@@A", %struct.RWByteAddressBuffer* @"\01?x2@@3URWByteAddressBuffer@@A")
+  %4 = load %struct.RWByteAddressBuffer, %struct.RWByteAddressBuffer* @"\01?x2@@3URWByteAddressBuffer@@A"
+  %5 = call %dx.types.Handle @"dx.hl.createhandle..%dx.types.Handle (i32, %struct.RWByteAddressBuffer)"(i32 0, %struct.RWByteAddressBuffer %4)
+  %6 = call %dx.types.Handle @"dx.hl.annotatehandle..%dx.types.Handle (i32, %dx.types.Handle, i8, i8, %dx.types.ResourceProperties, %struct.RWByteAddressBuffer)"(i32 11, %dx.types.Handle %5, i8 1, i8 11, %dx.types.ResourceProperties zeroinitializer, %struct.RWByteAddressBuffer undef)
+  %7 = call i32 @"dx.hl.op..i32 (i32, %dx.types.Handle, i32)"(i32 207, %dx.types.Handle %6, i32 0)
+  %8 = uitofp i32 %7 to float
+  %9 = load %struct.RWByteAddressBuffer, %struct.RWByteAddressBuffer* @"\01?x2@@3URWByteAddressBuffer@@A"
+  %10 = call %dx.types.Handle @"dx.hl.createhandle..%dx.types.Handle (i32, %struct.RWByteAddressBuffer)"(i32 0, %struct.RWByteAddressBuffer %9)
+  %11 = call %dx.types.Handle @"dx.hl.annotatehandle..%dx.types.Handle (i32, %dx.types.Handle, i8, i8, %dx.types.ResourceProperties, %struct.RWByteAddressBuffer)"(i32 11, %dx.types.Handle %10, i8 1, i8 11, %dx.types.ResourceProperties zeroinitializer, %struct.RWByteAddressBuffer undef)
+  %12 = call i32 @"dx.hl.op..i32 (i32, %dx.types.Handle, i32)"(i32 207, %dx.types.Handle %11, i32 1)
+  %13 = uitofp i32 %12 to float
+  %14 = insertelement <2 x float> undef, float %8, i64 0
+  %15 = insertelement <2 x float> %14, float %13, i64 1
+  %16 = load %"class.Texture2D<vector<float, 4> >", %"class.Texture2D<vector<float, 4> >"* @"\01?x0@@3V?$Texture2D@V?$vector@M$03@@@@A"
+  %17 = call %dx.types.Handle @"dx.hl.createhandle..%dx.types.Handle (i32, %\22class.Texture2D<vector<float, 4> >\22)"(i32 0, %"class.Texture2D<vector<float, 4> >" %16)
+  %18 = call %dx.types.Handle @"dx.hl.annotatehandle..%dx.types.Handle (i32, %dx.types.Handle, i8, i8, %dx.types.ResourceProperties, %\22class.Texture2D<vector<float, 4> >\22)"(i32 11, %dx.types.Handle %17, i8 0, i8 2, %dx.types.ResourceProperties { i32 457, i32 0 }, %"class.Texture2D<vector<float, 4> >" undef)
+  %19 = load %struct.SamplerState, %struct.SamplerState* @"\01?x1@@3USamplerState@@A"
+  %20 = call %dx.types.Handle @"dx.hl.createhandle..%dx.types.Handle (i32, %struct.SamplerState)"(i32 0, %struct.SamplerState %19)
+  %21 = call %dx.types.Handle @"dx.hl.annotatehandle..%dx.types.Handle (i32, %dx.types.Handle, i8, i8, %dx.types.ResourceProperties, %struct.SamplerState)"(i32 11, %dx.types.Handle %20, i8 3, i8 14, %dx.types.ResourceProperties zeroinitializer, %struct.SamplerState undef)
+  %22 = call <4 x float> @"dx.hl.op..<4 x float> (i32, %dx.types.Handle, %dx.types.Handle, <2 x float>)"(i32 208, %dx.types.Handle %18, %dx.types.Handle %21, <2 x float> %15)
+  ret <4 x float> %22
+}
+
+; Function Attrs: alwaysinline nounwind
+define internal void @"\01?getResource@@YAXV?$Texture2D@V?$vector@M$03@@@@USamplerState@@URWByteAddressBuffer@@@Z"(%"class.Texture2D<vector<float, 4> >"* noalias %a0, %struct.SamplerState* noalias %a1, %struct.RWByteAddressBuffer* noalias %a2) #1 {
+  %1 = load %"class.Texture2D<vector<float, 4> >", %"class.Texture2D<vector<float, 4> >"* @"\01?r0@@3V?$Texture2D@V?$vector@M$03@@@@A"
+  store %"class.Texture2D<vector<float, 4> >" %1, %"class.Texture2D<vector<float, 4> >"* %a0
+  %2 = load %struct.SamplerState, %struct.SamplerState* @"\01?r1@@3USamplerState@@A"
+  store %struct.SamplerState %2, %struct.SamplerState* %a1
+  %3 = load %struct.RWByteAddressBuffer, %struct.RWByteAddressBuffer* @"\01?r2@@3URWByteAddressBuffer@@A"
+  store %struct.RWByteAddressBuffer %3, %struct.RWByteAddressBuffer* %a2
+  ret void
+}
+
+declare <4 x float> @"dx.hl.op..<4 x float> (i32, %dx.types.Handle, %dx.types.Handle, <2 x float>)"(i32, %dx.types.Handle, %dx.types.Handle, <2 x float>)
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @"dx.hl.createhandle..%dx.types.Handle (i32, %\22class.Texture2D<vector<float, 4> >\22)"(i32, %"class.Texture2D<vector<float, 4> >") #2
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @"dx.hl.annotatehandle..%dx.types.Handle (i32, %dx.types.Handle, i8, i8, %dx.types.ResourceProperties, %\22class.Texture2D<vector<float, 4> >\22)"(i32, %dx.types.Handle, i8, i8, %dx.types.ResourceProperties, %"class.Texture2D<vector<float, 4> >") #2
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @"dx.hl.createhandle..%dx.types.Handle (i32, %struct.SamplerState)"(i32, %struct.SamplerState) #2
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @"dx.hl.annotatehandle..%dx.types.Handle (i32, %dx.types.Handle, i8, i8, %dx.types.ResourceProperties, %struct.SamplerState)"(i32, %dx.types.Handle, i8, i8, %dx.types.ResourceProperties, %struct.SamplerState) #2
+
+; Function Attrs: readonly
+declare i32 @"dx.hl.op..i32 (i32, %dx.types.Handle, i32)"(i32, %dx.types.Handle, i32) #3
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @"dx.hl.createhandle..%dx.types.Handle (i32, %struct.RWByteAddressBuffer)"(i32, %struct.RWByteAddressBuffer) #2
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @"dx.hl.annotatehandle..%dx.types.Handle (i32, %dx.types.Handle, i8, i8, %dx.types.ResourceProperties, %struct.RWByteAddressBuffer)"(i32, %dx.types.Handle, i8, i8, %dx.types.ResourceProperties, %struct.RWByteAddressBuffer) #2
+
+attributes #0 = { nounwind "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-realign-stack" "stack-protector-buffer-size"="0" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { alwaysinline nounwind "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-realign-stack" "stack-protector-buffer-size"="0" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind readnone }
+attributes #3 = { readonly }
+
+!pauseresume = !{!0}
+!llvm.ident = !{!1}
+!dx.version = !{!2}
+!dx.valver = !{!3}
+!dx.shaderModel = !{!4}
+!dx.typeAnnotations = !{!5, !13}
+!dx.entryPoints = !{!20}
+!dx.fnprops = !{!34}
+!dx.options = !{!35, !36}
+
+!0 = !{!"hlsl-hlemit", !"hlsl-hlensure"}
+!1 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!2 = !{i32 1, i32 0}
+!3 = !{i32 1, i32 5}
+!4 = !{!"ps", i32 6, i32 0}
+!5 = !{i32 0, %"class.Texture2D<vector<float, 4> >" undef, !6, %"class.Texture2D<vector<float, 4> >::mips_type" undef, !9, %struct.RWByteAddressBuffer undef, !11, %struct.SamplerState undef, !11}
+!6 = !{i32 20, !7, !8}
+!7 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 9}
+!8 = !{i32 6, !"mips", i32 3, i32 16}
+!9 = !{i32 4, !10}
+!10 = !{i32 6, !"handle", i32 3, i32 0, i32 7, i32 5}
+!11 = !{i32 4, !12}
+!12 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 4}
+!13 = !{i32 1, <4 x float> ()* @main, !14, void (%"class.Texture2D<vector<float, 4> >"*, %struct.SamplerState*, %struct.RWByteAddressBuffer*)* @"\01?getResource@@YAXV?$Texture2D@V?$vector@M$03@@@@USamplerState@@URWByteAddressBuffer@@@Z", !18}
+!14 = !{!15}
+!15 = !{i32 1, !16, !17}
+!16 = !{i32 4, !"SV_Target", i32 7, i32 9}
+!17 = !{}
+!18 = !{!19, !19, !19, !19}
+!19 = !{i32 1, !17, !17}
+!20 = !{<4 x float> ()* @main, !"main", null, !21, null}
+!21 = !{!22, !26, !29, !31}
+!22 = !{!23, !25}
+!23 = !{i32 0, %"class.Texture2D<vector<float, 4> >"* @"\01?r0@@3V?$Texture2D@V?$vector@M$03@@@@A", !"r0", i32 -1, i32 -1, i32 1, i32 2, i32 0, !24}
+!24 = !{i32 0, i32 9}
+!25 = !{i32 1, %"class.Texture2D<vector<float, 4> >"* @"\01?x0@@3V?$Texture2D@V?$vector@M$03@@@@A", !"x0", i32 -1, i32 -1, i32 1, i32 2, i32 0, !24}
+!26 = !{!27, !28}
+!27 = !{i32 0, %struct.RWByteAddressBuffer* @"\01?r2@@3URWByteAddressBuffer@@A", !"r2", i32 -1, i32 -1, i32 1, i32 11, i1 false, i1 false, i1 false, null}
+!28 = !{i32 1, %struct.RWByteAddressBuffer* @"\01?x2@@3URWByteAddressBuffer@@A", !"x2", i32 -1, i32 -1, i32 1, i32 11, i1 false, i1 false, i1 false, null}
+!29 = !{!30}
+!30 = !{i32 0, %ConstantBuffer* @"$Globals", !"$Globals", i32 0, i32 -1, i32 1, i32 0, null}
+!31 = !{!32, !33}
+!32 = !{i32 0, %struct.SamplerState* @"\01?r1@@3USamplerState@@A", !"r1", i32 -1, i32 -1, i32 1, i32 0, null}
+!33 = !{i32 1, %struct.SamplerState* @"\01?x1@@3USamplerState@@A", !"x1", i32 -1, i32 -1, i32 1, i32 0, null}
+!34 = !{<4 x float> ()* @main, i32 0, i1 false}
+!35 = !{i32 144}
+!36 = !{i32 -1}
+
+
+--- stderr ---
+

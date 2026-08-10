@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3055](https://github.com/microsoft/DirectXShaderCompiler/issues/3055).
 
-Still reproduces on `main` (1.9.0.5433, `ab5400907`, Debug), and on **all 20 release binaries
+Still reproduces on `main` (1.9.0.5433, `13730886e`, Debug), and on **all 20 release binaries
 from v1.4.1907 (2019-07) through v1.9.2607** — a full linear scan, not just the endpoints. The
 v1.4.1907 output is byte-identical to today's, caret art included.
 

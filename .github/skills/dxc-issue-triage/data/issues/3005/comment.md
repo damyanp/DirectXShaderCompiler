@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3005](https://github.com/microsoft/DirectXShaderCompiler/issues/3005).
 
-Still reproduces on `main` (1.9.0.5433, `ab5400907`). The more actionable finding is
+Still reproduces on `main` (1.9.0.5433, `13730886e`). The more actionable finding is
 that a fix was written, reviewed, and then closed unmerged.
 
 ### Measured

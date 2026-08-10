@@ -1,0 +1,69 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T01:25:15+00:00
+# cmd: -T ps_6_0 -spirv control-unused.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-unused (control-unused.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -spirv control-unused.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 24
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %in_var_TEXCOORD0 %out_var_SV_Target0
+               OpExecutionMode %main OriginUpperLeft
+               OpSource HLSL 600
+               OpName %type_2d_image "type.2d.image"
+               OpName %type_sampler "type.sampler"
+               OpName %Tex1 "Tex1"
+               OpName %SS1 "SS1"
+               OpName %in_var_TEXCOORD0 "in.var.TEXCOORD0"
+               OpName %out_var_SV_Target0 "out.var.SV_Target0"
+               OpName %main "main"
+               OpName %type_sampled_image "type.sampled.image"
+               OpDecorate %in_var_TEXCOORD0 Location 0
+               OpDecorate %out_var_SV_Target0 Location 0
+               OpDecorate %Tex1 DescriptorSet 0
+               OpDecorate %Tex1 Binding 2
+               OpDecorate %SS1 DescriptorSet 0
+               OpDecorate %SS1 Binding 3
+      %float = OpTypeFloat 32
+%type_2d_image = OpTypeImage %float 2D 2 0 0 1 Unknown
+%_ptr_UniformConstant_type_2d_image = OpTypePointer UniformConstant %type_2d_image
+%type_sampler = OpTypeSampler
+%_ptr_UniformConstant_type_sampler = OpTypePointer UniformConstant %type_sampler
+    %v4float = OpTypeVector %float 4
+    %v2float = OpTypeVector %float 2
+%_ptr_Input_v2float = OpTypePointer Input %v2float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %17 = OpTypeFunction %void
+%type_sampled_image = OpTypeSampledImage %type_2d_image
+       %Tex1 = OpVariable %_ptr_UniformConstant_type_2d_image UniformConstant
+        %SS1 = OpVariable %_ptr_UniformConstant_type_sampler UniformConstant
+%in_var_TEXCOORD0 = OpVariable %_ptr_Input_v2float Input
+%out_var_SV_Target0 = OpVariable %_ptr_Output_v4float Output
+       %main = OpFunction %void None %17
+         %18 = OpLabel
+         %19 = OpLoad %v2float %in_var_TEXCOORD0
+         %20 = OpLoad %type_2d_image %Tex1
+         %21 = OpLoad %type_sampler %SS1
+         %22 = OpSampledImage %type_sampled_image %20 %21
+         %23 = OpImageSampleImplicitLod %v4float %22 %19 None
+               OpStore %out_var_SV_Target0 %23
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

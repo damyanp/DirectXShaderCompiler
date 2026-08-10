@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "SELFCHECK: field-search-selftest=pass"
+    },
+    {
+      "kind": "regex",
+      "value": "SUMMARY: payload-carrying-entries=[1-9]"
+    },
+    {
+      "kind": "contains",
+      "value": "API-PAYLOAD-SIZE=unavailable"
+    }
+  ],
+  "note": "The symptom is that a piece of information cannot be obtained from an API, which is an absence claim, and SKILL.md records two ways such a claim scores for free: a compile that never started, and an input that never had the thing. Both are closed here by construction rather than by hope. (1) The harness prints its RESULT line only after the whole walk completed -- Compile succeeded, the container loaded, ID3D12LibraryReflection was obtained, and every ID3D12FunctionReflection::GetDesc returned S_OK -- and prints a loud `refl2952: WALK-INCOMPLETE:` marker instead otherwise, so a release that cannot run the repro cannot match; control-compute.hlsl (--expect no-match) demonstrates that on a non-library profile. (2) `payload-carrying-entries=[1-9]` requires that the container actually recorded a non-zero payload size for at least one entry, so a shader with no raytracing entries scores `API-PAYLOAD-SIZE=n/a` and cannot match; control-nonrt-lib.hlsl (--expect no-match) demonstrates that. (3) `field-search-selftest=pass` guards the reader itself: the harness searches every numeric field of D3D12_FUNCTION_DESC for a value it knows is present (BoundResources' own value) and must find it, because a search that can only ever return `not found` would report the payload size missing whether or not a field held it -- SKILL.md's #2923 lesson that a control cannot catch a broken reader. control-payload-16.hlsl (--expect match) is the identity control: a 16-byte payload instead of 28 must give the same answer, because the finding is that D3D12_FUNCTION_DESC has no payload field at all rather than that one particular number is missing. Deliberately NOT in the predicate: the shader-kind half. D3D12_FUNCTION_DESC.Version does encode the DXIL shader kind, so that half of the request is already satisfied; folding it in would let either half decide the verdict for the other. It is measured and reported on the SUMMARY/RESULT lines (`API-SHADER-KIND=`) instead. Note also that the HRESULTs in this transcript are API return values, not process exit codes: dxc.exe returns E_FAIL (0x80004005) for any ordinary diagnosed error, so no exit-code predicate could distinguish the two, which is why the harness exits 0 on a completed walk regardless of what it found."
+}

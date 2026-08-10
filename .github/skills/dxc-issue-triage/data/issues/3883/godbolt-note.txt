@@ -1,0 +1,20 @@
+Issue 3883: dxc does not diagnose a self-initialising local; it fails internally instead.
+
+What to look for: compare the three panes. FXC rejects this source with a plain, correct
+error naming the variable (X4000, "used without having been completely initialized") and
+stops. Neither dxc pane produces any equivalent diagnostic; both exit nonzero reporting a
+cast of an incompatible type from inside LLVM, which is an internal failure and not a
+diagnosis of the input. Check the exit status shown under each pane's output.
+
+The single dxc warning that does appear names the right line but does not stop code
+generation, so the undefined value reaches the constant-buffer address lowering and kills the
+compile there.
+
+Compiler Explorer runs Release builds. A clean Debug build of main instead trips an assert in
+llvm::Constant::getSplatValue and exits 0xE0000001, reached from TranslateCBGepLegacy in
+lib/HLSL/HLOperationLower.cpp. Same defect, different build configuration: the assert is
+compiled out here, the unchecked value flows on, and the cast fails a few lines later.
+
+Replacing the declaration with an initialised one compiles cleanly on every build tested,
+FXC included, so the failure is attributable to the uninitialised read and not to the shader,
+the profile or the pane arguments.

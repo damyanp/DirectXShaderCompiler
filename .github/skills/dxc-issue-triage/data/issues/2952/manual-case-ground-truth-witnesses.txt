@@ -1,0 +1,493 @@
+#2952 ground-truth witnesses
+
+Produced by `python capture-witnesses.py`. Three independent readers
+of the same container, so that no single one decides the verdict.
+
+1. dxa -dumpreflection  -- what the D3D12 reflection API can see
+                           (for a library dxa also dumps RDAT first;
+                           the API part starts at
+                           `ID3D12LibraryReflection:`)
+2. dxa -dumprdat        -- what the container actually records
+3. release inc/ listing -- what an application is given to read it with
+
+=== compile the repro with the ground-truth build ===
+
+$ <repo>/build/Debug/bin/dxc.exe -T lib_6_3 repro.hlsl -Fo <triage>/data/issues/2952/out/repro-witness.dxil
+[exit] 0
+
+=== 1. dxa -dumpreflection: the D3D12 reflection view ===
+
+For a library container this prints two things, because dxa walks
+the container's parts and dumps both the RDAT part and the DXIL
+part's ID3D12LibraryReflection (tools/clang/tools/dxa/dxa.cpp,
+DxaContext::DumpReflection). Scroll to `ID3D12LibraryReflection:`
+for the part that matters here: D3DReflectionDumper
+(lib/DxilContainer/D3DReflectionDumper.cpp) printing each
+D3D12_FUNCTION_DESC. It shares no code with refl2952.exe. Note
+what it does and does not print. `Shader Version: AnyHit 6.3` is
+the dumper decoding D3D12_FUNCTION_DESC.Version through
+D3D12_SHVER_GET_TYPE -- so the shader kind IS reachable from the
+reflection API. No payload size appears anywhere in that block,
+because D3D12_FUNCTION_DESC has no field that could hold one.
+
+$ <repo>/build/Debug/bin/dxa.exe -dumpreflection <triage>/data/issues/2952/out/repro-witness.dxil
+[exit] 0
+  DxilRuntimeData (size = 940 bytes):
+    StringBuffer (size = 428 bytes)
+    IndexTable (size = 12 bytes)
+    RawBytes (size = 0 bytes)
+    RecordTable (stride = 32 bytes) ResourceTable[2] = {
+      <0:RuntimeDataResourceInfo> = {
+        Class: SRV
+        Kind: RTAccelerationStructure
+        ID: 0
+        Space: 0
+        LowerBound: 0
+        UpperBound: 0
+        Name: "Scene"
+        Flags: 0 (None)
+      }
+      <1:RuntimeDataResourceInfo> = {
+        Class: UAV
+        Kind: Texture2D
+        ID: 0
+        Space: 0
+        LowerBound: 0
+        UpperBound: 0
+        Name: "Output"
+        Flags: 0 (None)
+      }
+    }
+    RecordTable (stride = 52 bytes) FunctionTable[7] = {
+      <0:RuntimeDataFunctionInfo2> = {
+        Name: "\01?RayGenMain@@YAXXZ"
+        UnmangledName: "RayGenMain"
+        Resources: <0:RecordArrayRef<RuntimeDataResourceInfo>[2]>  = {
+          [0]: <0:RuntimeDataResourceInfo> = {
+            Class: SRV
+            Kind: RTAccelerationStructure
+            ID: 0
+            Space: 0
+            LowerBound: 0
+            UpperBound: 0
+            Name: "Scene"
+            Flags: 0 (None)
+          }
+          [1]: <1:RuntimeDataResourceInfo> = {
+            Class: UAV
+            Kind: Texture2D
+            ID: 0
+            Space: 0
+            LowerBound: 0
+            UpperBound: 0
+            Name: "Output"
+            Flags: 0 (None)
+          }
+        }
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: RayGeneration
+        PayloadSizeInBytes: 0
+        AttributeSizeInBytes: 0
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (RayGeneration)
+        MinShaderTarget: 0x70063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <1:RuntimeDataFunctionInfo2> = {
+        Name: "\01?MissMain@@YAXURayPayload@@@Z"
+        UnmangledName: "MissMain"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: Miss
+        PayloadSizeInBytes: 28
+        AttributeSizeInBytes: 0
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (Miss)
+        MinShaderTarget: 0xb0063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <2:RuntimeDataFunctionInfo2> = {
+        Name: "\01?ClosestHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"
+        UnmangledName: "ClosestHitMain"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: ClosestHit
+        PayloadSizeInBytes: 28
+        AttributeSizeInBytes: 8
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (ClosestHit)
+        MinShaderTarget: 0xa0063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <3:RuntimeDataFunctionInfo2> = {
+        Name: "\01?AnyHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"
+        UnmangledName: "AnyHitMain"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: AnyHit
+        PayloadSizeInBytes: 28
+        AttributeSizeInBytes: 8
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (AnyHit)
+        MinShaderTarget: 0x90063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <4:RuntimeDataFunctionInfo2> = {
+        Name: "\01?IntersectionMain@@YAXXZ"
+        UnmangledName: "IntersectionMain"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: Intersection
+        PayloadSizeInBytes: 0
+        AttributeSizeInBytes: 0
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (Intersection)
+        MinShaderTarget: 0x80063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <5:RuntimeDataFunctionInfo2> = {
+        Name: "\01?CallableMain@@YAXUCallableParams@@@Z"
+        UnmangledName: "CallableMain"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: Callable
+        PayloadSizeInBytes: 12
+        AttributeSizeInBytes: 0
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (Callable)
+        MinShaderTarget: 0xc0063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <6:RuntimeDataFunctionInfo2> = {
+        Name: "\01?PlainLibraryFunction@@YA?AV?$vector@M$02@@V1@@Z"
+        UnmangledName: "PlainLibraryFunction"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: Library
+        PayloadSizeInBytes: 0
+        AttributeSizeInBytes: 0
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (Pixel | Vertex | Geometry | Hull | Domain | Compute | Library | RayGeneration | Intersection | AnyHit | ClosestHit | Miss | Callable | Mesh | Amplification | Node)
+        MinShaderTarget: 0x60060
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+    }
+  ID3D12LibraryReflection:
+    D3D12_LIBRARY_DESC:
+      Creator: <nullptr>
+      Flags: 0
+      FunctionCount: 7
+    ID3D12FunctionReflection:
+      D3D12_FUNCTION_DESC: Name: \01?AnyHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z
+        Shader Version: AnyHit 6.3
+        Creator: <nullptr>
+        Flags: 0
+        RequiredFeatureFlags: 0
+        ConstantBuffers: 0
+        BoundResources: 0
+        FunctionParameterCount: 0
+        HasReturn: FALSE
+    ID3D12FunctionReflection:
+      D3D12_FUNCTION_DESC: Name: \01?CallableMain@@YAXUCallableParams@@@Z
+        Shader Version: Callable 6.3
+        Creator: <nullptr>
+        Flags: 0
+        RequiredFeatureFlags: 0
+        ConstantBuffers: 0
+        BoundResources: 0
+        FunctionParameterCount: 0
+        HasReturn: FALSE
+    ID3D12FunctionReflection:
+      D3D12_FUNCTION_DESC: Name: \01?ClosestHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z
+        Shader Version: ClosestHit 6.3
+        Creator: <nullptr>
+        Flags: 0
+        RequiredFeatureFlags: 0
+        ConstantBuffers: 0
+        BoundResources: 0
+        FunctionParameterCount: 0
+        HasReturn: FALSE
+    ID3D12FunctionReflection:
+      D3D12_FUNCTION_DESC: Name: \01?IntersectionMain@@YAXXZ
+        Shader Version: Intersection 6.3
+        Creator: <nullptr>
+        Flags: 0
+        RequiredFeatureFlags: 0
+        ConstantBuffers: 0
+        BoundResources: 0
+        FunctionParameterCount: 0
+        HasReturn: FALSE
+    ID3D12FunctionReflection:
+      D3D12_FUNCTION_DESC: Name: \01?MissMain@@YAXURayPayload@@@Z
+        Shader Version: Miss 6.3
+        Creator: <nullptr>
+        Flags: 0
+        RequiredFeatureFlags: 0
+        ConstantBuffers: 0
+        BoundResources: 0
+        FunctionParameterCount: 0
+        HasReturn: FALSE
+    ID3D12FunctionReflection:
+      D3D12_FUNCTION_DESC: Name: \01?PlainLibraryFunction@@YA?AV?$vector@M$02@@V1@@Z
+        Shader Version: Library 6.3
+        Creator: <nullptr>
+        Flags: 0
+        RequiredFeatureFlags: 0
+        ConstantBuffers: 0
+        BoundResources: 0
+        FunctionParameterCount: 0
+        HasReturn: FALSE
+    ID3D12FunctionReflection:
+      D3D12_FUNCTION_DESC: Name: \01?RayGenMain@@YAXXZ
+        Shader Version: RayGeneration 6.3
+        Creator: <nullptr>
+        Flags: 0
+        RequiredFeatureFlags: 0
+        ConstantBuffers: 0
+        BoundResources: 2
+        FunctionParameterCount: 0
+        HasReturn: FALSE
+      Bound Resources:
+        D3D12_SHADER_INPUT_BIND_DESC: Name: Scene
+          Type: D3D_SIT_RTACCELERATIONSTRUCTURE
+          uID: 0
+          BindCount: 1
+          BindPoint: 0
+          Space: 0
+          ReturnType: D3D_RETURN_TYPE_SINT
+          Dimension: D3D_SRV_DIMENSION_UNKNOWN
+          NumSamples (or stride): 4294967295
+          uFlags: 0
+        D3D12_SHADER_INPUT_BIND_DESC: Name: Output
+          Type: D3D_SIT_UAV_RWTYPED
+          uID: 0
+          BindCount: 1
+          BindPoint: 0
+          Space: 0
+          ReturnType: D3D_RETURN_TYPE_FLOAT
+          Dimension: D3D_SRV_DIMENSION_TEXTURE2D
+          NumSamples (or stride): 4294967295
+          uFlags: (D3D_SIF_TEXTURE_COMPONENT_0 | D3D_SIF_TEXTURE_COMPONENT_1)
+
+=== 2. dxa -dumprdat: what the container records ===
+
+Every entry carries ShaderKind, PayloadSizeInBytes and
+AttributeSizeInBytes. repro.hlsl declares a 28-byte payload, an
+8-byte attribute struct and a 12-byte callable parameter, and all
+three appear below. The data the issue asks for is therefore
+already in the container; what is missing is a way to read it.
+
+$ <repo>/build/Debug/bin/dxa.exe -dumprdat <triage>/data/issues/2952/out/repro-witness.dxil
+[exit] 0
+  DxilRuntimeData (size = 940 bytes):
+    StringBuffer (size = 428 bytes)
+    IndexTable (size = 12 bytes)
+    RawBytes (size = 0 bytes)
+    RecordTable (stride = 32 bytes) ResourceTable[2] = {
+      <0:RuntimeDataResourceInfo> = {
+        Class: SRV
+        Kind: RTAccelerationStructure
+        ID: 0
+        Space: 0
+        LowerBound: 0
+        UpperBound: 0
+        Name: "Scene"
+        Flags: 0 (None)
+      }
+      <1:RuntimeDataResourceInfo> = {
+        Class: UAV
+        Kind: Texture2D
+        ID: 0
+        Space: 0
+        LowerBound: 0
+        UpperBound: 0
+        Name: "Output"
+        Flags: 0 (None)
+      }
+    }
+    RecordTable (stride = 52 bytes) FunctionTable[7] = {
+      <0:RuntimeDataFunctionInfo2> = {
+        Name: "\01?RayGenMain@@YAXXZ"
+        UnmangledName: "RayGenMain"
+        Resources: <0:RecordArrayRef<RuntimeDataResourceInfo>[2]>  = {
+          [0]: <0:RuntimeDataResourceInfo> = {
+            Class: SRV
+            Kind: RTAccelerationStructure
+            ID: 0
+            Space: 0
+            LowerBound: 0
+            UpperBound: 0
+            Name: "Scene"
+            Flags: 0 (None)
+          }
+          [1]: <1:RuntimeDataResourceInfo> = {
+            Class: UAV
+            Kind: Texture2D
+            ID: 0
+            Space: 0
+            LowerBound: 0
+            UpperBound: 0
+            Name: "Output"
+            Flags: 0 (None)
+          }
+        }
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: RayGeneration
+        PayloadSizeInBytes: 0
+        AttributeSizeInBytes: 0
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (RayGeneration)
+        MinShaderTarget: 0x70063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <1:RuntimeDataFunctionInfo2> = {
+        Name: "\01?MissMain@@YAXURayPayload@@@Z"
+        UnmangledName: "MissMain"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: Miss
+        PayloadSizeInBytes: 28
+        AttributeSizeInBytes: 0
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (Miss)
+        MinShaderTarget: 0xb0063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <2:RuntimeDataFunctionInfo2> = {
+        Name: "\01?ClosestHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"
+        UnmangledName: "ClosestHitMain"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: ClosestHit
+        PayloadSizeInBytes: 28
+        AttributeSizeInBytes: 8
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (ClosestHit)
+        MinShaderTarget: 0xa0063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <3:RuntimeDataFunctionInfo2> = {
+        Name: "\01?AnyHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"
+        UnmangledName: "AnyHitMain"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: AnyHit
+        PayloadSizeInBytes: 28
+        AttributeSizeInBytes: 8
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (AnyHit)
+        MinShaderTarget: 0x90063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <4:RuntimeDataFunctionInfo2> = {
+        Name: "\01?IntersectionMain@@YAXXZ"
+        UnmangledName: "IntersectionMain"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: Intersection
+        PayloadSizeInBytes: 0
+        AttributeSizeInBytes: 0
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (Intersection)
+        MinShaderTarget: 0x80063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <5:RuntimeDataFunctionInfo2> = {
+        Name: "\01?CallableMain@@YAXUCallableParams@@@Z"
+        UnmangledName: "CallableMain"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: Callable
+        PayloadSizeInBytes: 12
+        AttributeSizeInBytes: 0
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (Callable)
+        MinShaderTarget: 0xc0063
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+      <6:RuntimeDataFunctionInfo2> = {
+        Name: "\01?PlainLibraryFunction@@YA?AV?$vector@M$02@@V1@@Z"
+        UnmangledName: "PlainLibraryFunction"
+        Resources: <RecordArrayRef<RuntimeDataResourceInfo>[0]> = {}
+        FunctionDependencies: <string[0]> = {}
+        ShaderKind: Library
+        PayloadSizeInBytes: 0
+        AttributeSizeInBytes: 0
+        FeatureInfo1: 0
+        FeatureInfo2: 0
+        ShaderStageFlag: (Pixel | Vertex | Geometry | Hull | Domain | Compute | Library | RayGeneration | Intersection | AnyHit | ClosestHit | Miss | Callable | Mesh | Amplification | Node)
+        MinShaderTarget: 0x60060
+        MinimumExpectedWaveLaneCount: 0
+        MaximumExpectedWaveLaneCount: 0
+        ShaderFlags: 0 (None)
+      }
+    }
+
+=== 3. what a release package gives an application ===
+
+hlsl::RDAT::DxilRuntimeData -- the reader dxa uses above, and the
+one refl2952.exe uses -- is declared in
+include/dxc/DxilContainer/DxilRuntimeReflection.h with its
+implementation in DxilRuntimeReflection.inl and the record layout
+in RDAT_LibraryTypes.inl. None of those is shipped. Listing of
+inc/ in the cached release packages:
+
+           v1.5.2003  inc/: d3d12shader.h, dxcapi.h
+           v1.5.2010  inc/: d3d12shader.h, dxcapi.h
+           v1.6.2104  inc/: d3d12shader.h, dxcapi.h
+           v1.6.2106  inc/: d3d12shader.h, dxcapi.h
+           v1.7.2207  inc/: d3d12shader.h, dxcapi.h
+           v1.7.2212  inc/: d3d12shader.h, dxcapi.h, dxcerrors.h, dxcisense.h
+         v1.7.2212.1  inc/: d3d12shader.h, dxcapi.h, dxcerrors.h, dxcisense.h
+           v1.8.2403  inc/: d3d12shader.h, dxcapi.h, dxcerrors.h, dxcisense.h
+         v1.8.2403.1  inc/: d3d12shader.h, dxcapi.h, dxcerrors.h, dxcisense.h
+         v1.8.2403.2  inc/: d3d12shader.h, dxcapi.h, dxcerrors.h, dxcisense.h
+           v1.8.2405  inc/: d3d12shader.h, dxcapi.h, dxcerrors.h, dxcisense.h
+           v1.8.2407  inc/: d3d12shader.h, dxcapi.h, dxcerrors.h, dxcisense.h
+           v1.8.2505  inc/: Support/ErrorCodes.h, d3d12shader.h, dxcapi.h, dxcerrors.h, dxcisense.h, hlsl/LICENSE.txt, hlsl/README.txt, hlsl/dx/linalg.h, hlsl/vk/khr/cooperative_matrix.h, hlsl/vk/khr/cooperative_matrix.impl, hlsl/vk/opcode_selector.h, hlsl/vk/spirv.h
+           v1.9.2602  inc/: Support/ErrorCodes.h, d3d12shader.h, dxcapi.h, dxcerrors.h, dxcisense.h, dxcpix.h, hlsl/LICENSE.txt, hlsl/README.txt, hlsl/dx/linalg.h, hlsl/enable_if.h, hlsl/vector_utils.h, hlsl/vk/khr/cooperative_matrix.h, hlsl/vk/khr/cooperative_matrix.impl, hlsl/vk/opcode_selector.h, hlsl/vk/spirv.h
+        v1.9.2602.24  inc/: Support/ErrorCodes.h, d3d12shader.h, dxcapi.h, dxcerrors.h, dxcisense.h, dxcpix.h, hlsl/LICENSE.txt, hlsl/README.txt, hlsl/dx/linalg.h, hlsl/enable_if.h, hlsl/vector_utils.h, hlsl/vk/khr/cooperative_matrix.h, hlsl/vk/khr/cooperative_matrix.impl, hlsl/vk/opcode_selector.h, hlsl/vk/spirv.h
+           v1.9.2607  inc/: Support/ErrorCodes.h, d3d12shader.h, dxcapi.h, dxcerrors.h, dxcisense.h, dxcpix.h, hlsl/LICENCE.txt, hlsl/README.txt, hlsl/vk/khr/cooperative_matrix.h, hlsl/vk/khr/cooperative_matrix.impl, hlsl/vk/opcode_selector.h, hlsl/vk/spirv.h
+
+  v1.4.1907's package is a bare dxc.exe/dxcompiler.dll pair with
+  no inc/ directory at all.
+

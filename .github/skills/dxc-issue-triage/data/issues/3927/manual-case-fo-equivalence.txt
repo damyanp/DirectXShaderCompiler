@@ -1,0 +1,26 @@
+#3927 -- is `-Fo test.spv` (as filed) equivalent to no `-Fo` (cmd.txt)?
+# compiler: main-debug
+# exe: <repo>\build\Debug\bin\dxc.exe
+
+--- as filed: binary out via -Fo, then parsed by this script ---
+$ <repo>\build\Debug\bin\dxc.exe -T ps_6_0 -spirv repro.hlsl -Fo fo-equivalence.spv
+[exit] 0
+[bound] 36
+[binary] Tex0 Binding 0
+[binary] Tex0 DescriptorSet 0
+[binary] SS0 Binding 1
+[binary] SS0 DescriptorSet 0
+
+--- cmd.txt: disassembly on stdout ---
+$ <repo>\build\Debug\bin\dxc.exe -T ps_6_0 -spirv repro.hlsl
+[exit] 0
+[bound] 36
+[stdout] SS0 Binding 1
+[stdout] SS0 DescriptorSet 0
+[stdout] Tex0 Binding 0
+[stdout] Tex0 DescriptorSet 0
+
+[bound match] True
+[decoration match] True
+[RESULT] equivalent -- dropping -Fo changes only where the module is written
+[cleanup] removed fo-equivalence.spv

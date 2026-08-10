@@ -1,0 +1,18 @@
+# manual case: which clause of match.json each control isolates.
+# match.json is all_of[ regex 'define void @main()', regex 'udiv i32',
+#                      regex 'urem i32', not_regex 'binaryWithTwoOuts' ]
+# so a control is only informative if it flips exactly one column.
+# Re-derive with: python make-manual-cases.py
+
+capture                                             define void @main\(\)     udiv i32                  urem i32                  binaryWithTwoOuts         
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+out-main-debug.txt                                  True                      True                      True                      False                     
+variant-control-parse-error-main-debug.txt          False                     False                     False                     False                     
+variant-control-no-divide-main-debug.txt            True                      False                     False                     False                     
+variant-control-token-visible-main-debug.txt        True                      True                      True                      True                      
+
+parse-error   emits no DXIL at all, so every positive anchor is absent while the absence clause is satisfied for free.
+              Under a bare not_regex this run would have scored as a textbook reproduction; the anchors are what stop it.
+no-divide     flips only the udiv/urem anchors: the predicate is not vacuously true of any clean compile.
+token-visible flips only binaryWithTwoOuts (via -Zi -Qembed_debug echoing the source into !dx.source.contents):
+              the absence clause is falsifiable, not merely unmet.

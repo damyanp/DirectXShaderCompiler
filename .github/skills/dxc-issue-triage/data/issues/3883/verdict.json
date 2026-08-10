@@ -1,0 +1,23 @@
+{
+  "batch": "batch-011",
+  "confidence": "high",
+  "created_at": "2021-07-16T00:16:49Z",
+  "expected_symptom": "dxc fails internally on the repro rather than diagnosing it: a trapped or thrown assert in a Debug build, an access violation or a cast-of-incompatible-type E_FAIL in a Release build. An ordinary diagnosed error would be the fix, not the symptom.",
+  "godbolt_url": "https://godbolt.org/z/6c9h3r4a3",
+  "history": "always-repro'd across all 20 stable releases v1.4.1907..v1.9.2607 and main; one defect, five observed presentations",
+  "labels": "bug,crash,incorrect-code",
+  "labels_add": "fxc-disagrees, diagnostic",
+  "labels_now": "bug,crash,incorrect-code",
+  "notes_path": "issues/3883/notes.md",
+  "number": 3883,
+  "repro_quality": "complete",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still reproduces on main (13730886e) and every stable release. An undefined cbuffer index passes TranslateCBGepLegacy's dyn_cast<Constant> and reaches getUniqueInteger(); Debug asserts, while Release builds access-violate or throw a cast failure. Across the matrix the one defect has five presentations: silent AV, messaged AV, 0x80AA001D, E_FAIL plus the build-agnostic cast marker, and the Debug assert. The self-initialisation is not required -- a plain uninitialised uint fails identically -- and FXC diagnoses both forms with X4000.",
+  "title": "DXC Compiler Crash",
+  "triaged_at": "2026-08-10T01:49:39+00:00",
+  "triaged_by": "GitHub Copilot CLI (claude-opus-4.6)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3883",
+  "reviewed_by": "claude-sonnet-5 (batch-011 independent draft review, applied selectively at collation)"
+}

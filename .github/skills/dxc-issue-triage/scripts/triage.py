@@ -252,18 +252,27 @@ INTERNAL_MARKERS = (
     r"PLEASE submit a bug report|(?:llvm::)?cast<[^>]*>\(\) argument")
 
 
-# Exit codes that mean dxc did not fail cleanly. Taken from dxc's own
-# top-level exception filter (tools/clang/tools/dxclib/dxc.cpp), which is the
-# authoritative list -- it is what turns these into the "access violation" /
-# "LLVM Assert" / "Terminal Error 0x..." messages.
+# Exit codes that mean dxc did not fail cleanly. These come from DXC's defined
+# internal HRESULTs and top-level exception handling, not from the broad shape
+# "nonzero": ordinary diagnosed errors also fail and must stay excluded.
 INTERNAL_STATUS = frozenset((
     0xC0000005,  # EXCEPTION_ACCESS_VIOLATION
     0xC00000FD,  # EXCEPTION_STACK_OVERFLOW
     0x80000003,  # breakpoint -- an assert firing with no debugger attached
+    0x80AA0018,  # DXC_E_GENERAL_INTERNAL_ERROR
+    0x80AA001B,  # DXC_E_LLVM_FATAL_ERROR
+    0x80AA001C,  # DXC_E_LLVM_UNREACHABLE
+    0x80AA001D,  # DXC_E_LLVM_CAST_ERROR
     0xE0000001,  # STATUS_LLVM_ASSERT
     0xE0000002,  # STATUS_LLVM_UNREACHABLE
     0xE0000003,  # STATUS_LLVM_FATAL
 ))
+
+# Deliberately excluded: DXC_E_OPTIMIZATION_FAILED (0x80AA0017) is emitted by
+# DXIL conversion cleanup checks, but the source does not establish that bad
+# input can never reach them; DXC_E_ABORT_COMPILATION_ERROR (0x80AA0019) has no
+# emitter in this tree. Classifying either code alone as a crash could invent a
+# bug, so they need a captured failure or stronger emitter proof first.
 
 # dxc returns E_FAIL for ORDINARY diagnosed errors on Windows -- a plain syntax
 # error, an invalid target profile and a DXIL validation failure all exit with
@@ -737,11 +746,16 @@ def cmd_compiler(a):
                   file=sys.stderr)
 
 
+ISSUE_FETCH_FIELDS = (
+    "number,title,url,createdAt,author,labels,body,comments,state"
+)
+
+
 def cmd_fetch(a):
     d = issue_dir(a.issue)
     os.makedirs(d, exist_ok=True)
     raw = gh("issue", "view", str(a.issue), "--repo", REPO, "--json",
-             "number,title,url,createdAt,labels,body,comments,state")
+             ISSUE_FETCH_FIELDS)
     with open(os.path.join(d, "issue.json"), "w", encoding="utf-8") as f:
         f.write(raw)
     j = json.loads(raw)
@@ -802,6 +816,69 @@ def retarget_cmd(line, shader):
     if not replaced:
         raise SystemExit(f"no source file to replace in: {line}")
     return " ".join(out)
+
+
+UNKNOWN_ARGUMENT_RE = re.compile(
+    r"(?i)(?:unknown|unrecognized)\s+(?:argument|option)\s*:?\s*"
+    r"(?:'([^']+)'|\"([^\"]+)\"|([/-][^\s,;]+))"
+)
+
+
+def unknown_argument_token(text):
+    """Return the flag named by an Unknown/Unrecognized argument diagnostic."""
+    hit = UNKNOWN_ARGUMENT_RE.search(text)
+    if not hit:
+        return None
+    return next((g for g in hit.groups() if g), None)
+
+
+def argument_spelling_variants(arg):
+    """Plausible legacy spellings for one rejected dxc option.
+
+    Old dxc releases sometimes use `_` where current releases use `-`, or
+    accept the `/` prefix but not the `-` prefix. Treating the first spelling
+    rejection as feature absence fabricated history for #3362.
+    """
+    if not arg or arg[0] not in "-/":
+        return []
+    if arg.startswith("--"):
+        prefix, body = "--", arg[2:]
+    else:
+        prefix, body = arg[0], arg[1:]
+    if not body:
+        return []
+
+    bodies = [body]
+    for candidate in (body.replace("-", "_"), body.replace("_", "-")):
+        if candidate not in bodies:
+            bodies.append(candidate)
+    prefixes = [prefix]
+    for candidate in ("-", "/"):
+        if candidate not in prefixes:
+            prefixes.append(candidate)
+
+    variants = []
+    # Try the same prefix with the separator transposed before changing prefix.
+    for candidate_body in bodies[1:]:
+        variants.append(prefix + candidate_body)
+    for candidate_prefix in prefixes[1:]:
+        for candidate_body in bodies:
+            variants.append(candidate_prefix + candidate_body)
+    return [v for i, v in enumerate(variants)
+            if v.lower() != arg.lower()
+            and v.lower() not in {x.lower() for x in variants[:i]}]
+
+
+def replace_argument_spelling(cmds, old, new):
+    """Replace one complete argv token in every command line."""
+    rewritten, changed = [], False
+    for line in cmds:
+        toks = split_cmd(line)
+        line_changed = any(tok.lower() == old.lower() for tok in toks)
+        out = [new if tok.lower() == old.lower() else tok for tok in toks]
+        changed = changed or line_changed
+        rewritten.append(subprocess.list2cmdline(out) if line_changed else line)
+    return rewritten if changed else None
 
 
 def classify(issue, text, rc, timed_out, match_file="match.json", explain=False):
@@ -987,6 +1064,27 @@ def stamp_reason(path, reason):
         f.writelines(lines)
 
 
+def _run_command_list(exe, d, cmds):
+    """Run one or more dxc command lines and return their combined capture."""
+    chunks, worst_rc, timed_out = [], 0, False
+    for line in cmds:
+        try:
+            p = subprocess.run([exe] + split_cmd(line), cwd=d,
+                               capture_output=True, text=True,
+                               encoding="utf-8", errors="replace",
+                               timeout=TIMEOUT)
+            rc, out, err, to = p.returncode, p.stdout, p.stderr, False
+        except subprocess.TimeoutExpired as e:
+            rc, out, err, to = None, e.stdout or "", e.stderr or "", True
+        timed_out = timed_out or to
+        if rc not in (0, None) and worst_rc == 0:
+            worst_rc = rc
+        chunks.append(f"$ dxc {line}\n[exe] {display_exe(exe)}\n"
+                      f"[exit] {'TIMEOUT' if to else rc}\n"
+                      f"--- stdout ---\n{out}\n--- stderr ---\n{err}\n")
+    return worst_rc, timed_out, "\n".join(chunks)
+
+
 def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
             shader=None, label=None, args=None, expect=None, force=False):
     """Run an issue's repro and classify the result.
@@ -1089,26 +1187,47 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
     if shader:
         cmds = [retarget_cmd(line, shader) for line in cmds]
 
-    chunks, worst_rc, timed_out = [], 0, False
-    for line in cmds:
-        try:
-            p = subprocess.run([exe] + split_cmd(line), cwd=d,
-                               capture_output=True, text=True,
-                               encoding="utf-8", errors="replace",
-                               timeout=TIMEOUT)
-            rc, out, err, to = p.returncode, p.stdout, p.stderr, False
-        except subprocess.TimeoutExpired as e:
-            rc, out, err, to = None, e.stdout or "", e.stderr or "", True
-        timed_out = timed_out or to
-        if rc not in (0, None) and worst_rc == 0:
-            worst_rc = rc
-        chunks.append(f"$ dxc {line}\n[exe] {display_exe(exe)}\n"
-                      f"[exit] {'TIMEOUT' if to else rc}\n"
-                      f"--- stdout ---\n{out}\n--- stderr ---\n{err}\n")
-
-    text = "\n".join(chunks)
+    requested_cmds = list(cmds)
+    worst_rc, timed_out, text = _run_command_list(exe, d, cmds)
     verdict, reason = classify(issue, text, worst_rc, timed_out, match_file,
                                explain=True)
+    spelling_reprobes = []
+    # "Unknown argument" is not yet evidence that the feature is absent. Older
+    # releases may accept an underscore or slash spelling of the same option.
+    # Retry before preserving an invalid-probe; otherwise a spelling change
+    # becomes a fake feature boundary. Keep the accepted command in the
+    # capture, and the requested command in a header so reindex can still
+    # detect a genuinely stale cmd.txt.
+    for _ in range(8):
+        rejected = unknown_argument_token(text) \
+            if verdict == "invalid-probe" else None
+        if not rejected:
+            break
+        accepted = None
+        for candidate in argument_spelling_variants(rejected):
+            candidate_cmds = replace_argument_spelling(cmds, rejected, candidate)
+            if not candidate_cmds:
+                continue
+            candidate_rc, candidate_to, candidate_text = _run_command_list(
+                exe, d, candidate_cmds)
+            candidate_rejected = unknown_argument_token(candidate_text)
+            if candidate_rejected \
+                    and candidate_rejected.lower() == candidate.lower():
+                continue
+            accepted = (candidate, candidate_cmds, candidate_rc, candidate_to,
+                        candidate_text)
+            break
+        if not accepted:
+            break
+        candidate, cmds, worst_rc, timed_out, text = accepted
+        spelling_reprobes.append((rejected, candidate))
+        verdict, reason = classify(issue, text, worst_rc, timed_out, match_file,
+                                   explain=True)
+    if spelling_reprobes:
+        print("  spelling re-probe accepted: " + ", ".join(
+            f"{old} -> {new}" for old, new in spelling_reprobes),
+            file=sys.stderr)
+
     # `classify`'s absence guard cannot demote this case (see
     # `_has_positive_clause`), so warn instead of silently recording a
     # reproduction that measured nothing. Narrow on purpose: only when the
@@ -1133,7 +1252,12 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(f"# compiler: {compiler}\n# exe: {display_exe(exe)}\n"
                 f"# ran: {now()}\n# cmd: {' ; '.join(cmds)}\n"
-                f"# exit: {worst_rc}\n# timed_out: {int(timed_out)}\n"
+                + (f"# requested-cmd: {' ; '.join(requested_cmds)}\n"
+                   f"# argument-spelling-reprobe: "
+                   + ", ".join(f"{old} -> {new}"
+                               for old, new in spelling_reprobes) + "\n"
+                   if spelling_reprobes else "")
+                + f"# exit: {worst_rc}\n# timed_out: {int(timed_out)}\n"
                 f"# match: {match_file}\n# verdict: {verdict}\n"
                 + (f"# invalid-probe-reason: {reason}\n" if reason else "")
                 + (f"# variant: {label} ({subject})\n" if label else "")
@@ -1279,6 +1403,133 @@ def warn_release_blind(issue, state):
               file=sys.stderr)
 
 
+def is_dxc_binary(path):
+    """Whether an executable path names the real dxc driver."""
+    if not path:
+        return False
+    return re.split(r"[\\/]", path.rstrip("\\/"))[-1].lower() in ("dxc", "dxc.exe")
+
+
+def refuse_harness_bisect(issue):
+    """Hard-error when an issue's ground truth is a harness, not dxc.
+
+    `bisect` swaps in each release's dxc executable. That is correct only when
+    the registered ground-truth executable is itself dxc; against an API or
+    pass harness it silently answers a different question and has repeatedly
+    produced the plausible inverse verdict.
+    """
+    compiler = ground_truth_compiler(issue)
+    if not compiler:
+        return
+    row = con().execute("SELECT exe_path FROM compilers WHERE id = ?",
+                        (compiler,)).fetchone()
+    path = row["exe_path"] if row else None
+    capture = os.path.join(issue_dir(issue), f"out-{compiler}.txt")
+    if not path and os.path.isfile(capture):
+        path = read_out(capture)[0].get("exe")
+    if path and not is_dxc_binary(path):
+        sys.exit(
+            f"refusing to bisect #{issue}: its registered ground-truth "
+            f"compiler {compiler!r} is a harness ({path}), not dxc. bisect "
+            f"would replace it with release dxc.exe files and answer a "
+            f"different question. Use an explicit release matrix that holds "
+            f"the harness fixed and varies the release DLL/executable (for "
+            f"example measure.py --history).")
+
+
+def release_exclusion_groups(rows):
+    """Group non-bisectable catalog rows by the reason they were excluded."""
+    groups = {"no usable dxc asset": [], "prerelease": [],
+              "other non-bisectable release": []}
+    for row in rows:
+        if not row["asset_name"]:
+            groups["no usable dxc asset"].append(row["tag"])
+        elif row["prerelease"]:
+            groups["prerelease"].append(row["tag"])
+        else:
+            groups["other non-bisectable release"].append(row["tag"])
+    return {reason: tags for reason, tags in groups.items() if tags}
+
+
+def release_exclusion_messages(rows):
+    """Make every excluded catalog row visible, grouped by policy reason."""
+    messages = []
+    for reason, tags in release_exclusion_groups(rows).items():
+        noun = "release" if len(tags) == 1 else "releases"
+        if reason == "prerelease":
+            prerelease_noun = "prerelease" if len(tags) == 1 else "prereleases"
+            messages.append(
+                f"skipped {len(tags)} {prerelease_noun} from search by policy: "
+                f"{', '.join(tags)}")
+        else:
+            messages.append(
+                f"skipped {len(tags)} {noun} ({reason}): {', '.join(tags)}")
+    return messages
+
+
+def issue_filing_names_release(issue_data, tag):
+    """Whether the issue title/body explicitly names a catalog release."""
+    text = "\n".join(str(issue_data.get(k) or "") for k in ("title", "body"))
+    aliases = [tag]
+    if tag.lower().startswith("v") and len(tag) > 1:
+        aliases.append(tag[1:])
+    return any(re.search(
+        rf"(?<![A-Za-z0-9_.-]){re.escape(alias)}(?![A-Za-z0-9_.-])",
+        text, re.IGNORECASE) for alias in aliases)
+
+
+def prerelease_opt_ins(issue):
+    """Read the issue's explicit, persistent prerelease-search exceptions."""
+    path = os.path.join(issue_dir(issue), "release-policy.json")
+    if not os.path.isfile(path):
+        return []
+    try:
+        with open(path, encoding="utf-8") as f:
+            policy = json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        sys.exit(f"cannot read {path}: {e}")
+    if not isinstance(policy, dict):
+        sys.exit(f"{path}: release policy must be a JSON object")
+    tags = policy.get("include_prereleases", [])
+    if (not isinstance(tags, list)
+            or any(not isinstance(tag, str) or not tag.strip()
+                   or tag != tag.strip() for tag in tags)):
+        sys.exit(f"{path}: include_prereleases must be a list of release tags")
+    if len(tags) != len(set(tags)):
+        sys.exit(f"{path}: include_prereleases contains duplicate tags")
+    return tags
+
+
+def split_release_search_rows(rows, issue_data, include_prereleases=()):
+    """Apply stable-release policy plus explicit, validated per-issue opt-ins."""
+    by_tag = {row["tag"]: row for row in rows}
+    for tag in include_prereleases:
+        row = by_tag.get(tag)
+        if not row:
+            sys.exit(f"release-policy.json names unknown release {tag!r}")
+        if not row["prerelease"]:
+            sys.exit(f"release-policy.json names {tag}, which is a stable "
+                     f"release and needs no prerelease opt-in")
+        if not row["asset_name"]:
+            sys.exit(f"release-policy.json names {tag}, but it has no usable "
+                     f"dxc asset")
+        if not issue_filing_names_release(issue_data, tag):
+            sys.exit(f"release-policy.json names {tag}, but the issue title "
+                     f"and body do not explicitly name that prerelease")
+
+    opted_in = set(include_prereleases)
+    included, excluded, included_prereleases = [], [], []
+    for row in rows:
+        explicit_opt_in = row["tag"] in opted_in
+        if row["bisectable"] or explicit_opt_in:
+            included.append(row)
+            if explicit_opt_in:
+                included_prereleases.append(row["tag"])
+        else:
+            excluded.append(row)
+    return included, excluded, included_prereleases
+
+
 def cmd_bisect(a):
     """Binary-search the release sequence for the behaviour transition.
 
@@ -1295,25 +1546,40 @@ def cmd_bisect(a):
       non-monotonic predicate returns an arbitrary boundary. Pass --linear for
       those; it costs one run per release but cannot be fooled.
     """
-    rels = [r["tag"] for r in con().execute(
-        "SELECT tag FROM releases WHERE bisectable = 1 ORDER BY build_date")]
+    refuse_harness_bisect(a.issue)
+    issue_path = os.path.join(issue_dir(a.issue), "issue.json")
+    try:
+        with open(issue_path, encoding="utf-8") as f:
+            issue_data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        issue_data = {}
+    all_release_rows = list(con().execute(
+        "SELECT tag, build_date, asset_name, prerelease, bisectable"
+        " FROM releases WHERE tag <> '' ORDER BY build_date"))
+    release_rows, excluded_rows, included_prereleases = split_release_search_rows(
+        all_release_rows, issue_data, prerelease_opt_ins(a.issue))
+    rels = [r["tag"] for r in release_rows]
     if not rels:
         sys.exit("no releases catalogued; run 'triage.py catalog'")
-    # Prereleases are excluded so the sequence stays linear, but excluding them
-    # silently means a history reported as reaching "v1.9.2607" quietly stops
-    # short of newer builds that exist. Name them once, up front, so the range
-    # in the write-up is the range that was actually probed. Raised on #8725.
-    excluded = [r["tag"] for r in con().execute(
-        "SELECT tag FROM releases WHERE bisectable = 0 AND tag <> ''"
-        " ORDER BY build_date")]
-    if excluded:
-        print(f"  (not in the sequence: {', '.join(excluded)} -- prereleases or "
-              f"releases with no usable dxc asset)")
+    if included_prereleases:
+        print("  included prerelease(s) explicitly opted in by "
+              "release-policy.json and named by the issue: "
+              + ", ".join(included_prereleases))
+    for message in release_exclusion_messages(excluded_rows):
+        print(f"  {message}")
+    probeable_prereleases = [r for r in excluded_rows
+                             if r["asset_name"] and r["prerelease"]]
+    excluded_note = (
+        f"{len(probeable_prereleases)} probeable prerelease(s) excluded "
+        f"from the search by policy"
+    ) if probeable_prereleases else ""
+    invalid_tags = set()
 
     def probe(tag):
         r = execute(a.issue, tag, a.match, repeat=a.repeat)
         v = r["verdict"]
         if v == "invalid-probe":
+            invalid_tags.add(tag)
             print(f"  {tag:<14} n/a (never compiled the repro -- profile, flag "
                   f"or feature unsupported)")
             return None
@@ -1332,7 +1598,13 @@ def cmd_bisect(a):
         for tag, v in usable[1:]:
             if v != runs[-1][1]:
                 runs.append((tag, v))
-        note = f" ({skipped} release(s) skipped as unprobeable)" if skipped else ""
+        note_bits = []
+        if skipped:
+            note_bits.append(
+                f"{skipped} release(s) in the search skipped as unprobeable")
+        if excluded_note:
+            note_bits.append(excluded_note)
+        note = f" ({'; '.join(note_bits)})" if note_bits else ""
         if len(runs) == 1:
             state = f"{'always' if runs[0][1] else 'never'}-repro'd"
             print(f"\nresult: {state} across {usable[0][0]}..{usable[-1][0]}{note}")
@@ -1359,7 +1631,15 @@ def cmd_bisect(a):
 
     if oldest == newest:
         state = "always-repro'd" if oldest else "never-repro'd-in-releases"
-        print(f"\nresult: {state} across {rels[0]}..{rels[-1]}")
+        note_bits = []
+        if invalid_tags:
+            note_bits.append(
+                f"{len(invalid_tags)} release(s) in the search skipped "
+                f"as unprobeable")
+        if excluded_note:
+            note_bits.append(excluded_note)
+        note = f" ({'; '.join(note_bits)})" if note_bits else ""
+        print(f"\nresult: {state} across {rels[0]}..{rels[-1]}{note}")
         warn_release_blind(a.issue, state)
         return
 
@@ -1368,12 +1648,29 @@ def cmd_bisect(a):
     while hi - lo > 1:
         mid = (lo + hi) // 2
         v = probe(rels[mid])
+        if v is None:
+            sys.exit(
+                f"{rels[mid]} is unprobeable inside the candidate boundary. "
+                f"Binary search cannot treat an unexercised release as either "
+                f"side of the transition; rerun with --linear and report the "
+                f"residual interval explicitly.")
         lo, hi = (mid, hi) if v == oldest else (lo, mid)
 
+    note_bits = []
+    if invalid_tags:
+        note_bits.append(
+            f"{len(invalid_tags)} release(s) in the search skipped as "
+            f"unprobeable")
+    if excluded_note:
+        note_bits.append(excluded_note)
+    note = f"; {'; '.join(note_bits)}" if note_bits else ""
+
     if oldest and not newest:
-        print(f"\nresult: fixed-in {rels[hi]} (last repro: {rels[lo]})")
+        print(f"\nresult: fixed-in {rels[hi]} "
+              f"(last repro: {rels[lo]}{note})")
     else:
-        print(f"\nresult: regressed-in {rels[hi]} (last good: {rels[lo]})")
+        print(f"\nresult: regressed-in {rels[hi]} "
+              f"(last good: {rels[lo]}{note})")
 
 
 # --------------------------------------------------------------------------
@@ -2132,9 +2429,10 @@ def cmd_reindex(a):
                 with open(cmd_path) as f:
                     current = " ; ".join(ln.strip() for ln in f
                                          if ln.strip() and not ln.startswith("#"))
-                if current and meta["cmd"] != current:
+                captured_request = meta.get("requested-cmd", meta["cmd"])
+                if current and captured_request != current:
                     stale.append(f"#{number} {meta.get('compiler', out)}: "
-                                 f"captured {meta['cmd']!r}, cmd.txt now "
+                                 f"captured {captured_request!r}, cmd.txt now "
                                  f"{current!r}")
             rc = None if meta["exit"] in ("None", "TIMEOUT") else int(meta["exit"])
             to = meta.get("timed_out") == "1"

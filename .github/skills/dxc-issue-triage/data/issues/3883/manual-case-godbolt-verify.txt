@@ -1,0 +1,40 @@
+# Compiler Explorer panes for #3883, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: fxc_10_0_19041
+# args:     /T ps_5_0 /E PSMain
+# exit:     1
+
+Microsoft (R) Direct3D Shader Compiler 10.1
+Copyright (C) 2013 Microsoft. All rights reserved.
+
+<source>(31,10-22): error X4000: variable 'index' used without having been completely initialized
+
+compilation failed; no code produced
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E PSMain
+# exit:     29  CRASH
+
+Internal Compiler error: cast<X>() argument of incompatible type!
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E PSMain
+# exit:     5  CRASH
+
+<source>:31:18: warning: variable 'index' is uninitialized when used within its own initialization [-Wuninitialized]
+    uint index = index; // Initializing a variable to itself is bad!
+         ~~~~~   ^~~~~
+error: cast<X>() argument of incompatible type!
+
+
+
+<Compilation failed>

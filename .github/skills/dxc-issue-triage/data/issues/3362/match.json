@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "SV_ClipDistance\\s+0\\s+w\\s+2\\s+CLIPDST" },
+    { "kind": "regex", "value": "SV_ClipDistance\\s+0\\s+(?!w\\s+2\\s+CLIPDST)\\S+\\s+\\d+\\s+CLIPDST" }
+  ],
+  "note": "The reported symptom is a WRONG SIGNATURE LAYOUT, not an error: the domain shader puts SV_ClipDistance in register 2 component w while the pixel shader that consumes it expects register 1 component x, so D3D12 rejects the PSO. cmd.txt compiles both stages from one source, so the combined output holds both DXIL signature tables, and the predicate fires when they DISAGREE about where SV_ClipDistance lives. Clause 1 is a positive anchor -- 'w 2' for clip is only ever produced by optimized packing of this struct, so it cannot be satisfied by a compile that failed or by a build that ignores the flag. Clause 2 is any clip row in a DXIL signature table (anchored on the CLIPDST SysValue column, which the second, PSV-runtime-info copy of the tables lacks) that is NOT at w 2. CONTROLS, both run through `run --shader` so they differ from the repro in exactly one way: control-pipeline.hlsl (VS+HS+DS+PS, one shared interstage struct plus a shared patch-constant struct with user semantics) is the NEGATIVE control and must NOT match -- every stage packs identically, patch-constant signature included. control-subset-ps.hlsl is the POSITIVE control and MUST match -- it is the reporter's own configuration, a DS emitting four elements feeding a PS that declares only three, so a predicate that could not fire would be indistinguishable from a bug that never reproduces."
+}

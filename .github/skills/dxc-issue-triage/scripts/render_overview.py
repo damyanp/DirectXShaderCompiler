@@ -152,11 +152,11 @@ def main():
 
     if stale:
         w(f"**{len(stale)} issues whose text no longer matches their "
-          "behaviour.** Every issue below **does** reproduce — the defect is "
-          "real and confirmed. What is wrong is the description: a reader "
-          "checking the issue against its own title or body would conclude "
-          "the opposite. Correcting the text is a cheap, immediate action on "
-          "an otherwise unactionable issue.")
+          "measured behaviour or artifacts.** `text_stale` is not itself a "
+          "reproduction verdict: some issues below still reproduce and some "
+          "do not. It means a reader following the current title, body, or "
+          "thread would be led away from the measured result. Correcting that "
+          "text is a cheap, immediate action.")
         w("")
         w("| # | What is stale |")
         w("| --- | --- |")

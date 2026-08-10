@@ -1,0 +1,80 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T01:36:17+00:00
+# cmd: -T cs_6_0 -E main -spirv repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: spirv (repro.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main -spirv repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 39
+; Schema: 0
+               OpCapability Shader
+               OpCapability Int64
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %gl_GlobalInvocationID
+               OpExecutionMode %main LocalSize 1 1 1
+               OpSource HLSL 600
+               OpName %type_RWStructuredBuffer_v4uint "type.RWStructuredBuffer.v4uint"
+               OpName %Out "Out"
+               OpName %main "main"
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %Out DescriptorSet 0
+               OpDecorate %Out Binding 0
+               OpDecorate %_runtimearr_v4uint ArrayStride 16
+               OpMemberDecorate %type_RWStructuredBuffer_v4uint 0 Offset 0
+               OpDecorate %type_RWStructuredBuffer_v4uint BufferBlock
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_1 = OpConstant %int 1
+      %ulong = OpTypeInt 64 0
+   %ulong_32 = OpConstant %ulong 32
+   %ulong_63 = OpConstant %ulong 63
+       %uint = OpTypeInt 32 0
+     %v4uint = OpTypeVector %uint 4
+%_runtimearr_v4uint = OpTypeRuntimeArray %v4uint
+%type_RWStructuredBuffer_v4uint = OpTypeStruct %_runtimearr_v4uint
+%_ptr_Uniform_type_RWStructuredBuffer_v4uint = OpTypePointer Uniform %type_RWStructuredBuffer_v4uint
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+       %void = OpTypeVoid
+         %18 = OpTypeFunction %void
+%_ptr_Uniform_v4uint = OpTypePointer Uniform %v4uint
+%_ptr_Uniform_uint = OpTypePointer Uniform %uint
+        %Out = OpVariable %_ptr_Uniform_type_RWStructuredBuffer_v4uint Uniform
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+       %main = OpFunction %void None %18
+         %21 = OpLabel
+         %22 = OpLoad %v3uint %gl_GlobalInvocationID
+         %23 = OpCompositeExtract %uint %22 0
+         %24 = OpAccessChain %_ptr_Uniform_v4uint %Out %int_0 %23
+         %25 = OpAccessChain %_ptr_Uniform_uint %Out %int_0 %23 %int_0
+         %26 = OpLoad %uint %25
+         %27 = OpAccessChain %_ptr_Uniform_uint %Out %int_0 %23 %int_1
+         %28 = OpLoad %uint %27
+         %29 = OpUConvert %ulong %26
+         %30 = OpUConvert %ulong %28
+         %31 = OpIMul %ulong %29 %30
+         %32 = OpBitwiseAnd %ulong %ulong_32 %ulong_63
+         %33 = OpShiftRightLogical %ulong %31 %32
+         %34 = OpUConvert %uint %33
+         %35 = OpUConvert %uint %31
+         %36 = OpUDiv %uint %26 %28
+         %37 = OpUMod %uint %26 %28
+         %38 = OpCompositeConstruct %v4uint %34 %35 %36 %37
+               OpStore %24 %38
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

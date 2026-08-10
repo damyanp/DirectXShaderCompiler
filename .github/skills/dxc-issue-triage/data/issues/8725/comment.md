@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725).
 
-Reproduces on `main` (`1.9.0.5433 (triage, ab5400907)`), exactly as reported, and on every
+Reproduces on `main` (`1.9.0.5433`, `13730886e`), exactly as reported, and on every
 release that can compile the shader at all. Compiler Explorer, annotated:
 <https://godbolt.org/z/Eo8YbKs5n>
 

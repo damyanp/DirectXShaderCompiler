@@ -1,0 +1,7 @@
+# The command line exactly as filed in issue #3927 (body, 2021-09-02), with the reporter's
+# file name. Kept for the record; cmd.txt is what was actually run and says why it differs.
+#
+#   dxc -T ps_6_0 -spirv test.hlsl -Fo test.spv
+#
+# followed by, in the reporter's words, `spirv-dis test.spv`.
+-T ps_6_0 -spirv test.hlsl -Fo test.spv

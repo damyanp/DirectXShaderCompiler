@@ -1,0 +1,1 @@
+dxc_1_6_2112:-T ds_6_0 -E DSMain -pack-optimized,dxc_trunk:-T ps_6_0 -E PSMain -pack-optimized,dxc_trunk:-T ps_6_0 -E PSMain

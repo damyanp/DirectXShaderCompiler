@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T01:28:36+00:00
+# cmd: -T cs_6_0 -E main control-parse-error.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-parse-error (control-parse-error.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main control-parse-error.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-parse-error.hlsl:9:24: error: expected ';' at end of declaration
+  uint a = Out[tid.x].x
+                       ^
+                       ;
+
+

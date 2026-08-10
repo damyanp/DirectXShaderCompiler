@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2923](https://github.com/microsoft/DirectXShaderCompiler/issues/2923).
 
-@damyanp — yes, **this still misbehaves on `main`** (`1.9.0.5433`, `ab5400907`).
+@damyanp — yes, **this still misbehaves on `main`** (`1.9.0.5433`, `13730886e`).
 
 No modified unit test is needed: `repro.hlsl` is
 `PixStructAnnotation_SequentialFloatN`'s shader with the edit the issue asks

@@ -1,16 +1,16 @@
 # DXC issue triage — batch 005
 
-**Ground truth:** clean `main` **Debug** build, commit `ab5400907`
-(`dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)`),
-verified live from this session by running `dxc --version` and cross-checking it against
-`triaged_with_commit` in all five `verdict.json` files and against the `compilers` table.
+**Ground truth:** clean `main` **Debug** build, source-identical to upstream
+`13730886e`. The binary self-reports
+`dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)`;
+that fork-local SHA is captured evidence, not the public citation.
 **History:** 20 official release binaries, v1.4.1907 → v1.9.2607.
 **FXC comparisons:** real `fxc.exe` from Windows SDK 10.0.26100.
 **Nothing was posted, edited, labelled or closed. No DXC source was modified**
 (`git diff upstream/main..HEAD -- . ':(exclude).github/skills/**'` is empty).
 
 > **The compiler changed between batches.** Batches 001–004 measured `eff900d5`; this batch
-> measured `ab5400907`, a build made for it. Verdicts are not directly comparable across that
+> measured the build represented publicly by `13730886e`. Verdicts are not directly comparable across that
 > boundary, and any claim below about an earlier batch's issue is a claim about `eff900d5`
 > unless it says otherwise.
 
@@ -602,7 +602,7 @@ Source of each is `issues/<nnnn>/comment.md` — edit there, then re-run
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2530](https://github.com/microsoft/DirectXShaderCompiler/issues/2530).
 
-Both cases still reproduce on `main` (1.9.0.5433, `ab5400907`). Case 1 fails on
+Both cases still reproduce on `main` (1.9.0.5433, `13730886e`). Case 1 fails on
 all 20 releases from v1.4.1907 through v1.9.2607, and case 2 was checked at both
 endpoints and fails there too — v1.4.1907 (2019-07) is the oldest release
 shipping a usable `dxc`, so that is as far back as it is possible to check. FXC
@@ -693,7 +693,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3055](https://github.com/microsoft/DirectXShaderCompiler/issues/3055).
 
-Still reproduces on `main` (1.9.0.5433, `ab5400907`, Debug), and on **all 20 release binaries
+Still reproduces on `main` (1.9.0.5433, `13730886e`, Debug), and on **all 20 release binaries
 from v1.4.1907 (2019-07) through v1.9.2607** — a full linear scan, not just the endpoints. The
 v1.4.1907 output is byte-identical to today's, caret art included.
 
@@ -768,7 +768,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3259](https://github.com/microsoft/DirectXShaderCompiler/issues/3259).
 
-**Still reproduces** on `main` (`1.9.0.5433 (triage, ab5400907)`), Debug build, on the shader
+**Still reproduces** on `main` (`1.9.0.5433`, `13730886e`), Debug build, on the shader
 exactly as filed:
 
 ```
@@ -850,7 +850,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725).
 
-Reproduces on `main` (`1.9.0.5433 (triage, ab5400907)`), exactly as reported, and on every
+Reproduces on `main` (`1.9.0.5433`, `13730886e`), exactly as reported, and on every
 release that can compile the shader at all. Compiler Explorer, annotated:
 <https://godbolt.org/z/Eo8YbKs5n>
 
@@ -1071,7 +1071,7 @@ flag anything that looks wrong.</sub>
   chosen to test the `invalid-probe` classifier against diagnostic-shaped and feature-gated
   symptoms, which is the opposite of a random sample. Four of five reproducing tells you about
   the selection, not about the backlog.
-- **Ground truth moved between batch 004 and batch 005** (`eff900d5` → `ab5400907`). No verdict
+- **Ground truth moved between batch 004 and batch 005** (`eff900d5` → `13730886e`). No verdict
   in this report is directly comparable to one in batches 001–004.
 - **#8732's reported defect was never measured, and cannot be from `main`.** Everything in its
   draft is either about `main`'s behaviour or about what is absent from `main`. The PR #8517

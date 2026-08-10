@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2528](https://github.com/microsoft/DirectXShaderCompiler/issues/2528).
 
-Still reproduces on `main` (`1.9.0.5433`, `ab5400907`), and on all 20 releases from
+Still reproduces on `main` (`1.9.0.5433`, `13730886e`), and on all 20 releases from
 v1.4.1907 (2019-07) to v1.9.2607 — the whole checkable range, which starts before this was
 filed. The repro in the body works as written.
 

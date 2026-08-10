@@ -1,0 +1,21 @@
+Issue 3927: an unused texture/sampler pair still consumes a descriptor binding.
+
+Every path through main() ends in OpKill, so the value sampled from the first texture cannot
+affect any output -- yet both DXC panes still emit a variable for that texture and its
+sampler and give each one a DescriptorSet and a Binding. The decoration block near the top of
+each pane is the place to look: of the four resources the shader declares, only that first
+pair is decorated there, at bindings 0 and 1.
+
+The contrast is the point. The second pair is used only on the unreachable return statement,
+and it is eliminated completely -- it has no variable and no decoration anywhere in the
+module. Dead resource elimination is running and working; it stops short here because the
+surviving sample feeds a branch condition, and nothing folds a branch whose two targets both
+end in OpKill. Those two OpKill instructions are the last two blocks of the function.
+
+One caution when reading a pane: Compiler Explorer builds with source embedding on, so the
+whole shader -- and this banner -- is quoted back inside the OpSource string at the top of
+each pane. Read the decoration block and the variable declarations rather than searching the
+pane text for a resource name, which will hit that quoted copy.
+
+Both panes agree, and so does every DXC release from v1.5.2010, the first with a SPIR-V
+backend, through v1.9.2607.

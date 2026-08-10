@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2673](https://github.com/microsoft/DirectXShaderCompiler/issues/2673).
 
-Still reproduces on `main` (1.9.0.5433, `ab5400907`), and on all 20 releases tested, from
+Still reproduces on `main` (1.9.0.5433, `13730886e`), and on all 20 releases tested, from
 v1.4.1907 (2019-07) through v1.9.2607. v1.4.1907 predates this report, so the defines have
 been duplicated for as long as it is possible to check.
 

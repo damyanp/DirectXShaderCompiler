@@ -1,0 +1,10 @@
+# Build output. `bin\refl2952.exe` is reproducible from `refl2952.cpp` by
+# running `build-refl2952.cmd`, and a committed binary would be both large and
+# unverifiable -- .obj and .exe also embed absolute paths, which cannot be
+# redacted. `run-refl2952.cmd` rebuilds it on demand, so a fresh clone needs no
+# extra step.
+bin/
+bin-build.log
+# Containers emitted by measure.py for the RDAT half of the release matrix.
+# Re-created by `python measure.py --history`.
+out/

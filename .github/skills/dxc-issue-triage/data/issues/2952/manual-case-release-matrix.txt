@@ -1,0 +1,376 @@
+#2952 release matrix -- ray payload size / shader kind through the
+reflection API
+
+Produced by `python measure.py --history`. NOT by `triage.py bisect`:
+bisect resolves a release tag to that release's dxc.exe, which never
+calls ID3D12LibraryReflection, so it would score every release
+no-repro and report a confident "never repro'd in releases" -- the
+inverse of the truth. Each row here instead drives THAT RELEASE's own
+reflection implementation:
+
+    set DXC_REFLECT_DLL=<release>/dxcompiler.dll
+    refl2952.exe -T lib_6_3 <shader>
+
+refl2952.exe is built from refl2952.cpp in this directory. It is inert
+plumbing: it calls IDxcCompiler::Compile and then walks
+IDxcContainerReflection -> ID3D12LibraryReflection ->
+ID3D12FunctionReflection, all of which are implemented inside
+dxcompiler.dll, so the code under test is the release's.
+
+COLUMNS
+  fns/pay  payload-carrying entries reported by the container
+  api-kind can D3D12_FUNCTION_DESC.Version be decoded to the entry's
+           shader kind, agreeing with the container?
+  api-pay  does any numeric field of D3D12_FUNCTION_DESC hold the
+           payload size?
+  rdat-pay did this release record PayloadSizeInBytes in RDAT at all?
+
+SHADERS
+  repro  one entry of every DXR 1.0 shader kind; 28-byte payload,
+         8-byte attributes, 12-byte callable parameter
+  nonrt  a library with no raytracing entries -- the per-release
+         feature-presence control
+
+--- shader: repro ---
+
+           release pay-entries   api-kind      api-pay  rdat-pay  verdict
+------------------ ----------- ---------- ------------ ---------  -------
+         v1.4.1907           4  available  unavailable   present  repro
+         v1.5.2003           4  available  unavailable   present  repro
+         v1.5.2010           4  available  unavailable   present  repro
+         v1.6.2104           4  available  unavailable   present  repro
+         v1.6.2106           4  available  unavailable   present  repro
+         v1.6.2112           4  available  unavailable   present  repro
+         v1.7.2207           4  available  unavailable   present  repro
+         v1.7.2212           4  available  unavailable   present  repro
+       v1.7.2212.1           4  available  unavailable   present  repro
+         v1.7.2308           4  available  unavailable   present  repro
+         v1.8.2403           4  available  unavailable   present  repro
+       v1.8.2403.1           4  available  unavailable   present  repro
+       v1.8.2403.2           4  available  unavailable   present  repro
+         v1.8.2405           4  available  unavailable   present  repro
+         v1.8.2407           4  available  unavailable   present  repro
+         v1.8.2502           4  available  unavailable   present  repro
+         v1.8.2505           4  available  unavailable   present  repro
+       v1.8.2505.1           4  available  unavailable   present  repro
+         v1.9.2602           4  available  unavailable   present  repro
+      v1.9.2602.24           4  available  unavailable   present  repro
+         v1.9.2607           4  available  unavailable   present  repro
+        main-debug           4  available  unavailable   present  repro
+
+--- shader: nonrt ---
+
+           release pay-entries   api-kind      api-pay  rdat-pay  verdict
+------------------ ----------- ---------- ------------ ---------  -------
+         v1.4.1907           0  available          n/a       n/a  no-payload-entries
+         v1.5.2003           0  available          n/a       n/a  no-payload-entries
+         v1.5.2010           0  available          n/a       n/a  no-payload-entries
+         v1.6.2104           0  available          n/a       n/a  no-payload-entries
+         v1.6.2106           0  available          n/a       n/a  no-payload-entries
+         v1.6.2112           0  available          n/a       n/a  no-payload-entries
+         v1.7.2207           0  available          n/a       n/a  no-payload-entries
+         v1.7.2212           0  available          n/a       n/a  no-payload-entries
+       v1.7.2212.1           0  available          n/a       n/a  no-payload-entries
+         v1.7.2308           0  available          n/a       n/a  no-payload-entries
+         v1.8.2403           0  available          n/a       n/a  no-payload-entries
+       v1.8.2403.1           0  available          n/a       n/a  no-payload-entries
+       v1.8.2403.2           0  available          n/a       n/a  no-payload-entries
+         v1.8.2405           0  available          n/a       n/a  no-payload-entries
+         v1.8.2407           0  available          n/a       n/a  no-payload-entries
+         v1.8.2502           0  available          n/a       n/a  no-payload-entries
+         v1.8.2505           0  available          n/a       n/a  no-payload-entries
+       v1.8.2505.1           0  available          n/a       n/a  no-payload-entries
+         v1.9.2602           0  available          n/a       n/a  no-payload-entries
+      v1.9.2602.24           0  available          n/a       n/a  no-payload-entries
+         v1.9.2607           0  available          n/a       n/a  no-payload-entries
+        main-debug           0  available          n/a       n/a  no-payload-entries
+
+--- independent second witness: `dxa -dumprdat` ---
+
+Each release's OWN dxc.exe compiles repro.hlsl; the ground-truth
+dxa reads the container it produced. This shares no code with the
+harness's walk, so it checks that the payload sizes above are a
+property of the container rather than of how the harness reads it.
+No release package ships dxa.exe, so the reader is necessarily the
+local build in every row.
+
+           release  compile      payload sizes in RDAT  shader kinds
+------------------ -------- --------------------------  ------------
+         v1.4.1907        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.5.2003        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.5.2010        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.6.2104        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.6.2106        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.6.2112        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.7.2207        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.7.2212        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+       v1.7.2212.1        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.7.2308        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.8.2403        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+       v1.8.2403.1        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+       v1.8.2403.2        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.8.2405        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.8.2407        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.8.2502        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.8.2505        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+       v1.8.2505.1        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.9.2602        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+      v1.9.2602.24        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+         v1.9.2607        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+        main-debug        0                [0, 12, 28]  AnyHit,Callable,ClosestHit,Intersection,Library,Miss,RayGeneration
+
+
+VERBATIM. The oldest probeable release, the newest release, and
+ground truth, in full. The command lines are reconstructed with
+subprocess.list2cmdline from the argv that actually ran, with paths
+collapsed to <cache>/<triage>/<repo> placeholders so the file is
+portable; they are not transcriptions.
+
+--- v1.4.1907 ---
+$ set DXC_REFLECT_DLL=<cache>/compilers/releases/v1.4.1907/dxcompiler.dll
+$ <triage>/data/issues/2952/bin/refl2952.exe -T lib_6_3 repro.hlsl
+[exit] 0
+  # refl2952: #2952 ray payload size / shader kind through the reflection API
+  dll: <cache>/compilers/releases/v1.4.1907/dxcompiler.dll
+  source: repro.hlsl
+  IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+  compiler diagnostics:
+  warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+  
+  
+  
+  IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+  
+  --- RDAT part: what the container records ---
+  IDxcContainerReflection::FindFirstPartKind(RDAT) -> 0x00000000 (S_OK)
+    RDAT part size=884 bytes, FunctionTable[7]
+    [0] RayGenMain         RuntimeDataFunctionInfo.ShaderKind=7 (RayGeneration) .PayloadSizeInBytes=0 .AttributeSizeInBytes=0
+    [1] MissMain           RuntimeDataFunctionInfo.ShaderKind=11 (Miss) .PayloadSizeInBytes=28 .AttributeSizeInBytes=0
+    [2] ClosestHitMain     RuntimeDataFunctionInfo.ShaderKind=10 (ClosestHit) .PayloadSizeInBytes=28 .AttributeSizeInBytes=8
+    [3] AnyHitMain         RuntimeDataFunctionInfo.ShaderKind=9 (AnyHit) .PayloadSizeInBytes=28 .AttributeSizeInBytes=8
+    [4] IntersectionMain   RuntimeDataFunctionInfo.ShaderKind=8 (Intersection) .PayloadSizeInBytes=0 .AttributeSizeInBytes=0
+    [5] CallableMain       RuntimeDataFunctionInfo.ShaderKind=12 (Callable) .PayloadSizeInBytes=12 .AttributeSizeInBytes=0
+    [6] PlainLibraryFunction RuntimeDataFunctionInfo.ShaderKind=6 (Library) .PayloadSizeInBytes=0 .AttributeSizeInBytes=0
+  IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+  IDxcContainerReflection::GetPartReflection(ID3D12LibraryReflection) -> 0x00000000 (S_OK)
+  ID3D12LibraryReflection::GetDesc -> 0x00000000 (S_OK)
+    D3D12_LIBRARY_DESC.FunctionCount=7
+  
+  --- D3D12 reflection API: what an application can see ---
+  [0] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?AnyHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x00090063 -> D3D12_SHVER_GET_TYPE=9 (AnyHit), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=589923 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=9 (AnyHit) PayloadSizeInBytes=28 AttributeSizeInBytes=8
+      KIND: api=AnyHit rdat=AnyHit -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 28
+  [1] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?CallableMain@@YAXUCallableParams@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x000C0063 -> D3D12_SHVER_GET_TYPE=12 (Callable), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=786531 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=12 (Callable) PayloadSizeInBytes=12 AttributeSizeInBytes=0
+      KIND: api=Callable rdat=Callable -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 12
+  [2] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?ClosestHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x000A0063 -> D3D12_SHVER_GET_TYPE=10 (ClosestHit), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=655459 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=10 (ClosestHit) PayloadSizeInBytes=28 AttributeSizeInBytes=8
+      KIND: api=ClosestHit rdat=ClosestHit -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 28
+  [3] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?IntersectionMain@@YAXXZ"
+      D3D12_FUNCTION_DESC.Version=0x00080063 -> D3D12_SHVER_GET_TYPE=8 (Intersection), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=524387 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=8 (Intersection) PayloadSizeInBytes=0 AttributeSizeInBytes=0
+      KIND: api=Intersection rdat=Intersection -> agree
+      PAYLOAD: rdat says this entry carries no payload; nothing to search for
+  [4] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?MissMain@@YAXURayPayload@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x000B0063 -> D3D12_SHVER_GET_TYPE=11 (Miss), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=720995 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=11 (Miss) PayloadSizeInBytes=28 AttributeSizeInBytes=0
+      KIND: api=Miss rdat=Miss -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 28
+  [5] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?PlainLibraryFunction@@YA?AV?$vector@M$02@@V1@@Z"
+      D3D12_FUNCTION_DESC.Version=0x00060063 -> D3D12_SHVER_GET_TYPE=6 (Library), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=393315 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=6 (Library) PayloadSizeInBytes=0 AttributeSizeInBytes=0
+      KIND: api=Library rdat=Library -> agree
+      PAYLOAD: rdat says this entry carries no payload; nothing to search for
+  [6] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?RayGenMain@@YAXXZ"
+      D3D12_FUNCTION_DESC.Version=0x00070063 -> D3D12_SHVER_GET_TYPE=7 (RayGeneration), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=458851 Flags=0 ConstantBuffers=0 BoundResources=2 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=7 (RayGeneration) PayloadSizeInBytes=0 AttributeSizeInBytes=0
+      KIND: api=RayGeneration rdat=RayGeneration -> agree
+      PAYLOAD: rdat says this entry carries no payload; nothing to search for
+  
+  SELFCHECK: library-function-count=7 rdat-function-count=7 names-matched=7
+  SELFCHECK: field-search-selftest=pass
+  SUMMARY: payload-carrying-entries=4 api-payload-found=0 kind-checked=7 kind-agrees=7
+  RESULT: API-SHADER-KIND=available API-PAYLOAD-SIZE=unavailable RDAT-SHADER-KIND=present RDAT-PAYLOAD-SIZE=present
+
+--- v1.9.2607 ---
+$ set DXC_REFLECT_DLL=<cache>/compilers/releases/v1.9.2607/bin/x64/dxcompiler.dll
+$ <triage>/data/issues/2952/bin/refl2952.exe -T lib_6_3 repro.hlsl
+[exit] 0
+  # refl2952: #2952 ray payload size / shader kind through the reflection API
+  dll: <cache>/compilers/releases/v1.9.2607/bin/x64/dxcompiler.dll
+  source: repro.hlsl
+  IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+  IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+  
+  --- RDAT part: what the container records ---
+  IDxcContainerReflection::FindFirstPartKind(RDAT) -> 0x00000000 (S_OK)
+    RDAT part size=940 bytes, FunctionTable[7]
+    [0] RayGenMain         RuntimeDataFunctionInfo.ShaderKind=7 (RayGeneration) .PayloadSizeInBytes=0 .AttributeSizeInBytes=0
+    [1] MissMain           RuntimeDataFunctionInfo.ShaderKind=11 (Miss) .PayloadSizeInBytes=28 .AttributeSizeInBytes=0
+    [2] ClosestHitMain     RuntimeDataFunctionInfo.ShaderKind=10 (ClosestHit) .PayloadSizeInBytes=28 .AttributeSizeInBytes=8
+    [3] AnyHitMain         RuntimeDataFunctionInfo.ShaderKind=9 (AnyHit) .PayloadSizeInBytes=28 .AttributeSizeInBytes=8
+    [4] IntersectionMain   RuntimeDataFunctionInfo.ShaderKind=8 (Intersection) .PayloadSizeInBytes=0 .AttributeSizeInBytes=0
+    [5] CallableMain       RuntimeDataFunctionInfo.ShaderKind=12 (Callable) .PayloadSizeInBytes=12 .AttributeSizeInBytes=0
+    [6] PlainLibraryFunction RuntimeDataFunctionInfo.ShaderKind=6 (Library) .PayloadSizeInBytes=0 .AttributeSizeInBytes=0
+  IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+  IDxcContainerReflection::GetPartReflection(ID3D12LibraryReflection) -> 0x00000000 (S_OK)
+  ID3D12LibraryReflection::GetDesc -> 0x00000000 (S_OK)
+    D3D12_LIBRARY_DESC.FunctionCount=7
+  
+  --- D3D12 reflection API: what an application can see ---
+  [0] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?AnyHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x00090063 -> D3D12_SHVER_GET_TYPE=9 (AnyHit), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=589923 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=9 (AnyHit) PayloadSizeInBytes=28 AttributeSizeInBytes=8
+      KIND: api=AnyHit rdat=AnyHit -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 28
+  [1] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?CallableMain@@YAXUCallableParams@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x000C0063 -> D3D12_SHVER_GET_TYPE=12 (Callable), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=786531 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=12 (Callable) PayloadSizeInBytes=12 AttributeSizeInBytes=0
+      KIND: api=Callable rdat=Callable -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 12
+  [2] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?ClosestHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x000A0063 -> D3D12_SHVER_GET_TYPE=10 (ClosestHit), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=655459 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=10 (ClosestHit) PayloadSizeInBytes=28 AttributeSizeInBytes=8
+      KIND: api=ClosestHit rdat=ClosestHit -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 28
+  [3] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?IntersectionMain@@YAXXZ"
+      D3D12_FUNCTION_DESC.Version=0x00080063 -> D3D12_SHVER_GET_TYPE=8 (Intersection), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=524387 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=8 (Intersection) PayloadSizeInBytes=0 AttributeSizeInBytes=0
+      KIND: api=Intersection rdat=Intersection -> agree
+      PAYLOAD: rdat says this entry carries no payload; nothing to search for
+  [4] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?MissMain@@YAXURayPayload@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x000B0063 -> D3D12_SHVER_GET_TYPE=11 (Miss), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=720995 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=11 (Miss) PayloadSizeInBytes=28 AttributeSizeInBytes=0
+      KIND: api=Miss rdat=Miss -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 28
+  [5] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?PlainLibraryFunction@@YA?AV?$vector@M$02@@V1@@Z"
+      D3D12_FUNCTION_DESC.Version=0x00060063 -> D3D12_SHVER_GET_TYPE=6 (Library), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=393315 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=6 (Library) PayloadSizeInBytes=0 AttributeSizeInBytes=0
+      KIND: api=Library rdat=Library -> agree
+      PAYLOAD: rdat says this entry carries no payload; nothing to search for
+  [6] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?RayGenMain@@YAXXZ"
+      D3D12_FUNCTION_DESC.Version=0x00070063 -> D3D12_SHVER_GET_TYPE=7 (RayGeneration), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=458851 Flags=0 ConstantBuffers=0 BoundResources=2 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=7 (RayGeneration) PayloadSizeInBytes=0 AttributeSizeInBytes=0
+      KIND: api=RayGeneration rdat=RayGeneration -> agree
+      PAYLOAD: rdat says this entry carries no payload; nothing to search for
+  
+  SELFCHECK: library-function-count=7 rdat-function-count=7 names-matched=7
+  SELFCHECK: field-search-selftest=pass
+  SUMMARY: payload-carrying-entries=4 api-payload-found=0 kind-checked=7 kind-agrees=7
+  RESULT: API-SHADER-KIND=available API-PAYLOAD-SIZE=unavailable RDAT-SHADER-KIND=present RDAT-PAYLOAD-SIZE=present
+
+--- main-debug ---
+$ set DXC_REFLECT_DLL=<repo>/build/Debug/bin/dxcompiler.dll
+$ <triage>/data/issues/2952/bin/refl2952.exe -T lib_6_3 repro.hlsl
+[exit] 0
+  # refl2952: #2952 ray payload size / shader kind through the reflection API
+  dll: <repo>/build/Debug/bin/dxcompiler.dll
+  source: repro.hlsl
+  IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+  IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+  
+  --- RDAT part: what the container records ---
+  IDxcContainerReflection::FindFirstPartKind(RDAT) -> 0x00000000 (S_OK)
+    RDAT part size=940 bytes, FunctionTable[7]
+    [0] RayGenMain         RuntimeDataFunctionInfo.ShaderKind=7 (RayGeneration) .PayloadSizeInBytes=0 .AttributeSizeInBytes=0
+    [1] MissMain           RuntimeDataFunctionInfo.ShaderKind=11 (Miss) .PayloadSizeInBytes=28 .AttributeSizeInBytes=0
+    [2] ClosestHitMain     RuntimeDataFunctionInfo.ShaderKind=10 (ClosestHit) .PayloadSizeInBytes=28 .AttributeSizeInBytes=8
+    [3] AnyHitMain         RuntimeDataFunctionInfo.ShaderKind=9 (AnyHit) .PayloadSizeInBytes=28 .AttributeSizeInBytes=8
+    [4] IntersectionMain   RuntimeDataFunctionInfo.ShaderKind=8 (Intersection) .PayloadSizeInBytes=0 .AttributeSizeInBytes=0
+    [5] CallableMain       RuntimeDataFunctionInfo.ShaderKind=12 (Callable) .PayloadSizeInBytes=12 .AttributeSizeInBytes=0
+    [6] PlainLibraryFunction RuntimeDataFunctionInfo.ShaderKind=6 (Library) .PayloadSizeInBytes=0 .AttributeSizeInBytes=0
+  IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+  IDxcContainerReflection::GetPartReflection(ID3D12LibraryReflection) -> 0x00000000 (S_OK)
+  ID3D12LibraryReflection::GetDesc -> 0x00000000 (S_OK)
+    D3D12_LIBRARY_DESC.FunctionCount=7
+  
+  --- D3D12 reflection API: what an application can see ---
+  [0] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?AnyHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x00090063 -> D3D12_SHVER_GET_TYPE=9 (AnyHit), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=589923 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=9 (AnyHit) PayloadSizeInBytes=28 AttributeSizeInBytes=8
+      KIND: api=AnyHit rdat=AnyHit -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 28
+  [1] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?CallableMain@@YAXUCallableParams@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x000C0063 -> D3D12_SHVER_GET_TYPE=12 (Callable), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=786531 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=12 (Callable) PayloadSizeInBytes=12 AttributeSizeInBytes=0
+      KIND: api=Callable rdat=Callable -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 12
+  [2] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?ClosestHitMain@@YAXURayPayload@@UBuiltInTriangleIntersectionAttributes@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x000A0063 -> D3D12_SHVER_GET_TYPE=10 (ClosestHit), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=655459 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=10 (ClosestHit) PayloadSizeInBytes=28 AttributeSizeInBytes=8
+      KIND: api=ClosestHit rdat=ClosestHit -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 28
+  [3] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?IntersectionMain@@YAXXZ"
+      D3D12_FUNCTION_DESC.Version=0x00080063 -> D3D12_SHVER_GET_TYPE=8 (Intersection), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=524387 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=8 (Intersection) PayloadSizeInBytes=0 AttributeSizeInBytes=0
+      KIND: api=Intersection rdat=Intersection -> agree
+      PAYLOAD: rdat says this entry carries no payload; nothing to search for
+  [4] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?MissMain@@YAXURayPayload@@@Z"
+      D3D12_FUNCTION_DESC.Version=0x000B0063 -> D3D12_SHVER_GET_TYPE=11 (Miss), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=720995 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=11 (Miss) PayloadSizeInBytes=28 AttributeSizeInBytes=0
+      KIND: api=Miss rdat=Miss -> agree
+      PAYLOAD: no field of D3D12_FUNCTION_DESC holds 28
+  [5] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?PlainLibraryFunction@@YA?AV?$vector@M$02@@V1@@Z"
+      D3D12_FUNCTION_DESC.Version=0x00060063 -> D3D12_SHVER_GET_TYPE=6 (Library), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=393315 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=6 (Library) PayloadSizeInBytes=0 AttributeSizeInBytes=0
+      KIND: api=Library rdat=Library -> agree
+      PAYLOAD: rdat says this entry carries no payload; nothing to search for
+  [6] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+      D3D12_FUNCTION_DESC.Name="\x01?RayGenMain@@YAXXZ"
+      D3D12_FUNCTION_DESC.Version=0x00070063 -> D3D12_SHVER_GET_TYPE=7 (RayGeneration), sm 6.3
+      all D3D12_FUNCTION_DESC numeric fields: Version=458851 Flags=0 ConstantBuffers=0 BoundResources=2 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+      rdat: ShaderKind=7 (RayGeneration) PayloadSizeInBytes=0 AttributeSizeInBytes=0
+      KIND: api=RayGeneration rdat=RayGeneration -> agree
+      PAYLOAD: rdat says this entry carries no payload; nothing to search for
+  
+  SELFCHECK: library-function-count=7 rdat-function-count=7 names-matched=7
+  SELFCHECK: field-search-selftest=pass
+  SUMMARY: payload-carrying-entries=4 api-payload-found=0 kind-checked=7 kind-agrees=7
+  RESULT: API-SHADER-KIND=available API-PAYLOAD-SIZE=unavailable RDAT-SHADER-KIND=present RDAT-PAYLOAD-SIZE=present
+

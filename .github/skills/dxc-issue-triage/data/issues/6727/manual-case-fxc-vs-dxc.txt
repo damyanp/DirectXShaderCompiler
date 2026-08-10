@@ -1,0 +1,61 @@
+# manual case: FXC/DXBC reaches the two-output instruction from the
+# same HLSL that DXC/DXIL lowers to two separate operations.
+#
+# DXBC has one `udiv destQUOT, destREM, src0, src1` instruction and one
+# `imul destHI, destLO, src0, src1` instruction. DXIL keeps them as
+# opcodes 43 and 41 (op class binaryWithTwoOuts) but no HLSL spelling
+# in DXC lowers to either.
+
+$ "<sdk>/Windows Kits/10/bin/<ver>/x64/fxc.exe" /nologo /T cs_5_0 /E main control-fxc-divrem.hlsl
+[note] quotient and remainder of one operand pair -> ONE `udiv` with two destination registers
+[exit] 0
+[trimmed] resource/signature header omitted; last 12 lines of the disassembly follow
+dcl_globalFlags refactoringAllowed
+dcl_uav_structured u0, 16
+dcl_input vThreadID.x
+dcl_temps 2
+dcl_thread_group 1, 1, 1
+ld_structured_indexable(structured_buffer, stride=16)(mixed,mixed,mixed,mixed) r0.xy, vThreadID.x, l(0), u0.xyxx
+udiv r0.x, r1.x, r0.x, r0.y
+mov r0.y, r1.x
+mov r0.zw, l(0,0,0,0)
+store_structured u0.xyzw, vThreadID.x, l(0), r0.xyzw
+ret 
+// Approximately 6 instruction slots used
+
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main control-fxc-divrem.hlsl
+[note] the identical source through DXC -> two independent instructions, no dx.op call
+[exit] 0
+[filtered] lines containing: udiv, urem, binaryWithTwoOuts
+%6 = udiv i32 %4, %5
+%7 = urem i32 %4, %5
+
+$ "<sdk>/Windows Kits/10/bin/<ver>/x64/fxc.exe" /nologo /T cs_5_0 /E main control-no-divide.hlsl
+[note] an ordinary 32-bit multiply is ALREADY the two-output instruction in DXBC: `imul null, r1.y, ...` discards the high half into null, which is the half HLSL cannot ask for
+[exit] 0
+[trimmed] resource/signature header omitted; last 12 lines of the disassembly follow
+dcl_uav_structured u0, 16
+dcl_input vThreadID.x
+dcl_temps 2
+dcl_thread_group 1, 1, 1
+ld_structured_indexable(structured_buffer, stride=16)(mixed,mixed,mixed,mixed) r0.xy, vThreadID.x, l(0), u0.xyxx
+iadd r1.x, r0.y, r0.x
+imul null, r1.y, r0.y, r0.x
+iadd r1.z, -r0.y, r0.x
+xor r1.w, r0.y, r0.x
+store_structured u0.xyzw, vThreadID.x, l(0), r1.xyzw
+ret 
+// Approximately 7 instruction slots used
+
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E main repro.hlsl
+[note] the repro through DXC: the high half costs a 64-bit multiply and the optional 64-bit feature flag
+[exit] 0
+[filtered] lines containing: 64-Bit, mul nuw, lshr, trunc i64, udiv, urem
+;       64-Bit integer
+%8 = mul nuw i64 %7, %6
+%9 = lshr i64 %8, 32
+%10 = trunc i64 %9 to i32
+%11 = trunc i64 %8 to i32
+%12 = udiv i32 %4, %5
+%13 = urem i32 %4, %5
+

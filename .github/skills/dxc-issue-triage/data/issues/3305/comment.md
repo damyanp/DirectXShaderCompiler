@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3305](https://github.com/microsoft/DirectXShaderCompiler/issues/3305).
 
-Still reproduces on `main` (`1.9.0.5433`, `ab5400907`), and on all 20 releases from v1.4.1907
+Still reproduces on `main` (`1.9.0.5433`, `13730886e`), and on all 20 releases from v1.4.1907
 (2019-07) through v1.9.2607 — the same DXIL message at the same location on every one, so this
 predates the report rather than having regressed into it. The SPIR-V half of the same probe
 succeeds on 19 of those 20 (every release that has SPIR-V codegen at all; v1.4.1907 does not).

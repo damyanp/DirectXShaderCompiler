@@ -1,28 +1,19 @@
 # DXC issue triage — batch 007
 
-**Ground truth:** clean `main` **Debug** build, commit `ab5400907`
-(`dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)`).
-All five workers recorded that exact version string before running anything. The
-`verdict.json` files now carry `triaged_with_commit: 13730886e` — corrected after the fact;
-they originally recorded `ab5400907`, which the binary self-reports.
+**Ground truth:** clean `main` **Debug** build, source-identical to upstream
+`13730886e`. All five workers recorded the binary's exact version string before running:
+`dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)`.
+That fork-local SHA is captured evidence, not the public citation.
 **History:** 20 official release binaries, v1.4.1907 → v1.9.2607 (four were absent from the
 shared cache for #2918 — see that issue's findings).
 **Nothing was posted, edited, labelled or closed. No DXC source was modified.**
 
 > ### The ground-truth build still measures `main`, and that was checked rather than assumed
 >
-> `git fetch upstream main` reported **0 commits ahead**, so the pre-batch rebuild would have
-> been a no-op. The orchestrator recorded the check instead of skipping it silently, and
-> collation re-ran it independently:
->
-> - `ab5400907` is an ancestor of `HEAD` (`8b61ec72e`, "triage: batch 006");
-> - `git diff --name-only ab5400907..HEAD -- . ':(exclude).github/skills/**'` is **empty** — the
->   two commits between the build and HEAD touch only the triage skill directory, so the Debug
->   binary at `ab5400907` is still a faithful `main`;
-> - `dxc --version` was re-read and matches, with no `-dirty`.
->
-> Batches 005, 006 and 007 all measured `ab5400907` and are directly comparable. Batches 001–004
-> measured `eff900d5` and are not.
+> The later provenance audit established that the binary's fork-local self-reported SHA and
+> upstream `13730886e` differ only under this triage skill; compiler source is identical.
+> `dxc --version` was also re-read, with no `-dirty`. Batches 005–007 therefore measured the
+> same compiler and are directly comparable. Batches 001–004 measured `eff900d5` and are not.
 
 > ### ⚠ The review gate is still suspended
 >
@@ -920,7 +911,7 @@ Source of each is `issues/<nnnn>/comment.md` — edit there, then re-run
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2673](https://github.com/microsoft/DirectXShaderCompiler/issues/2673).
 
-Still reproduces on `main` (1.9.0.5433, `ab5400907`), and on all 20 releases tested, from
+Still reproduces on `main` (1.9.0.5433, `13730886e`), and on all 20 releases tested, from
 v1.4.1907 (2019-07) through v1.9.2607. v1.4.1907 predates this report, so the defines have
 been duplicated for as long as it is possible to check.
 
@@ -1098,7 +1089,7 @@ anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3005](https://github.com/microsoft/DirectXShaderCompiler/issues/3005).
 
-Still reproduces on `main` (1.9.0.5433, `ab5400907`). The more actionable finding is
+Still reproduces on `main` (1.9.0.5433, `13730886e`). The more actionable finding is
 that a fix was written, reviewed, and then closed unmerged.
 
 ### Measured
@@ -1198,7 +1189,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3189](https://github.com/microsoft/DirectXShaderCompiler/issues/3189).
 
-**Still reproduces exactly as filed**, on `main` (1.9.0.5433, `ab5400907`) and on all 19 tested
+**Still reproduces exactly as filed**, on `main` (1.9.0.5433, `13730886e`) and on all 19 tested
 releases from v1.5.2010 to v1.9.2607. v1.4.1907 cannot answer — `SPIR-V CodeGen not available` —
 so this has reproduced for as long as it is measurable. Nothing in the issue text is stale.
 
@@ -1271,7 +1262,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3305](https://github.com/microsoft/DirectXShaderCompiler/issues/3305).
 
-Still reproduces on `main` (`1.9.0.5433`, `ab5400907`), and on all 20 releases from v1.4.1907
+Still reproduces on `main` (`1.9.0.5433`, `13730886e`), and on all 20 releases from v1.4.1907
 (2019-07) through v1.9.2607 — the same DXIL message at the same location on every one, so this
 predates the report rather than having regressed into it. The SPIR-V half of the same probe
 succeeds on 19 of those 20 (every release that has SPIR-V codegen at all; v1.4.1907 does not).

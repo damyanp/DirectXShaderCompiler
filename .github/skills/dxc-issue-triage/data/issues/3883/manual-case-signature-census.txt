@@ -1,0 +1,28 @@
+# $ <repo>/.github\skills\dxc-issue-triage\scripts\triage.py sql "SELECT tag FROM releases WHERE build_date IS NOT NULL ORDER BY build_date, tag"
+# 22 captures of the repro, in release build-date order, main-debug last.
+# 22 of 22 scored `repro`.
+
+compiler         exit         scored   first stderr line
+---------------- ------------ -------- ------------------------------------------------------------
+v1.4.1907        0xC0000005   repro    (stderr completely empty)
+v1.5.2003        0xC0000005   repro    (stderr completely empty)
+v1.5.2010        0xC0000005   repro    (stderr completely empty)
+v1.6.2104        0xC0000005   repro    Internal compiler error: access violation. Attempted to read
+v1.6.2106        0x80AA001D   repro    Internal Compiler error: llvm::cast<X>() argument of incompa
+v1.6.2112        0x80AA001D   repro    Internal Compiler error: llvm::cast<X>() argument of incompa
+v1.7.2207        0x80004005   repro    error: llvm::cast<X>() argument of incompatible type!
+v1.7.2212        0x80004005   repro    error: llvm::cast<X>() argument of incompatible type!
+v1.7.2212.1      0x80004005   repro    error: llvm::cast<X>() argument of incompatible type!
+v1.7.2308        0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+v1.8.2403        0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+v1.8.2403.1      0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+v1.8.2403.2      0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+v1.8.2405        0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+v1.8.2407        0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+v1.8.2502        0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+v1.8.2505        0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+v1.8.2505.1      0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+v1.9.2602        0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+v1.9.2602.24     0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+v1.9.2607        0x80004005   repro    repro.hlsl:8:18: warning: variable 'index' is uninitialized 
+main-debug       0xE0000001   repro    Internal compiler error: LLVM Assert

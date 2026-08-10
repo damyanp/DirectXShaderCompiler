@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3259](https://github.com/microsoft/DirectXShaderCompiler/issues/3259).
 
-**Still reproduces** on `main` (`1.9.0.5433 (triage, ab5400907)`), Debug build, on the shader
+**Still reproduces** on `main` (`1.9.0.5433`, `13730886e`), Debug build, on the shader
 exactly as filed:
 
 ```

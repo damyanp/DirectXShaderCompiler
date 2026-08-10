@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3695](https://github.com/microsoft/DirectXShaderCompiler/issues/3695).
 
-**Still reproduces.** The attached `shader.txt` crashes `main` at `1.9.0.5433` (`ab5400907`)
+**Still reproduces.** The attached `shader.txt` crashes `main` at `1.9.0.5433` (`13730886e`)
 with the filed command line, and all 20 bisectable release binaries measured from v1.4.1907
 to v1.9.2607.
 

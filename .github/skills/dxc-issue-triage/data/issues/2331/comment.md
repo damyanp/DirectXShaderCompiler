@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2331](https://github.com/microsoft/DirectXShaderCompiler/issues/2331).
 
-**Still reproduces on `main` (1.9.0.5433, `ab5400907`).**
+**Still reproduces on `main` (1.9.0.5433, `13730886e`).**
 
 ```
 $ dxc -T ps_6_0 -E MainPS repro.hlsl

@@ -1,0 +1,13 @@
+# The reporter's own command lines, recovered verbatim from the first line of
+# each dumped disassembly inside the attached disasm.zip (unpacked in attach/).
+#
+# domain_pack_optimized:
+dxc objectDS_prepass.hlsl -T ds_6_5  -all-resources-bound  -pack-optimized  -res-may-alias  -no-legacy-cbuf-layout  -flegacy-macro-expansion  -D HLSL6
+# domain_NO_pack_optimized:
+dxc objectDS_prepass.hlsl -T ds_6_5  -all-resources-bound   -res-may-alias  -no-legacy-cbuf-layout  -flegacy-macro-expansion  -D HLSL6
+# pixel_pack_optimized (note: no -pack-optimized on this line):
+dxc objectPS_prepass.hlsl -T ps_6_5  -all-resources-bound  -res-may-alias  -no-legacy-cbuf-layout  -flegacy-macro-expansion  -D HLSL6
+#
+# The HLSL sources are not attached; objectDS_prepass.hlsl / objectPS_prepass.hlsl
+# are from the reporter's own engine. repro.hlsl is an agent-built reconstruction
+# from the struct in the issue body plus the signature tables in these files.

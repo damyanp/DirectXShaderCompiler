@@ -15,10 +15,22 @@ when did that change?** Produce a report backed by on-disk evidence.
   obvious. Drafting a comment is in scope; **posting it is not**. Recommending an action and
   taking it are different jobs.
 - **Never write an issue reference into a commit message.** `#1234`, `GH-1234` and issue or
-  PR URLs all create a **cross-reference event on the issue itself**, visible to everyone
-  watching it — which is posting to the issue by another route, and breaks the read-only rule
-  just as surely as `gh issue comment`. Use bare numbers: `triage: batch 006 (2128, 2331)`.
-  This fires even from a personal fork, and it is attributed to whoever pushed.
+  PR URLs all create a **cross-reference event on the issue itself** as soon as the branch is
+  pushed. That is indistinguishable from commenting on the issue and is permanent: the event
+  cannot be deleted, and it survives even if the commit is later orphaned by a history
+  rewrite. Commit `8b61ec72e` (`triage: batch 006 (#2128, #2331, ...)`) put references on five
+  issues; rewriting history removed the commit from the branch but left every event in place,
+  still displaying its subject. Use bare numbers:
+  `triage: batch 011 (6727, 2952, 3362, 3883, 3927)`.
+  Issue numbers in file contents are safe; commit messages and issue/PR bodies are not.
+
+  Before committing, validate the detection regex in **both** directions: positive controls
+  such as `fixes #3377` and `GH-3429` must match; negative controls such as
+  `batch 011 (6727, 2952)` and a bare commit SHA must not. Do not trust a regex merely because
+  it returned zero matches.
+
+- **Never rewrite history on the triage branch.** Rewriting can orphan a commit, but it cannot
+  retract issue timeline events or anything else the old commit already published.
 
   > Measured: pushing three batch commits created **16 cross-references across 14 issues**.
   > On one of them the reporter followed the link within hours, read an *unposted draft* plus
@@ -200,7 +212,13 @@ determine*. Then compare.
 
 Run it on at least one issue per batch, and always on any issue whose suggested action is
 `close-fixed`: recommending a close is the highest-stakes verdict, and the one most likely to
-be acted on without re-checking.
+be acted on without re-checking. Apply the same blind check when a `does-not-repro` conclusion
+rests on saying that the reporter compared different configurations, misread an attachment,
+or otherwise measured the wrong thing. That claim is socially as costly as a closure and is
+hard for a casual reader to falsify. The re-derivation must independently inspect the original
+attachment or embedded command line, and the draft must describe the two measured
+configurations neutrally and let the reader draw the conclusion — never diagnose the
+reporter.
 
 Measured on #3038, this reproduced the transition (v1.8.2502 → v1.8.2505), the repro quality,
 the suggested action, and the rejection of v1.4.1907 as unprobeable — and then found a real
@@ -377,6 +395,25 @@ Comments routinely hold the real repro, a smaller reproducer, a maintainer's des
 or a prior "still repros in X" datapoint. They also frequently contradict the issue body —
 which is itself a finding worth reporting.
 
+**Inspect attachments before reconstructing anything.** Compiler output often records the
+command that produced it in its first lines, and that header is primary evidence about the
+configuration. On #3362, the decisive fact was already inside `disasm.zip`: the domain-shader
+dumps name `-pack-optimized`, while the pixel-shader dump does not. Read the first lines of
+every attached dump before building an agent approximation.
+
+Also read the cross-reference timeline during step 1, not only at collation. Include the source
+repository name in the output so an external issue is not mistaken for one in this repository:
+
+```bash
+gh api repos/<repo>/issues/<N>/timeline?per_page=100 --jq \
+  '.[] | select(.event=="cross-referenced") |
+   "\(.created_at)  \(.source.issue.repository.full_name)#\(.source.issue.number)"'
+```
+
+On #6727 this surfaced both a duplicate request in DXC and an LLVM successor issue that
+ordinary repository search missed. The batch-level timeline check still runs later to ensure
+the triage itself created no event.
+
 ### 2. Write down the symptom *before* running anything
 
 Create `issues/<nnnn>/expected.md` stating what "this reproduces" means, derived from the
@@ -456,6 +493,9 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 >
 > :: C++-exception assert: exit 0xE0000001. Break on the exception itself.
 > cdb -c "sxe -c \"kb 8; gh\" e0000001; g; q" <dxc.exe> <args...>
+>
+> :: Ignore the assert, then break where the Release-path hlsl::Exception is thrown.
+> cdb -c "sxe -c \"gh\" e0000001; sxe -c \"kb 8\" e06d7363; g; q" <dxc.exe> <args...>
 > ```
 >
 > `gh` ("go handled") **emulates `NDEBUG`** in *both* forms: continuing past the assert runs the
@@ -479,7 +519,9 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 > takes as a target. While you are there: **do not try to report `ERRORLEVEL` from a `.cmd`
 > harness.** `set /a` resets it and a nested `for /f` clobbers it, so a batch file will
 > cheerfully print `0` for a run that crashed. Capture exit statuses from the Python that
-> launched the process.
+> launched the process. Invoke a local harness as `.\name.cmd` inside `cmd /c`; bare
+> `name.cmd` need not resolve because the current directory is not guaranteed to be on
+> `PATH`.
 
 > **When the symptom is in a pass `dxc.exe` cannot run, register the harness as a compiler.**
 > Some defects live in code no compiler driver reaches — PIX's `IDxcOptimizer` passes are the
@@ -496,11 +538,12 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 >
 > The wrapper needs an absolute path, must answer `--version`, and should take the real
 > compiler from an environment variable so the same harness can be pointed at a release. After
-> that the whole tool works unchanged, including `reindex`. **Do not run `bisect` on a
-> harness-as-compiler issue:** it always substitutes each release's `dxc.exe`, not the harness,
-> and can confidently report the inverse history. This has now happened or been narrowly
-> avoided on #2918, #2922, #2923, #3237 and #2604. Write a release matrix that points the
-> harness at each release's executable or DLL instead.
+> that the whole tool works unchanged, including `reindex`. **`bisect` now hard-errors on a
+> harness-as-compiler issue:** it would substitute each release's `dxc.exe`, not the harness,
+> and can confidently report the inverse history. This happened or was narrowly avoided on
+> #2918, #2922, #2923, #3237, #2604 and #2952. The sanctioned replacements are an explicit
+> release matrix that holds the harness fixed while varying each release's executable or DLL,
+> the #3237 release-matrix pattern, or an issue-local `measure.py --history`.
 
 > **A source location does not identify the diagnostic layer.** A DXIL lowering pass can map
 > debug locations back to `file:line:col:` and print a caret exactly like Sema; #3726's
@@ -552,11 +595,13 @@ Add `"invert": true` to negate.
 > 0 or 1 is a crash" therefore reports essentially every failing compile as an internal
 > failure. That is the more dangerous direction of error, because it *invents* bugs rather
 > than missing them. `is_internal_failure()` instead tests the specific status codes dxc's own
-> exception filter recognises (`tools/clang/tools/dxclib/dxc.cpp`): 0xC0000005, 0xC00000FD,
-> 0x80000003, 0xE0000001-3, any other 0xC/0xE structured exception, and POSIX signal exits
-> (139 = SIGSEGV) for Compiler Explorer's Linux builds.
+> internal-error paths define (`include/dxc/Support/ErrorCodes.h`,
+> `tools/clang/tools/dxclib/dxc.cpp`): 0xC0000005, 0xC00000FD, 0x80000003,
+> 0x80AA0018, 0x80AA001B-1D, 0xE0000001-3, any other 0xC/0xE structured
+> exception, and POSIX signal exits (139 = SIGSEGV) for Compiler Explorer's
+> Linux builds.
 
-**Exit codes, measured — not assumed:**
+**Exit codes, measured or traced to their emitters — not guessed from names:**
 
 | Outcome | Exit | Internal failure? |
 | --- | --- | --- |
@@ -564,6 +609,8 @@ Add `"invert": true` to negate.
 | input file not found | 1 | no |
 | syntax error, invalid profile, **DXIL validation failure** | 0x80004005 (E_FAIL) | **no** |
 | `llvm::cast<X>()` type mismatch | 0x80004005 (E_FAIL) | **yes — text only** |
+| DXC general internal error | 0x80AA0018 | yes |
+| DXC LLVM fatal / unreachable / cast HRESULT | 0x80AA001B / 0x80AA001C / 0x80AA001D | yes |
 | assert fires (Debug) | 0x80000003, or 0xE0000001 | yes |
 | access violation | 0xC0000005 | yes |
 | `llvm_unreachable` / `report_fatal_error` | 0xE0000002 / 0xE0000003 | yes |
@@ -576,6 +623,17 @@ Add `"invert": true` to negate.
 > carries text markers. Conversely #2191's assert exits **0xE0000001**, not 0x80000003,
 > because it too arrives as a C++ exception rather than a trap. Do not infer either direction
 > from the exit code alone.
+>
+> Two neighbouring HRESULTs remain deliberately **outside** `INTERNAL_STATUS`.
+> `DXC_E_OPTIMIZATION_FAILED` (0x80AA0017) is thrown by DXIL-conversion cleanup checks, but
+> the source does not prove malformed or unsupported input can never reach them;
+> `DXC_E_ABORT_COMPILATION_ERROR` (0x80AA0019) has no emitter in this tree. Until a capture or
+> stronger emitter analysis shows that either uniquely means an internal failure, classifying
+> the code alone would risk inventing a crash from a clean diagnosed failure.
+>
+> On Compiler Explorer's Linux process, a Windows HRESULT is truncated to its low byte:
+> `0x80AA001D` appears as exit 29 and `0x80004005` as exit 5. Compare the diagnostic class,
+> not the decimal CE exit number, when correlating a pane with a Windows capture.
 
 > Unrecognised `/`-style flags are **silently ignored** — `/ZZZNONSENSE` exits 0. Never infer
 > that a flag was honoured from a clean exit; make it fail (point it at a missing file) to
@@ -620,10 +678,24 @@ you happen to run will report it fixed:
 > as `no-repro` and reports this open, always-reproducing bug as **fixed**. Neither signature
 > alone is the symptom; failing to compile a valid shader is.
 
+When matching DXIL signature layouts, remember that disassembly prints a second set of
+signature-like PSV runtime tables. Anchor a row on a column unique to the table you mean
+(`CLIPDST` in the DXIL `SysValue` column, for example), not only on semantic name, index and
+register. Otherwise a regex can match the wrong copy and manufacture agreement.
+
 **Give every text-based predicate a control.** The control discipline in step 7 applies to
 predicates too: run the predicate against an input you *know* is good, and require it not to
 match. A predicate that matches everything is indistinguishable from a bug that reproduces
 everywhere.
+
+When the finding is an **absence**, make the instrument prove it can detect a **presence in
+the same run**, and put that self-test in `match.json`, not only in prose. #2952's field search
+must emit and match `field-search-selftest=pass` after locating a known existing field; a
+broken enumerator then scores no-match instead of manufacturing a clean absence. The mirror
+rule applies to a **presence** finding: anchor it on evidence that compilation completed and
+that the subject existed in the input. Otherwise a failed compile falsifies the predicate in
+the fix-inventing direction, or a shader that never declared the resource satisfies it for
+free. Required clauses belong inside the predicate so `reindex` re-checks them forever.
 
 ```bash
 python triage.py run --issue <N> --shader control-separate-raydesc.hlsl \
@@ -647,6 +719,12 @@ both directions, and both are real:
 
 Getting this backwards is easy and the check catches it: a blanket "warn if a control matches"
 rule reports #1803's central finding as a predicate bug.
+
+For a `not_contains` / `not_regex` clause, include a control that proves the missing token can
+make the clause fail. A portable way for DXIL is to put the literal token in a source comment
+and compile that control with `-Zi -Qembed_debug`; DXC echoes the source into
+`!dx.source.contents`, so the predicate must score `no-match`. #6727 used this to distinguish a
+real absence from a typo in a regex.
 
 > **Capture the control, every time.** #3038's control was run by hand and its result quoted
 > in the report and the draft comment, but the output was never written down — a published
@@ -674,6 +752,11 @@ rule reports #1803's central finding as a predicate bug.
 > **`run --args` is a full argv, not extra flags.** It replaces `cmd.txt` entirely, so it must
 > repeat the source filename even when `--shader` also names it. Omitting it gives dxc no
 > input and the resulting error looks like a compiler behaviour.
+>
+> With a multi-invocation `cmd.txt`, `run --shader` retargets **every** line, so a control
+> source must define every entry point those lines name. `run --args` still represents only
+> one invocation and cannot express a per-stage variation of a multi-line repro; use a
+> command-echoing matrix harness for that case.
 
 > **`audit` wants a tool-made capture for every `.hlsl` in the directory.** A matrix driven by
 > a hand-written script leaves shaders with no `variant-*.txt` beside them, and the audit is
@@ -712,6 +795,13 @@ Then classify against `expected.md`:
 | `changed-behavior` | still misbehaves, differently than reported |
 | `not-compiler-verifiable` | needs GPU/runtime/driver or project/process evidence, not a compiler |
 | `inconclusive` | repro too ambiguous to judge |
+
+For a claim that a capability is **absent from a surface API**, one shader not producing it is
+the weakest evidence. Prefer this order: (1) inspect the public intrinsic/interface table and
+all emitters; (2) show a contrasting compiler reaching the capability from the same source;
+(3) use a representative probe only as the observable example. A lowering-table row is not
+enough by itself — read the translator body and confirm it actually uses the opcode parameter.
+#6727 had an `OpCode::UMul` row whose translator ignored that field completely.
 
 `not-compiler-verifiable` is a legitimate, useful outcome — not a failure. Before writing
 `cmd.txt`, ask what a clean compile would prove. If it is compatible with the report being
@@ -848,6 +938,15 @@ across issues.
 > **Prevention:** target the repro at the oldest profile and flag set that still shows the
 > symptom, not the newest one the reporter happened to use.
 
+> **An `Unknown argument` demotion is not evidence until spelling variants are tried.**
+> Older releases may use `_` where current dxc uses `-`, or accept the `/` prefix. `run` now
+> re-probes those variants before preserving `invalid-probe`, records the accepted spelling in
+> the capture header, and leaves the requested command there for stale-capture checking.
+> #3362's v1.4.1907 result changed from "feature unavailable" to a valid probe when
+> `-pack-optimized` became `-pack_optimized`. Because unrecognised `/` flags can be silently
+> ignored, the positive control must also run on that release and prove the option affected
+> the output.
+
 > **The same trap fires one level up, in the front end.** A release predating a language
 > *feature* — a type, an intrinsic, an attribute — rejects the repro with an ordinary semantic
 > diagnostic, not a profile error. Measured on #3038: v1.4.1907 answers `use of undeclared
@@ -909,16 +1008,40 @@ across issues.
 > a confident `no-repro` on a build that could not have shown the symptom. Nothing in the exit
 > status or the diagnostics says so. Only running the `-Od` control *per release* exposed it.
 > A quiet invalid probe is worse than a loud one: `bisect` trims the loud kind and reports the
-> count.
+> count in the final result. If binary search encounters an unprobeable release **inside** a
+> candidate transition interval, it hard-errors and requires `--linear`; an unexercised
+> release cannot be assigned to either side of the boundary.
+>
+> The same rule is mandatory for `never-repro'd-in-releases`: run a positive control that the
+> predicate **must match** at every release. Otherwise "none reproduced" is indistinguishable
+> from a dead regex. #3362's control matched on every release, including the old spelling
+> re-probe, which is what made its negative history meaningful.
 
-> **The bisectable catalog has a hole, and it is where 2020 issues live.** `v1.5.2003` is
-> flagged `bisectable=0` (it is a GitHub prerelease), so the scan jumps v1.4.1907 (2019-07)
-> straight to v1.5.2010 (2020-10) — fourteen months, spanning the reports filed in between.
-> For any issue filed in that window, fetch and run v1.5.2003 by hand and say in the write-up
-> that you did. Measured on #2923, where it was decisive in the least convenient direction:
-> the agent-built repro is numbered *correctly* at the exact release that was current when the
-> issue was filed, which is the difference between "still broken since 2020" and "this
-> reconstruction may not be the reporter's instance".
+> **Prereleases are deliberately excluded from the search, but never silently.** `bisect`
+> prints every skipped tag and separates "prerelease" from "no usable dxc asset"; its result
+> also states how many probeable prereleases were outside the sequence. History boundaries
+> are stable-release boundaries by policy. Do **not** probe a prerelease merely because it was
+> current when the issue was filed, lies inside a transition interval, or would increase a
+> population count.
+>
+> `v1.5.2003` is the load-bearing example: it has a working `dxc.exe` but is a GitHub
+> prerelease, so the stable sequence jumps v1.4.1907 (2019-07) to v1.5.2010 (2020-10).
+> The only carve-out is an issue whose title or body **explicitly names that prerelease**.
+> Record the exception visibly in that issue's `release-policy.json`:
+>
+> ```json
+> { "include_prereleases": ["v1.5.2003"] }
+> ```
+>
+> `bisect` validates that the named tag is a usable prerelease and that the issue text really
+> names it before including it. It does **not** infer an opt-in from the issue text alone.
+> "Was current when filed" is not explicit naming. A hand-run prerelease without this policy
+> artifact is supplementary evidence only and must not enter the headline population count or
+> stable-release boundary.
+>
+> For SPIR-V specifically, both v1.4.1907 and v1.5.2003 exit **1** with
+> `SPIR-V CodeGen not available`, confirmed with a trivial `-spirv` control. Neither is a
+> clean result, and neither returns `0x80070057`.
 
 > **An absence-based predicate is satisfied for free by a compile that never got started.**
 > If the symptom is that something is *missing* (`not_contains`, `not_regex`, or an inverted
@@ -1018,6 +1141,11 @@ across issues.
 > `--linear` and `--repeat` compose, and on #3768 both were needed: the scan has to visit every
 > release *and* probe each one enough times, or an unlucky run inside the broken window closes
 > it prematurely and reports a one-release blip.
+>
+> Use `--linear` for a **population claim** too, even when monotonicity is not in doubt.
+> Endpoint agreement supports "always/never under the monotonic assumption"; it does not
+> support "none of N releases". #6727's claim that no shipped stable compiler exposed an
+> intrinsic needed every stable release visited and its skipped prereleases named.
 
 > **Search `tools/clang/test/` before bisecting an accept/reject issue.** On #3708, one test
 > already asserted the exact diagnostic, marked it `fxc-pass`, and said support was desirable.
@@ -1027,7 +1155,10 @@ across issues.
 **The bisection floor is v1.4.1907 (2019-07)** — the oldest release shipping a usable `dxc`.
 For issues predating it, `always-repro'd` means "for as long as it is possible to check", and
 must be reported that way rather than as "since it was filed". For SPIR-V issues the floor is
-higher still, since v1.4.1907 has no SPIR-V codegen.
+higher still, since v1.4.1907 has no SPIR-V codegen. This floor and every reported boundary
+are defined over stable releases. Prereleases stay outside the search unless the issue
+explicitly names one **and** its directory opts in through `release-policy.json`; being current
+at filing is insufficient.
 
 ### 7. Publish a shareable repro
 
@@ -1150,11 +1281,14 @@ compute restatement invalidates every pane. `godbolt` now refuses that ambiguous
 > doing this by hand; `godbolt` now does it and warns on a mismatch.
 
 > **`godbolt-note.txt` is compiled, not merely displayed.** The banner is prepended to the
-> source that CE actually builds, and DXC records its input in `!dx.source.contents` — so
-> literal IR quoted in a "what to look for" note appears verbatim in the pane's own DXIL
-> output, where it will satisfy any text search a reader (or a future predicate) runs against
-> that pane. Measured on #2922. Describe the instruction in prose, or quote it in a form that
-> cannot be confused with the compiler's own output.
+> source that CE actually builds. DXIL records it in `!dx.source.contents`; SPIR-V records it
+> in `OpSource`. Therefore **never put a literal string in the banner that the note asserts is
+> missing**: the note itself manufactures a hit in every pane. #3927 produced four false
+> `%Tex1` hits this way, and #6727 put the absent DXIL op-class name into both DXC panes.
+> Describe a structural location instead — an `OpDecorate` line, signature row or exit code —
+> and avoid naming an identifier the reader is meant to search for. After publishing, inspect
+> `manual-case-godbolt-verify.txt` and make sure any search hit comes from generated output,
+> not the embedded banner.
 
 The same discipline applies to argument handling: `dxc_trunk` appears to accept `/FI` silently,
 but so does `/ZZZNONSENSE` — on CE's Linux builds a `/`-prefixed argument looks like a path, so
@@ -1261,10 +1395,18 @@ Name the issue, so a file found on its own is traceable. Claim only what the fil
 >
 > Binaries (`.obj`, `.pdb`, `.pyc`) embed paths and cannot be edited. Confirm they are
 > gitignored rather than trying to clean them.
+>
+> Run `python scripts/check_paths.py` instead of re-deriving this scan by hand. It checks both
+> ordinary and JSON-escaped separators, excludes `.cache/`, `bin/`, `out/` and
+> `__pycache__/` by path, and requires the exact documented exception counts. The allowlist is
+> intentionally narrow: method documents that quote the detection patterns, plus the
+> reporter-owned paths in 3429's fetched issue. A seventeenth match fails even if it lands in
+> an allowlisted file. `test_predicates.py` runs this gate automatically.
 
-Never invent an `@mention`. Verify every handle against `issue.json`'s `author.login`; an empty
-login means the account is unavailable, so refer to the comment by date instead. #2604 caught a
-guessed public attribution before it shipped.
+Never invent an `@mention`. `fetch` records the issue's top-level `author.login` as well as
+comment authors; refresh an older `issue.json` that lacks it before naming the reporter. An
+empty login means the account is unavailable, so refer to the comment by date instead. #2604
+caught a guessed public attribution before it shipped.
 
 - Lead with the verdict and the version tested (`still reproduces on main (…, <sha>)`).
 - Show the evidence: the annotated link, and the two or three lines of output that matter.
@@ -1376,6 +1518,24 @@ Create `issues/<nnnn>/notes.md` — what was tested, what happened, on which com
 assessment. Corroborate from source where you can: showing that a field is parsed but never
 read is far stronger evidence than an output observation. Then record the verdict:
 
+When the issue body quotes compiler output and names a build, compare that quote mechanically
+against the matching release capture. #3927's quoted SPIR-V and v1.6.2106 capture were
+identical for all 64 lines; that establishes reporter-instance fidelity more strongly than
+"the reconstructed shader looks similar". Likewise, measure every command-line deviation
+(`-Fo` removed, profile lowered, workaround dropped) with an equivalence control rather than
+calling it inert.
+
+Count independence honestly. Two tools that both consume the same internal header are useful
+cross-checks against a harness bug, but they are not two independent witnesses to the file
+format. Name the shared dependency and seek a source citation or differently implemented
+reader for the second half.
+
+When dating the introduction of a symbol, start with a repository-wide
+`git log --all -S <symbol>`. A search scoped to the symbol's **current path**
+starts only after a move or refactor and can report a later preservation commit
+as the introduction. #2952's RDAT payload field appeared in February 2018; a
+current-path search incorrectly dated it to the April file move.
+
 > **A negative result from a command that errored is not a negative result.** Attributing
 > #3038's fix to a PR, `git merge-base --is-ancestor <sha> origin/release-1.8.2505` exited
 > non-zero and was briefly read as "the fix is not in that release" — refuting the hypothesis.
@@ -1384,7 +1544,8 @@ read is far stronger evidence than an output observation. Then record the verdic
 > the opposite. Before believing a negative, check that every input to it resolved: that the
 > ref exists, the file was found, the flag was parsed. This is the same failure as the
 > `invalid-probe` trap, one layer out — a tool that never ran the test still returns something
-> that looks like an answer.
+> that looks like an answer. In PowerShell, quote revision expressions such as
+> `"13730886e^{commit}"`; unquoted braces can make a resolvable commit look absent.
 
 > **When attributing a fix to a specific change, state the size of the window.** A verified
 > ancestry check proves a commit is *in* the fixing release, not that it *is* the fix. #3038's
@@ -1575,3 +1736,7 @@ gh issue list --repo microsoft/DirectXShaderCompiler --state open --limit 20 \
 Mix the batch deliberately — an all-oldest batch is unrepresentative and may not exercise
 bisection at all. Include `crash`, `spirv`, and mid-age issues so the workflow is tested where
 "no longer reproduces" is actually plausible.
+
+If the user explicitly requests exhaustive coverage of an age slice, that request overrides
+the age mix but not the category mix. State the resulting sampling bias in every batch report:
+old-backlog verdicts describe that cohort and do not generalise to recent issues.

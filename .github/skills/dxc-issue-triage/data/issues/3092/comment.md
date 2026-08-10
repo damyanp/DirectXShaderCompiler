@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3092](https://github.com/microsoft/DirectXShaderCompiler/issues/3092).
 
-**Still absent.** Tested on `main` (`1.9.0.5433`, ab5400907) and on all 19 SPIR-V-capable
+**Still absent.** Tested on `main` (`1.9.0.5433`, 13730886e) and on all 19 SPIR-V-capable
 releases in the catalog from v1.5.2010 (2020-10) to v1.9.2607 — every one rejects it with the
 same error. v1.4.1907, the only older one probed, answers `SPIR-V CodeGen not available` and is
 not a valid probe.

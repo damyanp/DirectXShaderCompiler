@@ -1,0 +1,22 @@
+{
+  "batch": "batch-011",
+  "confidence": "high",
+  "created_at": "2021-09-02T06:47:36Z",
+  "godbolt_url": "https://godbolt.org/z/eqxrve7j7",
+  "history": "always-repro'd across the 19 SPIR-V-capable stable releases v1.5.2010..v1.9.2607; v1.4.1907 is unprobeable because its package has no SPIR-V backend",
+  "labels": "spirv",
+  "labels_add": "enhancement, up-for-grabs",
+  "labels_now": "spirv",
+  "notes_path": "issues/3927/notes.md",
+  "number": 3927,
+  "repro_quality": "complete",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Still reproduces on main and all 19 SPIR-V-capable stable releases. The v1.6.2106 capture matches the reporter's 64-line module exactly. Tex0/SS0 keep DescriptorSet/Binding decorations because their sample feeds a branch whose two targets both end in OpKill; Tex1/SS1 are eliminated. At -O0 all four survive, showing that the observed elimination comes from spirv-opt rather than the emitter, consistent with the maintainer comment placing a fix there. The module is correct but not minimal, so this is an accepted optimization enhancement rather than a correctness bug.",
+  "title": "[SPIR-V] Not all unnecessary bindings are eliminated using SPIR-V backend",
+  "triaged_at": "2026-08-10T01:41:56+00:00",
+  "triaged_by": "GitHub Copilot CLI (claude-opus-4.6)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3927",
+  "reviewed_by": "claude-sonnet-5 (batch-011 independent draft review, applied selectively at collation)"
+}

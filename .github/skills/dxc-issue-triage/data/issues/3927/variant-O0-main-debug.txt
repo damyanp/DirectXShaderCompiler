@@ -1,0 +1,166 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T01:25:15+00:00
+# cmd: -T ps_6_0 -spirv -O0 repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: O0 (repro.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -spirv -O0 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 79
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %gl_FragCoord %in_var_TEXCOORD0 %out_var_SV_Target0
+               OpExecutionMode %main OriginUpperLeft
+               OpSource HLSL 600
+               OpName %type_2d_image "type.2d.image"
+               OpName %Tex0 "Tex0"
+               OpName %type_sampler "type.sampler"
+               OpName %SS0 "SS0"
+               OpName %Tex1 "Tex1"
+               OpName %SS1 "SS1"
+               OpName %in_var_TEXCOORD0 "in.var.TEXCOORD0"
+               OpName %out_var_SV_Target0 "out.var.SV_Target0"
+               OpName %main "main"
+               OpName %PixelInput "PixelInput"
+               OpMemberName %PixelInput 0 "pos"
+               OpMemberName %PixelInput 1 "texCoord"
+               OpName %param_var_In "param.var.In"
+               OpName %src_main "src.main"
+               OpName %In "In"
+               OpName %bb_entry "bb.entry"
+               OpName %val "val"
+               OpName %temp_var_logical "temp.var.logical"
+               OpName %type_sampled_image "type.sampled.image"
+               OpName %logical_lhs_cond "logical.lhs.cond"
+               OpName %logical_merge "logical.merge"
+               OpName %if_true "if.true"
+               OpName %if_true_0 "if.true"
+               OpName %if_merge "if.merge"
+               OpName %if_merge_0 "if.merge"
+               OpName %if_true_1 "if.true"
+               OpName %if_merge_1 "if.merge"
+               OpDecorate %gl_FragCoord BuiltIn FragCoord
+               OpDecorate %in_var_TEXCOORD0 Location 0
+               OpDecorate %out_var_SV_Target0 Location 0
+               OpDecorate %Tex0 DescriptorSet 0
+               OpDecorate %Tex0 Binding 0
+               OpDecorate %SS0 DescriptorSet 0
+               OpDecorate %SS0 Binding 1
+               OpDecorate %Tex1 DescriptorSet 0
+               OpDecorate %Tex1 Binding 2
+               OpDecorate %SS1 DescriptorSet 0
+               OpDecorate %SS1 Binding 3
+        %int = OpTypeInt 32 1
+      %int_1 = OpConstant %int 1
+      %int_0 = OpConstant %int 0
+      %float = OpTypeFloat 32
+    %float_0 = OpConstant %float 0
+       %bool = OpTypeBool
+      %false = OpConstantFalse %bool
+    %float_1 = OpConstant %float 1
+  %float_0_5 = OpConstant %float 0.5
+%type_2d_image = OpTypeImage %float 2D 2 0 0 1 Unknown
+%_ptr_UniformConstant_type_2d_image = OpTypePointer UniformConstant %type_2d_image
+%type_sampler = OpTypeSampler
+%_ptr_UniformConstant_type_sampler = OpTypePointer UniformConstant %type_sampler
+    %v4float = OpTypeVector %float 4
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+    %v2float = OpTypeVector %float 2
+%_ptr_Input_v2float = OpTypePointer Input %v2float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %28 = OpTypeFunction %void
+ %PixelInput = OpTypeStruct %v4float %v2float
+%_ptr_Function_PixelInput = OpTypePointer Function %PixelInput
+         %38 = OpTypeFunction %v4float %_ptr_Function_PixelInput
+%_ptr_Function_v2float = OpTypePointer Function %v2float
+%_ptr_Function_bool = OpTypePointer Function %bool
+%type_sampled_image = OpTypeSampledImage %type_2d_image
+%_ptr_Function_float = OpTypePointer Function %float
+       %Tex0 = OpVariable %_ptr_UniformConstant_type_2d_image UniformConstant
+        %SS0 = OpVariable %_ptr_UniformConstant_type_sampler UniformConstant
+       %Tex1 = OpVariable %_ptr_UniformConstant_type_2d_image UniformConstant
+        %SS1 = OpVariable %_ptr_UniformConstant_type_sampler UniformConstant
+%gl_FragCoord = OpVariable %_ptr_Input_v4float Input
+%in_var_TEXCOORD0 = OpVariable %_ptr_Input_v2float Input
+%out_var_SV_Target0 = OpVariable %_ptr_Output_v4float Output
+       %main = OpFunction %void None %28
+         %29 = OpLabel
+%param_var_In = OpVariable %_ptr_Function_PixelInput Function
+         %33 = OpLoad %v4float %gl_FragCoord
+         %34 = OpLoad %v2float %in_var_TEXCOORD0
+         %35 = OpCompositeConstruct %PixelInput %33 %34
+               OpStore %param_var_In %35
+         %36 = OpFunctionCall %v4float %src_main %param_var_In
+               OpStore %out_var_SV_Target0 %36
+               OpReturn
+               OpFunctionEnd
+   %src_main = OpFunction %v4float None %38
+         %In = OpFunctionParameter %_ptr_Function_PixelInput
+   %bb_entry = OpLabel
+        %val = OpVariable %_ptr_Function_v2float Function
+%temp_var_logical = OpVariable %_ptr_Function_bool Function
+         %45 = OpLoad %type_2d_image %Tex0
+         %46 = OpLoad %type_sampler %SS0
+         %47 = OpAccessChain %_ptr_Function_v2float %In %int_1
+         %48 = OpLoad %v2float %47
+         %50 = OpSampledImage %type_sampled_image %45 %46
+         %51 = OpImageSampleImplicitLod %v4float %50 %48 None
+         %52 = OpVectorShuffle %v2float %51 %51 0 1
+               OpStore %val %52
+         %54 = OpAccessChain %_ptr_Function_float %val %int_0
+         %55 = OpLoad %float %54
+         %56 = OpFOrdEqual %bool %55 %float_0
+               OpStore %temp_var_logical %false
+               OpSelectionMerge %logical_merge None
+               OpBranchConditional %56 %logical_lhs_cond %logical_merge
+%logical_lhs_cond = OpLabel
+         %59 = OpAccessChain %_ptr_Function_float %val %int_1
+         %60 = OpLoad %float %59
+         %61 = OpFOrdEqual %bool %60 %float_0
+               OpStore %temp_var_logical %61
+               OpBranch %logical_merge
+%logical_merge = OpLabel
+         %62 = OpLoad %bool %temp_var_logical
+               OpSelectionMerge %if_merge_0 None
+               OpBranchConditional %62 %if_true %if_merge_0
+    %if_true = OpLabel
+         %65 = OpFNegate %float %float_1
+         %66 = OpFOrdLessThan %bool %65 %float_0
+               OpSelectionMerge %if_merge None
+               OpBranchConditional %66 %if_true_0 %if_merge
+  %if_true_0 = OpLabel
+               OpKill
+   %if_merge = OpLabel
+               OpBranch %if_merge_0
+ %if_merge_0 = OpLabel
+         %69 = OpFNegate %float %float_0_5
+         %70 = OpFOrdLessThan %bool %69 %float_0
+               OpSelectionMerge %if_merge_1 None
+               OpBranchConditional %70 %if_true_1 %if_merge_1
+  %if_true_1 = OpLabel
+               OpKill
+ %if_merge_1 = OpLabel
+         %73 = OpLoad %type_2d_image %Tex1
+         %74 = OpLoad %type_sampler %SS1
+         %75 = OpAccessChain %_ptr_Function_v2float %In %int_1
+         %76 = OpLoad %v2float %75
+         %77 = OpSampledImage %type_sampled_image %73 %74
+         %78 = OpImageSampleImplicitLod %v4float %77 %76 None
+               OpReturnValue %78
+               OpFunctionEnd
+
+
+--- stderr ---
+

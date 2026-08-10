@@ -1,0 +1,24 @@
+What to look for: the ray payload size the issue asks for is already in the
+compiler's own output, in the dx.entryPoints named metadata at the bottom of
+the DXIL pane. Each entry there is a list of tag/value pairs. Tag 8 is the
+shader kind (7 raygeneration, 8 intersection, 9 anyhit, 10 closesthit,
+11 miss, 12 callable), tag 6 is the ray payload size in bytes, and tag 7 is
+the intersection attribute size in bytes. This shader declares a 28-byte
+payload, an 8-byte attribute struct and a 12-byte callable parameter, so the
+anyhit and closesthit entries carry 28 and 8, the miss entry carries 28, and
+the callable entry carries 12. The raygeneration and intersection entries
+carry neither, because neither takes a payload. The same three values are
+also written into the container's RDAT part as PayloadSizeInBytes,
+AttributeSizeInBytes and ShaderKind.
+
+What Compiler Explorer cannot show is the actual subject of the issue. There
+is no way to call a reflection interface from here, so the finding that
+ID3D12FunctionReflection exposes the shader kind but has no field that can
+hold the payload size comes from a purpose-built harness recorded in the
+triage notes, not from this pane. Treat this link as evidence that the data
+exists and has existed in every tested stable release, not as evidence about
+the API.
+
+Both panes are expected to compile cleanly and to agree. That is the point:
+this is a feature request about API surface, not a bug, and nothing here
+changed between the oldest compiler Compiler Explorer offers and trunk.

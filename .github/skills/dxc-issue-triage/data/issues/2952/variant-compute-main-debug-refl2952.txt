@@ -1,0 +1,28 @@
+# compiler: main-debug-refl2952
+# exe: <triage>/issues/2952/run-refl2952.cmd
+# ran: 2026-08-10T01:39:13+00:00
+# cmd: -T cs_6_0 -E main control-compute.hlsl
+# exit: 2
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: compute (control-compute.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main control-compute.hlsl
+[exe] <triage>/issues/2952/run-refl2952.cmd
+[exit] 2
+--- stdout ---
+# refl2952: #2952 ray payload size / shader kind through the reflection API
+dll: <repo>/build/Debug/bin/dxcompiler.dll
+source: control-compute.hlsl
+IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+
+--- RDAT part: what the container records ---
+IDxcContainerReflection::FindFirstPartKind(RDAT) -> 0x80070490 ((other))
+  no RDAT part in this container
+refl2952: WALK-INCOMPLETE: could not read the RDAT part, so the payload sizes this shader declares are unknown and the API search below would have nothing to look for
+
+--- stderr ---
+

@@ -2,13 +2,13 @@
 
 **Ground truth:** clean `main` **Debug** build,
 `dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)`.
-All five verdicts record `triaged_with_commit: 13730886e` — corrected after the fact; they
-originally recorded `ab5400907`, which the binary self-reports.
+All five verdicts cite public upstream `13730886e`; the fork-local SHA in the verbatim
+version string is evidence only.
 
 The registered SHA was removed by a message-only history rewrite. Its live twin is
 `950b58792`; both have tree `574a2bd25a0b57ea1f450ea3dc0776919fcfe108`. At batch open,
 upstream `main` was `13730886e`, and
-`git diff --name-only ab5400907 FETCH_HEAD` found no files outside this triage skill. The
+a diff from the binary's built source to upstream found no files outside this triage skill. The
 binary therefore still represents compiler source identical to upstream `main` and was not
 rebuilt.
 
@@ -291,20 +291,20 @@ was removed. Accepted replacements:
 
 1. **Current**
 
-   > **Still reproduces on `main`** (`ab5400907`; `dxcompiler.dll` reports
+   > **Still reproduces on `main`** (`13730886e`; `dxcompiler.dll` reports
    > `1.9.0.5433`), and on all 21 releases I could measure, **v1.4.1907
    > (2019-07-15) through v1.9.2607 (2026-07-29)** — no version behaves
    > differently.
 
    **Replacement**
 
-   > **Still reproduces on `main`** (`ab5400907`; `dxcompiler.dll` reports
+   > **Still reproduces on `main`** (`13730886e`; `dxcompiler.dll` reports
    > `1.9.0.5433`) and on all 21 releases I could measure, **v1.4.1907
    > (2019-07-15) through v1.9.2607 (2026-07-29)**.
 
-2. **Current:** `Four things in the tree, all at ab5400907:`
+2. **Current:** `Four things in the tree, all at 13730886e:`
 
-   **Replacement:** `On ab5400907:`
+   **Replacement:** `On 13730886e:`
 
 3. **Current**
 
@@ -321,13 +321,13 @@ was removed. Accepted replacements:
 
 1. **Current**
 
-   > Still reproduces on `main` (dxc 1.9.0.5433, commit `ab5400907`, Debug), and on **all 20
+   > Still reproduces on `main` (dxc 1.9.0.5433, commit `13730886e`, Debug), and on **all 20
    > release binaries from v1.4.1907 (2019-07) through v1.9.2607 (2026-07)** — every release I can
    > still run rejects it, and v1.4.1907 is the oldest I have a binary for.
 
    **Replacement**
 
-   > Still reproduces on `main` (dxc 1.9.0.5433, commit `ab5400907`, Debug), and on **all 20
+   > Still reproduces on `main` (dxc 1.9.0.5433, commit `13730886e`, Debug), and on **all 20
    > bisectable release binaries measured from v1.4.1907 (2019-07) through v1.9.2607
    > (2026-07)**.
 
@@ -363,12 +363,12 @@ was removed. Accepted replacements:
 
 1. **Current**
 
-   > **Still reproduces.** The attached `shader.txt` crashes `main` at `1.9.0.5433` (`ab5400907`)
+   > **Still reproduces.** The attached `shader.txt` crashes `main` at `1.9.0.5433` (`13730886e`)
    > with the filed command line, and crashes every release binary from v1.4.1907 to v1.9.2607.
 
    **Replacement**
 
-   > **Still reproduces.** The attached `shader.txt` crashes `main` at `1.9.0.5433` (`ab5400907`)
+   > **Still reproduces.** The attached `shader.txt` crashes `main` at `1.9.0.5433` (`13730886e`)
    > with the filed command line, and all 20 bisectable release binaries measured from v1.4.1907
    > to v1.9.2607.
 
@@ -399,12 +399,12 @@ was removed. Accepted replacements:
 
 1. **Current**
 
-   > Still reproduces on `main` (1.9.0.5433, `ab5400907`), and in all 20 releases from v1.4.1907
+   > Still reproduces on `main` (1.9.0.5433, `13730886e`), and in all 20 releases from v1.4.1907
    > through v1.9.2607 — including v1.6.2104, which shipped two days before this was filed.
 
    **Replacement**
 
-   > Still reproduces on `main` (1.9.0.5433, `ab5400907`) and in all 20 bisectable releases measured
+   > Still reproduces on `main` (1.9.0.5433, `13730886e`) and in all 20 bisectable releases measured
    > from v1.4.1907 through v1.9.2607, including v1.6.2104, which shipped two days before filing.
 
 2. **Current**
@@ -666,7 +666,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3429](https://github.com/microsoft/DirectXShaderCompiler/issues/3429).
 
-Still reproduces on `main` (dxc 1.9.0.5433, commit `ab5400907`, Debug), and on **all 20
+Still reproduces on `main` (dxc 1.9.0.5433, commit `13730886e`, Debug), and on **all 20
 bisectable release binaries measured from v1.4.1907 (2019-07) through v1.9.2607
 (2026-07)**. The minimised repro from
 [the 2024-04-28 comment](https://github.com/microsoft/DirectXShaderCompiler/issues/3429#issuecomment-2081259226)
@@ -738,7 +738,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3695](https://github.com/microsoft/DirectXShaderCompiler/issues/3695).
 
-**Still reproduces.** The attached `shader.txt` crashes `main` at `1.9.0.5433` (`ab5400907`)
+**Still reproduces.** The attached `shader.txt` crashes `main` at `1.9.0.5433` (`13730886e`)
 with the filed command line, and all 20 bisectable release binaries measured from v1.4.1907
 to v1.9.2607.
 
@@ -824,7 +824,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3706](https://github.com/microsoft/DirectXShaderCompiler/issues/3706).
 
-Still reproduces on `main` (1.9.0.5433, `ab5400907`) and in all 20 bisectable releases measured
+Still reproduces on `main` (1.9.0.5433, `13730886e`) and in all 20 bisectable releases measured
 from v1.4.1907 through v1.9.2607, including v1.6.2104, which shipped two days before filing.
 
 Repro: https://godbolt.org/z/n9YeYKT3W

@@ -1,0 +1,22 @@
+{
+  "batch": "batch-011",
+  "confidence": "high",
+  "created_at": "2020-04-10T00:29:22Z",
+  "godbolt_url": "https://godbolt.org/z/1nG4f73d3",
+  "history": "always-repro'd across all 20 stable releases v1.4.1907..v1.9.2607; no invalid probes",
+  "labels": "enhancement,high-impact",
+  "labels_add": "fxc-disagrees",
+  "labels_now": "enhancement,high-impact",
+  "notes_path": "issues/6727/notes.md",
+  "number": 6727,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.6-sol (worker independent review); claude-sonnet-5 (batch-011 final independent draft review, applied selectively)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Feature request, still unimplemented: DXIL defines IMul=41, UMul=42 and UDiv=43 in op class BinaryWithTwoOuts, but no HLSL spelling reaches them -- gen_intrin_main.txt has no entry and the only in-tree emitter is the DXBC-to-DXIL converter. Written the only way HLSL allows, the high half of a 32x32 multiply costs a 64-bit widening and the optional 64-Bit integer feature, while quotient plus remainder remain separate udiv/urem. FXC emits one two-output DXBC udiv from the same source. All 20 stable releases compile the probe and none emits the DXIL op.",
+  "title": "Support IMul/UMul/UDiv with two outputs from HLSL",
+  "triaged_at": "2026-08-10T01:56:46+00:00",
+  "triaged_by": "claude-opus-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/6727"
+}

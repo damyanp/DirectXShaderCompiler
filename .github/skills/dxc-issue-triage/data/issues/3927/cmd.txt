@@ -1,0 +1,11 @@
+# Issue 3927 repro command.
+#
+# As filed (see cmd-as-filed.txt):  -T ps_6_0 -spirv test.hlsl -Fo test.spv
+#
+# One deviation: -Fo is dropped. With -Fo the module is written to a binary file the
+# predicate cannot read; without it dxc disassembles the same module to stdout, which is
+# exactly what the reporter inspected by running `spirv-dis test.spv`. Codegen is identical --
+# -Fo only selects the output sink. No other flag was added or removed: the reporter filed no
+# -fcgl and no -Vd, so optimisation and validation both run, at the default optimisation
+# level the reporter used.
+-T ps_6_0 -spirv repro.hlsl

@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3377](https://github.com/microsoft/DirectXShaderCompiler/issues/3377).
 
-**Still reproduces on `main` (1.9.0.5433, `ab5400907`), and on every one of the 20 release
+**Still reproduces on `main` (1.9.0.5433, `13730886e`), and on every one of the 20 release
 binaries from v1.4.1907 (2019-07) to v1.9.2607.** The oldest predates the report by 18 months
 and already fails. The repro in the body works exactly as filed, with no edits.
 

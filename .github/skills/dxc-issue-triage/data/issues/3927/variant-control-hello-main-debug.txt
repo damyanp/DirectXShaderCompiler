@@ -1,0 +1,45 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T01:28:03+00:00
+# cmd: -T ps_6_0 -spirv control-hello.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-hello (control-hello.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -spirv control-hello.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 11
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %out_var_SV_Target0
+               OpExecutionMode %main OriginUpperLeft
+               OpSource HLSL 600
+               OpName %out_var_SV_Target0 "out.var.SV_Target0"
+               OpName %main "main"
+               OpDecorate %out_var_SV_Target0 Location 0
+      %float = OpTypeFloat 32
+    %float_1 = OpConstant %float 1
+    %v4float = OpTypeVector %float 4
+          %6 = OpConstantComposite %v4float %float_1 %float_1 %float_1 %float_1
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+          %9 = OpTypeFunction %void
+%out_var_SV_Target0 = OpVariable %_ptr_Output_v4float Output
+       %main = OpFunction %void None %9
+         %10 = OpLabel
+               OpStore %out_var_SV_Target0 %6
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

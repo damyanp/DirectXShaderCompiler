@@ -454,7 +454,6 @@ flag anything that looks wrong.</sub>
   v1.4.1907 lacked SPIR-V codegen and was re-probed front-end-only.
 - #3811's Clang Compiler Explorer pane reaches front-end LLVM IR, not DXIL
   validation; it supports only the front-end-silence comparison.
-- Earlier batches 006–009 still contain citations to orphaned `ab5400907`.
-  Their immutable binary-version captures should remain verbatim, but the
-  orchestrator must decide whether to rewrite those report/verdict citations to
-  live upstream provenance in a separate cleanup.
+- Earlier batches 006–009 originally cited the fork-local SHA from the binary.
+  Their report and draft citations now use public `13730886e`; immutable
+  binary-version captures remain verbatim.

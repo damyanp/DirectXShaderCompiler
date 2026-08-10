@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2530](https://github.com/microsoft/DirectXShaderCompiler/issues/2530).
 
-Both cases still reproduce on `main` (1.9.0.5433, `ab5400907`). Case 1 fails on
+Both cases still reproduce on `main` (1.9.0.5433, `13730886e`). Case 1 fails on
 all 20 releases from v1.4.1907 through v1.9.2607, and case 2 was checked at both
 endpoints and fails there too — v1.4.1907 (2019-07) is the oldest release
 shipping a usable `dxc`, so that is as far back as it is possible to check. FXC

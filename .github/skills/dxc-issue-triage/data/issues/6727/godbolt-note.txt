@@ -1,0 +1,24 @@
+Issue 6727 asks for HLSL intrinsics exposing the two outputs of the DXIL
+IMul/UMul/UDiv operations. The source below is the smallest case: the quotient
+and the remainder of one operand pair.
+
+FXC pane (cs_5_0, DXBC): a single udiv instruction, writing quotient and
+remainder into two destination registers from one divide.
+
+DXC panes (cs_6_0, DXIL): two independent instructions, a udiv and a urem, and
+no dx.op call for either.
+
+DXIL does define two-output forms of these operations, as opcodes 41, 42 and 43,
+and DXC's own DXBC-to-DXIL converter emits them. Nothing in the HLSL front end
+does, which is what this issue is asking for.
+
+Careful when searching the DXC panes: Compiler Explorer compiles with debug info,
+so this banner is embedded verbatim in the shader's own !dx.source.contents
+metadata. Any operation name written here would be findable in the pane text
+without the compiler having emitted anything of the sort. That is why the op
+class name is not spelled out above; see the issue comment for it.
+
+The multiply half of the request is absent from this file because FXC has no
+64-bit integers. In DXC the high 32 bits of a 32x32 multiply can only be reached
+by widening to uint64_t, which adds the optional 64-bit integer feature to the
+shader.

@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2792](https://github.com/microsoft/DirectXShaderCompiler/issues/2792).
 
-Still reproduces on `main` (1.9.0.5433, `ab5400907`) and in all 20 release probes back to
+Still reproduces on `main` (1.9.0.5433, `13730886e`) and in all 20 release probes back to
 v1.4.1907. Every probe exits 0 and codegens the out-of-bounds read; none diagnoses it.
 
 The repro from the description compiles clean, exit 0, no diagnostic:

@@ -11,6 +11,7 @@ Both have happened. See SKILL.md step 4.
 """
 import json
 import os
+import subprocess
 import sys
 import tempfile
 
@@ -52,6 +53,12 @@ internal("stack overflow", "", 0xC00000FD, True)
 internal("STATUS_LLVM_ASSERT", "Internal compiler error: LLVM Assert", 0xE0000001, True)
 internal("STATUS_LLVM_UNREACHABLE", "", 0xE0000002, True)
 internal("STATUS_LLVM_FATAL", "", 0xE0000003, True)
+internal("DXC_E_GENERAL_INTERNAL_ERROR without text", "", 0x80AA0018, True)
+internal("DXC_E_LLVM_FATAL_ERROR without text", "", 0x80AA001B, True)
+internal("DXC_E_LLVM_UNREACHABLE without text", "", 0x80AA001C, True)
+internal("DXC_E_LLVM_CAST_ERROR without text", "", 0x80AA001D, True)
+internal("DXC_E_OPTIMIZATION_FAILED is not assumed internal", "", 0x80AA0017, False)
+internal("DXC_E_ABORT_COMPILATION_ERROR is not assumed internal", "", 0x80AA0019, False)
 internal("other 0xC structured exception", "", 0xC000001D, True)
 internal("heap corruption", "", 0xC0000374, True)
 internal("timeout counts as internal", "", 0, True, timed_out=True)
@@ -114,6 +121,9 @@ try:
           True)
 finally:
     triage.issue_dir = _old_issue_dir
+
+check("fetch records the issue author",
+      "author" in triage.ISSUE_FETCH_FIELDS.split(","), True)
 
 print("malformed predicates fail loudly")
 for spec in ({"kind": "contains"}, {"kind": "any_of"},
@@ -560,6 +570,138 @@ for desc, line, want in [
 ]:
     check(desc, triage.split_cmd(line), want)
 
+# --- an unknown option can be a legacy spelling, not a missing feature -----
+check("extracts the rejected option from an Unknown argument diagnostic",
+      triage.unknown_argument_token(
+          "dxc failed : Unknown argument: '-pack-optimized'"),
+      "-pack-optimized")
+_spellings = triage.argument_spelling_variants("-pack-optimized")
+check("tries the underscore spelling before changing prefix",
+      _spellings[0], "-pack_optimized")
+check("also tries the slash spelling",
+      "/pack-optimized" in _spellings, True)
+_rewritten = triage.replace_argument_spelling(
+    ["-T ds_6_0 -pack-optimized repro.hlsl",
+     "-T ps_6_0 -pack-optimized repro.hlsl"],
+    "-pack-optimized", "-pack_optimized")
+check("rewrites the rejected flag in every invocation",
+      [triage.split_cmd(line)[2] for line in _rewritten],
+      ["-pack_optimized", "-pack_optimized"])
+
+# `bisect` may vary dxc itself, never an API/pass harness that happens to be
+# registered as a compiler. That substitution has produced the inverse result
+# repeatedly because every release dxc scored a plausible no-repro.
+check("recognises dxc.exe as a real driver",
+      triage.is_dxc_binary(r"C:\build\Debug\bin\dxc.exe"), True)
+check("recognises a harness as not dxc",
+      triage.is_dxc_binary(r"C:\triage\run-reflection.cmd"), False)
+_old_gt, _old_con = triage.ground_truth_compiler, triage.con
+
+
+class _OneRow:
+    def __init__(self, row):
+        self.row = row
+
+    def fetchone(self):
+        return self.row
+
+
+class _HarnessDb:
+    def execute(self, *_args):
+        return _OneRow({"exe_path": r"C:\triage\run-reflection.cmd"})
+
+
+try:
+    triage.ground_truth_compiler = lambda _issue: "main-debug-reflection"
+    triage.con = lambda: _HarnessDb()
+    try:
+        triage.refuse_harness_bisect(2952)
+    except SystemExit as e:
+        check("bisect hard-errors on a harness compiler",
+              "refusing to bisect" in str(e) and "explicit release matrix" in str(e),
+              True)
+    else:
+        check("bisect hard-errors on a harness compiler", "no error", "SystemExit")
+finally:
+    triage.ground_truth_compiler, triage.con = _old_gt, _old_con
+
+_excluded = [
+    {"tag": "v1.2.0-alpha", "build_date": None, "asset_name": None,
+     "prerelease": 1, "bisectable": 0},
+    {"tag": "v1.5.2003", "build_date": "2020-03-25", "asset_name": "dxc.zip",
+     "prerelease": 1, "bisectable": 0},
+]
+check("catalog exclusions distinguish missing assets from prereleases",
+      triage.release_exclusion_groups(_excluded),
+      {"no usable dxc asset": ["v1.2.0-alpha"],
+       "prerelease": ["v1.5.2003"]})
+check("bisect states which prerelease it skipped and why",
+      triage.release_exclusion_messages([_excluded[1]]),
+      ["skipped 1 prerelease from search by policy: v1.5.2003"])
+_stable = {"tag": "v1.5.2010", "build_date": "2020-10-22",
+           "asset_name": "dxc.zip", "prerelease": 0, "bisectable": 1}
+_included, _still_excluded, _named = triage.split_release_search_rows(
+    _excluded + [_stable], {"title": "ordinary bug", "body": "no build named"})
+check("prereleases stay outside the stable-release search by policy",
+      [r["tag"] for r in _included], ["v1.5.2010"])
+check("excluded prereleases remain visible for reporting",
+      [r["tag"] for r in _still_excluded],
+      ["v1.2.0-alpha", "v1.5.2003"])
+_included, _still_excluded, _named = triage.split_release_search_rows(
+    _excluded + [_stable],
+    {"title": "regression in v1.5.2003", "body": "tested that prerelease"})
+check("naming a prerelease does not silently opt it into the search",
+      [r["tag"] for r in _included], ["v1.5.2010"])
+_included, _still_excluded, _named = triage.split_release_search_rows(
+    _excluded + [_stable],
+    {"title": "regression in v1.5.2003", "body": "tested that prerelease"},
+    ["v1.5.2003"])
+check("an explicitly opted-in and named usable prerelease enters the search",
+      [r["tag"] for r in _included], ["v1.5.2003", "v1.5.2010"])
+check("the persistent prerelease carve-out is reported",
+      _named, ["v1.5.2003"])
+try:
+    triage.split_release_search_rows(
+        _excluded + [_stable],
+        {"title": "ordinary bug", "body": "no build named"},
+        ["v1.5.2003"])
+except SystemExit as e:
+    check("an opt-in is rejected unless the issue explicitly names the prerelease",
+          "do not explicitly name" in str(e), True)
+else:
+    check("an opt-in is rejected unless the issue explicitly names the prerelease",
+          "no error", "SystemExit")
+check("a longer release name does not accidentally name its prefix",
+      triage.issue_filing_names_release(
+          {"title": "regression in v1.5.2003.1", "body": ""}, "v1.5.2003"),
+      False)
+check("an issue may explicitly name a release without the v prefix",
+      triage.issue_filing_names_release(
+          {"title": "regression in 1.5.2003", "body": ""}, "v1.5.2003"),
+      True)
+_policy_dir = _tf.mkdtemp()
+_old_issue_dir = triage.issue_dir
+triage.issue_dir = lambda _n: _policy_dir
+try:
+    check("no release-policy artifact means no prerelease opt-ins",
+          triage.prerelease_opt_ins(1), [])
+    with open(_os.path.join(_policy_dir, "release-policy.json"), "w") as f:
+        _json.dump(["v1.5.2003"], f)
+    try:
+        triage.prerelease_opt_ins(1)
+    except SystemExit as e:
+        check("release-policy.json must be a JSON object",
+              "must be a JSON object" in str(e), True)
+    else:
+        check("release-policy.json must be a JSON object",
+              "no error", "SystemExit")
+    with open(_os.path.join(_policy_dir, "release-policy.json"), "w") as f:
+        _json.dump({"include_prereleases": ["v1.5.2003"]}, f)
+    check("release-policy.json makes the exception persistent and visible",
+          triage.prerelease_opt_ins(1), ["v1.5.2003"])
+finally:
+    triage.issue_dir = _old_issue_dir
+
 # --- `run` must not pick a compiler for you --------------------------------
 # Measured on #2923: the symptom lives in a PIX pass `dxc.exe` never runs, so
 # the issue is registered against a harness compiler. `run` with no --compiler
@@ -617,10 +759,19 @@ with tempfile.TemporaryDirectory() as _t:
     check("no verdicts means nothing to be stale against",
           _overview_state(os.path.join(_t, "d"), with_verdict=False), 0)
 
+print("committable path gate")
+_path_check = subprocess.run(
+    [sys.executable, os.path.join(os.path.dirname(__file__), "check_paths.py")],
+    capture_output=True, text=True)
+if _path_check.stdout.strip():
+    print(f"  {_path_check.stdout.strip()}")
+if _path_check.returncode and _path_check.stderr.strip():
+    print(_path_check.stderr.rstrip())
+check("no unexpected checkout or user-profile paths",
+      _path_check.returncode, 0)
+
 print()
 if FAILURES:
     print(f"{len(FAILURES)} FAILURE(S)")
     sys.exit(1)
 print("all predicate tests passed")
-
-

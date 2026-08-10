@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3189](https://github.com/microsoft/DirectXShaderCompiler/issues/3189).
 
-**Still reproduces exactly as filed**, on `main` (1.9.0.5433, `ab5400907`) and on all 19 tested
+**Still reproduces exactly as filed**, on `main` (1.9.0.5433, `13730886e`) and on all 19 tested
 releases from v1.5.2010 to v1.9.2607. v1.4.1907 cannot answer — `SPIR-V CodeGen not available` —
 so this has reproduced for as long as it is measurable. Nothing in the issue text is stale.
 

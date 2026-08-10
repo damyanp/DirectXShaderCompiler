@@ -1,0 +1,11 @@
+# The "compiler" here is run-refl2952.cmd, not dxc.exe: the report is about what
+# a reflection container can tell an application, and dxc.exe never calls
+# ID3D12LibraryReflection. The harness compiles this source with the DXC under
+# test, then walks the reflection interfaces an application has and, separately,
+# reads the container's RDAT part with DXC's own RDAT reader.
+#
+# lib_6_3 is the oldest library profile in the release sequence and is DXR 1.0,
+# per SKILL.md's "target the repro at the oldest profile and flag set that still
+# shows the symptom". No other flags: the issue reports none, and it names no
+# configuration at all.
+-T lib_6_3 repro.hlsl

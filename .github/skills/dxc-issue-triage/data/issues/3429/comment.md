@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3429](https://github.com/microsoft/DirectXShaderCompiler/issues/3429).
 
-Still reproduces on `main` (dxc 1.9.0.5433, commit `ab5400907`, Debug), and on **all 20
+Still reproduces on `main` (dxc 1.9.0.5433, commit `13730886e`, Debug), and on **all 20
 bisectable release binaries measured from v1.4.1907 (2019-07) through v1.9.2607
 (2026-07)**. The minimised repro from
 [the 2024-04-28 comment](https://github.com/microsoft/DirectXShaderCompiler/issues/3429#issuecomment-2081259226)

@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2128](https://github.com/microsoft/DirectXShaderCompiler/issues/2128).
 
-**Still reproduces on `main` (1.9.0.5433, `ab5400907`), and the original report's numbers hold to
+**Still reproduces on `main` (1.9.0.5433, `13730886e`), and the original report's numbers hold to
 within a few points.**
 
 Compiled three pixel shaders with both compilers (`dxc -T ps_6_0 -E main -O3`,

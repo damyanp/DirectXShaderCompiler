@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3693](https://github.com/microsoft/DirectXShaderCompiler/issues/3693).
 
-Still reproduces on `main` (1.9.0.5433, ab5400907), and on every release back to v1.6.2104
+Still reproduces on `main` (1.9.0.5433, 13730886e), and on every release back to v1.6.2104
 (the oldest that accepts `lib_6_6`).
 
 **DXC already has this diagnostic, but does not reach it in this position.** Hoisting the

@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3251](https://github.com/microsoft/DirectXShaderCompiler/issues/3251).
 
-**Still reproduces on `main` (1.9.0.5433, `ab5400907`), and on every release binary that supports
+**Still reproduces on `main` (1.9.0.5433, `13730886e`), and on every release binary that supports
 `as_6_5`.** The repro in the body works as filed; the assert is still the one named in the title,
 still in `TranslateCBAddressUserLegacy`, still because the user is `HLOpcodeGroup::NotHL`.
 

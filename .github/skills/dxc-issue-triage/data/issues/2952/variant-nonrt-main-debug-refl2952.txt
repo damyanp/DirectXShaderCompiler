@@ -1,0 +1,59 @@
+# compiler: main-debug-refl2952
+# exe: <triage>/issues/2952/run-refl2952.cmd
+# ran: 2026-08-10T01:38:02+00:00
+# cmd: -T lib_6_3 control-nonrt-lib.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: nonrt (control-nonrt-lib.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 control-nonrt-lib.hlsl
+[exe] <triage>/issues/2952/run-refl2952.cmd
+[exit] 0
+--- stdout ---
+# refl2952: #2952 ray payload size / shader kind through the reflection API
+dll: <repo>/build/Debug/bin/dxcompiler.dll
+source: control-nonrt-lib.hlsl
+IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+compiler diagnostics:
+control-nonrt-lib.hlsl:20:2: warning: attribute 'numthreads' ignored without accompanying shader attribute [-Wmisplaced-attributes]
+[numthreads(8, 8, 1)] void CSMain(uint3 tid
+ ^
+
+IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+
+--- RDAT part: what the container records ---
+IDxcContainerReflection::FindFirstPartKind(RDAT) -> 0x00000000 (S_OK)
+  RDAT part size=248 bytes, FunctionTable[2]
+  [0] Scale              RuntimeDataFunctionInfo.ShaderKind=6 (Library) .PayloadSizeInBytes=0 .AttributeSizeInBytes=0
+  [1] Combine            RuntimeDataFunctionInfo.ShaderKind=6 (Library) .PayloadSizeInBytes=0 .AttributeSizeInBytes=0
+IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+IDxcContainerReflection::GetPartReflection(ID3D12LibraryReflection) -> 0x00000000 (S_OK)
+ID3D12LibraryReflection::GetDesc -> 0x00000000 (S_OK)
+  D3D12_LIBRARY_DESC.FunctionCount=2
+
+--- D3D12 reflection API: what an application can see ---
+[0] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+    D3D12_FUNCTION_DESC.Name="\x01?Combine@@YA?AV?$vector@M$03@@V?$vector@M$02@@0@Z"
+    D3D12_FUNCTION_DESC.Version=0x00060063 -> D3D12_SHVER_GET_TYPE=6 (Library), sm 6.3
+    all D3D12_FUNCTION_DESC numeric fields: Version=393315 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+    rdat: ShaderKind=6 (Library) PayloadSizeInBytes=0 AttributeSizeInBytes=0
+    KIND: api=Library rdat=Library -> agree
+    PAYLOAD: rdat says this entry carries no payload; nothing to search for
+[1] ID3D12FunctionReflection::GetDesc -> 0x00000000 (S_OK)
+    D3D12_FUNCTION_DESC.Name="\x01?Scale@@YA?AV?$vector@M$02@@V1@M@Z"
+    D3D12_FUNCTION_DESC.Version=0x00060063 -> D3D12_SHVER_GET_TYPE=6 (Library), sm 6.3
+    all D3D12_FUNCTION_DESC numeric fields: Version=393315 Flags=0 ConstantBuffers=0 BoundResources=0 InstructionCount=0 TempRegisterCount=0 TempArrayCount=0 DefCount=0 DclCount=0 TextureNormalInstructions=0 TextureLoadInstructions=0 TextureCompInstructions=0 TextureBiasInstructions=0 TextureGradientInstructions=0 FloatInstructionCount=0 IntInstructionCount=0 UintInstructionCount=0 StaticFlowControlCount=0 DynamicFlowControlCount=0 MacroInstructionCount=0 ArrayInstructionCount=0 MovInstructionCount=0 MovcInstructionCount=0 ConversionInstructionCount=0 BitwiseInstructionCount=0 MinFeatureLevel=0 RequiredFeatureFlags=0 FunctionParameterCount=0 HasReturn=0 Has10Level9VertexShader=0 Has10Level9PixelShader=0 
+    rdat: ShaderKind=6 (Library) PayloadSizeInBytes=0 AttributeSizeInBytes=0
+    KIND: api=Library rdat=Library -> agree
+    PAYLOAD: rdat says this entry carries no payload; nothing to search for
+
+SELFCHECK: library-function-count=2 rdat-function-count=2 names-matched=2
+SELFCHECK: field-search-selftest=pass
+SUMMARY: payload-carrying-entries=0 api-payload-found=0 kind-checked=2 kind-agrees=2
+RESULT: API-SHADER-KIND=available API-PAYLOAD-SIZE=n/a RDAT-SHADER-KIND=present RDAT-PAYLOAD-SIZE=n/a
+
+--- stderr ---
+

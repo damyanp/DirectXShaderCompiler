@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3706](https://github.com/microsoft/DirectXShaderCompiler/issues/3706).
 
-Still reproduces on `main` (1.9.0.5433, `ab5400907`) and in all 20 bisectable releases measured
+Still reproduces on `main` (1.9.0.5433, `13730886e`) and in all 20 bisectable releases measured
 from v1.4.1907 through v1.9.2607, including v1.6.2104, which shipped two days before filing.
 
 Repro: https://godbolt.org/z/n9YeYKT3W

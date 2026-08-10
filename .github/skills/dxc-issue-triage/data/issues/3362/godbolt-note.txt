@@ -1,0 +1,14 @@
+Three panes, one source. The struct is declared once, so both stages are handed
+the identical signature that -pack-optimized documents as its precondition.
+
+Pane 1 (dxc_1_6_2112, domain shader, -pack-optimized) and pane 2 (dxc_trunk,
+pixel shader, -pack-optimized): look at the SV_ClipDistance row of the domain
+shader's Output signature and of the pixel shader's Input signature. They give
+the same Mask and the same Register, and so do the PREVIOUSPOSITION, SV_Position
+and NORMAL rows -- the DS output layout and the PS input layout agree, on two
+compiler versions years apart.
+
+Pane 3 (dxc_trunk, pixel shader, no -pack-optimized): the SV_ClipDistance row
+now names a different Register and a different Mask, and the other three rows
+move with it. That layout, not pane 2's, is the pixel-shader table quoted in the
+issue -- which is what makes the domain shader and the pixel shader disagree.

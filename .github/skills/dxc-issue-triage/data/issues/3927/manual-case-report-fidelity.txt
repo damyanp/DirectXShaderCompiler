@@ -1,0 +1,7 @@
+#3927 -- reporter's quoted disassembly vs this triage's v1.6.2106 capture
+# sources: issue.json (body) and out-v1.6.2106.txt
+# the reporter states the listing came from dxc_2021_07_01, i.e. v1.6.2106
+
+[reporter lines] 64
+[capture  lines] 64
+[RESULT] identical line for line -- repro.hlsl reproduces the reporter's exact module

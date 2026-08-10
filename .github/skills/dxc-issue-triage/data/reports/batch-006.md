@@ -1,9 +1,9 @@
 # DXC issue triage — batch 006
 
-**Ground truth:** clean `main` **Debug** build, commit `ab5400907`
-(`dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)`),
-verified live from this session by running `dxc --version` and cross-checked against
-`triaged_with_commit` in all five `verdict.json` files.
+**Ground truth:** clean `main` **Debug** build, source-identical to upstream
+`13730886e`. The binary self-reports
+`dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)`;
+that fork-local SHA is captured evidence, not the public citation.
 **History:** 20 official release binaries, v1.4.1907 → v1.9.2607.
 **FXC comparisons:** real `fxc.exe` from the Windows SDK.
 **Nothing was posted, edited, labelled or closed. No DXC source was modified**
@@ -11,7 +11,7 @@ verified live from this session by running `dxc --version` and cross-checked aga
 `git status` outside the skill directory).
 
 > **The compiler did not change between batch 005 and batch 006.** `git fetch upstream main`
-> showed 0 commits ahead of HEAD, so the batch-005 build at `ab5400907` is still current; the
+> showed 0 commits ahead of HEAD, so the batch-005 build represented by `13730886e` was still current; the
 > rebuild *check* was performed and its result recorded rather than the rebuild being skipped
 > silently. Batch 005 and batch 006 verdicts are therefore directly comparable. Batches 001–004
 > measured `eff900d5` and are not.
@@ -555,7 +555,7 @@ nobody composed for it. Recommended for adoption as a regression fixture.
   natural home is `godbolt --verify`.
 - **`git diff --stat <built-commit> HEAD` (#3251)** confirms the binary was built from the source
   whose line numbers you are quoting. Ten seconds; cheap insurance for any triage that cites a
-  line. Here it confirmed the only differences between `ab5400907` and HEAD are inside the skill
+  line. Here it confirmed the only differences between the built source and HEAD are inside the skill
   directory.
 
 ### 16. PowerShell silently damaged two artifacts, and three cosmetic record inconsistencies (new)
@@ -681,7 +681,7 @@ Source of each is `issues/<nnnn>/comment.md` — edit there, then re-run
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2128](https://github.com/microsoft/DirectXShaderCompiler/issues/2128).
 
-**Still reproduces on `main` (1.9.0.5433, `ab5400907`), and the original report's numbers hold to
+**Still reproduces on `main` (1.9.0.5433, `13730886e`), and the original report's numbers hold to
 within a few points.**
 
 Compiled three pixel shaders with both compilers (`dxc -T ps_6_0 -E main -O3`,
@@ -765,7 +765,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2331](https://github.com/microsoft/DirectXShaderCompiler/issues/2331).
 
-**Still reproduces on `main` (1.9.0.5433, `ab5400907`).**
+**Still reproduces on `main` (1.9.0.5433, `13730886e`).**
 
 ```
 $ dxc -T ps_6_0 -E MainPS repro.hlsl
@@ -838,7 +838,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2528](https://github.com/microsoft/DirectXShaderCompiler/issues/2528).
 
-Still reproduces on `main` (`1.9.0.5433`, `ab5400907`), and on all 20 releases from
+Still reproduces on `main` (`1.9.0.5433`, `13730886e`), and on all 20 releases from
 v1.4.1907 (2019-07) to v1.9.2607 — the whole checkable range, which starts before this was
 filed. The repro in the body works as written.
 
@@ -930,7 +930,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2792](https://github.com/microsoft/DirectXShaderCompiler/issues/2792).
 
-Still reproduces on `main` (1.9.0.5433, `ab5400907`) and in all 20 release probes back to
+Still reproduces on `main` (1.9.0.5433, `13730886e`) and in all 20 release probes back to
 v1.4.1907. Every probe exits 0 and codegens the out-of-bounds read; none diagnoses it.
 
 The repro from the description compiles clean, exit 0, no diagnostic:
@@ -992,7 +992,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3251](https://github.com/microsoft/DirectXShaderCompiler/issues/3251).
 
-**Still reproduces on `main` (1.9.0.5433, `ab5400907`), and on every release binary that supports
+**Still reproduces on `main` (1.9.0.5433, `13730886e`), and on every release binary that supports
 `as_6_5`.** The repro in the body works as filed; the assert is still the one named in the title,
 still in `TranslateCBAddressUserLegacy`, still because the user is `HLOpcodeGroup::NotHL`.
 

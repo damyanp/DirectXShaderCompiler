@@ -1,0 +1,39 @@
+# FXC comparison for #3883, via ce-probe.py (committed beside this file).
+# Compiler Explorer, fxc_10_0_19041. Read-only: these compile, they publish nothing.
+# The control (control-initialised.hlsl) is what makes the first result evidence rather
+# than an observation: FXC accepts the same shader once the variable is initialised.
+
+### $ python ce-probe.py fxc_10_0_19041 repro.hlsl "/T ps_5_0 /E PSMain"
+### compiler: fxc_10_0_19041
+### source:   repro.hlsl
+### args:     /T ps_5_0 /E PSMain
+### exit:     1
+[stdout] Microsoft (R) Direct3D Shader Compiler 10.1
+[stdout] Copyright (C) 2013 Microsoft. All rights reserved.
+[stdout] 
+[stderr] <source>(8,10-22): error X4000: variable 'index' used without having been completely initialized
+[stderr] 
+[stderr] compilation failed; no code produced
+
+### $ python ce-probe.py fxc_10_0_19041 control-initialised.hlsl "/T ps_5_0 /E PSMain"
+### compiler: fxc_10_0_19041
+### source:   control-initialised.hlsl
+### args:     /T ps_5_0 /E PSMain
+### exit:     0
+[stdout] Microsoft (R) Direct3D Shader Compiler 10.1
+[stdout] Copyright (C) 2013 Microsoft. All rights reserved.
+[stdout] 
+[stdout] compilation code save succeeded; see C:\Windows\TEMP\compiler-explorer-compilerkD2vxi\output.s
+
+### $ python ce-probe.py fxc_10_0_19041 variant-uninitialised.hlsl "/T ps_5_0 /E PSMain"
+### compiler: fxc_10_0_19041
+### source:   variant-uninitialised.hlsl
+### args:     /T ps_5_0 /E PSMain
+### exit:     1
+[stdout] Microsoft (R) Direct3D Shader Compiler 10.1
+[stdout] Copyright (C) 2013 Microsoft. All rights reserved.
+[stdout] 
+[stderr] <source>(12,5-25): error X4000: variable 'index' used without having been completely initialized
+[stderr] 
+[stderr] compilation failed; no code produced
+

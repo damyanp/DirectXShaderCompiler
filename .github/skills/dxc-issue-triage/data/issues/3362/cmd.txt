@@ -1,0 +1,24 @@
+# #3362 -- domain shader output vs pixel shader input under -pack-optimized.
+#
+# Two invocations of the SAME source, so both stages are guaranteed to see the
+# identical interstage struct -- which is the precondition -pack-optimized
+# documents ("Optimize signature packing assuming identical signature provided
+# for each connecting stage", HLSLOptions.td:302).  Both stages get the flag.
+#
+# Deviations from cmd-as-filed.txt (the reporter's own command lines, recovered
+# from the header of each file in the attached disasm.zip):
+#   * ds_6_0 / ps_6_0 instead of ds_6_5 / ps_6_5.  Nothing in the repro needs
+#     SM 6.5, and ds_6_5 does not exist before v1.5.2010, which would make the
+#     oldest releases unprobeable rather than informative.
+#   * the reporter's -all-resources-bound / -res-may-alias /
+#     -no-legacy-cbuf-layout / -flegacy-macro-expansion / -D HLSL6 are dropped:
+#     the repro declares no resources and no macros, so none of them can affect
+#     signature packing, and -flegacy-macro-expansion does not exist in the
+#     older releases.
+#   * -Qstrip_debug -Qstrip_reflect keeps the disassembly to the signature
+#     tables (and keeps the source text out of the DXIL, so a predicate cannot
+#     match the shader's own comments).
+#   * the reporter compiled their PIXEL shader WITHOUT -pack-optimized; that
+#     configuration is captured separately as variant-ps-no-flag-*.
+-T ds_6_0 -E DSMain -pack-optimized -Qstrip_debug -Qstrip_reflect repro.hlsl
+-T ps_6_0 -E PSMain -pack-optimized -Qstrip_debug -Qstrip_reflect repro.hlsl

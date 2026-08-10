@@ -1,0 +1,16 @@
+# compiler: v1.5.2003
+# exe: <cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe
+# ran: 2026-08-10T02:19:16+00:00
+# cmd: -T ps_6_0 -E main_fragment repro.hlsl
+# exit: 3221225477
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E main_fragment repro.hlsl
+[exe] <cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe
+[exit] 3221225477
+--- stdout ---
+
+--- stderr ---
+

@@ -1,0 +1,253 @@
+dxc objectPS_prepass.hlsl -T ps_6_5  -all-resources-bound  -res-may-alias  -no-legacy-cbuf-layout  -flegacy-macro-expansion  -D HLSL6
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xy
+; SV_ClipDistance          0   x           1  CLIPDST   float
+; PREVIOUSPOSITION         0   xyzw        2     NONE   float   xy w
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader hash: 6f9d21d192e6d50532fc0643d40ccead
+;
+; Pipeline Runtime Information:
+;
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective
+; SV_ClipDistance          0                 linear
+; PREVIOUSPOSITION         0                 linear
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0
+;
+; Buffer Definitions:
+;
+; cbuffer FrameCB
+; {
+;
+;   struct FrameCB
+;   {
+;
+;       float2 g_xFrame_ScreenWidthHeight;            ; Offset:    0
+;       float2 g_xFrame_ScreenWidthHeight_rcp;        ; Offset:    8
+;       float2 g_xFrame_InternalResolution;           ; Offset:   16
+;       float2 g_xFrame_InternalResolution_rcp;       ; Offset:   24
+;       float3 g_xFrame_SunColor;                     ; Offset:   32
+;       float g_xFrame_Gamma;                         ; Offset:   44
+;       float3 g_xFrame_SunDirection;                 ; Offset:   48
+;       uint g_xFrame_ShadowCascadeCount;             ; Offset:   60
+;       float3 g_xFrame_Horizon;                      ; Offset:   64
+;       uint g_xFrame_ConstantOne;                    ; Offset:   76
+;       float3 g_xFrame_Zenith;                       ; Offset:   80
+;       float g_xFrame_CloudScale;                    ; Offset:   92
+;       float3 g_xFrame_Ambient;                      ; Offset:   96
+;       float g_xFrame_Cloudiness;                    ; Offset:  108
+;       float3 g_xFrame_Fog;                          ; Offset:  112
+;       float g_xFrame_VoxelRadianceMaxDistance;      ; Offset:  124
+;       float g_xFrame_VoxelRadianceDataSize;         ; Offset:  128
+;       float g_xFrame_VoxelRadianceDataSize_rcp;     ; Offset:  132
+;       uint g_xFrame_VoxelRadianceDataRes;           ; Offset:  136
+;       float g_xFrame_VoxelRadianceDataRes_rcp;      ; Offset:  140
+;       uint g_xFrame_VoxelRadianceDataMIPs;          ; Offset:  144
+;       uint g_xFrame_VoxelRadianceNumCones;          ; Offset:  148
+;       float g_xFrame_VoxelRadianceNumCones_rcp;     ; Offset:  152
+;       float g_xFrame_VoxelRadianceRayStepSize;      ; Offset:  156
+;       float3 g_xFrame_VoxelRadianceDataCenter;      ; Offset:  160
+;       uint g_xFrame_Options;                        ; Offset:  172
+;       uint3 g_xFrame_EntityCullingTileCount;        ; Offset:  176
+;       int g_xFrame_GlobalEnvProbeIndex;             ; Offset:  188
+;       uint g_xFrame_EnvProbeMipCount;               ; Offset:  192
+;       float g_xFrame_EnvProbeMipCount_rcp;          ; Offset:  196
+;       float g_xFrame_Time;                          ; Offset:  200
+;       float g_xFrame_TimePrev;                      ; Offset:  204
+;       float g_xFrame_SunEnergy;                     ; Offset:  208
+;       float g_xFrame_WindSpeed;                     ; Offset:  212
+;       float g_xFrame_DeltaTime;                     ; Offset:  216
+;       uint g_xFrame_FrameCount;                     ; Offset:  220
+;       uint g_xFrame_LightArrayOffset;               ; Offset:  224
+;       uint g_xFrame_LightArrayCount;                ; Offset:  228
+;       uint g_xFrame_DecalArrayOffset;               ; Offset:  232
+;       uint g_xFrame_DecalArrayCount;                ; Offset:  236
+;       uint g_xFrame_ForceFieldArrayOffset;          ; Offset:  240
+;       uint g_xFrame_ForceFieldArrayCount;           ; Offset:  244
+;       uint g_xFrame_EnvProbeArrayOffset;            ; Offset:  248
+;       uint g_xFrame_EnvProbeArrayCount;             ; Offset:  252
+;       float3 g_xFrame_WindDirection;                ; Offset:  256
+;       float g_xFrame_WindWaveSize;                  ; Offset:  268
+;       float3 g_xFrame_WorldBoundsMin;               ; Offset:  272
+;       float g_xFrame_CloudSpeed;                    ; Offset:  284
+;       float3 g_xFrame_WorldBoundsMax;               ; Offset:  288
+;       float g_xFrame_WindRandomness;                ; Offset:  300
+;       float3 g_xFrame_WorldBoundsExtents;           ; Offset:  304
+;       float g_xFrame_StaticSkyGamma;                ; Offset:  316
+;       float3 g_xFrame_WorldBoundsExtents_rcp;       ; Offset:  320
+;       uint g_xFrame_TemporalAASampleRotation;       ; Offset:  332
+;       float g_xFrame_ShadowKernel2D;                ; Offset:  336
+;       float g_xFrame_ShadowKernelCube;              ; Offset:  340
+;       uint g_xFrame_RaytracedShadowsSampleCount;    ; Offset:  344
+;       float g_xFrame_padding0;                      ; Offset:  348
+;
+;   } FrameCB;                                        ; Offset:    0 Size:   352
+;
+; }
+;
+; cbuffer CameraCB
+; {
+;
+;   struct dx.alignment.legacy.CameraCB
+;   {
+;
+;       column_major float4x4 g_xCamera_VP;           ; Offset:    0
+;       float4 g_xCamera_ClipPlane;                   ; Offset:   64
+;       float3 g_xCamera_CamPos;                      ; Offset:   80
+;       float g_xCamera_DistanceFromOrigin;           ; Offset:   92
+;       float3 g_xCamera_At;                          ; Offset:   96
+;       float g_xCamera_ZNearP;                       ; Offset:  108
+;       float3 g_xCamera_Up;                          ; Offset:  112
+;       float g_xCamera_ZFarP;                        ; Offset:  124
+;       float g_xCamera_ZNearP_rcp;                   ; Offset:  128
+;       float g_xCamera_ZFarP_rcp;                    ; Offset:  132
+;       float g_xCamera_ZRange;                       ; Offset:  136
+;       float g_xCamera_ZRange_rcp;                   ; Offset:  140
+;       column_major float4x4 g_xCamera_View;         ; Offset:  144
+;       column_major float4x4 g_xCamera_Proj;         ; Offset:  208
+;       column_major float4x4 g_xCamera_InvV;         ; Offset:  272
+;       column_major float4x4 g_xCamera_InvP;         ; Offset:  336
+;       column_major float4x4 g_xCamera_InvVP;        ; Offset:  400
+;       float4 g_xCamera_FrustumPlanes[6];            ; Offset:  464
+;       float2 g_xFrame_TemporalAAJitter;             ; Offset:  560
+;       float2 g_xFrame_TemporalAAJitterPrev;         ; Offset:  568
+;       column_major float4x4 g_xCamera_PrevV;        ; Offset:  576
+;       column_major float4x4 g_xCamera_PrevP;        ; Offset:  640
+;       column_major float4x4 g_xCamera_PrevVP;       ; Offset:  704
+;       column_major float4x4 g_xCamera_PrevInvVP;    ; Offset:  768
+;       column_major float4x4 g_xCamera_ReflVP;       ; Offset:  832
+;
+;   } CameraCB;                                       ; Offset:    0 Size:   896
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; FrameCB                           cbuffer      NA          NA     CB0            cb0     1
+; CameraCB                          cbuffer      NA          NA     CB1            cb1     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 12, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0, 8, 11 }
+;   output 1 depends on inputs: { 1, 9, 11 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%FrameCB = type { <2 x float>, <2 x float>, <2 x float>, <2 x float>, <3 x float>, float, <3 x float>, i32, <3 x float>, i32, <3 x float>, float, <3 x float>, float, <3 x float>, float, float, float, i32, float, i32, i32, float, float, <3 x float>, i32, <3 x i32>, i32, i32, float, float, float, float, float, float, i32, i32, i32, i32, i32, i32, i32, i32, i32, <3 x float>, float, <3 x float>, float, <3 x float>, float, <3 x float>, float, <3 x float>, i32, float, float, i32, float }
+%dx.alignment.legacy.CameraCB = type { [4 x <4 x float>], <4 x float>, <3 x float>, float, <3 x float>, float, <3 x float>, float, float, float, float, float, [4 x <4 x float>], [4 x <4 x float>], [4 x <4 x float>], [4 x <4 x float>], [4 x <4 x float>], [6 x <4 x float>], <2 x float>, <2 x float>, [4 x <4 x float>], [4 x <4 x float>], [4 x <4 x float>], [4 x <4 x float>], [4 x <4 x float>] }
+
+define void @main() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 1, i32 1, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %3 = call float @dx.op.loadInput.f32(i32 4, i32 2, i32 0, i8 0, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 2, i32 0, i8 1, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %5 = call float @dx.op.loadInput.f32(i32 4, i32 2, i32 0, i8 3, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %6 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %7 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %8 = call float @dx.op.cbufferLoad.f32(i32 58, %dx.types.Handle %2, i32 24, i32 8)  ; CBufferLoad(handle,byteOffset,alignment)
+  %9 = call float @dx.op.cbufferLoad.f32(i32 58, %dx.types.Handle %2, i32 28, i32 8)  ; CBufferLoad(handle,byteOffset,alignment)
+  %10 = fmul fast float %6, 2.000000e+00
+  %11 = fmul fast float %10, %8
+  %12 = fmul fast float %7, 2.000000e+00
+  %13 = fmul fast float %12, %9
+  %14 = fadd fast float %13, -1.000000e+00
+  %15 = fdiv fast float %3, %5
+  %16 = fdiv fast float %4, %5
+  %17 = call float @dx.op.cbufferLoad.f32(i32 58, %dx.types.Handle %1, i32 568, i32 8)  ; CBufferLoad(handle,byteOffset,alignment)
+  %18 = call float @dx.op.cbufferLoad.f32(i32 58, %dx.types.Handle %1, i32 572, i32 8)  ; CBufferLoad(handle,byteOffset,alignment)
+  %19 = call float @dx.op.cbufferLoad.f32(i32 58, %dx.types.Handle %1, i32 560, i32 8)  ; CBufferLoad(handle,byteOffset,alignment)
+  %20 = call float @dx.op.cbufferLoad.f32(i32 58, %dx.types.Handle %1, i32 564, i32 8)  ; CBufferLoad(handle,byteOffset,alignment)
+  %21 = fadd fast float %15, 1.000000e+00
+  %22 = fsub fast float %21, %11
+  %23 = fsub fast float %22, %17
+  %24 = fadd fast float %23, %19
+  %25 = fadd fast float %14, %16
+  %26 = fsub fast float %25, %18
+  %27 = fadd fast float %26, %20
+  %28 = fmul fast float %24, 5.000000e-01
+  %29 = fmul fast float %27, -5.000000e-01
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %28)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %29)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float 0.000000e+00)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float 0.000000e+00)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind readonly
+declare float @dx.op.cbufferLoad.f32(i32, %dx.types.Handle, i32, i32) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!1}
+!dx.shaderModel = !{!2}
+!dx.resources = !{!3}
+!dx.viewIdState = !{!7}
+!dx.entryPoints = !{!8}
+
+!0 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!1 = !{i32 1, i32 5}
+!2 = !{!"ps", i32 6, i32 5}
+!3 = !{null, null, !4, null}
+!4 = !{!5, !6}
+!5 = !{i32 0, %FrameCB* undef, !"", i32 0, i32 0, i32 1, i32 352, null}
+!6 = !{i32 1, %dx.alignment.legacy.CameraCB* undef, !"", i32 0, i32 1, i32 1, i32 896, null}
+!7 = !{[14 x i32] [i32 12, i32 4, i32 1, i32 2, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 2, i32 0, i32 3]}
+!8 = !{void ()* @main, !"main", !9, !3, !20}
+!9 = !{!10, !17, null}
+!10 = !{!11, !14, !15}
+!11 = !{i32 0, !"SV_Position", i8 9, i8 3, !12, i8 4, i32 1, i8 4, i32 0, i8 0, !13}
+!12 = !{i32 0}
+!13 = !{i32 3, i32 3}
+!14 = !{i32 1, !"SV_ClipDistance", i8 9, i8 6, !12, i8 2, i32 1, i8 1, i32 1, i8 0, null}
+!15 = !{i32 2, !"PREVIOUSPOSITION", i8 9, i8 0, !12, i8 2, i32 1, i8 4, i32 2, i8 0, !16}
+!16 = !{i32 3, i32 11}
+!17 = !{!18}
+!18 = !{i32 0, !"SV_Target", i8 9, i8 16, !12, i8 0, i32 1, i8 4, i32 0, i8 0, !19}
+!19 = !{i32 3, i32 15}
+!20 = !{i32 0, i64 264}
