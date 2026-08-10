@@ -13,11 +13,11 @@
   "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
   "status": "repros",
   "suggested_action": "needs-human-judgement",
-  "summary": "Still reproduces on main (ab5400907). The separate PDB written by -Fd declares NumBlocks one block short, so the file's own stream directory addresses a block the superblock says does not exist; cause is NumBlockAddrBlocks being written but never counted at lib/DXIL/DxilPDB.cpp:132. Present in all 21 builds measured. LLVM and llvm-pdbutil accept the file; Microsoft's reference MSF implementation would refuse to read the last page. The actionable finding is that PR #5767 (Fixes #3005, by a maintainer, reviewed and format-clean in Nov 2023) was closed unmerged by an inactivity sweep on 2026-01-22.",
+  "summary": "Still reproduces on main (13730886e). The separate PDB written by -Fd declares NumBlocks one block short, so the file's own stream directory addresses a block the superblock says does not exist; cause is NumBlockAddrBlocks being written but never counted at lib/DXIL/DxilPDB.cpp:132. Present in all 21 builds measured. LLVM and llvm-pdbutil accept the file; Microsoft's reference MSF implementation would refuse to read the last page. The actionable finding is that PR #5767 (Fixes #3005, by a maintainer, reviewed and format-clean in Nov 2023) was closed unmerged by an inactivity sweep on 2026-01-22.",
   "text_stale": "A maintainer comment left standing: @damyanp asked on 2024-06-27 'it looks like you have a PR prepared for this. How far off is that from being ready to go in?' It was never answered, and the PR it refers to (#5767) was closed unmerged on 2026-01-22, so the thread reads top-down as though a fix is pending when none is. Title and body are still accurate -- the hex dump reproduces exactly on v1.5.2010.",
   "title": "Generated separate PDB files have possibly invalid header",
   "triaged_at": "2026-08-07T13:22:04+00:00",
   "triaged_by": "GitHub Copilot CLI 1.0.79-2 (model not self-identifiable)",
-  "triaged_with_commit": "ab5400907",
+  "triaged_with_commit": "13730886e",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3005"
 }

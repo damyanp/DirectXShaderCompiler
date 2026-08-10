@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3237](https://github.com/microsoft/DirectXShaderCompiler/issues/3237).
 
-**Still reproduces on `main`** (`ab5400907`; `dxcompiler.dll` reports
+**Still reproduces on `main`** (`13730886e`; the local build reports
 `1.9.0.5433`) and on all 21 releases I could measure, **v1.4.1907
 (2019-07-15) through v1.9.2607 (2026-07-29)**.
 
@@ -29,7 +29,7 @@ with two parameters and a return value it still prints
 
 ### It was never implemented, rather than broken
 
-On `ab5400907`:
+On `13730886e`:
 
 1. `CFunctionReflection::GetFunctionParameter` (`lib/HLSL/DxilContainerReflection.cpp:2834`)
    ignores its index and always returns `&g_InvalidFunctionParameter`.

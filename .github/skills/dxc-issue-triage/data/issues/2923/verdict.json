@@ -15,10 +15,10 @@
   "reviewed_by": "gpt-5.6-sol (independent draft review, SKILL.md step 10, applied selectively at collation)",
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
-  "summary": "Still repros on main (1.9.0.5433, ab5400907): passing an amplification payload struct by value to a subroutine that calls DispatchMesh leaves main's own local mapped to six PIX virtual registers that are never written, with the six member writes numbered onto the inlined callee copy instead (both -Od and -O1); regressed in v1.6.2106 and numbered correctly in every earlier probeable release, so this agent-built repro may not be the reporter's 2020 instance.",
+  "summary": "Still repros on main (1.9.0.5433, 13730886e): passing an amplification payload struct by value to a subroutine that calls DispatchMesh leaves main's own local mapped to six PIX virtual registers that are never written, with the six member writes numbered onto the inlined callee copy instead (both -Od and -O1); regressed in v1.6.2106 and numbered correctly in every earlier probeable release, so this agent-built repro may not be the reporter's 2020 instance.",
   "title": "Structs passed to subroutines (can) cause the numbering pass to get confused about offsets of members ",
   "triaged_at": "2026-08-07T16:47:25+00:00",
   "triaged_by": "claude-opus-4.6 (GitHub Copilot CLI)",
-  "triaged_with_commit": "ab5400907",
+  "triaged_with_commit": "13730886e",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/2923"
 }

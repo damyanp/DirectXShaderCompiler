@@ -5,7 +5,7 @@
 **This no longer reproduces.** It was fixed between **v1.6.2112 and v1.7.2207**; the evidence
 points to
 [c0676c7ca](https://github.com/microsoft/DirectXShaderCompiler/commit/c0676c7ca1033a0e5c7a0b19caac6c42889b5b27)
-("Handling dbg.value pointer case in O1.", #4375, Apr 2022). Verified on `main` @ `ab5400907`.
+("Handling dbg.value pointer case in O1.", #4375, Apr 2022). Verified on `main` @ `13730886e`.
 
 @damyanp — no, this does not need tracking.
 

@@ -14,11 +14,11 @@
   "reviewed_by": "gpt-5.6-sol",
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
-  "summary": "Reproduces on main (1.9.0.5433, ab5400907) and on every release back to the v1.4.1907 floor: a switch over an enum class covering every enumerator with no default:, in a non-void function, lowers the fall-off-the-end path to an LLVM 'unreachable', which DXIL disallows, so validation fails with 'Instructions must be of an allowed type' (E_FAIL, not a crash). Signing is not implicated: validation fails, so nothing is signed, and the reporter's 'DXIL.dll not found' warning is environmental -- every release probed had a dxil.dll beside it, and current builds do not consult one. Two secondary body claims have gone stale (see text-stale). Maintainers' 2024 position is won't-fix-in-DXC / handled in Clang; clang trunk emits no unreachable for a cut-down form of the same construct.",
+  "summary": "Reproduces on main (1.9.0.5433, 13730886e) and on every release back to the v1.4.1907 floor: a switch over an enum class covering every enumerator with no default:, in a non-void function, lowers the fall-off-the-end path to an LLVM 'unreachable', which DXIL disallows, so validation fails with 'Instructions must be of an allowed type' (E_FAIL, not a crash). Signing is not implicated: validation fails, so nothing is signed, and the reporter's 'DXIL.dll not found' warning is environmental -- every release probed had a dxil.dll beside it, and current builds do not consult one. Two secondary body claims have gone stale (see text-stale). Maintainers' 2024 position is won't-fix-in-DXC / handled in Clang; clang trunk emits no unreachable for a cut-down form of the same construct.",
   "text_stale": "Body claims B1 and B2 are stale: commenting out one case no longer 'validates clean' and adding a fourth enumerator no longer reaches the validator -- both are now 'error: control may reach end of non-void function [-Wreturn-type]' at Sema, changed between v1.4.1907 and v1.5.2010. The main symptom and B3 (default: compiles clean) still hold.",
   "title": "Problem with DXIL signing and switch case/enum use",
   "triaged_at": "2026-08-07T05:55:33+00:00",
   "triaged_by": "claude-opus-4.6",
-  "triaged_with_commit": "ab5400907",
+  "triaged_with_commit": "13730886e",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/2331"
 }

@@ -311,6 +311,35 @@ cmake --build <build> --config Debug --target dxc --parallel
 
 Triage provenance is worthless if the binary misreports what it is.
 
+> **Cite a publicly resolvable commit, not whatever the binary self-reports.** A local build
+> on a working branch reports *its own* commit, which for a fork-local or later-rewritten
+> commit resolves for nobody but you. Record the upstream commit the source corresponds to,
+> and prove the equivalence with a controlled diff:
+>
+> ```bash
+> git diff --name-only <build-sha> <upstream-sha>   # expect: nothing outside the skill dir
+> git diff --name-only <build-sha> <older-sha>      # CONTROL: must show files outside it
+> ```
+>
+> Without the control, "no differences outside the skill directory" is indistinguishable from
+> a query that cannot detect differences at all. Where a draft quotes `--version` next to the
+> citation, say that the local build self-reports a different commit — otherwise the two read
+> as a contradiction. See `reports/provenance-correction.md` for a worked example covering 25
+> issues.
+
+> **Re-register the compiler after *every* rebuild, and re-read the registry to confirm.**
+> `triage.py compiler` updates the database but not `.cache/compilers/<id>.json`, so a
+> mid-pass rebuild silently leaves the registry describing the previous binary. The label
+> `main-debug` is a *mutable pointer*, and capture headers record the compiler's path, not its
+> commit — so the only in-file trace of what actually ran is the version string DXIL metadata
+> happens to embed, and crash-only probes emit none at all.
+
+> **Scope any provenance query to ground-truth captures.** Version strings also appear in
+> release captures and pasted third-party output. Filter on the `# compiler: main-debug`
+> header first: an unscoped grep over the tree reported five distinct ground-truth builds where
+> there were two, mistaking the shipped v1.9.2607 release binary — which Microsoft published
+> marked `-dirty` — for a local build.
+
 > **A rewritten history invalidates recorded build provenance. Verify by tree, not by SHA.**
 > The commit hash baked into `dxc --version` is a *snapshot* identifier: rewriting history
 > — even a message-only `filter-branch` that changes no source at all — gives every commit a

@@ -20,7 +20,7 @@ dxopt module.ll -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-wi
 | v1.4.1907 | — | no `dxil-dbg-value-to-dbg-declare` in that build |
 | **v1.5.2010** | **fails, `E_FAIL`** | last release before the fix |
 | **v1.6.2104** | succeeds | first release after it |
-| v1.6.2106 … v1.9.2607, and `main` (`ab5400907`) | succeeds | 14 further builds |
+| v1.6.2106 … v1.9.2607, and `main` (`13730886e`) | succeeds | 14 further builds |
 
 Running only `-dxil-annotate-with-virtual-regs` succeeds on v1.5.2010, so despite the title the
 failing pass is `-dxil-dbg-value-to-dbg-declare`.

@@ -2,7 +2,8 @@
 
 **Ground truth:** clean `main` **Debug** build,
 `dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)`.
-All five verdicts record `triaged_with_commit: ab5400907`.
+All five verdicts record `triaged_with_commit: 13730886e` — corrected after the fact; they
+originally recorded `ab5400907`, which the binary self-reports.
 
 The registered SHA was removed by a message-only history rewrite. Its live twin is
 `950b58792`; both have tree `574a2bd25a0b57ea1f450ea3dc0776919fcfe108`. At batch open,
@@ -529,7 +530,7 @@ Source of each is `issues/<nnnn>/comment.md` — edit there, then re-run
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2633](https://github.com/microsoft/DirectXShaderCompiler/issues/2633).
 
-Tested on `main` (`ab5400907`) and on every release back to v1.5.2010. **Half of what
+Tested on `main` (`13730886e`) and on every release back to v1.5.2010. **Half of what
 this issue asks for already works and has since v1.6.2104; the other half is still
 absent.**
 
@@ -595,7 +596,7 @@ flag anything that looks wrong.</sub>
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#3237](https://github.com/microsoft/DirectXShaderCompiler/issues/3237).
 
-**Still reproduces on `main`** (`ab5400907`; `dxcompiler.dll` reports
+**Still reproduces on `main`** (`13730886e`; the local build reports
 `1.9.0.5433`) and on all 21 releases I could measure, **v1.4.1907
 (2019-07-15) through v1.9.2607 (2026-07-29)**.
 
@@ -622,7 +623,7 @@ with two parameters and a return value it still prints
 
 ### It was never implemented, rather than broken
 
-On `ab5400907`:
+On `13730886e`:
 
 1. `CFunctionReflection::GetFunctionParameter` (`lib/HLSL/DxilContainerReflection.cpp:2834`)
    ignores its index and always returns `&g_InvalidFunctionParameter`.

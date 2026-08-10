@@ -2,8 +2,9 @@
 
 **Ground truth:** clean `main` **Debug** build, commit `ab5400907`
 (`dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)`).
-All five workers recorded that exact version string before running anything, and all five
-`verdict.json` files carry `triaged_with_commit: ab5400907`.
+All five workers recorded that exact version string before running anything. The
+`verdict.json` files now carry `triaged_with_commit: 13730886e` — corrected after the fact;
+they originally recorded `ab5400907`, which the binary self-reports.
 **History:** 20 official release binaries, v1.4.1907 → v1.9.2607 (four were absent from the
 shared cache for #2918 — see that issue's findings).
 **Nothing was posted, edited, labelled or closed. No DXC source was modified.**
@@ -1004,7 +1005,7 @@ dxopt module.ll -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-wi
 | v1.4.1907 | — | no `dxil-dbg-value-to-dbg-declare` in that build |
 | **v1.5.2010** | **fails, `E_FAIL`** | last release before the fix |
 | **v1.6.2104** | succeeds | first release after it |
-| v1.6.2106 … v1.9.2607, and `main` (`ab5400907`) | succeeds | 14 further builds |
+| v1.6.2106 … v1.9.2607, and `main` (`13730886e`) | succeeds | 14 further builds |
 
 Running only `-dxil-annotate-with-virtual-regs` succeeds on v1.5.2010, so despite the title the
 failing pass is `-dxil-dbg-value-to-dbg-declare`.

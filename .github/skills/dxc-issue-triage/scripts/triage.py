@@ -696,11 +696,45 @@ def cmd_compiler(a):
               (a.id, a.exe, a.commit, ver, now()))
     c.commit()
     print(f"{a.id}: {a.exe}\n  version: {ver}\n  commit:  {a.commit}")
-    if a.commit and a.commit[:8] not in ver and "dirty" in ver:
-        print("\nWARNING: version string looks stale or dirty. DXC caches the "
-              "generated version headers; delete build/utils/version/version.inc "
-              "and dxcversion.inc (and their .gen files) and rebuild, or triage "
-              "provenance will be wrong.", file=sys.stderr)
+
+    # The registry file used to be maintained by hand and read by nobody, which
+    # is exactly how it came to describe a previous binary for five batches.
+    # Write it here so it cannot drift from the row above.
+    reg_dir = os.path.join(CACHE_ROOT, "compilers")
+    os.makedirs(reg_dir, exist_ok=True)
+    reg_path = os.path.join(reg_dir, f"{a.id}.json")
+    reg = {}
+    if os.path.exists(reg_path):
+        try:
+            reg = json.load(open(reg_path, encoding="utf-8"))
+        except ValueError:
+            reg = {}
+    reg.update({"id": a.id, "exe_path": a.exe, "git_commit": a.commit,
+                "version": ver, "built_at": now()})
+    with open(reg_path, "w", encoding="utf-8") as f:
+        json.dump(reg, f, indent=2)
+        f.write("\n")
+    print(f"  registry: {reg_path}")
+
+    short = (a.commit or "")[:8]
+    if a.commit and short not in ver:
+        print(f"\nWARNING: --commit {short} does not appear in the version "
+              f"string ({ver}).", file=sys.stderr)
+        if "dirty" in ver:
+            print("The build looks stale or dirty. DXC caches the generated "
+                  "version headers; delete build/utils/version/version.inc and "
+                  "dxcversion.inc (and their .gen files) and rebuild, or triage "
+                  "provenance will be wrong.", file=sys.stderr)
+        else:
+            # The case that went undetected: a mismatch with no `dirty` marker,
+            # because the binary was built from a fork-local commit.
+            print("If the binary was built from a fork-local commit, or from one "
+                  "a later history rewrite orphaned, record the PUBLIC upstream "
+                  "commit here and prove the equivalence with a controlled "
+                  "`git diff --name-only` against both that commit and an older "
+                  "one. A SHA that resolves only on this machine is not a "
+                  "citation. See reports/provenance-correction.md.",
+                  file=sys.stderr)
 
 
 def cmd_fetch(a):

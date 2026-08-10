@@ -13,10 +13,10 @@
   "reviewed_by": "gpt-5.6-sol (independent draft review, SKILL.md step 10, applied selectively at collation)",
   "status": "repros",
   "suggested_action": "enhancement-not-bug",
-  "summary": "Still absent on main (ab5400907) and on all 19 catalog releases with SPIR-V CodeGen v1.5.2010..v1.9.2607: [numthreads] rejects a [[vk::constant_id]] spec constant, and hlsl_clang_trunk emits the same first diagnostic. static const is already accepted, so what is missing is a dimension not known at compile time. PR #7378 (OpExecutionModeId refactor) landed; the maintainer's other two checklist items are HLSL spec decisions.",
+  "summary": "Still absent on main (13730886e) and on all 19 catalog releases with SPIR-V CodeGen v1.5.2010..v1.9.2607: [numthreads] rejects a [[vk::constant_id]] spec constant, and hlsl_clang_trunk emits the same first diagnostic. static const is already accepted, so what is missing is a dimension not known at compile time. PR #7378 (OpExecutionModeId refactor) landed; the maintainer's other two checklist items are HLSL spec decisions.",
   "title": "[SPIR-V] Allow thread group size to be specified with specialization constants",
   "triaged_at": "2026-08-07T16:47:25+00:00",
   "triaged_by": "claude-opus-4.6",
-  "triaged_with_commit": "ab5400907",
+  "triaged_with_commit": "13730886e",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3092"
 }

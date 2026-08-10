@@ -3,8 +3,8 @@
 > [#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732).
 
 **The lowering this report describes is not on `main` — it belongs to PR #8517.** Checked
-against `main` at `ab5400907`
-(`dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433`) and against every release
+against `main` at `13730886e` — built on a local branch, so the binary self-reports
+`dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433` — and against every release
 back to v1.4.1907. None of the named symbols exist on `main`: `descriptorHeapImageAliasVars`,
 `descriptorHeapBufferAliasVars`, `createDescriptorHeapIndexVar`,
 `tryToAssignDescriptorHeap{Image,Buffer}Alias`, `emitDescriptorHeapImageTexelPointer`,

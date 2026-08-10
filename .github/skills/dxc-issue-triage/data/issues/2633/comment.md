@@ -2,7 +2,7 @@
 > **Draft — not a maintainer decision.** AI-assisted triage for
 > [#2633](https://github.com/microsoft/DirectXShaderCompiler/issues/2633).
 
-Tested on `main` (`ab5400907`) and on every release back to v1.5.2010. **Half of what
+Tested on `main` (`13730886e`) and on every release back to v1.5.2010. **Half of what
 this issue asks for already works and has since v1.6.2104; the other half is still
 absent.**
 

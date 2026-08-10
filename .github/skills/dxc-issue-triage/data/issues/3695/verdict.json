@@ -14,10 +14,10 @@
   "reviewed_by": "GPT (collation)",
   "status": "repros",
   "suggested_action": "still-valid-keep-open",
-  "summary": "Still crashes on main (1.9.0.5433, ab5400907) and on all 20 bisectable releases measured from v1.4.1907..v1.9.2607: Debug asserts on a null pointer in DxilLowerCreateHandleForLib (0xE0000001), all 20 access-violate (0xC0000005), and v1.4.1907/v1.5.2010 crash with no output at all. Minimised to 10 lines; the trigger named in the body -- assigning one global RWTexture2D to another -- is diagnosed rather than crashed, and the 10-line crashing reduction uses a round trip through a resource-returning function back into the same global. hlsl_clang_trunk rejects the same source with a located diagnostic.",
+  "summary": "Still crashes on main (1.9.0.5433, 13730886e) and on all 20 bisectable releases measured from v1.4.1907..v1.9.2607: Debug asserts on a null pointer in DxilLowerCreateHandleForLib (0xE0000001), all 20 access-violate (0xC0000005), and v1.4.1907/v1.5.2010 crash with no output at all. Minimised to 10 lines; the trigger named in the body -- assigning one global RWTexture2D to another -- is diagnosed rather than crashed, and the 10-line crashing reduction uses a round trip through a resource-returning function back into the same global. hlsl_clang_trunk rejects the same source with a located diagnostic.",
   "title": "DXC Crash on Bad Shader",
   "triaged_at": "2026-08-07T18:31:14+00:00",
   "triaged_by": "claude-opus-4.6 (GitHub Copilot CLI)",
-  "triaged_with_commit": "ab5400907",
+  "triaged_with_commit": "13730886e",
   "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3695"
 }

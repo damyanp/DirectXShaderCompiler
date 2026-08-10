@@ -2,7 +2,8 @@
 
 **Ground truth:** clean `main` **Debug** build,
 `dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)`.
-All five `verdict.json` files carry `triaged_with_commit: ab5400907`.
+All five `verdict.json` files carry `triaged_with_commit: 13730886e` — corrected after the
+fact; they originally recorded `ab5400907`, which the binary self-reports.
 **History:** 20 official release binaries, v1.4.1907 → v1.9.2607, plus v1.5.2003 fetched by
 hand for #2923.
 **Nothing was posted, edited, labelled or closed. No DXC source was modified.**
@@ -646,11 +647,19 @@ generator that produced them.
 
 ### 14. `triaged_with_commit` stores a SHA that a history rewrite kills
 
-**#3693 proposed it and this batch proved it.** `triaged_with_commit: ab5400907` points at a
-commit that no longer exists. The tree hash does not change under a message rewrite —
+**#3693 proposed it and this batch proved it.** `triaged_with_commit` recorded `ab5400907`,
+a commit that no longer exists. The tree hash does not change under a message rewrite —
 `574a2bd25…` is identical across both SHAs — so storing it alongside would make the provenance
-record self-verifying instead of requiring a note in a handover document. **Not implemented**
-(it is a schema change and every existing row would need backfilling); recorded as a proposal.
+record self-verifying instead of requiring a note in a handover document. **Storing the tree
+hash is still unimplemented** (it is a schema change and every existing row would need
+backfilling); recorded as a proposal.
+
+**Resolved for the recorded data.** All 25 affected `verdict.json` files were later corrected
+to the publicly-resolvable upstream SHA `13730886e`, verified equivalent by
+`git diff --name-only ab5400907 13730886e`, which reports no file outside this skill directory
+(control: the same diff against `eff900d54` reports 32). Captures, `.ll`/`.pdb` artifacts and
+`notes.md` were deliberately left untouched — they are evidence, and several notes discuss the
+orphaned SHA by name or record commands that were actually run against it.
 
 ### 15. The compressed fields need their own review pass, and this batch is the evidence
 
@@ -771,7 +780,7 @@ Source of each is `issues/<nnnn>/comment.md` — edit there, then re-run
 **This no longer reproduces.** It was fixed between **v1.6.2112 and v1.7.2207**; the evidence
 points to
 [c0676c7ca](https://github.com/microsoft/DirectXShaderCompiler/commit/c0676c7ca1033a0e5c7a0b19caac6c42889b5b27)
-("Handling dbg.value pointer case in O1.", #4375, Apr 2022). Verified on `main` @ `ab5400907`.
+("Handling dbg.value pointer case in O1.", #4375, Apr 2022). Verified on `main` @ `13730886e`.
 
 @damyanp — no, this does not need tracking.
 
