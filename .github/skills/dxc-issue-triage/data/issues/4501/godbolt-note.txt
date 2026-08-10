@@ -1,0 +1,13 @@
+What to look for: this shader is compiled with SPIR-V rich debug info, so the module
+imports the NonSemantic.Shader.DebugInfo.100 extended instruction set and every debug
+record is an OpExtInst against it. Scan those OpExtInst lines. Issue 4501 asks for two
+of that set's instructions -- opcodes 105 and 106 in
+extinst.nonsemantic.shader.debuginfo.100.grammar.json -- to be emitted when a separate
+debug module is written. Neither appears here, in any pane. Their neighbour, opcode 107,
+does appear, which is what shows this is a gap in what dxc emits rather than a gap in
+the instruction set or the disassembler.
+
+Note the two limits of this page: Compiler Explorer cannot show the -Fd behaviour at all
+(dxc rejects -Fd together with -spirv), and its oldest dxc is 1.6.2112, so it cannot
+date anything. The local 21-binary release matrix in the issue's triage directory covers
+both.

@@ -1,0 +1,22 @@
+Four panes, one source, two compilers. The first and third compile the by-value form
+(the buffer element is passed as a function argument); the second and fourth compile
+the direct-indexing form. Everything else is identical.
+
+What to compare: in each pane, where the float-typed structured-buffer load sits
+relative to the first conditional branch. In the by-value panes both loads are in the
+entry block above a single branch, and the two [branch] conditions have been folded
+into one. In the direct-indexing panes the integer load comes first, then a branch,
+and the float load is inside the guarded block, so it runs only when the first
+condition holds. That one load is the reported cost. Both forms are correct code; the
+difference is where the memory access ends up. The last two panes are the in-progress
+Clang HLSL compiler on the same input.
+
+This source is a restating of the shader in the issue body: the pixel stage becomes
+[numthreads] and discard becomes a store to an RWBuffer, because clang-dxc rejects
+discard today and a pane full of that error would say nothing about this issue. The
+original pixel spelling was measured locally instead, on a Debug build of main and on
+20 stable releases back to v1.4.1907, and this restating was checked to still show
+the same difference before it was published here.
+
+Compiler Explorer builds these with debug flags appended, which changes value names
+and adds metadata but not the placement being compared.

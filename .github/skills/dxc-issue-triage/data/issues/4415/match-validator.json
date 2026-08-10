@@ -1,0 +1,10 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "^\\[selftest\\] module-annotatehandle-calls=[1-9]" },
+    { "kind": "contains", "value": "[selftest] annotatehandle-invalid-res-operand=yes" },
+    { "kind": "contains", "value": "[result] VALIDATION-SUCCEEDED" },
+    { "kind": "not_contains", "value": "PARSE-WARNING" }
+  ],
+  "note": "#4415 ask B, asked of the validator directly rather than through dxc: DXIL whose dx.op.annotateHandle takes an invalid handle is ACCEPTED. `dxv` says only `Validation succeeded.` and nothing about what it validated, so clause 3 alone is vacuous -- it is equally produced by a module with no annotateHandle in it, by one the harness could not read, and by a run that never happened (SKILL.md: a validator harness that prints nothing about its input makes a clean run indistinguishable from a run that never happened). Clauses 1, 2 and 4 are the anti-vacuity self-test, printed by validate.py from the module it is about to hand to dxv: the module really does contain an annotateHandle, its res operand really is undef/zeroinitializer/null, and nothing in the harness reported trouble reading it. Controls in this directory: variant-control-valid-module must NOT match (clause 2 fails -- the unmodified module's handle is a real createHandleFromHeap result, which is what proves clause 2 discriminates); variant-control-undef-checked-op and variant-control-badprops must NOT match (clause 3 fails -- both are rejected, which is what proves the harness can see a rejection and that this build's validator does have both the uninitialized-handle rule and an annotateHandle check). A dxv validation failure exits 1 and a dxc validation failure exits E_FAIL 0x80004005; per SKILL.md's exit table neither is an internal failure."
+}

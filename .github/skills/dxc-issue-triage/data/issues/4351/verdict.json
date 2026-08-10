@@ -1,0 +1,23 @@
+{
+  "batch": "batch-015",
+  "confidence": "high",
+  "created_at": "2022-03-25T05:04:48Z",
+  "expected_symptom": "Running dxr -E InitArgs -remove-unused-globals on the reporter shader emits struct Parent with the member Child MultipleChildren[2] but no struct Child definition, so the rewritten source no longer compiles; the same shader with a non-array member Child SingleChild keeps the definition.",
+  "godbolt_skip": "Compiler Explorer runs the dxc driver, which cannot reach the rewriter at all: dxc rejects -remove-unused-globals with 'Unknown argument' (measured, variant-dxc-rejects-rewriter-flag-main-debug.txt), and CE ships no dxr. A pane could only show the rewriter's already-broken OUTPUT failing on an undefined type, which demonstrates nothing a reader could not guess and hides that DXC itself produced that source. Clang has no HLSL rewriter either, so a Clang pane adds nothing.",
+  "history": "always-repro'd",
+  "labels": "bug",
+  "labels_add": "rewriter",
+  "labels_now": "bug",
+  "notes_path": "issues/4351/notes.md",
+  "number": 4351,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "dxr -E InitArgs -remove-unused-globals deletes struct Child even though struct Parent declares Child MultipleChildren[2]; the emitted source then fails to compile with \"unknown type name Child\". Reproduces on main 1.9.0.5433 (13730886e) and on all 19 stable releases v1.5.2010..v1.9.2607 that can express the option; v1.4.1907 has no rewriter options at all (invalid probe), so there is no regression window. The non-array form Child SingleChild is unaffected, and the rewriter own accounting under -no-warnings confirms the decision: //found 1 types to remove vs //found 0. The 2022-08-15 comment about unused function parameters also reproduces (agent-constructed shader). One root cause in dxcrewriteunused.cpp: type liveness is computed from value references only, so fieldDecl->getType()->getAsTagDecl() returns null for an array member and FunctionDecl::params() is never visited. Real, unfixed, no linked PR; keep open and add the rewriter label.",
+  "title": "Rewriter incorrectly removes types that are used in a member array of another struct",
+  "triaged_at": "2026-08-10T21:54:33+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e6a9019e4e0823746470f3ab75341d6b",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4351"
+}

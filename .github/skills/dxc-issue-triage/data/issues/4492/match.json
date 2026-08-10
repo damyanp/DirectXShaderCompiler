@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "note": "#4492: wrong code at exit 0, so the predicate must read the emitted DXIL, which makes it an instrument as well as a measurement. Three clauses, and the first two are guards.  (1) ANTI-VACUITY / SELF-TEST: '@dx.op.rawBufferLoad.f16(' must be present. A run that failed to parse, that rejected -enable-16bit-types, or whose disassembler no longer spells the op this way emits nothing here, so it scores no-match rather than silently satisfying a wrong-offset search; it also proves native 16-bit types really were enabled (a min-precision build emits rawBufferLoad.f32).  (2) ELEMENT-SIZE SELF-TEST: the SRV's $Element must be reported as 32 bytes. This is what makes clause 3 mean 'out of bounds' rather than 'large offset'; a build that laid a half4x4 out as 64 bytes would be self-consistent, not buggy, and must not score as a repro.  (3) SYMPTOM: some dx.op.rawBufferLoad.f16 uses an elementOffset >= 32, i.e. past the end of the 32-byte element. Only the doubled (4-byte instead of 2-byte) scalar stride the reporter describes can produce that; correct codegen for this shader stays within [0,30].  CONTROL, and it is what forced clause 3 into this shape: control-half-vec-array.hlsl is the same shader, entry point, profile and flags with the half4x4 replaced by half4 v[4] -- same 32-byte $Element, same rawBufferLoad.f16 instrument -- and it must score no-match (variant-control-half-vec-array-main-debug.txt: offsets 0,2,4,...,30). A looser predicate such as 'any f16 rawBufferLoad at an offset that is a multiple of 4' matches that correct control for free, because 0,4,8,...,28 are perfectly legal offsets; only the out-of-bounds bound discriminates.  PORTABILITY: the handle operand is matched as %[\\w.]+ because v1.4.1907 prints named SSA values (%data2_0_texture_structbuf) where current builds print %2. Clauses 1 and 2 are per-release instrument checks and manual-case-release-matrix.txt records them separately for every probed release, so a formatting change cannot masquerade as a behaviour change: v1.4.1907 legitimately vectorises the whole row into one mask=15 load at 0,8,16,24 and is correct, not unmeasurable.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "@dx\\.op\\.rawBufferLoad\\.f16\\("
+    },
+    {
+      "kind": "regex",
+      "value": "\\$Element;\\s+; Offset:\\s+0 Size:\\s+32\\b"
+    },
+    {
+      "kind": "regex",
+      "value": "@dx\\.op\\.rawBufferLoad\\.f16\\(i32 \\d+, %dx\\.types\\.Handle %[\\w.]+, i32 [^,]+, i32 (?:3[2-9]|[4-9][0-9]|[1-9][0-9]{2,})[,)]"
+    }
+  ]
+}

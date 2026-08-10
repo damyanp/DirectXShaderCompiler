@@ -1,0 +1,218 @@
+# compiler: v1.9.2602.24
+# exe: <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe
+# ran: 2026-08-10T19:28:01+00:00
+# cmd: -T cs_6_2 -E testStructuredBufferMatrixLoad2 -enable-16bit-types repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_2 -E testStructuredBufferMatrixLoad2 -enable-16bit-types repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       Use native low precision
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: 228f052c468099a2ad63657d587827d8
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: testStructuredBufferMatrixLoad2
+;
+;
+; Buffer Definitions:
+;
+; Resource bind info for data2_0
+; {
+;
+;   struct struct.Test2_0
+;   {
+;
+;       row_major half4x4 m_0;                        ; Offset:    0
+;   
+;   } $Element;                                       ; Offset:    0 Size:    32
+;
+; }
+;
+; Resource bind info for result_0
+; {
+;
+;   float $Element;                                   ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; data2_0                           texture  struct         r/o      T0             t1     1
+; result_0                              UAV  struct         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.f16 = type { half, half, half, half, i32 }
+%"class.StructuredBuffer<Test2_0>" = type { %struct.Test2_0 }
+%struct.Test2_0 = type { %class.matrix.half.4.4 }
+%class.matrix.half.4.4 = type { [4 x <4 x half>] }
+%"class.RWStructuredBuffer<float>" = type { float }
+
+define void @testStructuredBufferMatrixLoad2() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 1, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  br label %3
+
+; <label>:3                                       ; preds = %46, %0
+  %4 = phi i32 [ 0, %0 ], [ %53, %46 ]
+  %5 = phi i32 [ 0, %0 ], [ %51, %46 ]
+  switch i32 %4, label %46 [
+    i32 0, label %6
+    i32 1, label %11
+    i32 2, label %16
+    i32 3, label %21
+    i32 4, label %26
+    i32 5, label %31
+    i32 6, label %36
+    i32 7, label %41
+  ]
+
+; <label>:6                                       ; preds = %3
+  %7 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 0, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %8 = extractvalue %dx.types.ResRet.f16 %7, 0
+  %9 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 4, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %10 = extractvalue %dx.types.ResRet.f16 %9, 0
+  br label %46
+
+; <label>:11                                      ; preds = %3
+  %12 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 8, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %13 = extractvalue %dx.types.ResRet.f16 %12, 0
+  %14 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 12, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %15 = extractvalue %dx.types.ResRet.f16 %14, 0
+  br label %46
+
+; <label>:16                                      ; preds = %3
+  %17 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 16, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %18 = extractvalue %dx.types.ResRet.f16 %17, 0
+  %19 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 20, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %20 = extractvalue %dx.types.ResRet.f16 %19, 0
+  br label %46
+
+; <label>:21                                      ; preds = %3
+  %22 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 24, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %23 = extractvalue %dx.types.ResRet.f16 %22, 0
+  %24 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 28, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %25 = extractvalue %dx.types.ResRet.f16 %24, 0
+  br label %46
+
+; <label>:26                                      ; preds = %3
+  %27 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 32, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %28 = extractvalue %dx.types.ResRet.f16 %27, 0
+  %29 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 36, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %30 = extractvalue %dx.types.ResRet.f16 %29, 0
+  br label %46
+
+; <label>:31                                      ; preds = %3
+  %32 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 40, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %33 = extractvalue %dx.types.ResRet.f16 %32, 0
+  %34 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 44, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %35 = extractvalue %dx.types.ResRet.f16 %34, 0
+  br label %46
+
+; <label>:36                                      ; preds = %3
+  %37 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 48, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %38 = extractvalue %dx.types.ResRet.f16 %37, 0
+  %39 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 52, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %40 = extractvalue %dx.types.ResRet.f16 %39, 0
+  br label %46
+
+; <label>:41                                      ; preds = %3
+  %42 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 56, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %43 = extractvalue %dx.types.ResRet.f16 %42, 0
+  %44 = call %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32 139, %dx.types.Handle %2, i32 0, i32 60, i8 1, i32 2)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %45 = extractvalue %dx.types.ResRet.f16 %44, 0
+  br label %46
+
+; <label>:46                                      ; preds = %41, %36, %31, %26, %21, %16, %11, %6, %3
+  %47 = phi half [ %43, %41 ], [ %38, %36 ], [ %33, %31 ], [ %28, %26 ], [ %23, %21 ], [ %18, %16 ], [ %13, %11 ], [ %8, %6 ], [ 0xH0000, %3 ]
+  %48 = phi half [ %45, %41 ], [ %40, %36 ], [ %35, %31 ], [ %30, %26 ], [ %25, %21 ], [ %20, %16 ], [ %15, %11 ], [ %10, %6 ], [ 0xH0000, %3 ]
+  %49 = or i32 %5, 1
+  %50 = fpext half %47 to float
+  call void @dx.op.rawBufferStore.f32(i32 140, %dx.types.Handle %1, i32 %5, i32 0, float %50, float undef, float undef, float undef, i8 1, i32 4)  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  %51 = add nuw nsw i32 %5, 2
+  %52 = fpext half %48 to float
+  call void @dx.op.rawBufferStore.f32(i32 140, %dx.types.Handle %1, i32 %49, i32 0, float %52, float undef, float undef, float undef, i8 1, i32 4)  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  %53 = add nuw nsw i32 %4, 1
+  %54 = icmp eq i32 %53, 8
+  br i1 %54, label %55, label %3
+
+; <label>:55                                      ; preds = %46
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.f16 @dx.op.rawBufferLoad.f16(i32, %dx.types.Handle, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.rawBufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #0
+
+attributes #0 = { nounwind readonly }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!11}
+
+!0 = !{!"dxcoob 1.9.2602.24 (d355aa836)"}
+!1 = !{i32 1, i32 2}
+!2 = !{i32 1, i32 9}
+!3 = !{!"cs", i32 6, i32 2}
+!4 = !{!5, !8, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.StructuredBuffer<Test2_0>"* undef, !"", i32 0, i32 1, i32 1, i32 12, i32 0, !7}
+!7 = !{i32 1, i32 32}
+!8 = !{!9}
+!9 = !{i32 0, %"class.RWStructuredBuffer<float>"* undef, !"", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !10}
+!10 = !{i32 1, i32 4}
+!11 = !{void ()* @testStructuredBufferMatrixLoad2, !"testStructuredBufferMatrixLoad2", null, !4, !12}
+!12 = !{i32 0, i64 8388656, i32 4, !13}
+!13 = !{i32 1, i32 1, i32 1}
+
+
+--- stderr ---
+

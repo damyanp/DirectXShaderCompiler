@@ -1,0 +1,6 @@
+#4307 asks for a clearer error, so what matters here is not that the compile fails
+but WHERE the failure points. Both DXC panes report the entry point's signature
+line. The statement that actually causes it is 11 lines further down, inside the
+first `if`: it reads a mesh output member before writing it back. Neither pane's
+message mentions that member, that statement, or mesh output at all.
+Compiler Explorer prepends this banner, so line numbers below are shifted.

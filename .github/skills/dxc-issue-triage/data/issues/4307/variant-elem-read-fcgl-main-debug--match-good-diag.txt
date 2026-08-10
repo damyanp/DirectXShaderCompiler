@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:38:14+00:00
+# cmd: case-elem-read.hlsl /E main /Od /Tms_6_6 -fcgl
+# exit: 2147500037
+# timed_out: 0
+# match: match-good-diag.json
+# verdict: repro
+# variant: elem-read-fcgl (case-elem-read.hlsl)
+# expect: match
+
+$ dxc case-elem-read.hlsl /E main /Od /Tms_6_6 -fcgl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case-elem-read.hlsl:22:18: error: output arrays of a mesh shader can not be read from
+                Vertex _copy = _vertices[ _sv_groupthreadid.x ]; _vertices[ 0 ].m_value = _copy.m_value * sign( toto );
+                               ^
+
+

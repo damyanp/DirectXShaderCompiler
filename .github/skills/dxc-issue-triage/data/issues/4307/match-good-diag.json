@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "output arrays of a mesh shader can not be read from",
+  "note": "The diagnostic #4307 asks for already exists in DXC: err_hlsl_load_from_mesh_out_arrays, declared at tools/clang/include/clang/Basic/DiagnosticSemaKinds.td:7888 and emitted from Sema::DefaultLvalueConversion (tools/clang/lib/Sema/SemaExpr.cpp:698). This predicate detects it, so that 'the compiler has no diagnostic for this' and 'the compiler has one but it does not reach this expression' can be told apart -- they imply completely different fixes. Used as a pair, per the skill's missing-diagnostic control rule: case-elem-read.hlsl reads a whole out-vertices element and must MATCH, proving the diagnostic exists and the pipeline reaches it; the repro reads one member of an element and must NOT match. Both arms are anchored: the matching arm by the diagnostic text itself, the non-matching arm by running under -fcgl so the capture proves the front end ran to completion and emitted HL IR rather than failing early."
+}

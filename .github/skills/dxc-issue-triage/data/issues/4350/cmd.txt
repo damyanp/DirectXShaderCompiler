@@ -1,0 +1,1 @@
+-T vs_6_0 repro.hlsl

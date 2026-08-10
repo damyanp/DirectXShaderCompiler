@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:49:21+00:00
+# cmd: case-out-param-elem.hlsl /Zi /E main /Od /Fo test.mso /Tms_6_6 -Qembed_debug
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: case-out-param-elem (case-out-param-elem.hlsl)
+# expect: no-match
+
+$ dxc case-out-param-elem.hlsl /Zi /E main /Od /Fo test.mso /Tms_6_6 -Qembed_debug
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case-out-param-elem.hlsl:24:14: error: output arrays of a mesh shader can not be read from
+                setVertex( _vertices[ _sv_groupthreadid.x ], sign( toto ) );
+                           ^
+
+

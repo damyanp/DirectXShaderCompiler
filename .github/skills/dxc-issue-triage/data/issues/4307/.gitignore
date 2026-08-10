@@ -1,0 +1,7 @@
+# Compiler output artifacts, not evidence. `cmd.txt` is the command as filed,
+# which includes `/Fo test.mso`, so a clean control compile drops a DXIL blob
+# here. `scratch/` holds the per-release `.mso` files written by
+# release-matrix.py, which deliberately keeps them out of `test.mso` so a
+# release run can never restamp the ground-truth artifact.
+test.mso
+scratch/

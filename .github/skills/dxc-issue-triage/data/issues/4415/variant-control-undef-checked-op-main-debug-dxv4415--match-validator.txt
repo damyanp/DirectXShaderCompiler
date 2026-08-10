@@ -1,0 +1,33 @@
+# compiler: main-debug-dxv4415
+# exe: <triage>/issues/4415/validate.cmd
+# ran: 2026-08-10T20:17:58+00:00
+# cmd: control-undef-checked-op.ll
+# exit: 1
+# timed_out: 0
+# match: match-validator.json
+# verdict: no-repro
+# variant: control-undef-checked-op (?)
+# expect: no-match
+
+$ dxc control-undef-checked-op.ll
+[exe] <triage>/issues/4415/validate.cmd
+[exit] 1
+--- stdout ---
+annotatehandle-4415 harness v1
+[validator] <repo>/build/Debug/bin/dxv.exe
+[external-validator] DXC_DXIL_DLL_PATH=<unset> (internal validator from dxcompiler.dll)
+[module] control-undef-checked-op.ll (3587 bytes)
+[selftest] module-annotatehandle-calls=1
+[selftest] annotatehandle-res-operands=['%1']
+[selftest] annotatehandle-invalid-res-operand=no
+[selftest] module-requests-validator-version=1.10
+$ <repo>/build/Debug/bin/dxv.exe control-undef-checked-op.ll
+--- stdout ---
+Validation failed - error code 0x80aa001d.
+--- stderr ---
+
+[exit] 0x00000001
+[result] VALIDATION-FAILED
+
+--- stderr ---
+

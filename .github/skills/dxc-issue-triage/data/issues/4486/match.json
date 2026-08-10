@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "OpEntryPoint Fragment %\\w+ \"PS_bright_pass\""
+    },
+    {
+      "kind": "regex",
+      "value": "^\\s*OpLoopMerge "
+    }
+  ],
+  "note": "The symptom is a codegen SHAPE, so the predicate reads a disassembler and must self-test the instrument as well as the behaviour.\n\nClause 1 is the anti-vacuity / instrument self-test. `OpEntryPoint Fragment %<id> \"PS_bright_pass\"` can only appear if the compile succeeded AND dxc's bundled SPIR-V disassembler actually printed a module to stdout. A release with no SPIR-V backend (v1.4.1907: `SPIR-V CodeGen not available`), a failed parse, or a disassembler that stopped writing to stdout all fail this clause, so they cannot masquerade as a fix. SKILL.md: 'If the self-test flips while the behavioural clauses do not, that release is unmeasurable under the predicate, not no-repro.' The clause is checked per release in manual-case-release-matrix.txt, not only on ground truth. The `%\\w+` avoids anchoring on any particular id spelling, since old and new SPIRV-Tools disassemblers differ on friendly names.\n\nClause 2 is the behaviour: `OpLoopMerge` is emitted only at a structured loop header, so a fully unrolled function cannot contain one. `OpLoopMerge` is a core SPIR-V opcode name fixed by the specification, which is the most format-stable anchor available in disassembly. Anchored to start-of-line so it cannot be satisfied by the opcode name appearing inside an OpName, an OpSource-embedded comment or a diagnostic quoting the instruction (the #3092 trap, where DXC's validator echoed the token it was rejecting).\n\nControls, all captured: control-manual-unroll.hlsl is the reporter's own workaround shape (expect no-match) and is the discriminator -- it shares the [unroll] for(i<4) sampling loop with the repro, so its no-match also proves any surviving OpLoopMerge in the repro comes from the nested pair. control-runtime-loop.hlsl has a uniform trip count nobody can unroll (expect match) and proves the detector is alive. control-trivial.hlsl has no loop at all (expect no-match) and is the per-release SPIR-V-availability self-test. minimal-nested.hlsl / minimal-manual.hlsl are the same contrast in a form small enough to read (expect match / no-match)."
+}

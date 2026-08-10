@@ -1,0 +1,22 @@
+{
+  "kind": "all_of",
+  "note": "Symptom of #4351: `-remove-unused-globals` deletes the definition of `struct Child` even though the emitted output still declares a member of that type. Clause 3 is the symptom and it is an ABSENCE, so on its own it is satisfied for free by any run that produced no rewritten source at all -- which is exactly how old release DLLs fail here (`Compilation failed - error code 0x80070057.`, no text). Clauses 1, 2 and 4 are the anchors that make clause 3 mean something. Clause 1 is deliberately written to match BOTH `Child MultipleChildren[2];` and `Child SingleChild;`: it asserts only that the output still declares a member whose type is `Child`, so the array/non-array control (control-single-child.hlsl) differs from the repro in exactly one clause -- clause 3 -- and nothing else. Clause 2 proves the rewrite ran to completion and emitted the entry point rather than a diagnostic that happened to quote a source line. Clause 4 is the in-run self-test that a rewriter option was actually honoured: dxr prints the literal banner `// Rewrite unchanged result:` (tools/clang/tools/libclang/dxcrewriteunused.cpp:1087) whenever NEITHER -remove-unused-globals NOR -remove-unused-functions was set, so its absence is positive evidence that this build took the DoRewriteUnused path. Without clause 4, a build that silently ignored the flag could not be told apart from one that removed the type. Controls: variant-single-child-* (declares `struct Child` and keeps it -> clause 3 must fail), variant-no-flag-* and variant-nonsense-slash-flag-* (option absent or silently ignored -> clause 4 must fail).",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "\\bChild\\s+\\w+\\s*(\\[\\s*\\d+\\s*\\])?\\s*;"
+    },
+    {
+      "kind": "regex",
+      "value": "void\\s+InitArgs\\s*\\("
+    },
+    {
+      "kind": "not_regex",
+      "value": "struct\\s+Child\\s*\\{"
+    },
+    {
+      "kind": "not_contains",
+      "value": "// Rewrite unchanged result:"
+    }
+  ]
+}

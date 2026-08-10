@@ -1,0 +1,18 @@
+# compiler: v1.6.2106
+# exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+# ran: 2026-08-10T19:28:38+00:00
+# cmd: -T vs_6_0 repro.hlsl
+# exit: 2158624797
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T vs_6_0 repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 2158624797
+--- stdout ---
+
+--- stderr ---
+Internal Compiler error: llvm::cast<X>() argument of incompatible type!
+
+

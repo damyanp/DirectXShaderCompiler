@@ -1,0 +1,23 @@
+{
+  "batch": "batch-015",
+  "confidence": "high",
+  "created_at": "2022-06-03T13:34:00Z",
+  "expected_symptom": "SPIR-V debug info carries neither DebugBuildIdentifier (opcode 105) nor DebugStoragePath (106) from NonSemantic.Shader.DebugInfo.100, in a run that provably did emit that instruction set",
+  "godbolt_url": "https://godbolt.org/z/cj44aEcbj",
+  "history": "never-implemented",
+  "labels": "spirv",
+  "labels_add": "enhancement, debug info",
+  "labels_now": "spirv",
+  "notes_path": "issues/4501/notes.md",
+  "number": 4501,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Feature request, never implemented: no emitter for DebugBuildIdentifier or DebugStoragePath exists anywhere in the DXC tree, and none of the 16 stable releases that can emit NonSemantic.Shader.DebugInfo.100 (v1.6.2112 onward) produces either. The premise has also shifted: -Fd is rejected with -spirv since v1.7.2207 (e80724a7a, 17 days after filing), and on v1.6.2112 it failed with \"Unable to find required part in blob\", so no -Fd path for SPIR-V has ever existed to extend.",
+  "title": "[SPIR-V] Debug info should use DebugBuildIdentifier and DebugStoragePath with -Fd flag",
+  "triaged_at": "2026-08-10T21:54:35+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4501"
+}

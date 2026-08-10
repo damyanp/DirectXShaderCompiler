@@ -1,0 +1,7 @@
+Both DXC panes abort with an internal compiler error instead of diagnosing the enum's
+base type, and neither prints a file, line or column. Check the exit code and the absence
+of any source location, not the wording.
+
+The same base type is diagnosed normally when the enumerator initialiser is a plain
+integer rather than a vector constructor; that comparison is in the issue's local
+evidence, not in this session.

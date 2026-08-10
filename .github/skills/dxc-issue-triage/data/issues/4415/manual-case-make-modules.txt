@@ -1,0 +1,74 @@
+#4415 module generator
+$ <repo>/build/Debug/bin/dxc.exe --version
+dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+[exit] 0x00000000
+
+================ compiler-produced modules ================
+# repro.hlsl is the issue body verbatim. DXC's own output is the
+# first subject: the reporter quoted its annotateHandle line.
+$ <repo>/build/Debug/bin/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc emitted.ll
+repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                            ~~~                          ^~~
+[exit] 0x00000000
+    emitted.ll | %1 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle zeroinitializer, %dx.types.ResourceProperties { i32 13, i32 4 })  ; AnnotateHandle(res,props)  resource: CBuffer
+    emitted.ll | %5 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %4, %dx.types.ResourceProperties { i32 13, i32 4 })  ; AnnotateHandle(res,props)  resource: CBuffer
+
+# control-valid.hlsl is the same shader with the initialization
+# order fixed. It is the base for every doctored module below, so
+# each one differs from a KNOWN-VALID module in one operand only.
+$ <repo>/build/Debug/bin/dxc.exe -T vs_6_6 -E main control-valid.hlsl -Fc valid.ll
+[exit] 0x00000000
+    valid.ll | %2 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %1, %dx.types.ResourceProperties { i32 13, i32 4 })  ; AnnotateHandle(res,props)  resource: CBuffer
+
+[base] valid.ll annotateHandle res operand = '%1'
+[base] valid.ll cbufferLoadLegacy handle operand = '%2'
+
+================ doctored modules ================
+
+---- zeroinit.ll: SUBJECT: annotateHandle res operand -> zeroinitializer, the exact shape the issue quotes, in a module DXC's front end never made
+[patch] 1 occurrence(s) of '@dx.op.annotateHandle(i32 216, %dx.types.Handle %1,'
+[wrote] zeroinit.ll (3597 bytes)
+    zeroinit.ll | %2 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle zeroinitializer, %dx.types.ResourceProperties { i32 13, i32 4 })  ; AnnotateHandle(res,props)  resource: CBuffer
+
+---- undefhandle.ll: SUBJECT: annotateHandle res operand -> undef, the other spelling of an invalid handle
+[patch] 1 occurrence(s) of '@dx.op.annotateHandle(i32 216, %dx.types.Handle %1,'
+[wrote] undefhandle.ll (3587 bytes)
+    undefhandle.ll | %2 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle undef, %dx.types.ResourceProperties { i32 13, i32 4 })  ; AnnotateHandle(res,props)  resource: CBuffer
+
+---- control-undef-checked-op.ll: CONTROL, must FAIL: the same invalid handle on cbufferLoadLegacy, an opcode ValidateHandleArgs does check. NB this one fails via an internal cast error (0x80aa001d) rather than the rule text -- see method-notes.md; the clean-rule-text controls are the textureLoad pair below
+[patch] 1 occurrence(s) of '@dx.op.cbufferLoadLegacy.i32(i32 59, %dx.types.Handle %2,'
+[wrote] control-undef-checked-op.ll (3587 bytes)
+
+---- control-badprops.ll: CONTROL, must FAIL: the SAME annotateHandle instruction with an invalid resource kind in its props operand. Proves the validator does inspect this instruction -- just not its handle operand
+[patch] 1 occurrence(s) of '@dx.op.annotateHandle(i32 216, %dx.types.Handle %1, %dx.types.ResourceProperties { i32 13, i32 4 }'
+[wrote] control-badprops.ll (3583 bytes)
+    control-badprops.ll | %2 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %1, %dx.types.ResourceProperties { i32 0, i32 0 })  ; AnnotateHandle(res,props)  resource: CBuffer
+
+================ checked-opcode controls ================
+# Same two invalid handle values, on an opcode ValidateHandleArgs
+# does check. These are the pair the verdict rests on: if these
+# fail and the annotateHandle subjects pass, the difference is the
+# opcode, because nothing else differs.
+$ <repo>/build/Debug/bin/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc checkedop.ll
+[exit] 0x00000000
+[base] checkedop.ll textureLoad handle operand = '%2'
+
+---- control-checkedop-zeroinit.ll: CONTROL, must FAIL: zeroinitializer handle on textureLoad. Same invalid value as zeroinit.ll, different opcode
+[patch] 1 occurrence(s) of '@dx.op.textureLoad.f32(i32 66, %dx.types.Handle %2,'
+[wrote] control-checkedop-zeroinit.ll (4700 bytes)
+
+---- control-checkedop-undef.ll: CONTROL, must FAIL: undef handle on textureLoad. Same invalid value as undefhandle.ll, different opcode
+[patch] 1 occurrence(s) of '@dx.op.textureLoad.f32(i32 66, %dx.types.Handle %2,'
+[wrote] control-checkedop-undef.ll (4690 bytes)
+
+================ summary ================
+  emitted.ll                     3960 bytes
+  valid.ll                       3584 bytes
+  zeroinit.ll                    3597 bytes
+  undefhandle.ll                 3587 bytes
+  control-undef-checked-op.ll    3587 bytes
+  control-badprops.ll            3583 bytes
+  checkedop.ll                   4687 bytes
+  control-checkedop-zeroinit.ll  4700 bytes
+  control-checkedop-undef.ll     4690 bytes

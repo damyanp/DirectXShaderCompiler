@@ -1,0 +1,26 @@
+{
+  "kind": "all_of",
+  "note": "Issue 4501 asks the SPIR-V backend to emit DebugBuildIdentifier (opcode 105) and DebugStoragePath (106) from NonSemantic.Shader.DebugInfo.100. 'Reproduces' means the request is still unmet: neither instruction appears. That is an ABSENCE claim, and an absence clause is satisfied for free by any run that produced no SPIR-V -- notably `-spirv -Fd <dir>`, which current dxc rejects outright. Clauses 1 and 2 are therefore mandatory positive anchors, not decoration. Clause 1 proves a SPIR-V module was produced with the requested instruction set imported. Clause 2 is the instrument self-test: it proves the disassembler in this build NAMES instructions from that set, without which the absence of a name in clauses 3-4 would say nothing (the #3535/#3872 instrument-change trap). repro.hlsl deliberately never spells either instruction name, because -fspv-debug=vulkan-with-source embeds the source text in the module; control-tokens-in-source.hlsl is the mirror, and must score no-match.",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "OpExtInstImport \"NonSemantic.Shader.DebugInfo.100\"",
+      "note": "anchor: a SPIR-V module was produced and imports the instruction set the issue is about"
+    },
+    {
+      "kind": "regex",
+      "value": "OpExtInst\\s+%\\w+\\s+%\\w+\\s+DebugCompilationUnit",
+      "note": "instrument self-test: this build emits, and this disassembler names, instructions from that set"
+    },
+    {
+      "kind": "not_regex",
+      "value": "DebugBuildIdentifier",
+      "note": "ask A is unmet"
+    },
+    {
+      "kind": "not_regex",
+      "value": "DebugStoragePath",
+      "note": "ask B is unmet"
+    }
+  ]
+}

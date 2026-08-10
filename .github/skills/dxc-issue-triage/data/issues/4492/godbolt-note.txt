@@ -1,0 +1,14 @@
+This is the snippet from the issue body: a StructuredBuffer of a struct holding a
+single 4x4 matrix of 16-bit floats, reading two elements of the first row and two
+of the last.
+
+In the DXC panes, look at the RawBufferLoad calls near the bottom of the output.
+Their fourth operand is a byte offset into the buffer element. Compare those four
+offsets against the element size printed in the "Buffer Definitions" comment block
+at the top of the same pane, and against the alignment operand the same calls
+carry: the loads step by twice the size of the scalar type they are loading, so
+the last two read past the end of the element entirely.
+
+Compiler Explorer runs Release builds and appends debug-info flags to DXC panes,
+neither of which affects this: the compile succeeds and the wrong offsets are in
+the emitted DXIL.

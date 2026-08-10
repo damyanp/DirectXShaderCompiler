@@ -1,0 +1,46 @@
+#4415: the signed shipping validator
+[dxv]       <repo>/build/Debug/bin/dxv.exe
+[dxil.dll]  <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxil.dll
+[dxil.dll]  FileVersion | ProductVersion | Company = 1.8.2505.32 | 1.8.2505.32 (b106a961d) | Microsoft(r) Corporation
+[note] this dxil.dll comes from the v1.8.2505.1 release archive, not from this working tree; nothing here builds it.
+
+==== WITNESS: is the external validator actually being used? ====
+# zeroinit.ll asks for validator version 1.10. The internal validator in this
+# tree accepts that; the older signed dxil.dll cannot. A version
+# complaint here is proof the environment variable took effect.
+$ set DXC_DXIL_DLL_PATH=<repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxil.dll
+$ <repo>/build/Debug/bin/dxv.exe zeroinit.ll
+  error: Validator version in metadata (1.10) is not supported; maximum: (1.9).
+  Validation failed.
+  [exit] 1 -> REJECTED
+
+[WITNESS-OK] the signed dxil.dll is answering, not the internal validator.
+
+==== CONTROL: same invalid handle on a checked opcode ====
+# Must be REJECTED. If the signed validator accepted this too, the 
+# subject's acceptance would say nothing about annotateHandle.
+$ set DXC_DXIL_DLL_PATH=<repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxil.dll
+$ <repo>/build/Debug/bin/dxv.exe release-modules\v1.8.2505.1-checkedop-zeroinit.ll
+  Function: main: error: Instructions should not read uninitialized value.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  error: Resource handle should returned by createHandle.
+  Function: main: error: load can only run on UAV/SRV resource.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Function: main: error: texture load only works on Texture1D/1DArray/2D/2DArray/3D/MS2D/MS2DArray.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Validation failed.
+  [exit] 1 -> REJECTED
+
+==== SUBJECT: annotateHandle with a zeroinitializer handle ====
+$ set DXC_DXIL_DLL_PATH=<repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxil.dll
+$ <repo>/build/Debug/bin/dxv.exe release-modules\v1.8.2505.1-zeroinit.ll
+  Validation succeeded.
+  [exit] 0 -> ACCEPTED
+
+==== verdict ====
+  witness  : external signed validator engaged
+  control  : textureLoad + zeroinitializer -> REJECTED
+  subject  : annotateHandle + zeroinitializer -> ACCEPTED
+
+  The signed shipping validator applies the uninitialized-handle rule
+  to textureLoad and not to annotateHandle. #4415 is about that gap.

@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:30:28+00:00
+# cmd: -T cs_6_0 -E main control-prior-diag-alone.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "use of undeclared identifier", so this build did not reach the code under test
+# variant: prior-diag-alone (control-prior-diag-alone.hlsl)
+# expect: invalid-probe
+
+$ dxc -T cs_6_0 -E main control-prior-diag-alone.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-prior-diag-alone.hlsl:1:24: error: use of undeclared identifier 'undeclared_symbol'
+static const int bad = undeclared_symbol;
+                       ^
+
+

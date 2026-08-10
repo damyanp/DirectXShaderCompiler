@@ -1,0 +1,29 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:20:53+00:00
+# cmd: -T ps_6_0 -E main -HV 2021 variant-const-overload-pair.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: const-overload-pair (variant-const-overload-pair.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main -HV 2021 variant-const-overload-pair.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-const-overload-pair.hlsl:23:10: error: class member cannot be redeclared
+  float4 operator[](int ix) const {
+         ^
+variant-const-overload-pair.hlsl:19:10: note: previous declaration is here
+  float4 operator[](int ix) {
+         ^
+variant-const-overload-pair.hlsl:23:28: error: expected ';' at end of declaration list
+  float4 operator[](int ix) const {
+                           ^
+                           ;
+
+

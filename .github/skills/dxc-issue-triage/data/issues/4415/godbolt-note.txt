@@ -1,0 +1,13 @@
+#4415 -- Validator needs to prevent invalid handle in AnnotateHandle
+Look at the DXIL pane, at the call to @dx.op.annotateHandle (opcode 216).
+Its first operand -- the resource handle -- is an all-zero handle: the
+shader reads CBV while still initialising CBV, so there is no handle yet.
+Both the front end and DXIL validation let this through; only the
+-Wuninitialized warning fires, and the compiler exits 0.
+Note this text is deliberately written without the exact LLVM spelling of
+that operand, because Compiler Explorer copies the source into the module's
+!dx.source.contents metadata -- searching the DXIL pane for the spelling
+would otherwise find this banner rather than the instruction. (The issue
+author's own comment block below does contain the spelling; it is quoted
+verbatim from the issue and left untouched, so a text search of the DXIL
+pane finds it there too. Read the annotateHandle call itself.)

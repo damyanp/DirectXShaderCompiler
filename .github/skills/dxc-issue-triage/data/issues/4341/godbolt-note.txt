@@ -1,0 +1,19 @@
+This is issue 4341: a struct declares a user-defined subscript operator and the
+shader tries to write through it. The single line under test is the assignment
+to the subscript, near the bottom of the entry point.
+
+What to look for, pane by pane:
+
+- The two DXC panes both fail, and the failure is on that one assignment line.
+  Nothing else in the shader is rejected: reading through the same operator
+  compiles, and so does a plain named mutating member function. The compiler
+  cannot accept the write because HLSL has no way to declare an overload that
+  returns something assignable.
+- The last pane is the control. It compiles the identical source with the
+  assignment removed by -DCONTROL_NO_ASSIGN, so a diagnostic in the earlier
+  panes is attributable to that line and not to the struct, the profile or the
+  compiler's HLSL support.
+
+Compiler Explorer runs Release builds and its oldest DXC is 1.6.2112, which is
+also the first release that accepts HLSL 2021 at all; the release history was
+measured locally rather than here.

@@ -1,0 +1,22 @@
+{
+  "batch": "batch-015",
+  "confidence": "high",
+  "created_at": "2022-03-21T22:00:08Z",
+  "godbolt_url": "https://godbolt.org/z/Y5d6e1r16",
+  "history": "always-repro'd",
+  "labels": "hlsl-next",
+  "labels_add": "enhancement, hlsl2021",
+  "labels_now": "hlsl-next",
+  "notes_path": ".github/skills/dxc-issue-triage/data/issues/4341/notes.md",
+  "number": 4341,
+  "repro_quality": "partial",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Writing through a user-defined operator[] is still rejected (error: expression is not assignable), on main (13730886e) and on all 16 stable releases from v1.6.2112 through v1.9.2607; the four older releases predate HLSL 2021 and are not evidence. The repro seeds a known value and writes a different one, so a landed write and a discarded write are distinguishable: neither predicate ever changed, so this has always been a diagnostic and never a silent miscompile. Both explanations in the thread still hold - references are unsupported (Sema::BuildReferenceType), and a trailing const is not part of a member function signature, so a const/non-const operator[] pair is a redeclaration. clang trunk on Compiler Explorer emits the identical diagnostic, with a control pane proving it is not an artefact of incomplete HLSL support.",
+  "title": "[HLSL 2021] Setter array subscript operator overload",
+  "triaged_at": "2026-08-10T21:54:33+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4341"
+}

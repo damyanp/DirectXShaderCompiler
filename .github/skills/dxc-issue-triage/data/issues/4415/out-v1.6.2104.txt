@@ -1,0 +1,26 @@
+# compiler: v1.6.2104
+# exe: <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+# ran: 2026-08-10T19:52:05+00:00
+# cmd: -T vs_6_6 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -T vs_6_6 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                            ~~~                          ^~~
+error: validation errors
+
+repro.hlsl:14:58: error: opcode 'CreateHandleForLib' should only be used in 'Library'.
+note: at '%1 = call %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32 160, %dx.types.Handle zeroinitializer)' in block '#0' of function 'main'.
+Validation failed.
+
+
+

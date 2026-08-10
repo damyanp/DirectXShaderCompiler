@@ -1,0 +1,1 @@
+dxc_1_6_2112:-T ps_6_0 -E PS_bright_pass -spirv,dxc_trunk:-T ps_6_0 -E PS_bright_pass -spirv,dxc_trunk:-T ps_6_0 -E PS_bright_pass

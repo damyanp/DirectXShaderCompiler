@@ -1,0 +1,87 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:20:19+00:00
+# cmd: -T ps_6_0 -E PS_bright_pass -spirv minimal-manual.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: minimal-manual (minimal-manual.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E PS_bright_pass -spirv minimal-manual.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 46
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %PS_bright_pass "PS_bright_pass" %out_var_SV_Target0
+               OpExecutionMode %PS_bright_pass OriginUpperLeft
+               OpSource HLSL 600
+               OpName %type__Globals "type.$Globals"
+               OpMemberName %type__Globals 0 "g_in"
+               OpName %_Globals "$Globals"
+               OpName %out_var_SV_Target0 "out.var.SV_Target0"
+               OpName %PS_bright_pass "PS_bright_pass"
+               OpDecorate %out_var_SV_Target0 Location 0
+               OpDecorate %_Globals DescriptorSet 0
+               OpDecorate %_Globals Binding 0
+               OpMemberDecorate %type__Globals 0 Offset 0
+               OpDecorate %type__Globals Block
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_1 = OpConstant %int 1
+      %int_2 = OpConstant %int 2
+      %int_3 = OpConstant %int 3
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+%type__Globals = OpTypeStruct %v4float
+%_ptr_Uniform_type__Globals = OpTypePointer Uniform %type__Globals
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %15 = OpTypeFunction %void
+%_ptr_Uniform_float = OpTypePointer Uniform %float
+       %bool = OpTypeBool
+   %_Globals = OpVariable %_ptr_Uniform_type__Globals Uniform
+%out_var_SV_Target0 = OpVariable %_ptr_Output_v4float Output
+%PS_bright_pass = OpFunction %void None %15
+         %18 = OpLabel
+         %19 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_0
+         %20 = OpLoad %float %19
+         %21 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_1
+         %22 = OpLoad %float %21
+         %23 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_2
+         %24 = OpLoad %float %23
+         %25 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_3
+         %26 = OpLoad %float %25
+         %27 = OpFOrdGreaterThan %bool %20 %22
+         %28 = OpSelect %float %27 %22 %20
+         %29 = OpSelect %float %27 %20 %22
+         %30 = OpFOrdGreaterThan %bool %29 %24
+         %31 = OpSelect %float %30 %24 %29
+         %32 = OpSelect %float %30 %29 %24
+         %33 = OpFOrdGreaterThan %bool %32 %26
+         %34 = OpSelect %float %33 %32 %26
+         %35 = OpSelect %float %33 %26 %32
+         %36 = OpFOrdGreaterThan %bool %28 %31
+         %37 = OpSelect %float %36 %31 %28
+         %38 = OpSelect %float %36 %28 %31
+         %39 = OpFOrdGreaterThan %bool %38 %35
+         %40 = OpSelect %float %39 %38 %35
+         %41 = OpSelect %float %39 %35 %38
+         %42 = OpFOrdGreaterThan %bool %37 %41
+         %43 = OpSelect %float %42 %37 %41
+         %44 = OpSelect %float %42 %41 %37
+         %45 = OpCompositeConstruct %v4float %44 %43 %40 %34
+               OpStore %out_var_SV_Target0 %45
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

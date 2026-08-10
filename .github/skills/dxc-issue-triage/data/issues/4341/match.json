@@ -1,0 +1,9 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains", "value": "error: expression is not assignable" },
+    { "kind": "contains", "value": "m[0] = 9.0;" },
+    { "kind": "not_contains", "value": "'operator' is a reserved keyword in HLSL" }
+  ],
+  "note": "#4341 asks how to write a SETTER subscript operator. The symptom is that writing through a user-defined operator[] cannot be expressed at all: `m[0] = 9.0;` is rejected. This is a diagnostic-quality issue -- the symptom IS an error message -- so the diagnostic is quoted verbatim rather than approximated (SKILL.md, #3055). Clause 1 is the symptom. Clause 2 anchors it to the assignment line rather than to any other non-assignable expression in the file, using the source echo clang prints under the caret. Clause 3 is an absence clause and is deliberately NOT load-bearing on its own: clauses 1 and 2 already require a parse that got as far as assignability checking, so clause 3 cannot be satisfied by a compile that never started. Its job is to reject the HLSL-2018 path, where the operator declaration itself is refused ('operator' is a reserved keyword in HLSL) and the assignment then fails with the different text \"type 'MyArray' does not provide a subscript operator\". Controls: variant-getter-read.hlsl is the same struct on the same profile and flags with the subscript READ instead of written -- it compiles clean and must score no-match; variant-named-setter.hlsl proves a store from inside a member function does land, so the rejection is specific to the operator spelling. See match-write-lands.json for the mirror predicate that detects the fixed state, which is what separates 'rejected' from 'silently discarded'."
+}

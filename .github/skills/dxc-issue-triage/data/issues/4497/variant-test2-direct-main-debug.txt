@@ -1,0 +1,140 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:23:27+00:00
+# cmd: -T ps_6_0 -E test2 repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: test2-direct (repro.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E test2 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: 97568c57e52afb40b1b344c8ea62e2b1
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: test2
+;
+;
+; Buffer Definitions:
+;
+; Resource bind info for dataBuffer
+; {
+;
+;   struct struct.SData
+;   {
+;
+;       float3 value;                                 ; Offset:    0
+;       uint type;                                    ; Offset:   12
+;       float4 value2;                                ; Offset:   16
+;   
+;   } $Element;                                       ; Offset:    0 Size:    32
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; dataBuffer                        texture  struct         r/o      T0             t0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%dx.types.ResRet.f32 = type { float, float, float, float, i32 }
+%"class.StructuredBuffer<SData>" = type { %struct.SData }
+%struct.SData = type { <3 x float>, i32, <4 x float> }
+
+define void @test2() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %1, i32 0, i32 12)  ; BufferLoad(srv,index,wot)
+  %3 = extractvalue %dx.types.ResRet.i32 %2, 0
+  %4 = icmp eq i32 %3, 0
+  br i1 %4, label %5, label %10, !dx.controlflow.hints !10
+
+; <label>:5                                       ; preds = %0
+  %6 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %1, i32 0, i32 0)  ; BufferLoad(srv,index,wot)
+  %7 = extractvalue %dx.types.ResRet.f32 %6, 0
+  %8 = fcmp fast olt float %7, 0.000000e+00
+  br i1 %8, label %9, label %10, !dx.controlflow.hints !11
+
+; <label>:9                                       ; preds = %5
+  call void @dx.op.discard(i32 82, i1 true)  ; Discard(condition)
+  br label %10
+
+; <label>:10                                      ; preds = %9, %5, %0
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.discard(i32, i1) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32, %dx.types.Handle, i32, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i32) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!8}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 10}
+!3 = !{!"ps", i32 6, i32 0}
+!4 = !{!5, null, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.StructuredBuffer<SData>"* undef, !"", i32 0, i32 0, i32 1, i32 12, i32 0, !7}
+!7 = !{i32 1, i32 32}
+!8 = !{void ()* @test2, !"test2", null, !4, !9}
+!9 = !{i32 0, i64 16}
+!10 = distinct !{!10, !"dx.controlflow.hints", i32 1}
+!11 = distinct !{!11, !"dx.controlflow.hints", i32 1}
+
+
+--- stderr ---
+

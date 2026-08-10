@@ -1,0 +1,9 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "@dx\\.op\\.(?:raw)?[bB]ufferLoad\\.i32\\(" },
+    { "kind": "regex", "value": "^\\s*br i1 " },
+    { "kind": "regex", "value": "define void @[\\w.]+\\(\\)(?:(?!br i1)[\\s\\S])*?@dx\\.op\\.(?:raw)?[bB]ufferLoad\\.f32\\(" }
+  ],
+  "note": "match.json without its dx.op.discard clause -- the STAGE-NEUTRAL form of the same instrument, for controls that cannot contain a discard.\n\nWhy it exists: repro-cs.hlsl restates the repro as a compute shader storing to an RWBuffer, because Compiler Explorer's clang-dxc panes cannot compile the original ('error: use of undeclared identifier discard'). Scored against match.json, that translation comes back no-match -- not because the load placement changed, but because clause 1 asks for an op the translation deliberately does not contain. SKILL step 4: 'Score controls against the instrument, not an unrelated anchor... put the detector alone in match-*.json and run controls against that.'\n\nThe three surviving clauses are exactly the detector plus its anti-vacuity anchors, and they stay honest without the discard clause: a separate integer load and at least one 'br i1' must be present (so a merged load or a fully flattened shader cannot satisfy it), and clause 3 requires the float load itself to exist, which no failed compile can emit.\n\nThe stage change is what makes this predicate necessary, so it is also what it must not silently absorb. Both compute entry points are captured against it: variant-cs-test1-*--match-position.txt must MATCH and variant-cs-test2-*--match-position.txt must NOT, and only that pair licenses using the translation as evidence about this issue. The pixel repro is also scored against this predicate (variant-pixel-position-*) so the two instruments can be compared on the same input rather than assumed equivalent."
+}

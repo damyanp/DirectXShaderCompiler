@@ -1,0 +1,356 @@
+# Compiler Explorer panes for #4501, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E main -spirv -fspv-debug=vulkan-with-source
+# exit:     0
+
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 107
+; Schema: 0
+               OpCapability Shader
+               OpExtension "SPV_KHR_non_semantic_info"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %gl_FragCoord %out_var_SV_Target
+               OpExecutionMode %main OriginUpperLeft
+          %5 = OpString "/app/example.hlsl"
+          %6 = OpString "float"
+          %7 = OpString "//==========================================================================//
+// What to look for: this shader is compiled with SPIR-V rich debug info, so the module
+// imports the NonSemantic.Shader.DebugInfo.100 extended instruction set and every debug
+// record is an OpExtInst against it. Scan those OpExtInst lines. Issue 4501 asks for two
+// of that set's instructions -- opcodes 105 and 106 in
+// extinst.nonsemantic.shader.debuginfo.100.grammar.json -- to be emitted when a separate
+// debug module is written. Neither appears here, in any pane. Their neighbour, opcode 107,
+// does appear, which is what shows this is a gap in what dxc emits rather than a gap in
+// the instruction set or the disassembler.
+//
+// Note the two limits of this page: Compiler Explorer cannot show the -Fd behaviour at all
+// (dxc rejects -Fd together with -spirv), and its oldest dxc is 1.6.2112, so it cannot
+// date anything. The local 21-binary release matrix in the issue's triage directory covers
+// both.
+//==========================================================================//
+
+// Minimal pixel shader used to ask whether DXC's SPIR-V backend ever emits the
+// split-debug-info instructions requested in issue 4501.
+//
+// Deliberately does NOT spell either requested instruction name anywhere: with
+// -fspv-debug=vulkan-with-source the shader text is embedded in the module, so a
+// mention here would manufacture a hit and make the absence clauses unfalsifiable.
+// The mirror case is control-tokens-in-source.hlsl.
+
+float4 g_color;
+
+float4 main(float4 pos : SV_Position) : SV_Target {
+  float4 acc = g_color;
+  for (int i = 0; i < 2; ++i) {
+    acc = acc * 0.5f + pos;
+  }
+  return acc;
+}
+"
+          %8 = OpString "main"
+          %9 = OpString ""
+         %10 = OpString "int"
+         %11 = OpString "i"
+         %12 = OpString "acc"
+         %13 = OpString "pos"
+               OpName %type__Globals "type.$Globals"
+               OpMemberName %type__Globals 0 "g_color"
+               OpName %_Globals "$Globals"
+               OpName %out_var_SV_Target "out.var.SV_Target"
+               OpName %main "main"
+               OpDecorate %gl_FragCoord BuiltIn FragCoord
+               OpDecorate %out_var_SV_Target Location 0
+               OpDecorate %_Globals DescriptorSet 0
+               OpDecorate %_Globals Binding 0
+               OpMemberDecorate %type__Globals 0 Offset 0
+               OpDecorate %type__Globals Block
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_2 = OpConstant %int 2
+      %float = OpTypeFloat 32
+  %float_0_5 = OpConstant %float 0.5
+      %int_1 = OpConstant %int 1
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+    %v4float = OpTypeVector %float 4
+%type__Globals = OpTypeStruct %v4float
+%_ptr_Uniform_type__Globals = OpTypePointer Uniform %type__Globals
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+     %uint_3 = OpConstant %uint 3
+     %uint_0 = OpConstant %uint 0
+     %uint_4 = OpConstant %uint 4
+     %uint_1 = OpConstant %uint 1
+     %uint_5 = OpConstant %uint 5
+    %uint_27 = OpConstant %uint 27
+    %uint_51 = OpConstant %uint 51
+    %uint_29 = OpConstant %uint 29
+    %uint_31 = OpConstant %uint 31
+    %uint_12 = OpConstant %uint 12
+    %uint_28 = OpConstant %uint 28
+    %uint_10 = OpConstant %uint 10
+    %uint_20 = OpConstant %uint 20
+         %55 = OpTypeFunction %void
+    %uint_33 = OpConstant %uint 33
+%_ptr_Uniform_v4float = OpTypePointer Uniform %v4float
+    %uint_16 = OpConstant %uint 16
+    %uint_19 = OpConstant %uint 19
+       %bool = OpTypeBool
+    %uint_23 = OpConstant %uint 23
+    %uint_30 = OpConstant %uint 30
+    %uint_11 = OpConstant %uint 11
+    %uint_17 = OpConstant %uint 17
+    %uint_24 = OpConstant %uint 24
+    %uint_26 = OpConstant %uint 26
+   %_Globals = OpVariable %_ptr_Uniform_type__Globals Uniform
+%gl_FragCoord = OpVariable %_ptr_Input_v4float Input
+%out_var_SV_Target = OpVariable %_ptr_Output_v4float Output
+         %17 = OpExtInst %void %1 DebugExpression
+         %18 = OpExtInst %void %1 DebugTypeBasic %6 %uint_32 %uint_3 %uint_0
+         %22 = OpExtInst %void %1 DebugTypeVector %18 %uint_4
+         %24 = OpExtInst %void %1 DebugTypeFunction %uint_3 %22 %22
+         %25 = OpExtInst %void %1 DebugSource %5 %7
+         %26 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %25 %uint_5
+         %29 = OpExtInst %void %1 DebugFunction %8 %24 %25 %uint_27 %uint_1 %26 %9 %uint_3 %uint_27
+         %31 = OpExtInst %void %1 DebugLexicalBlock %25 %uint_27 %uint_51 %29
+         %33 = OpExtInst %void %1 DebugLexicalBlock %25 %uint_29 %uint_31 %31
+         %36 = OpExtInst %void %1 DebugTypeBasic %10 %uint_32 %uint_4 %uint_0
+         %37 = OpExtInst %void %1 DebugLocalVariable %11 %36 %25 %uint_29 %uint_12 %31 %uint_4
+         %39 = OpExtInst %void %1 DebugLocalVariable %12 %22 %25 %uint_28 %uint_10 %31 %uint_4
+         %42 = OpExtInst %void %1 DebugLocalVariable %13 %22 %25 %uint_27 %uint_20 %29 %uint_4 %uint_1
+       %main = OpFunction %void None %55
+         %67 = OpLabel
+         %68 = OpLoad %v4float %gl_FragCoord
+         %69 = OpExtInst %void %1 DebugValue %42 %68 %17
+        %102 = OpExtInst %void %1 DebugScope %31
+         %70 = OpExtInst %void %1 DebugLine %25 %uint_28 %uint_28 %uint_16 %uint_16
+         %71 = OpAccessChain %_ptr_Uniform_v4float %_Globals %int_0
+         %73 = OpLoad %v4float %71
+         %74 = OpExtInst %void %1 DebugLine %25 %uint_28 %uint_28 %uint_10 %uint_10
+         %75 = OpExtInst %void %1 DebugValue %39 %73 %17
+         %76 = OpExtInst %void %1 DebugLine %25 %uint_29 %uint_29 %uint_12 %uint_12
+         %77 = OpExtInst %void %1 DebugValue %37 %int_0 %17
+         %78 = OpExtInst %void %1 DebugLine %25 %uint_29 %uint_29 %uint_19 %uint_19
+               OpBranch %79
+         %79 = OpLabel
+         %80 = OpPhi %v4float %73 %67 %81 %82
+         %83 = OpPhi %int %int_0 %67 %84 %82
+         %85 = OpExtInst %void %1 DebugValue %39 %80 %17
+         %86 = OpExtInst %void %1 DebugValue %37 %83 %17
+        %103 = OpExtInst %void %1 DebugScope %31
+         %87 = OpExtInst %void %1 DebugLine %25 %uint_29 %uint_29 %uint_19 %uint_23
+         %88 = OpSLessThan %bool %83 %int_2
+         %89 = OpExtInst %void %1 DebugLine %25 %uint_29 %uint_29 %uint_23 %uint_23
+        %104 = OpExtInst %void %1 DebugNoScope
+               OpLoopMerge %90 %82 None
+               OpBranchConditional %88 %82 %90
+         %82 = OpLabel
+        %105 = OpExtInst %void %1 DebugScope %33
+         %92 = OpExtInst %void %1 DebugLine %25 %uint_30 %uint_30 %uint_11 %uint_17
+         %93 = OpVectorTimesScalar %v4float %80 %float_0_5
+         %94 = OpExtInst %void %1 DebugLine %25 %uint_30 %uint_30 %uint_11 %uint_24
+         %81 = OpFAdd %v4float %93 %68
+         %95 = OpExtInst %void %1 DebugLine %25 %uint_30 %uint_30 %uint_5 %uint_24
+         %96 = OpExtInst %void %1 DebugValue %39 %81 %17
+        %106 = OpExtInst %void %1 DebugScope %31
+         %97 = OpExtInst %void %1 DebugLine %25 %uint_29 %uint_29 %uint_26 %uint_26
+         %84 = OpIAdd %int %83 %int_1
+         %98 = OpExtInst %void %1 DebugLine %25 %uint_29 %uint_29 %uint_28 %uint_28
+         %99 = OpExtInst %void %1 DebugValue %37 %84 %17
+        %100 = OpExtInst %void %1 DebugLine %25 %uint_31 %uint_31 %uint_3 %uint_3
+               OpBranch %79
+         %90 = OpLabel
+               OpStore %out_var_SV_Target %80
+        %101 = OpExtInst %void %1 DebugLine %25 %uint_33 %uint_33 %uint_1 %uint_1
+               OpReturn
+               OpFunctionEnd
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main -spirv -fspv-debug=vulkan-with-source
+# exit:     0
+
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 166
+; Schema: 0
+               OpCapability Shader
+               OpExtension "SPV_KHR_non_semantic_info"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %gl_FragCoord %out_var_SV_Target
+               OpExecutionMode %main OriginUpperLeft
+          %5 = OpString "/app/example.hlsl"
+          %6 = OpString "float"
+          %7 = OpString "//==========================================================================//
+// What to look for: this shader is compiled with SPIR-V rich debug info, so the module
+// imports the NonSemantic.Shader.DebugInfo.100 extended instruction set and every debug
+// record is an OpExtInst against it. Scan those OpExtInst lines. Issue 4501 asks for two
+// of that set's instructions -- opcodes 105 and 106 in
+// extinst.nonsemantic.shader.debuginfo.100.grammar.json -- to be emitted when a separate
+// debug module is written. Neither appears here, in any pane. Their neighbour, opcode 107,
+// does appear, which is what shows this is a gap in what dxc emits rather than a gap in
+// the instruction set or the disassembler.
+//
+// Note the two limits of this page: Compiler Explorer cannot show the -Fd behaviour at all
+// (dxc rejects -Fd together with -spirv), and its oldest dxc is 1.6.2112, so it cannot
+// date anything. The local 21-binary release matrix in the issue's triage directory covers
+// both.
+//==========================================================================//
+
+// Minimal pixel shader used to ask whether DXC's SPIR-V backend ever emits the
+// split-debug-info instructions requested in issue 4501.
+//
+// Deliberately does NOT spell either requested instruction name anywhere: with
+// -fspv-debug=vulkan-with-source the shader text is embedded in the module, so a
+// mention here would manufacture a hit and make the absence clauses unfalsifiable.
+// The mirror case is control-tokens-in-source.hlsl.
+
+float4 g_color;
+
+float4 main(float4 pos : SV_Position) : SV_Target {
+  float4 acc = g_color;
+  for (int i = 0; i < 2; ++i) {
+    acc = acc * 0.5f + pos;
+  }
+  return acc;
+}
+"
+          %8 = OpString "main"
+          %9 = OpString ""
+         %10 = OpString "int"
+         %11 = OpString "i"
+         %12 = OpString "acc"
+         %13 = OpString "pos"
+         %14 = OpString "__dxc_setup"
+         %15 = OpString "beb6c47d"
+         %16 = OpString " -E main -T ps_6_0 -Zi -Qembed_debug -spirv -fspv-debug=vulkan-with-source"
+               OpName %type__Globals "type.$Globals"
+               OpMemberName %type__Globals 0 "g_color"
+               OpName %_Globals "$Globals"
+               OpName %out_var_SV_Target "out.var.SV_Target"
+               OpName %main "main"
+               OpDecorate %gl_FragCoord BuiltIn FragCoord
+               OpDecorate %out_var_SV_Target Location 0
+               OpDecorate %_Globals DescriptorSet 0
+               OpDecorate %_Globals Binding 0
+               OpMemberDecorate %type__Globals 0 Offset 0
+               OpDecorate %type__Globals Block
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_2 = OpConstant %int 2
+      %float = OpTypeFloat 32
+  %float_0_5 = OpConstant %float 0.5
+      %int_1 = OpConstant %int 1
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+    %v4float = OpTypeVector %float 4
+%type__Globals = OpTypeStruct %v4float
+%_ptr_Uniform_type__Globals = OpTypePointer Uniform %type__Globals
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+     %uint_3 = OpConstant %uint 3
+     %uint_0 = OpConstant %uint 0
+     %uint_4 = OpConstant %uint 4
+     %uint_1 = OpConstant %uint 1
+     %uint_5 = OpConstant %uint 5
+    %uint_27 = OpConstant %uint 27
+    %uint_51 = OpConstant %uint 51
+    %uint_29 = OpConstant %uint 29
+    %uint_31 = OpConstant %uint 31
+    %uint_12 = OpConstant %uint 12
+    %uint_28 = OpConstant %uint 28
+    %uint_10 = OpConstant %uint 10
+    %uint_20 = OpConstant %uint 20
+         %62 = OpTypeFunction %void
+    %uint_33 = OpConstant %uint 33
+%_ptr_Uniform_v4float = OpTypePointer Uniform %v4float
+    %uint_16 = OpConstant %uint 16
+     %uint_8 = OpConstant %uint 8
+    %uint_17 = OpConstant %uint 17
+    %uint_19 = OpConstant %uint 19
+       %bool = OpTypeBool
+    %uint_23 = OpConstant %uint 23
+    %uint_30 = OpConstant %uint 30
+    %uint_11 = OpConstant %uint 11
+    %uint_24 = OpConstant %uint 24
+    %uint_26 = OpConstant %uint 26
+   %_Globals = OpVariable %_ptr_Uniform_type__Globals Uniform
+%gl_FragCoord = OpVariable %_ptr_Input_v4float Input
+%out_var_SV_Target = OpVariable %_ptr_Output_v4float Output
+         %20 = OpExtInst %void %1 DebugExpression
+         %21 = OpExtInst %void %1 DebugTypeBasic %6 %uint_32 %uint_3 %uint_0
+         %25 = OpExtInst %void %1 DebugTypeVector %21 %uint_4
+         %27 = OpExtInst %void %1 DebugTypeFunction %uint_3 %25 %25
+         %28 = OpExtInst %void %1 DebugSource %5 %7
+         %29 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %28 %uint_5
+         %32 = OpExtInst %void %1 DebugFunction %8 %27 %28 %uint_27 %uint_1 %29 %9 %uint_3 %uint_27
+         %34 = OpExtInst %void %1 DebugLexicalBlock %28 %uint_27 %uint_51 %32
+         %36 = OpExtInst %void %1 DebugLexicalBlock %28 %uint_29 %uint_31 %34
+         %39 = OpExtInst %void %1 DebugTypeBasic %10 %uint_32 %uint_4 %uint_0
+         %40 = OpExtInst %void %1 DebugLocalVariable %11 %39 %28 %uint_29 %uint_12 %34 %uint_4
+         %42 = OpExtInst %void %1 DebugLocalVariable %12 %25 %28 %uint_28 %uint_10 %34 %uint_4
+         %45 = OpExtInst %void %1 DebugLocalVariable %13 %25 %28 %uint_27 %uint_20 %32 %uint_4 %uint_1
+         %47 = OpExtInst %void %1 DebugTypeFunction %uint_3 %void
+         %48 = OpExtInst %void %1 DebugFunction %14 %47 %28 %uint_27 %uint_1 %29 %9 %uint_3 %uint_27
+         %49 = OpExtInst %void %1 DebugEntryPoint %48 %29 %15 %16
+         %50 = OpExtInst %void %1 DebugInlinedAt %uint_27 %48
+       %main = OpFunction %void None %62
+         %75 = OpLabel
+        %157 = OpExtInst %void %1 DebugScope %48
+         %76 = OpExtInst %void %1 DebugFunctionDefinition %48 %main
+         %77 = OpLoad %v4float %gl_FragCoord
+        %158 = OpExtInst %void %1 DebugScope %32 %50
+         %78 = OpExtInst %void %1 DebugValue %45 %77 %20
+        %159 = OpExtInst %void %1 DebugScope %34 %50
+         %79 = OpExtInst %void %1 DebugLine %28 %uint_28 %uint_28 %uint_16 %uint_16
+         %80 = OpAccessChain %_ptr_Uniform_v4float %_Globals %int_0
+         %82 = OpLoad %v4float %80
+         %83 = OpExtInst %void %1 DebugLine %28 %uint_28 %uint_28 %uint_3 %uint_16
+         %84 = OpExtInst %void %1 DebugValue %42 %82 %20
+         %85 = OpExtInst %void %1 DebugLine %28 %uint_29 %uint_29 %uint_8 %uint_16
+         %86 = OpExtInst %void %1 DebugValue %40 %int_0 %20
+         %87 = OpExtInst %void %1 DebugLine %28 %uint_29 %uint_29 %uint_8 %uint_17
+               OpBranch %88
+         %88 = OpLabel
+         %89 = OpPhi %v4float %82 %75 %90 %91
+         %92 = OpPhi %int %int_0 %75 %93 %91
+        %160 = OpExtInst %void %1 DebugScope %34 %50
+         %94 = OpExtInst %void %1 DebugValue %42 %89 %20
+         %95 = OpExtInst %void %1 DebugValue %40 %92 %20
+         %96 = OpExtInst %void %1 DebugLine %28 %uint_29 %uint_29 %uint_19 %uint_23
+         %97 = OpSLessThan %bool %92 %int_2
+        %161 = OpExtInst %void %1 DebugNoScope
+               OpLoopMerge %99 %91 None
+               OpBranchConditional %97 %91 %99
+         %91 = OpLabel
+        %162 = OpExtInst %void %1 DebugScope %36 %50
+        %101 = OpExtInst %void %1 DebugLine %28 %uint_30 %uint_30 %uint_11 %uint_17
+        %102 = OpVectorTimesScalar %v4float %89 %float_0_5
+        %103 = OpExtInst %void %1 DebugLine %28 %uint_30 %uint_30 %uint_11 %uint_24
+         %90 = OpFAdd %v4float %102 %77
+        %163 = OpExtInst %void %1 DebugScope %34 %50
+        %104 = OpExtInst %void %1 DebugLine %28 %uint_30 %uint_30 %uint_5 %uint_24
+        %105 = OpExtInst %void %1 DebugValue %42 %90 %20
+        %106 = OpExtInst %void %1 DebugLine %28 %uint_29 %uint_29 %uint_26 %uint_28
+         %93 = OpIAdd %int %92 %int_1
+        %108 = OpExtInst %void %1 DebugValue %40 %93 %20
+               OpBranch %88
+         %99 = OpLabel
+        %164 = OpExtInst %void %1 DebugScope %48
+               OpStore %out_var_SV_Target %89
+        %110 = OpExtInst %void %1 DebugLine %28 %uint_33 %uint_33 %uint_1 %uint_1
+               OpReturn
+        %165 = OpExtInst %void %1 DebugNoScope
+               OpFunctionEnd

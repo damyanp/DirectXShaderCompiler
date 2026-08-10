@@ -1,0 +1,26 @@
+{
+  "kind": "all_of",
+  "note": "Ask 2 of #4351 -- the 2022-08-15 comment by `sparkkk`: \"not only for struct members, but the types of unused function parameters would also be removed incorrectly.\" The comment carries no shader and no command line, so case-fn-param.hlsl is AGENT-CONSTRUCTED to the narrowest reading of that sentence, and this predicate is scored separately from match.json so that neither ask can borrow the other's verdict. The shader is deliberately self-controlling: `Helper` takes two struct parameters, one read in the body and one not, and the two types are otherwise identical. Clause 2 is therefore an in-run positive self-test -- the READ parameter's type must survive -- so a build that simply deleted every struct definition, or a rewriter that emitted nothing, cannot score a reproduction on the strength of clause 3's absence. Clause 1 is the reference that makes the removal incorrect (the retained signature still names the type). Clause 4 proves the rewrite completed rather than a diagnostic quoting a source line, and clause 5 proves a rewriter option was honoured, since dxr prints `// Rewrite unchanged result:` (tools/clang/tools/libclang/dxcrewriteunused.cpp:1087) only when neither -remove-unused-globals nor -remove-unused-functions was set.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "ParamUnused\\s+\\w+"
+    },
+    {
+      "kind": "regex",
+      "value": "struct\\s+ParamUsed\\s*\\{"
+    },
+    {
+      "kind": "not_regex",
+      "value": "struct\\s+ParamUnused\\s*\\{"
+    },
+    {
+      "kind": "regex",
+      "value": "void\\s+InitArgs\\s*\\("
+    },
+    {
+      "kind": "not_contains",
+      "value": "// Rewrite unchanged result:"
+    }
+  ]
+}

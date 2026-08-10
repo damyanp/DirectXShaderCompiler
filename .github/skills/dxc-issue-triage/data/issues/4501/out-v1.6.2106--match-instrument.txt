@@ -1,0 +1,17 @@
+# compiler: v1.6.2106
+# exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+# ran: 2026-08-10T19:30:35+00:00
+# cmd: -T ps_6_0 -E main -spirv -fspv-debug=vulkan-with-source repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match-instrument.json
+# verdict: no-repro
+
+$ dxc -T ps_6_0 -E main -spirv -fspv-debug=vulkan-with-source repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : unknown SPIR-V debug info control parameter: vulkan-with-source
+

@@ -1,0 +1,165 @@
+"""#4350: run the controls on every stable release, not only on ground truth.
+
+`bisect` probes the repro on each release. That answers "did it crash", but not "could this
+release have shown anything else" -- a release that rejects the shader for an unrelated reason,
+or whose dxc.exe is broken, would look the same. The skill's rule is to run the
+feature-presence control on every probed release rather than only on `main`.
+
+For each stable, non-prerelease catalogued dxc.exe this runs, with the repro's exact arguments:
+
+  control-member-fn.hlsl   feature presence: a struct member function writing a member,
+                           called on a mutable local. Every release that can express the repro
+                           at all must compile this. MUST be exit 0.
+  control-static-obj.hlsl  negative control: the repro with `static` on the object, so it is
+                           mutable and there is no const violation. MUST be exit 0, which is
+                           what proves the predicate is not simply firing on this shader shape
+                           on that release.
+  control-syntax-error.hlsl  an ordinary diagnosed error. MUST be nonzero and MUST NOT satisfy
+                           internal_failure -- the discriminator between "failed" and "crashed".
+  repro.hlsl               restated here from the same driver so the matrix is self-contained.
+
+Every row is scored with triage.py's own `is_internal_failure`, imported rather than
+reimplemented. Each release's --version is printed so the row can be attributed, and the
+harness asserts its own expectations and prints a loud SELFTEST line: a matrix that can
+return "nothing here" and "nothing ran" through the same channel will eventually be believed.
+
+Writes manual-case-release-matrix.txt.
+
+Run from this directory:  python release-matrix.py
+"""
+
+import importlib.util
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+SCRIPTS = os.path.abspath(os.path.join(HERE, "..", "..", "..", "scripts"))
+SKILL = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+# data/issues/4350 -> issues -> data -> dxc-issue-triage -> skills -> .github -> <repo>
+REPO = os.path.abspath(os.path.join(HERE, *([os.pardir] * 6)))
+
+_spec = importlib.util.spec_from_file_location(
+    "triage", os.path.join(SCRIPTS, "triage.py"))
+triage = importlib.util.module_from_spec(_spec)
+sys.modules["triage"] = triage
+_spec.loader.exec_module(triage)
+
+CASES = [
+    ("repro", "repro.hlsl", "crash"),
+    ("memberfn", "control-member-fn.hlsl", "clean"),
+    ("static", "control-static-obj.hlsl", "clean"),
+    ("syntaxerr", "control-syntax-error.hlsl", "diagnosed"),
+]
+
+
+def redact(text):
+    """Rewrite machine paths to <repo>/<cache>, anchored on names not on a layout."""
+    for root, tok in ((SKILL, "<skill>"), (REPO, "<repo>")):
+        r = root.rstrip("\\/")
+        for v in sorted({r, r.replace("\\", "/"), r.replace("\\", "\\\\")},
+                        key=len, reverse=True):
+            text = re.sub(re.escape(v), tok, text, flags=re.IGNORECASE)
+    return text
+
+
+def releases():
+    c = triage.con()
+    rows = c.execute(
+        "SELECT tag, cached_path, prerelease, build_date FROM releases "
+        "WHERE cached_path IS NOT NULL AND prerelease = 0 ORDER BY build_date").fetchall()
+    return [(r["tag"], r["cached_path"]) for r in rows]
+
+
+def run(exe, args, cwd):
+    p = subprocess.run([exe] + args, cwd=cwd, capture_output=True, text=True,
+                       errors="replace", timeout=300)
+    return p.returncode, (p.stdout or "") + (p.stderr or "")
+
+
+def main():
+    rels = releases()
+    if not rels:
+        print("no cached stable releases in the catalog", file=sys.stderr)
+        return 2
+
+    work = tempfile.mkdtemp(prefix="m4350-")
+    try:
+        for _, src, _ in CASES:
+            shutil.copy2(os.path.join(HERE, src), os.path.join(work, src))
+
+        rows, failures = [], []
+        for tag, exe in rels:
+            vrc, vtext = run(exe, ["--version"], work)
+            ver = next((l.strip() for l in vtext.splitlines() if l.strip()), "?")
+            cells = {}
+            for label, src, expect in CASES:
+                rc, text = run(exe, ["-T", "vs_6_0", src], work)
+                internal = triage.is_internal_failure(text, rc, False)
+                cells[label] = (rc, internal)
+                got = ("crash" if internal
+                       else "clean" if rc == 0
+                       else "diagnosed")
+                if got != expect:
+                    failures.append("%s %s: expected %s, got %s (0x%08X)"
+                                    % (tag, label, expect, got, rc & 0xFFFFFFFF))
+            rows.append((tag, ver, cells))
+
+        out = []
+        out.append("# #4350 -- repro and controls on every cached stable release")
+        out.append("# generated by release-matrix.py; do not hand-edit")
+        out.append("#")
+        out.append("# All four cases use the repro's exact arguments: -T vs_6_0 <source>")
+        out.append("# 'crash' = triage.py is_internal_failure() true. Exit codes in hex.")
+        out.append("")
+        head = ("%-14s %-10s %-10s %-10s %-10s" %
+                ("release", "repro", "memberfn", "static", "syntaxerr"))
+        out.append(head)
+        out.append("-" * len(head))
+        for tag, ver, cells in rows:
+            row = "%-14s" % tag
+            for label, _, _ in CASES:
+                rc, internal = cells[label]
+                row += " %-10s" % ("%s/%X" % ("CRASH" if internal else "ok", rc & 0xFFFFFFFF)
+                                   if rc else "ok/0")
+            out.append(row)
+        out.append("")
+        out.append("expected: repro=crash, memberfn=clean, static=clean,")
+        out.append("          syntaxerr=diagnosed (nonzero but NOT an internal failure)")
+        out.append("")
+        if failures:
+            out.append("SELFTEST=fail (%d deviation(s)) -- investigate before using this matrix:"
+                       % len(failures))
+            out.extend("  " + f for f in failures)
+        else:
+            out.append("SELFTEST=pass: %d releases x %d cases = %d runs, every one as expected."
+                       % (len(rows), len(CASES), len(rows) * len(CASES)))
+            out.append("So on every release the repro crashed, the feature the repro needs was")
+            out.append("present, the predicate declined to fire on a near-identical mutable")
+            out.append("shader, and an ordinary diagnosed error was not counted as a crash.")
+        out.append("")
+        out.append("--- dxc --version, per release ---")
+        out.append("(v1.4.1907..v1.6.2106 predate the --version flag and say so; for those the")
+        out.append(" binary is identified by catalog tag and cached path instead.)")
+        for tag, ver, _ in rows:
+            out.append("%-14s %s" % (tag, ver))
+        out.append("")
+        out.append("--- executable probed, per release ---")
+        for (tag, exe) in rels:
+            out.append("%-14s %s" % (tag, exe))
+
+        text = redact("\n".join(out) + "\n")
+        with open(os.path.join(HERE, "manual-case-release-matrix.txt"), "w",
+                  encoding="utf-8", newline="\n") as f:
+            f.write(text)
+        sys.stdout.write(text)
+        return 1 if failures else 0
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

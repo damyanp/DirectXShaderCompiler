@@ -1,0 +1,18 @@
+The two DXC panes should not compile the first arm. They report an internal compiler error
+rather than a diagnostic about modifying a const object, and exit with a failure status; read
+the error text in each pane rather than the exit code alone, because the wording differs
+between the two DXC versions.
+
+Obj is a file-scope object, so it is implicitly const and lives in $Globals. Set() is not
+marked const and writes a member.
+
+The last pane is the control: the same shader with -DCONTROL_MUTABLE, which makes the object
+static and therefore mutable, so there is no const violation. It compiles. Compare it with the
+pane above it, which is the same compiler on the same source without that define. Without the
+control, a Clang diagnostic here would not be distinguishable from Clang failing on the shader
+for reasons of its own.
+
+The shader is the maintainer's compute restating of the issue, taken from the Compiler Explorer
+link already in the thread, with the control arm added behind the define. The vertex-shader
+form in the issue body behaves the same way locally; compute is used here so the Clang panes
+can participate, since its pixel and vertex backends cannot lower signature I/O.

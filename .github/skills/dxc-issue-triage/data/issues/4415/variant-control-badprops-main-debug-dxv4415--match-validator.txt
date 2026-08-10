@@ -1,0 +1,41 @@
+# compiler: main-debug-dxv4415
+# exe: <triage>/issues/4415/validate.cmd
+# ran: 2026-08-10T20:17:59+00:00
+# cmd: control-badprops.ll
+# exit: 1
+# timed_out: 0
+# match: match-validator.json
+# verdict: no-repro
+# variant: control-badprops (?)
+# expect: no-match
+
+$ dxc control-badprops.ll
+[exe] <triage>/issues/4415/validate.cmd
+[exit] 1
+--- stdout ---
+annotatehandle-4415 harness v1
+[validator] <repo>/build/Debug/bin/dxv.exe
+[external-validator] DXC_DXIL_DLL_PATH=<unset> (internal validator from dxcompiler.dll)
+[module] control-badprops.ll (3583 bytes)
+[selftest] module-annotatehandle-calls=1
+[selftest] annotatehandle-res-operands=['%1']
+[selftest] annotatehandle-invalid-res-operand=no
+[selftest] module-requests-validator-version=1.10
+$ <repo>/build/Debug/bin/dxv.exe control-badprops.ll
+--- stdout ---
+Function: main: error: Constant values must be in-range for operation.
+note: at '%2 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %1, %dx.types.ResourceProperties zeroinitializer)' in block '#0' of function 'main'.
+Function: main: error: Resource handle should returned by createHandle.
+note: at '%2 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %1, %dx.types.ResourceProperties zeroinitializer)' in block '#0' of function 'main'.
+Function: main: error: Resource handle should returned by createHandle.
+note: at '%2 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %1, %dx.types.ResourceProperties zeroinitializer)' in block '#0' of function 'main'.
+Function: main: error: Expect Cbuffer for CBufferLoad handle.
+note: at '%2 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %1, %dx.types.ResourceProperties zeroinitializer)' in block '#0' of function 'main'.
+Validation failed.
+--- stderr ---
+
+[exit] 0x00000001
+[result] VALIDATION-FAILED
+
+--- stderr ---
+

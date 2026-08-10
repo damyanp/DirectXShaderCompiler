@@ -1,0 +1,22 @@
+{
+  "batch": "batch-015",
+  "confidence": "high",
+  "created_at": "2022-03-25T02:49:21Z",
+  "godbolt_url": "https://godbolt.org/z/TEcGjnve7",
+  "history": "always-repro'd",
+  "labels": "bug,hlsl-next",
+  "labels_add": "crash, incorrect-code",
+  "labels_now": "bug,hlsl-next",
+  "notes_path": "issues/4350/notes.md",
+  "number": 4350,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (13730886e) and on all 20 stable releases back to v1.4.1907. A file-scope struct object is $Globals-backed, so a non-const method that writes a member produces a store into a constant buffer; the front end accepts it and DXIL lowering throws at cast<GetElementPtrInst> in HLOperationLower.cpp:8847. The same violation on a const local compiles silently, so the missing const diagnostic and the internal error are separable. Four distinct crash signatures across releases (two silent): an exit-status-only predicate would report it fixed at v1.7.2207, a message-text predicate a regression at v1.6.2106. Clang (hlsl_clang_trunk) diagnoses the construct, verified against a mutable-object control pane.",
+  "title": "Internal Compiler error: calling method that modifies const object",
+  "triaged_at": "2026-08-10T21:54:33+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4350"
+}

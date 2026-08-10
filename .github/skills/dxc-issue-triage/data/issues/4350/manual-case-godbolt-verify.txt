@@ -1,0 +1,49 @@
+# Compiler Explorer panes for #4350, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_6
+# exit:     29  CRASH
+
+Internal Compiler error: cast<X>() argument of incompatible type!
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_6
+# exit:     5  CRASH
+
+error: cast<X>() argument of incompatible type!
+
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_6 -fsyntax-only
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:52:5: [0m[0;1;31merror: [0m[1m'this' argument to member function 'Set' has type 'const MyStruct', but function is not marked const[0m
+   52 |     Obj.Set();[0m
+      | [0;1;32m    ^~~
+[0m[1m<source>:38:10: [0m[0;1;36mnote: [0m'Set' declared here[0m
+   38 |     [0;34mvoid[0m Set() {[0m
+      | [0;1;32m         ^
+[0m1 error generated.
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_6 -fsyntax-only -DCONTROL_MUTABLE
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+<No output file>

@@ -1,0 +1,12 @@
+# Issue 4501 asks for `DebugBuildIdentifier` / `DebugStoragePath` in SPIR-V debug
+# info "with -Fd flag". `-Fd` cannot be in this command: current dxc rejects it
+# outright with "-Fd is not supported with -spirv" (lib/DxcSupport/HLSLOptions.cpp,
+# hasUnsupportedSpirvOption), so a `-Fd` run emits no SPIR-V at all and would
+# measure nothing. That rejection is captured separately as
+# variant-fd-with-spirv-main-debug.txt.
+#
+# The probe therefore asks the weaker, decidable question: in the richest
+# NonSemantic.Shader.DebugInfo.100 mode dxc offers, are those two instructions
+# emitted at all? -fspv-debug=vulkan-with-source selects that instruction set
+# (HLSLOptions.cpp: debugInfoVulkan + debugInfoRich + debugInfoSource).
+-T ps_6_0 -E main -spirv -fspv-debug=vulkan-with-source repro.hlsl

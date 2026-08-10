@@ -1,0 +1,1 @@
+dxc_trunk:-T cs_6_0 -E test1,dxc_trunk:-T cs_6_0 -E test2,hlsl_clang_trunk:-T cs_6_0 -E test1,hlsl_clang_trunk:-T cs_6_0 -E test2

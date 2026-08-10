@@ -1,0 +1,1 @@
+-E InitArgs -remove-unused-globals repro.hlsl

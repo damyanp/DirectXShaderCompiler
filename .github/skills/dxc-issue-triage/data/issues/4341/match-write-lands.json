@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "storeOutput\\.f32\\(i32 5, i32 0, i32 0, i8 0, float 9\\.0+e\\+00\\)" },
+    { "kind": "contains", "value": "SV_Target" }
+  ],
+  "note": "#4341 mirror predicate: 'the write through operator[] LANDED'. repro.hlsl seeds A[0] with 1.0, executes m[0] = 9.0, and returns m.A[0], so a working setter subscript stores the constant 9.0 into SV_Target and the DXIL says so. This exists to separate the two non-reproducing outcomes, which match.json alone cannot tell apart: a release that compiles the repro clean has either honoured the write (this predicate matches -- the feature works) or silently discarded it (neither predicate matches -- the overload was not selected and the store went nowhere, a miscompile). Both clauses are positive, so a failed compile cannot satisfy this for free. Verified against variant-named-setter.hlsl, which performs the same seeded write through a named member function and does emit `float 9.000000e+00`."
+}

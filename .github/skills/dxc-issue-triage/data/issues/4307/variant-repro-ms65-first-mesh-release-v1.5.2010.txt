@@ -1,0 +1,33 @@
+# compiler: v1.5.2010
+# exe: <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+# ran: 2026-08-10T20:03:16+00:00
+# cmd: repro.hlsl /Zi /E main /Od /Tms_6_5 -Qembed_debug
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: repro-ms65-first-mesh-release (repro.hlsl)
+# expect: match
+
+$ dxc repro.hlsl /Zi /E main /Od /Tms_6_5 -Qembed_debug
+[exe] <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+repro.hlsl:11: error: Function main with parameter is not permitted, it should be inlined.
+repro.hlsl:11: error: Function 'main' contains invalid attribute 'disable-tail-calls' with value 'false'.
+repro.hlsl:11: error: Function 'main' contains invalid attribute 'less-precise-fpmad' with value 'false'.
+repro.hlsl:11: error: Function 'main' contains invalid attribute 'no-frame-pointer-elim' with value 'false'.
+repro.hlsl:11: error: Function 'main' contains invalid attribute 'no-infs-fp-math' with value 'false'.
+repro.hlsl:11: error: Function 'main' contains invalid attribute 'no-nans-fp-math' with value 'false'.
+repro.hlsl:11: error: Function 'main' contains invalid attribute 'no-realign-stack' with value '<null>'.
+repro.hlsl:11: error: Function 'main' contains invalid attribute 'stack-protector-buffer-size' with value '0'.
+repro.hlsl:11: error: Function 'main' contains invalid attribute 'unsafe-fp-math' with value 'false'.
+repro.hlsl:11: error: Function 'main' contains invalid attribute 'use-soft-float' with value 'false'.
+Validation failed.
+
+
+

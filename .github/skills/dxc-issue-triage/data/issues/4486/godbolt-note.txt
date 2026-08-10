@@ -1,0 +1,17 @@
+This is a minimal restatement of #4486. Both loop levels carry [unroll] and
+every bound is a compile-time constant: j runs 0..2 and k runs 0..(3-j-1), so
+the whole nest is six comparisons.
+
+What to look for, per pane:
+
+- SPIR-V panes (-spirv): scroll to the fragment entry point. Two structured
+  loop headers survive, each with a back-edge and a phi for its counter, and
+  only ONE float comparison inside them -- so the nest was not unrolled. Fully
+  unrolled code would have no loop header and six comparisons.
+- DXIL pane (no -spirv): the same source has no loop at all; the comparisons
+  are materialised in straight-line code. Same shader, same attributes, two
+  different answers.
+
+Note CE builds Release binaries and appends its own debug-info flags to DXC
+panes, so the embedded source you can see in the output is CE's doing, not the
+shader's.

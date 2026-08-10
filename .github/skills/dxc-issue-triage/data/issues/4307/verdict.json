@@ -1,0 +1,23 @@
+{
+  "batch": "batch-015",
+  "confidence": "high",
+  "created_at": "2022-03-03T12:34:07Z",
+  "godbolt_url": "https://godbolt.org/z/Prfo6ssE7",
+  "history": "always-repro'd",
+  "labels": "diagnostic",
+  "labels_add": "enhancement, incorrect-code, crash",
+  "labels_now": "diagnostic",
+  "notes_path": "issues/4307/notes.md",
+  "number": 4307,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Reproduces verbatim on main (13730886e) and on every release with mesh shaders: v1.5.2010 at ms_6_5 and all 18 releases v1.6.2104-v1.9.2607 at ms_6_6 emit `repro.hlsl:11: error: Function main with parameter is not permitted, it should be inlined.` (v1.4.1907 has no mesh shaders; control-confirmed, not fixed). /Od is not load-bearing. Decisive finding: DXC already has the diagnostic being asked for. Reading the whole element instead of one member gives `case-elem-read.hlsl:22:18: error: output arrays of a mesh shader can not be read from` with a caret - the right message on the right line - on 18/18 mesh-capable releases. That is err_hlsl_load_from_mesh_out_arrays (DiagnosticSemaKinds.td:7888), emitted at SemaExpr.cpp:698 under `isa<ArraySubscriptExpr>(E) && IsExprAccessingMeshOutArray(E)`; `_vertices[i].m_value` is a MemberExpr, and IsExprAccessingMeshOutArray (SemaExpr.cpp:613) has no MemberExpr case either, so Sema is silent (-fcgl exits 0). The read-modify-write then reaches LegalizeDxilInputOutputs, whose bLoad&&bStore switch has no case for the mesh quals and falls through without a temp (ScalarReplAggregatesHLSL.cpp:6065), so the entry point keeps its parameter and the DXIL validator emits the generic Flow.FunctionCall message located on the signature. Fix shape: extend an existing check to arr[i].member, not write a new diagnostic; diagnostic and guard both date to 968fe4113 (2019-07-11), so nothing regressed. Separately, a Debug build ASSERTS on the same repro (DXASSERT(0, \\\"invalid input qual here\\\"), exit 0x80000003) before the reported message - a defect in its own right, hence the crash label despite enhancement-not-bug. The body last paragraph does not reproduce: the member passed to an `out float` param compiles CLEAN on main and all 18 releases, the whole element passed to `out Vertex` gets the good diagnostic, and only `inout` reproduces.",
+  "text_stale": "Body's last paragraph (the same error appears when the member is passed to a function parameter 'even if the parameter of the function is marked as out') does not describe any tested compiler: member -> out float compiles cleanly on main and all 18 mesh-capable releases; whole element -> out Vertex produces the good Sema diagnostic; only inout reproduces the vague validation error. Stated neutrally - the variants are derived mechanically from the reporter's own shader but are not their original code, and the report is from 2022.",
+  "title": "Have a more explicit error when trying to use a struct member output interpolator as an input",
+  "triaged_at": "2026-08-10T21:54:33+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4307"
+}

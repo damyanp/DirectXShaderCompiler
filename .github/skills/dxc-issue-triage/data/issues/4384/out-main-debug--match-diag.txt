@@ -1,0 +1,20 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T20:14:31+00:00
+# cmd: -T cs_6_0 -E main repro.hlsl
+# exit: 2158624796
+# timed_out: 0
+# match: match-diag.json
+# verdict: invalid-probe
+# invalid-probe-reason: the probe failed internally, so it measured nothing about the reported symptom
+
+$ dxc -T cs_6_0 -E main repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2158624796
+--- stdout ---
+
+--- stderr ---
+Internal Compiler error: unknown conversion kind
+UNREACHABLE executed at <repo>\tools\clang\lib\Sema\SemaOverload.cpp:5154!
+
+

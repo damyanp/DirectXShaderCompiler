@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "note": "Feature-presence instrument for issue 4501, run per release. It is match.json's two positive anchors with the absence clauses removed, so `match` here means only: this build compiled the repro, emitted NonSemantic.Shader.DebugInfo.100 debug info, and its disassembler names those instructions. A release scoring no-match under THIS predicate cannot answer the issue's question at all, and its no-match under match.json is unmeasurable rather than 'the feature is present'. This mechanises the #2922 lesson (run the feature-presence control on every probed release) using the tool rather than a hand-rolled matrix, so `reindex` re-checks it forever. Note the specific hazard it exists for: releases predating the `vulkan*` values of -fspv-debug answer `unknown SPIR-V debug info control parameter: vulkan-with-source`, which is NOT in classify()'s feature-absence marker list, so those probes are not auto-demoted to invalid-probe.",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "OpExtInstImport \"NonSemantic.Shader.DebugInfo.100\""
+    },
+    {
+      "kind": "regex",
+      "value": "OpExtInst\\s+%\\w+\\s+%\\w+\\s+DebugCompilationUnit"
+    }
+  ]
+}

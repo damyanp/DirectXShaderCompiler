@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:26:36+00:00
+# cmd: -T cs_6_0 -E InitArgs rewritten.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "unknown type name", so this build did not reach the code under test
+# variant: downstream-compile-of-rewriter-output (rewritten.hlsl)
+# expect: invalid-probe
+
+$ dxc -T cs_6_0 -E InitArgs rewritten.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+rewritten.hlsl:2:3: error: unknown type name 'Child'
+  Child MultipleChildren[2];
+  ^
+
+

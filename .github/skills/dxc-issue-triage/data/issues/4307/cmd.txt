@@ -1,0 +1,1 @@
+repro.hlsl /Zi /E main /Od /Fo test.mso /Tms_6_6 -Qembed_debug

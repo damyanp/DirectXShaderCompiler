@@ -1,0 +1,22 @@
+{
+  "batch": "batch-015",
+  "confidence": "high",
+  "created_at": "2022-06-02T12:50:35Z",
+  "godbolt_url": "https://godbolt.org/z/acfEvEz6o",
+  "history": "always-repro'd",
+  "labels": "performance",
+  "labels_add": "enhancement",
+  "labels_now": "performance",
+  "notes_path": "data/issues/4497/notes.md",
+  "number": 4497,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on ground truth and on all 20 stable releases back to v1.4.1907 (zero invalid probes). Passing a struct by value from a StructuredBuffer loads the whole element, where indexing the buffer directly loads only the fields used; both spellings exit 0 and emit valid DXIL, so this is a codegen-quality gap, not a correctness defect. Measured comparatively -- both entry points on all 21 builds -- because a one-sided bisect cannot tell 'test1 regressed' from 'test2 improved'. Nothing has moved since the report and no issue text is stale.",
+  "title": "struct value on \"stack\"",
+  "triaged_at": "2026-08-10T21:54:34+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4497"
+}

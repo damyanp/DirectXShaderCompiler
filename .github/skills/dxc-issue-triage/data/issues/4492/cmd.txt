@@ -1,0 +1,6 @@
+# Reporter's attachment (3-mat.dxil.asm) names cs_6_5 -- see cmd-as-filed.txt.
+# Lowered to cs_6_2, the oldest profile that can express -enable-16bit-types and
+# dx.op.rawBufferLoad, so the release history is as long as it can be.
+# Equivalence measured, not assumed: variant-profile-cs65-main-debug.txt captures
+# cs_6_5 and yields the identical offset sequence 0,4,8,...,60.
+-T cs_6_2 -E testStructuredBufferMatrixLoad2 -enable-16bit-types repro.hlsl

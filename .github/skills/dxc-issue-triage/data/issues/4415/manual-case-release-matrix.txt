@@ -1,0 +1,557 @@
+
+========================================================================
+== v1.4.1907
+========================================================================
+$ <cache>/compilers/releases/v1.4.1907/dxc.exe --version
+  dxc failed : Unknown argument: '--version'
+  [exit] 0x00000001
+$ <cache>/compilers/releases/v1.4.1907/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.4.1907-checkedop.ll
+  error: invalid profile ps_6_6
+  [exit] 0x80004005
+  [feature-presence] FAILED -- this release cannot compile a trivial ps_6_6 texture load, so it never reached the code under test. Row is invalid-probe, not evidence.
+
+========================================================================
+== v1.5.2010
+========================================================================
+$ <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe --version
+  dxc failed : Unknown argument: '--version'
+  [exit] 0x00000001
+$ <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.5.2010-checkedop.ll
+  error: invalid profile ps_6_6
+  [exit] 0x80004005
+  [feature-presence] FAILED -- this release cannot compile a trivial ps_6_6 texture load, so it never reached the code under test. Row is invalid-probe, not evidence.
+
+========================================================================
+== v1.6.2104
+========================================================================
+$ <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe --version
+  dxc failed : Unknown argument: '--version'
+  [exit] 0x00000001
+$ <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.6.2104-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.6.2104-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  error: validation errors
+  
+  repro.hlsl:14:58: error: opcode 'CreateHandleForLib' should only be used in 'Library'.
+  note: at '%1 = call %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32 160, %dx.types.Handle zeroinitializer)' in block '#0' of function 'main'.
+  Validation failed.
+  [exit] 0x80004005
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.6.2106
+========================================================================
+$ <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe --version
+  dxc failed : Unknown argument: '--version'
+  [exit] 0x00000001
+$ <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.6.2106-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.6.2106-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  error: validation errors
+  
+  repro.hlsl:14:58: error: opcode 'CreateHandleForLib' should only be used in 'Library'.
+  note: at '%1 = call %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32 160, %dx.types.Handle zeroinitializer)' in block '#0' of function 'main'.
+  Validation failed.
+  [exit] 0x80004005
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.6.2112
+========================================================================
+$ <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.6 - 1.6.2112.12 (770ac0cc1); dxil.dll: 1.6(101.6.2112.2)
+  [exit] 0x00000000
+$ <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.6.2112-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.6.2112-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.7.2207
+========================================================================
+$ <cache>/compilers/releases/v1.7.2207/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.7 - 1.7.2207.3 (e9137cd1d); dxil.dll: 1.7(101.7.2207.10)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.7.2207/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.7.2207-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.7.2207/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.7.2207-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.7.2212
+========================================================================
+$ <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.7 - 1.7.2212.12 (8c9d92be7); dxil.dll: 1.7(101.7.2212.14)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.7.2212-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.7.2212-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.7.2212.1
+========================================================================
+$ <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.7 - 1.7.2212.40 (e043f4a12); dxil.dll: 1.7(101.7.2212.36)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.7.2212.1-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.7.2212.1-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.7.2308
+========================================================================
+$ <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.7 - 1.7.2308.7 (69e54e290); dxil.dll: 1.7(101.7.2308.12)
+  [exit] 0x00000000
+$ <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.7.2308-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.7.2308-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.8.2403
+========================================================================
+$ <cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.8 - 1.8.2403.34 (c9660a8c0); dxil.dll: 1.8(101.8.2403.18)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2403-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2403-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.8.2403.1
+========================================================================
+$ <cache>/compilers/releases/v1.8.2403.1/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.8 - 1.8.2403.36 (9c2b82878); dxil.dll: 1.8(101.8.2403.21)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.8.2403.1/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2403.1-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.8.2403.1/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2403.1-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.8.2403.2
+========================================================================
+$ <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.8 - 1.8.2403.37 (11e1318c3); dxil.dll: 1.8(101.8.2403.24)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2403.2-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2403.2-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.8.2405
+========================================================================
+$ <cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.8 - 1.8.2405.15 (fd7e54bcd); dxil.dll: 1.8(101.8.2405.17)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2405-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2405-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.8.2407
+========================================================================
+$ <cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.8 - 1.8.2407.7 (416fab6b5); dxil.dll: 1.8(101.8.2407.12)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2407-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2407-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  [dxv] this release ships no dxv.exe -- validator probe not possible from shipping bits alone
+
+========================================================================
+== v1.8.2502
+========================================================================
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.8 - 1.8.2502.8 (b4711839e); dxil.dll: 1.8(1.8.2502.8)
+  [exit] 0x00000000
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2502-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2502-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  -- doctored modules, this release's own dxc + dxv --
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe -T vs_6_6 -E main control-valid.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2502-valid.ll
+  [exit] 0x00000000
+  ---- v1.8.2502-zeroinit.ll: SUBJECT: annotateHandle res operand -> zeroinitializer
+  [patch] 1 call site(s), operand(s)=['%1']
+  [patched] operand(s) now ['zeroinitializer']
+  ---- v1.8.2502-checkedop-zeroinit.ll: LIVENESS CONTROL, must be REJECTED: the same operand value on textureLoad
+  [patch] 1 call site(s), operand(s)=['%2']
+  [patched] operand(s) now ['zeroinitializer']
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxv.exe v1.8.2502-zeroinit.ll
+  Validation succeeded.
+  [exit] 0x00000000
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxv.exe v1.8.2502-checkedop-zeroinit.ll
+  Function: main: error: Instructions should not read uninitialized value.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  error: Resource handle should returned by createHandle.
+  Function: main: error: load can only run on UAV/SRV resource.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Function: main: error: texture load only works on Texture1D/1DArray/2D/2DArray/3D/MS2D/MS2DArray.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Validation failed.
+  [exit] 0x00000001
+  [dxv] annotateHandle+zeroinitializer -> ACCEPTED
+  [dxv] textureLoad+zeroinitializer    -> REJECTED (must be REJECTED)
+
+========================================================================
+== v1.8.2505
+========================================================================
+$ <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.9 - 1.8.2505.28 (9efbb6c32); dxil.dll: 1.9(1.8.2505.28)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2505-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2505-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  -- doctored modules, this release's own dxc + dxv --
+$ <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe -T vs_6_6 -E main control-valid.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2505-valid.ll
+  [exit] 0x00000000
+  ---- v1.8.2505-zeroinit.ll: SUBJECT: annotateHandle res operand -> zeroinitializer
+  [patch] 1 call site(s), operand(s)=['%1']
+  [patched] operand(s) now ['zeroinitializer']
+  ---- v1.8.2505-checkedop-zeroinit.ll: LIVENESS CONTROL, must be REJECTED: the same operand value on textureLoad
+  [patch] 1 call site(s), operand(s)=['%2']
+  [patched] operand(s) now ['zeroinitializer']
+$ <cache>/compilers/releases/v1.8.2505/bin/x64/dxv.exe v1.8.2505-zeroinit.ll
+  Validation succeeded.
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.8.2505/bin/x64/dxv.exe v1.8.2505-checkedop-zeroinit.ll
+  Function: main: error: Instructions should not read uninitialized value.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  error: Resource handle should returned by createHandle.
+  Function: main: error: load can only run on UAV/SRV resource.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Function: main: error: texture load only works on Texture1D/1DArray/2D/2DArray/3D/MS2D/MS2DArray.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Validation failed.
+  [exit] 0x00000001
+  [dxv] annotateHandle+zeroinitializer -> ACCEPTED
+  [dxv] textureLoad+zeroinitializer    -> REJECTED (must be REJECTED)
+
+========================================================================
+== v1.8.2505.1
+========================================================================
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.9 - 1.8.2505.32 (b106a961d); dxil.dll: 1.9(1.8.2505.32)
+  [exit] 0x00000000
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2505.1-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2505.1-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  -- doctored modules, this release's own dxc + dxv --
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe -T vs_6_6 -E main control-valid.hlsl -Fc <triage>/issues/4415/release-modules/v1.8.2505.1-valid.ll
+  [exit] 0x00000000
+  ---- v1.8.2505.1-zeroinit.ll: SUBJECT: annotateHandle res operand -> zeroinitializer
+  [patch] 1 call site(s), operand(s)=['%1']
+  [patched] operand(s) now ['zeroinitializer']
+  ---- v1.8.2505.1-checkedop-zeroinit.ll: LIVENESS CONTROL, must be REJECTED: the same operand value on textureLoad
+  [patch] 1 call site(s), operand(s)=['%2']
+  [patched] operand(s) now ['zeroinitializer']
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxv.exe v1.8.2505.1-zeroinit.ll
+  Validation succeeded.
+  [exit] 0x00000000
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxv.exe v1.8.2505.1-checkedop-zeroinit.ll
+  Function: main: error: Instructions should not read uninitialized value.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  error: Resource handle should returned by createHandle.
+  Function: main: error: load can only run on UAV/SRV resource.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Function: main: error: texture load only works on Texture1D/1DArray/2D/2DArray/3D/MS2D/MS2DArray.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Validation failed.
+  [exit] 0x00000001
+  [dxv] annotateHandle+zeroinitializer -> ACCEPTED
+  [dxv] textureLoad+zeroinitializer    -> REJECTED (must be REJECTED)
+
+========================================================================
+== v1.9.2602
+========================================================================
+$ <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.9(5184-21d28f72)(1.9.2602.17) - 1.9.2602.17 (21d28f727)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.9.2602-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.9.2602-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  -- doctored modules, this release's own dxc + dxv --
+$ <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe -T vs_6_6 -E main control-valid.hlsl -Fc <triage>/issues/4415/release-modules/v1.9.2602-valid.ll
+  [exit] 0x00000000
+  ---- v1.9.2602-zeroinit.ll: SUBJECT: annotateHandle res operand -> zeroinitializer
+  [patch] 1 call site(s), operand(s)=['%1']
+  [patched] operand(s) now ['zeroinitializer']
+  ---- v1.9.2602-checkedop-zeroinit.ll: LIVENESS CONTROL, must be REJECTED: the same operand value on textureLoad
+  [patch] 1 call site(s), operand(s)=['%2']
+  [patched] operand(s) now ['zeroinitializer']
+$ <cache>/compilers/releases/v1.9.2602/bin/x64/dxv.exe v1.9.2602-zeroinit.ll
+  Validation succeeded.
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.9.2602/bin/x64/dxv.exe v1.9.2602-checkedop-zeroinit.ll
+  Function: main: error: Instructions should not read uninitialized value.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  error: Resource handle should returned by createHandle.
+  Function: main: error: load can only run on UAV/SRV resource.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Function: main: error: texture load only works on Texture1D/1DArray/2D/2DArray/3D/MS2D/MS2DArray.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Validation failed.
+  [exit] 0x00000001
+  [dxv] annotateHandle+zeroinitializer -> ACCEPTED
+  [dxv] textureLoad+zeroinitializer    -> REJECTED (must be REJECTED)
+
+========================================================================
+== v1.9.2602.24
+========================================================================
+$ <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.9(5191-d355aa83)(1.9.2602.24) - 1.9.2602.24 (d355aa836)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.9.2602.24-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.9.2602.24-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  -- doctored modules, this release's own dxc + dxv --
+$ <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe -T vs_6_6 -E main control-valid.hlsl -Fc <triage>/issues/4415/release-modules/v1.9.2602.24-valid.ll
+  [exit] 0x00000000
+  ---- v1.9.2602.24-zeroinit.ll: SUBJECT: annotateHandle res operand -> zeroinitializer
+  [patch] 1 call site(s), operand(s)=['%1']
+  [patched] operand(s) now ['zeroinitializer']
+  ---- v1.9.2602.24-checkedop-zeroinit.ll: LIVENESS CONTROL, must be REJECTED: the same operand value on textureLoad
+  [patch] 1 call site(s), operand(s)=['%2']
+  [patched] operand(s) now ['zeroinitializer']
+$ <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxv.exe v1.9.2602.24-zeroinit.ll
+  Validation succeeded.
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxv.exe v1.9.2602.24-checkedop-zeroinit.ll
+  Function: main: error: Instructions should not read uninitialized value.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  error: Resource handle should returned by createHandle.
+  Function: main: error: load can only run on UAV/SRV resource.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Function: main: error: texture load only works on Texture1D/1DArray/2D/2DArray/3D/MS2D/MS2DArray.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Validation failed.
+  [exit] 0x00000001
+  [dxv] annotateHandle+zeroinitializer -> ACCEPTED
+  [dxv] textureLoad+zeroinitializer    -> REJECTED (must be REJECTED)
+
+========================================================================
+== v1.9.2607
+========================================================================
+$ <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe --version
+  dxcompiler.dll: 1.9(5402-0d3ee6b5)(1.9.0.5402) - 1.9.0.5402 (0d3ee6b55-dirty)
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe -T ps_6_6 -E main control-checked-op.hlsl -Fc <triage>/issues/4415/release-modules/v1.9.2607-checkedop.ll
+  [exit] 0x00000000
+  [feature-presence] ok (ps_6_6 texture load compiles)
+
+  -- repro.hlsl (the issue's shader), this release's dxc --
+$ <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe -T vs_6_6 -E main repro.hlsl -Fc <triage>/issues/4415/release-modules/v1.9.2607-emitted.ll
+  repro.hlsl:14:58: warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]
+  static ConstantBuffer<MyCB> CBV = ResourceDescriptorHeap[CBV.u];
+                              ~~~                          ^~~
+  [exit] 0x00000000
+  [emitted] annotateHandle res operands=['zeroinitializer', '%4']
+
+  -- doctored modules, this release's own dxc + dxv --
+$ <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe -T vs_6_6 -E main control-valid.hlsl -Fc <triage>/issues/4415/release-modules/v1.9.2607-valid.ll
+  [exit] 0x00000000
+  ---- v1.9.2607-zeroinit.ll: SUBJECT: annotateHandle res operand -> zeroinitializer
+  [patch] 1 call site(s), operand(s)=['%1']
+  [patched] operand(s) now ['zeroinitializer']
+  ---- v1.9.2607-checkedop-zeroinit.ll: LIVENESS CONTROL, must be REJECTED: the same operand value on textureLoad
+  [patch] 1 call site(s), operand(s)=['%2']
+  [patched] operand(s) now ['zeroinitializer']
+$ <cache>/compilers/releases/v1.9.2607/bin/x64/dxv.exe v1.9.2607-zeroinit.ll
+  Validation succeeded.
+  [exit] 0x00000000
+$ <cache>/compilers/releases/v1.9.2607/bin/x64/dxv.exe v1.9.2607-checkedop-zeroinit.ll
+  Function: main: error: Instructions should not read uninitialized value.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  error: Resource handle should returned by createHandle.
+  Function: main: error: load can only run on UAV/SRV resource.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Function: main: error: texture load only works on Texture1D/1DArray/2D/2DArray/3D/MS2D/MS2DArray.
+  note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle zeroinitializer, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+  Validation failed.
+  [exit] 0x00000001
+  [dxv] annotateHandle+zeroinitializer -> ACCEPTED
+  [dxv] textureLoad+zeroinitializer    -> REJECTED (must be REJECTED)
+
+========================================================================
+== summary
+========================================================================
+  release        probe          dxc on repro.hlsl        dxv on doctored module
+  v1.4.1907      invalid-probe  -                        -
+  v1.5.2010      invalid-probe  -                        -
+  v1.6.2104      ok             rejected                 no dxv shipped
+  v1.6.2106      ok             rejected                 no dxv shipped
+  v1.6.2112      ok             accepted+invalid-handle  no dxv shipped
+  v1.7.2207      ok             accepted+invalid-handle  no dxv shipped
+  v1.7.2212      ok             accepted+invalid-handle  no dxv shipped
+  v1.7.2212.1    ok             accepted+invalid-handle  no dxv shipped
+  v1.7.2308      ok             accepted+invalid-handle  no dxv shipped
+  v1.8.2403      ok             accepted+invalid-handle  no dxv shipped
+  v1.8.2403.1    ok             accepted+invalid-handle  no dxv shipped
+  v1.8.2403.2    ok             accepted+invalid-handle  no dxv shipped
+  v1.8.2405      ok             accepted+invalid-handle  no dxv shipped
+  v1.8.2407      ok             accepted+invalid-handle  no dxv shipped
+  v1.8.2502      ok             accepted+invalid-handle  dxv ACCEPTED
+  v1.8.2505      ok             accepted+invalid-handle  dxv ACCEPTED
+  v1.8.2505.1    ok             accepted+invalid-handle  dxv ACCEPTED
+  v1.9.2602      ok             accepted+invalid-handle  dxv ACCEPTED
+  v1.9.2602.24   ok             accepted+invalid-handle  dxv ACCEPTED
+  v1.9.2607      ok             accepted+invalid-handle  dxv ACCEPTED
+
+  'accepted+invalid-handle' = compiled with exit 0 AND the emitted
+  module contains annotateHandle with an undef/zeroinitializer res
+  operand, i.e. this release's own validator passed it.

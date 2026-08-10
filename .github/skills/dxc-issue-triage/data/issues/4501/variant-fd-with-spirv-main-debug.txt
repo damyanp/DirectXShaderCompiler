@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:29:30+00:00
+# cmd: -T ps_6_0 -E main -spirv -fspv-debug=vulkan-with-source -Fd spirv-pdb\ -Fo out.spv repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: fd-with-spirv (repro.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main -spirv -fspv-debug=vulkan-with-source -Fd spirv-pdb\ -Fo out.spv repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : -Fd is not supported with -spirv
+

@@ -1,0 +1,28 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:20:53+00:00
+# cmd: -T ps_6_0 -E main -HV 2021 variant-reference-return.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: reference-return (variant-reference-return.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main -HV 2021 variant-reference-return.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-reference-return.hlsl:13:10: error: references are unsupported in HLSL
+  float4 &operator[](int ix) {
+         ^
+variant-reference-return.hlsl:14:12: warning: implicit truncation of vector type [-Wconversion]
+    return A[ix];
+           ^
+variant-reference-return.hlsl:23:8: error: expression is not assignable
+  m[0] = 9.0;
+  ~~~~ ^
+
+

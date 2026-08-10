@@ -1,0 +1,21 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T20:14:34+00:00
+# cmd: -T cs_6_0 -E main -HV 2021 repro.hlsl
+# exit: 2158624796
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: hv2021 (repro.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main -HV 2021 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2158624796
+--- stdout ---
+
+--- stderr ---
+Internal Compiler error: unknown conversion kind
+UNREACHABLE executed at <repo>\tools\clang\lib\Sema\SemaOverload.cpp:5154!
+
+

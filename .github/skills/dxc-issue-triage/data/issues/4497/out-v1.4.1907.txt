@@ -1,0 +1,135 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-10T19:26:49+00:00
+# cmd: -T ps_6_0 -E test1 repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E test1 repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Pipeline Runtime Information: 
+;
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+;
+;
+; Buffer Definitions:
+;
+; Resource bind info for dataBuffer
+; {
+;
+;   struct struct.SData
+;   {
+;
+;       float3 value;                                 ; Offset:    0
+;       uint type;                                    ; Offset:   12
+;       float4 value2;                                ; Offset:   16
+;   
+;   } $Element;                                       ; Offset:    0 Size:    32
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; dataBuffer                        texture  struct         r/o      T0             t0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%"class.StructuredBuffer<SData>" = type { %struct.SData }
+%struct.SData = type { <3 x float>, i32, <4 x float> }
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.f32 = type { float, float, float, float, i32 }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+
+@"\01?dataBuffer@@3V?$StructuredBuffer@USData@@@@A" = external constant %"class.StructuredBuffer<SData>", align 4
+
+define void @test1() {
+  %dataBuffer_texture_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %dataBuffer_texture_structbuf, i32 0, i32 0)  ; BufferLoad(srv,index,wot)
+  %2 = extractvalue %dx.types.ResRet.f32 %1, 0
+  %3 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %dataBuffer_texture_structbuf, i32 0, i32 12)  ; BufferLoad(srv,index,wot)
+  %4 = extractvalue %dx.types.ResRet.i32 %3, 0
+  %5 = icmp eq i32 %4, 0
+  %6 = fcmp fast olt float %2, 0.000000e+00
+  %or.cond = and i1 %6, %5
+  br i1 %or.cond, label %7, label %"\01?fct1@@YAXUSData@@@Z.exit", !dx.controlflow.hints !21
+
+; <label>:7                                       ; preds = %0
+  call void @dx.op.discard(i32 82, i1 true)  ; Discard(condition)
+  br label %"\01?fct1@@YAXUSData@@@Z.exit"
+
+"\01?fct1@@YAXUSData@@@Z.exit":                   ; preds = %7, %0
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.discard(i32, i1) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32, %dx.types.Handle, i32, i32) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!8, !15}
+!dx.entryPoints = !{!19}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 4}
+!3 = !{!"ps", i32 6, i32 0}
+!4 = !{!5, null, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.StructuredBuffer<SData>"* undef, !"dataBuffer", i32 0, i32 0, i32 1, i32 12, i32 0, !7}
+!7 = !{i32 1, i32 32}
+!8 = !{i32 0, %"class.StructuredBuffer<SData>" undef, !9, %struct.SData undef, !11}
+!9 = !{i32 32, !10}
+!10 = !{i32 6, !"h", i32 3, i32 0}
+!11 = !{i32 32, !12, !13, !14}
+!12 = !{i32 6, !"value", i32 3, i32 0, i32 7, i32 9}
+!13 = !{i32 6, !"type", i32 3, i32 12, i32 7, i32 5}
+!14 = !{i32 6, !"value2", i32 3, i32 16, i32 7, i32 9}
+!15 = !{i32 1, void ()* @test1, !16}
+!16 = !{!17}
+!17 = !{i32 1, !18, !18}
+!18 = !{}
+!19 = !{void ()* @test1, !"test1", null, !4, !20}
+!20 = !{i32 0, i64 16}
+!21 = distinct !{!21, !"dx.controlflow.hints", i32 1}
+
+
+--- stderr ---
+

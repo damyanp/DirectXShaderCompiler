@@ -1,0 +1,1 @@
+dxc_1_6_2112:-T cs_6_2 -E testStructuredBufferMatrixLoad2 -enable-16bit-types,dxc_trunk:-T cs_6_2 -E testStructuredBufferMatrixLoad2 -enable-16bit-types,hlsl_clang_trunk:-T cs_6_2 -E testStructuredBufferMatrixLoad2 -enable-16bit-types

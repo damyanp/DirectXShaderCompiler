@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "define void @PS_bright_pass\\(\\)"
+    },
+    {
+      "kind": "not_regex",
+      "value": "Could not unroll loop"
+    }
+  ],
+  "note": "Secondary predicate, for the DXIL arm only. It measures maintainer pow2clk's 2022-06-29 statement that DXIL unrolls this shader properly, instead of repeating it.\n\nClause 1 is a positive anchor a failed compile cannot emit: the entry function really was lowered to DXIL. Clause 2 is the behaviour. DXC's DXIL path does not silently give up on [unroll]: when it cannot honour one it emits `Could not unroll loop. Loop bound could not be deduced at compile time.` -- an ERROR under the default HLSL version, demotable to a warning with -HV 2016, both measured in variant-dxil-nonconst-*. So `DXIL emitted AND no such diagnostic` is exactly `every [unroll] in this shader was honoured`.\n\nControls, both captured: control-nonconst-nested.hlsl is the same loop nest with a uniform outer bound, which nobody can unroll. Compiled normally it fails both clauses, because the compile is rejected outright. Compiled with -HV 2016 the diagnostic becomes a warning, so DXIL IS emitted and clause 1 passes while clause 2 fails -- which isolates the absence clause and proves the missing token can make it fail on its own, as SKILL.md requires for a not_regex clause.\n\nHistory note for anyone re-reading this: an earlier version of this predicate counted six `!dx.controlflow.hints` branches, assuming the 3+2+1 bubble-sort comparisons each survive as a hinted branch. DXC emits five -- a later pass folds one away -- so the count was an unverified arithmetic claim dressed as a measurement, and the `--expect match` control is what caught it. Do not reintroduce a counted anchor without counting it first.\n\nThis predicate deliberately does NOT apply to the SPIR-V arm; SPIR-V has no dx.op or control-flow hints. The SPIR-V question is match.json's."
+}

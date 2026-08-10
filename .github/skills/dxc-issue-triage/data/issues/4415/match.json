@@ -1,0 +1,10 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains",
+      "value": "@dx.op.annotateHandle(i32 216, %dx.types.Handle zeroinitializer" },
+    { "kind": "not_contains", "value": "error: validation errors" },
+    { "kind": "nonzero_exit", "invert": true }
+  ],
+  "note": "#4415 ask B (the title): DXIL whose dx.op.annotateHandle takes an invalid handle should FAIL validation, and does not. The symptom is an ACCEPTANCE -- the validator says nothing -- and SKILL.md's rule is that an absence clause is satisfied for free by a run that measured nothing, so clause 2 is anchored by clauses 1 and 3. Clause 1 is the reporter's own quoted DXIL line, character for character, and cannot be emitted by a compile that failed: it proves the module handed to the validator really did contain the invalid handle. Clause 3 proves the whole compile, validation included, succeeded. Clause 2 is the acceptance itself: dxc reports a DXIL validation failure as `error: validation errors` and exits E_FAIL 0x80004005, which per SKILL.md's exit-code table is an ordinary diagnosed error and NOT an internal failure. Controls, both in this directory: variant-control-validation-fails is a stock DXC test case whose DXIL fails validation through this same driver path (it prints `error: validation errors` and exits 0x80004005) -- that is what proves clause 2 can fail and that the plain RUN line really does validate; variant-control-valid is the same shader with the initialization order fixed, which validates cleanly and fails clause 1 -- that is what proves clause 1 discriminates on the handle operand rather than firing on any successful compile. NOT used as an anchor: `; shader hash:` is identical with and without -Vd on this repro (see variant-control-vd), so it is evidence of hashing, not of validation."
+}

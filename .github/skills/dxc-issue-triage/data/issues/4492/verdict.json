@@ -1,0 +1,22 @@
+{
+  "batch": "batch-015",
+  "confidence": "high",
+  "created_at": "2022-06-01T13:18:33Z",
+  "expected_symptom": "rawBufferLoad.f16/rawBufferStore.f16 into a StructuredBuffer<struct{float16_t4x4}> use a 4-byte element stride instead of 2, so offsets are exactly double and run past the 32-byte element.",
+  "godbolt_url": "https://godbolt.org/z/3Pe367EfM",
+  "history": "Reproduces on every checkable release. The reporter's shader is clean on v1.4.1907/v1.5.2010 and broken from v1.6.2104 on, but that is a shader-shape boundary, not the defect's: those two releases vectorise the whole 32-byte struct load and never reach the per-element matrix path. Reduced to the issue body's own snippet it reproduces on v1.4.1907 too, the oldest release available, so the bug predates every checkable build. Both implicated functions date to the repo's first commit (6ee4074a4).",
+  "labels": "bug,matrix-bug,correctness",
+  "labels_now": "bug,matrix-bug,correctness",
+  "notes_path": "issues/4492/notes.md",
+  "number": 4492,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Structured-buffer 16-bit matrix element access uses a 4-byte scalar stride instead of 2. TranslateStructBufMatSubscript scales the element index by GetEltTypeByteSizeForConstBuf (the cbuffer 4-byte rule) while the same instruction's alignment operand uses the real 2-byte alloc size. Every offset is exactly double: the reporter's 16 loads span 62 bytes of a 32-byte element. Affects stores identically, writing 28 bytes past the element into the next one. Not a packing bug (doubled in both row- and column-major). Compiles and validates clean. Clang emits correct offsets.",
+  "title": "[DXIL] Broken codegen for loading elements from FP16 matrix types in StructuredBuffer",
+  "triaged_at": "2026-08-10T21:54:34+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4492"
+}

@@ -1,0 +1,32 @@
+# compiler: main-debug-rw
+# exe: <repo>/build/Debug/bin/dxr.exe
+# ran: 2026-08-10T19:19:10+00:00
+# cmd: -E InitArgs -remove-unused-globals control-single-child.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: single-child (control-single-child.hlsl)
+# expect: no-match
+
+$ dxc -E InitArgs -remove-unused-globals control-single-child.hlsl
+[exe] <repo>/build/Debug/bin/dxr.exe
+[exit] 0
+--- stdout ---
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child SingleChild;
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+
+
+
+--- stderr ---
+

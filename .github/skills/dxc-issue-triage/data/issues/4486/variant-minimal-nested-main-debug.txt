@@ -1,0 +1,124 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:20:19+00:00
+# cmd: -T ps_6_0 -E PS_bright_pass -spirv minimal-nested.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: minimal-nested (minimal-nested.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E PS_bright_pass -spirv minimal-nested.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 67
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %PS_bright_pass "PS_bright_pass" %out_var_SV_Target0
+               OpExecutionMode %PS_bright_pass OriginUpperLeft
+               OpSource HLSL 600
+               OpName %type__Globals "type.$Globals"
+               OpMemberName %type__Globals 0 "g_in"
+               OpName %_Globals "$Globals"
+               OpName %out_var_SV_Target0 "out.var.SV_Target0"
+               OpName %PS_bright_pass "PS_bright_pass"
+               OpDecorate %out_var_SV_Target0 Location 0
+               OpDecorate %_Globals DescriptorSet 0
+               OpDecorate %_Globals Binding 0
+               OpMemberDecorate %type__Globals 0 Offset 0
+               OpDecorate %type__Globals Block
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_1 = OpConstant %int 1
+      %int_2 = OpConstant %int 2
+      %int_3 = OpConstant %int 3
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+%type__Globals = OpTypeStruct %v4float
+%_ptr_Uniform_type__Globals = OpTypePointer Uniform %type__Globals
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %15 = OpTypeFunction %void
+       %uint = OpTypeInt 32 0
+     %uint_4 = OpConstant %uint 4
+%_arr_float_uint_4 = OpTypeArray %float %uint_4
+%_ptr_Function__arr_float_uint_4 = OpTypePointer Function %_arr_float_uint_4
+%_ptr_Function_float = OpTypePointer Function %float
+%_ptr_Uniform_float = OpTypePointer Uniform %float
+       %bool = OpTypeBool
+   %_Globals = OpVariable %_ptr_Uniform_type__Globals Uniform
+%out_var_SV_Target0 = OpVariable %_ptr_Output_v4float Output
+%PS_bright_pass = OpFunction %void None %15
+         %23 = OpLabel
+         %24 = OpVariable %_ptr_Function__arr_float_uint_4 Function
+         %25 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_0
+         %26 = OpLoad %float %25
+         %27 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_1
+         %28 = OpLoad %float %27
+         %29 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_2
+         %30 = OpLoad %float %29
+         %31 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_3
+         %32 = OpLoad %float %31
+         %33 = OpCompositeConstruct %_arr_float_uint_4 %26 %28 %30 %32
+               OpStore %24 %33
+               OpBranch %34
+         %34 = OpLabel
+         %35 = OpPhi %int %int_0 %23 %36 %37
+         %38 = OpSLessThan %bool %35 %int_3
+               OpLoopMerge %39 %37 Unroll
+               OpBranchConditional %38 %40 %39
+         %40 = OpLabel
+               OpBranch %41
+         %41 = OpLabel
+         %42 = OpPhi %int %int_0 %40 %43 %44
+         %45 = OpISub %int %int_3 %35
+         %46 = OpSLessThan %bool %42 %45
+               OpLoopMerge %47 %44 Unroll
+               OpBranchConditional %46 %48 %47
+         %48 = OpLabel
+         %49 = OpAccessChain %_ptr_Function_float %24 %42
+         %50 = OpLoad %float %49
+         %43 = OpIAdd %int %42 %int_1
+         %51 = OpAccessChain %_ptr_Function_float %24 %43
+         %52 = OpLoad %float %51
+         %53 = OpFOrdGreaterThan %bool %50 %52
+               OpSelectionMerge %54 Flatten
+               OpBranchConditional %53 %55 %54
+         %55 = OpLabel
+         %56 = OpLoad %float %49
+         %57 = OpLoad %float %51
+               OpStore %49 %57
+               OpStore %51 %56
+               OpBranch %54
+         %54 = OpLabel
+               OpBranch %44
+         %44 = OpLabel
+               OpBranch %41
+         %47 = OpLabel
+               OpBranch %37
+         %37 = OpLabel
+         %36 = OpIAdd %int %35 %int_1
+               OpBranch %34
+         %39 = OpLabel
+         %58 = OpAccessChain %_ptr_Function_float %24 %int_0
+         %59 = OpLoad %float %58
+         %60 = OpAccessChain %_ptr_Function_float %24 %int_1
+         %61 = OpLoad %float %60
+         %62 = OpAccessChain %_ptr_Function_float %24 %int_2
+         %63 = OpLoad %float %62
+         %64 = OpAccessChain %_ptr_Function_float %24 %int_3
+         %65 = OpLoad %float %64
+         %66 = OpCompositeConstruct %v4float %59 %61 %63 %65
+               OpStore %out_var_SV_Target0 %66
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

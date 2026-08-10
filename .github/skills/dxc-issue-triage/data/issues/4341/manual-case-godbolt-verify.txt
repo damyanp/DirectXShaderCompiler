@@ -1,0 +1,48 @@
+# Compiler Explorer panes for #4341, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E main -HV 2021
+# exit:     5
+
+<source>:52:8: error: expression is not assignable
+  m[0] = 9.0;
+  ~~~~ ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main -HV 2021
+# exit:     5
+
+<source>:52:8: error: expression is not assignable
+  m[0] = 9.0;
+  ~~~~ ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T ps_6_0 -E main -fsyntax-only
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:52:8: [0m[0;1;31merror: [0m[1mexpression is not assignable[0m
+   52 |   m[[0;32m0[0m] = [0;32m9.0[0m;[0m
+      | [0;1;32m  ~~~~ ^
+[0m1 error generated.
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_assertions_trunk
+# args:     -T ps_6_0 -E main -fsyntax-only -DCONTROL_NO_ASSIGN
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+<No output file>

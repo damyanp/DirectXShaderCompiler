@@ -1,0 +1,667 @@
+# Compiler Explorer panes for #4486, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E PS_bright_pass -spirv
+# exit:     0
+
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 68
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %PS_bright_pass "PS_bright_pass" %out_var_SV_Target0
+               OpExecutionMode %PS_bright_pass OriginUpperLeft
+          %3 = OpString "/app/example.hlsl"
+               OpSource HLSL 600 %3 "//==========================================================================//
+// This is a minimal restatement of #4486. Both loop levels carry [unroll] and
+// every bound is a compile-time constant: j runs 0..2 and k runs 0..(3-j-1), so
+// the whole nest is six comparisons.
+//
+// What to look for, per pane:
+//
+// - SPIR-V panes (-spirv): scroll to the fragment entry point. Two structured
+//   loop headers survive, each with a back-edge and a phi for its counter, and
+//   only ONE float comparison inside them -- so the nest was not unrolled. Fully
+//   unrolled code would have no loop header and six comparisons.
+// - DXIL pane (no -spirv): the same source has no loop at all; the comparisons
+//   are materialised in straight-line code. Same shader, same attributes, two
+//   different answers.
+//
+// Note CE builds Release binaries and appends its own debug-info flags to DXC
+// panes, so the embedded source you can see in the output is CE's doing, not the
+// shader's.
+//==========================================================================//
+
+// #4486, minimal restatement: nested [unroll] `for` loops with compile-time
+// constant bounds, no textures, no samplers, no helper functions.
+//
+// Agent-constructed, not from the thread. It exists so the finding can be read
+// in a few lines of SPIR-V and shown on Compiler Explorer; repro.hlsl stays the
+// faithful evidence. Same loop nest as repro.hlsl (j < 3, k < 4 - j - 1) over
+// the same bubble-sort body.
+//
+// Expectation: match.
+
+float4 g_in;
+
+float4 PS_bright_pass( float4 pos : SV_POSITION ) : SV_Target0
+{
+        float v[4] = { g_in.x, g_in.y, g_in.z, g_in.w };
+
+        [unroll]
+        for ( int j = 0; j < (4 - 1); j++ )
+        {
+                [unroll]
+                for ( int k = 0; k < (4 - j - 1); k++ )
+                {
+                        [flatten]
+                        if ( v[k] > v[k + 1] )
+                        {
+                                float tmp = v[k];
+                                v[k] = v[k + 1];
+                                v[k + 1] = tmp;
+                        }
+                }
+        }
+
+        return float4( v[0], v[1], v[2], v[3] );
+}
+"
+               OpName %type__Globals "type.$Globals"
+               OpMemberName %type__Globals 0 "g_in"
+               OpName %_Globals "$Globals"
+               OpName %out_var_SV_Target0 "out.var.SV_Target0"
+               OpName %PS_bright_pass "PS_bright_pass"
+               OpDecorate %out_var_SV_Target0 Location 0
+               OpDecorate %_Globals DescriptorSet 0
+               OpDecorate %_Globals Binding 0
+               OpMemberDecorate %type__Globals 0 Offset 0
+               OpDecorate %type__Globals Block
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_1 = OpConstant %int 1
+      %int_2 = OpConstant %int 2
+      %int_3 = OpConstant %int 3
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+%type__Globals = OpTypeStruct %v4float
+%_ptr_Uniform_type__Globals = OpTypePointer Uniform %type__Globals
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %16 = OpTypeFunction %void
+       %uint = OpTypeInt 32 0
+     %uint_4 = OpConstant %uint 4
+%_arr_float_uint_4 = OpTypeArray %float %uint_4
+%_ptr_Function__arr_float_uint_4 = OpTypePointer Function %_arr_float_uint_4
+%_ptr_Function_float = OpTypePointer Function %float
+%_ptr_Uniform_float = OpTypePointer Uniform %float
+       %bool = OpTypeBool
+   %_Globals = OpVariable %_ptr_Uniform_type__Globals Uniform
+%out_var_SV_Target0 = OpVariable %_ptr_Output_v4float Output
+%PS_bright_pass = OpFunction %void None %16
+         %24 = OpLabel
+         %25 = OpVariable %_ptr_Function__arr_float_uint_4 Function
+               OpLine %3 35 17
+         %26 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_0
+         %27 = OpLoad %float %26
+               OpLine %3 35 25
+         %28 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_1
+         %29 = OpLoad %float %28
+               OpLine %3 35 33
+         %30 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_2
+         %31 = OpLoad %float %30
+               OpLine %3 35 41
+         %32 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_3
+         %33 = OpLoad %float %32
+               OpLine %3 35 15
+         %34 = OpCompositeConstruct %_arr_float_uint_4 %27 %29 %31 %33
+               OpLine %3 35 8
+               OpStore %25 %34
+               OpLine %3 38 19
+               OpBranch %35
+         %35 = OpLabel
+         %36 = OpPhi %int %int_0 %24 %37 %38
+               OpLine %3 38 21
+         %39 = OpSLessThan %bool %36 %int_3
+               OpLine %3 38 29
+               OpLoopMerge %40 %38 Unroll
+               OpBranchConditional %39 %41 %40
+         %41 = OpLabel
+               OpLine %3 41 20
+               OpBranch %42
+         %42 = OpLabel
+         %43 = OpPhi %int %int_0 %41 %44 %45
+               OpLine %3 41 31
+         %46 = OpISub %int %int_3 %36
+               OpLine %3 41 22
+         %47 = OpSLessThan %bool %43 %46
+               OpLine %3 41 34
+               OpLoopMerge %48 %45 Unroll
+               OpBranchConditional %47 %49 %48
+         %49 = OpLabel
+               OpLine %3 44 9
+         %50 = OpAccessChain %_ptr_Function_float %25 %43
+         %51 = OpLoad %float %50
+               OpLine %3 44 20
+         %44 = OpIAdd %int %43 %int_1
+               OpLine %3 44 16
+         %52 = OpAccessChain %_ptr_Function_float %25 %44
+         %53 = OpLoad %float %52
+               OpLine %3 44 14
+         %54 = OpFOrdGreaterThan %bool %51 %53
+               OpLine %3 45 4
+               OpSelectionMerge %55 Flatten
+               OpBranchConditional %54 %56 %55
+         %56 = OpLabel
+               OpLine %3 46 17
+         %57 = OpLoad %float %50
+               OpLine %3 47 12
+         %58 = OpLoad %float %52
+               OpLine %3 47 5
+               OpStore %50 %58
+               OpLine %3 48 5
+               OpStore %52 %57
+               OpLine %3 49 4
+               OpBranch %55
+         %55 = OpLabel
+               OpLine %3 50 3
+               OpBranch %45
+         %45 = OpLabel
+               OpLine %3 50 3
+               OpBranch %42
+         %48 = OpLabel
+               OpLine %3 51 2
+               OpBranch %38
+         %38 = OpLabel
+               OpLine %3 38 33
+         %37 = OpIAdd %int %36 %int_1
+               OpLine %3 51 2
+               OpBranch %35
+         %40 = OpLabel
+               OpLine %3 53 17
+         %59 = OpAccessChain %_ptr_Function_float %25 %int_0
+         %60 = OpLoad %float %59
+               OpLine %3 53 23
+         %61 = OpAccessChain %_ptr_Function_float %25 %int_1
+         %62 = OpLoad %float %61
+               OpLine %3 53 29
+         %63 = OpAccessChain %_ptr_Function_float %25 %int_2
+         %64 = OpLoad %float %63
+               OpLine %3 53 35
+         %65 = OpAccessChain %_ptr_Function_float %25 %int_3
+         %66 = OpLoad %float %65
+               OpLine %3 53 15
+         %67 = OpCompositeConstruct %v4float %60 %62 %64 %66
+               OpNoLine
+               OpStore %out_var_SV_Target0 %67
+               OpLine %3 54 1
+               OpReturn
+               OpFunctionEnd
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E PS_bright_pass -spirv
+# exit:     0
+
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 68
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %PS_bright_pass "PS_bright_pass" %out_var_SV_Target0
+               OpExecutionMode %PS_bright_pass OriginUpperLeft
+          %3 = OpString "/app/example.hlsl"
+               OpSource HLSL 600 %3 "//==========================================================================//
+// This is a minimal restatement of #4486. Both loop levels carry [unroll] and
+// every bound is a compile-time constant: j runs 0..2 and k runs 0..(3-j-1), so
+// the whole nest is six comparisons.
+//
+// What to look for, per pane:
+//
+// - SPIR-V panes (-spirv): scroll to the fragment entry point. Two structured
+//   loop headers survive, each with a back-edge and a phi for its counter, and
+//   only ONE float comparison inside them -- so the nest was not unrolled. Fully
+//   unrolled code would have no loop header and six comparisons.
+// - DXIL pane (no -spirv): the same source has no loop at all; the comparisons
+//   are materialised in straight-line code. Same shader, same attributes, two
+//   different answers.
+//
+// Note CE builds Release binaries and appends its own debug-info flags to DXC
+// panes, so the embedded source you can see in the output is CE's doing, not the
+// shader's.
+//==========================================================================//
+
+// #4486, minimal restatement: nested [unroll] `for` loops with compile-time
+// constant bounds, no textures, no samplers, no helper functions.
+//
+// Agent-constructed, not from the thread. It exists so the finding can be read
+// in a few lines of SPIR-V and shown on Compiler Explorer; repro.hlsl stays the
+// faithful evidence. Same loop nest as repro.hlsl (j < 3, k < 4 - j - 1) over
+// the same bubble-sort body.
+//
+// Expectation: match.
+
+float4 g_in;
+
+float4 PS_bright_pass( float4 pos : SV_POSITION ) : SV_Target0
+{
+        float v[4] = { g_in.x, g_in.y, g_in.z, g_in.w };
+
+        [unroll]
+        for ( int j = 0; j < (4 - 1); j++ )
+        {
+                [unroll]
+                for ( int k = 0; k < (4 - j - 1); k++ )
+                {
+                        [flatten]
+                        if ( v[k] > v[k + 1] )
+                        {
+                                float tmp = v[k];
+                                v[k] = v[k + 1];
+                                v[k + 1] = tmp;
+                        }
+                }
+        }
+
+        return float4( v[0], v[1], v[2], v[3] );
+}
+"
+               OpName %type__Globals "type.$Globals"
+               OpMemberName %type__Globals 0 "g_in"
+               OpName %_Globals "$Globals"
+               OpName %out_var_SV_Target0 "out.var.SV_Target0"
+               OpName %PS_bright_pass "PS_bright_pass"
+               OpDecorate %out_var_SV_Target0 Location 0
+               OpDecorate %_Globals DescriptorSet 0
+               OpDecorate %_Globals Binding 0
+               OpMemberDecorate %type__Globals 0 Offset 0
+               OpDecorate %type__Globals Block
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_1 = OpConstant %int 1
+      %int_2 = OpConstant %int 2
+      %int_3 = OpConstant %int 3
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+%type__Globals = OpTypeStruct %v4float
+%_ptr_Uniform_type__Globals = OpTypePointer Uniform %type__Globals
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %16 = OpTypeFunction %void
+       %uint = OpTypeInt 32 0
+     %uint_4 = OpConstant %uint 4
+%_arr_float_uint_4 = OpTypeArray %float %uint_4
+%_ptr_Function__arr_float_uint_4 = OpTypePointer Function %_arr_float_uint_4
+%_ptr_Function_float = OpTypePointer Function %float
+%_ptr_Uniform_float = OpTypePointer Uniform %float
+       %bool = OpTypeBool
+   %_Globals = OpVariable %_ptr_Uniform_type__Globals Uniform
+%out_var_SV_Target0 = OpVariable %_ptr_Output_v4float Output
+               OpLine %3 33 1
+%PS_bright_pass = OpFunction %void None %16
+               OpNoLine
+         %24 = OpLabel
+         %25 = OpVariable %_ptr_Function__arr_float_uint_4 Function
+               OpLine %3 35 17
+         %26 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_0
+         %27 = OpLoad %float %26
+               OpLine %3 35 25
+         %28 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_1
+         %29 = OpLoad %float %28
+               OpLine %3 35 33
+         %30 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_2
+         %31 = OpLoad %float %30
+               OpLine %3 35 41
+         %32 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_3
+         %33 = OpLoad %float %32
+               OpLine %3 35 15
+         %34 = OpCompositeConstruct %_arr_float_uint_4 %27 %29 %31 %33
+               OpLine %3 35 8
+               OpStore %25 %34
+               OpLine %3 38 19
+               OpBranch %35
+         %35 = OpLabel
+         %36 = OpPhi %int %int_0 %24 %37 %38
+               OpLine %3 38 21
+         %39 = OpSLessThan %bool %36 %int_3
+               OpLine %3 38 29
+               OpLoopMerge %40 %38 Unroll
+               OpBranchConditional %39 %41 %40
+         %41 = OpLabel
+               OpLine %3 41 20
+               OpBranch %42
+         %42 = OpLabel
+         %43 = OpPhi %int %int_0 %41 %44 %45
+               OpLine %3 41 31
+         %46 = OpISub %int %int_3 %36
+               OpLine %3 41 22
+         %47 = OpSLessThan %bool %43 %46
+               OpLine %3 41 34
+               OpLoopMerge %48 %45 Unroll
+               OpBranchConditional %47 %49 %48
+         %49 = OpLabel
+               OpLine %3 44 9
+         %50 = OpAccessChain %_ptr_Function_float %25 %43
+         %51 = OpLoad %float %50
+               OpLine %3 44 20
+         %44 = OpIAdd %int %43 %int_1
+               OpLine %3 44 16
+         %52 = OpAccessChain %_ptr_Function_float %25 %44
+         %53 = OpLoad %float %52
+               OpLine %3 44 14
+         %54 = OpFOrdGreaterThan %bool %51 %53
+               OpLine %3 45 4
+               OpSelectionMerge %55 Flatten
+               OpBranchConditional %54 %56 %55
+         %56 = OpLabel
+               OpLine %3 46 17
+         %57 = OpLoad %float %50
+               OpLine %3 47 12
+         %58 = OpLoad %float %52
+               OpLine %3 47 5
+               OpStore %50 %58
+               OpLine %3 48 5
+               OpStore %52 %57
+               OpLine %3 49 4
+               OpBranch %55
+         %55 = OpLabel
+               OpLine %3 50 3
+               OpBranch %45
+         %45 = OpLabel
+               OpLine %3 50 3
+               OpBranch %42
+         %48 = OpLabel
+               OpLine %3 51 2
+               OpBranch %38
+         %38 = OpLabel
+               OpLine %3 38 33
+         %37 = OpIAdd %int %36 %int_1
+               OpLine %3 51 2
+               OpBranch %35
+         %40 = OpLabel
+               OpLine %3 53 17
+         %59 = OpAccessChain %_ptr_Function_float %25 %int_0
+         %60 = OpLoad %float %59
+               OpLine %3 53 23
+         %61 = OpAccessChain %_ptr_Function_float %25 %int_1
+         %62 = OpLoad %float %61
+               OpLine %3 53 29
+         %63 = OpAccessChain %_ptr_Function_float %25 %int_2
+         %64 = OpLoad %float %63
+               OpLine %3 53 35
+         %65 = OpAccessChain %_ptr_Function_float %25 %int_3
+         %66 = OpLoad %float %65
+               OpLine %3 53 15
+         %67 = OpCompositeConstruct %v4float %60 %62 %64 %66
+               OpLine %3 33 1
+               OpStore %out_var_SV_Target0 %67
+               OpLine %3 54 1
+               OpReturn
+               OpFunctionEnd
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E PS_bright_pass
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader debug name: 30114fd494c884afe5485954893fc483.pdb
+; shader hash: 30114fd494c884afe5485954893fc483
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 1
+; SigOutputElements: 1
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 1
+; SigOutputVectors[0]: 1
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: PS_bright_pass
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+; cbuffer $Globals
+; {
+;
+;   struct $Globals
+;   {
+;
+;       float4 g_in;                                  ; Offset:    0
+;   
+;   } $Globals;                                       ; Offset:    0 Size:    16
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; $Globals                          cbuffer      NA          NA     CB0            cb0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 4, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+%"$Globals" = type { <4 x float> }
+
+define void @PS_bright_pass() {
+.lr.ph2:
+  %"$Globals_cbuffer" = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %0 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %"$Globals_cbuffer", i32 0), !dbg !50 ; line:35 col:17  ; CBufferLoadLegacy(handle,regIndex)
+  %1 = extractvalue %dx.types.CBufRet.f32 %0, 0, !dbg !50 ; line:35 col:17
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !51, metadata !55), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 0, 32) func:"PS_bright_pass"
+  %2 = extractvalue %dx.types.CBufRet.f32 %0, 1, !dbg !57 ; line:35 col:25
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !51, metadata !58), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 32, 32) func:"PS_bright_pass"
+  %3 = extractvalue %dx.types.CBufRet.f32 %0, 2, !dbg !59 ; line:35 col:33
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !51, metadata !60), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 64, 32) func:"PS_bright_pass"
+  %4 = extractvalue %dx.types.CBufRet.f32 %0, 3, !dbg !61 ; line:35 col:41
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !51, metadata !62), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 96, 32) func:"PS_bright_pass"
+  call void @llvm.dbg.value(metadata i32 0, i64 0, metadata !63, metadata !65), !dbg !66 ; var:"j" !DIExpression() func:"PS_bright_pass"
+  call void @llvm.dbg.value(metadata i32 0, i64 0, metadata !67, metadata !65), !dbg !71 ; var:"k" !DIExpression() func:"PS_bright_pass"
+  %5 = fcmp fast ogt float %1, %2, !dbg !72 ; line:44 col:14
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !51, metadata !55), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 0, 32) func:"PS_bright_pass"
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !51, metadata !58), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 32, 32) func:"PS_bright_pass"
+  %6 = select i1 %5, float %1, float %2, !dbg !76 ; line:44 col:9
+  %7 = select i1 %5, float %2, float %1, !dbg !76 ; line:44 col:9
+  call void @llvm.dbg.value(metadata i32 1, i64 0, metadata !67, metadata !65), !dbg !71 ; var:"k" !DIExpression() func:"PS_bright_pass"
+  %8 = fcmp fast ogt float %6, %3, !dbg !72 ; line:44 col:14
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !51, metadata !58), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 32, 32) func:"PS_bright_pass"
+  call void @llvm.dbg.value(metadata float %6, i64 0, metadata !51, metadata !60), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 64, 32) func:"PS_bright_pass"
+  %9 = select i1 %8, float %6, float %3, !dbg !76 ; line:44 col:9
+  %10 = select i1 %8, float %3, float %6, !dbg !76 ; line:44 col:9
+  call void @llvm.dbg.value(metadata i32 2, i64 0, metadata !67, metadata !65), !dbg !71 ; var:"k" !DIExpression() func:"PS_bright_pass"
+  %11 = fcmp fast ogt float %9, %4, !dbg !72 ; line:44 col:14
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !51, metadata !60), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 64, 32) func:"PS_bright_pass"
+  call void @llvm.dbg.value(metadata float %9, i64 0, metadata !51, metadata !62), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 96, 32) func:"PS_bright_pass"
+  %12 = select i1 %11, float %9, float %4, !dbg !76 ; line:44 col:9
+  %13 = select i1 %11, float %4, float %9, !dbg !76 ; line:44 col:9
+  call void @llvm.dbg.value(metadata i32 1, i64 0, metadata !63, metadata !65), !dbg !66 ; var:"j" !DIExpression() func:"PS_bright_pass"
+  call void @llvm.dbg.value(metadata i32 0, i64 0, metadata !67, metadata !65), !dbg !71 ; var:"k" !DIExpression() func:"PS_bright_pass"
+  %14 = fcmp fast ogt float %7, %10, !dbg !72 ; line:44 col:14
+  call void @llvm.dbg.value(metadata float %10, i64 0, metadata !51, metadata !55), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 0, 32) func:"PS_bright_pass"
+  call void @llvm.dbg.value(metadata float %7, i64 0, metadata !51, metadata !58), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 32, 32) func:"PS_bright_pass"
+  %15 = select i1 %14, float %7, float %10, !dbg !76 ; line:44 col:9
+  %16 = select i1 %14, float %10, float %7, !dbg !76 ; line:44 col:9
+  call void @llvm.dbg.value(metadata i32 1, i64 0, metadata !67, metadata !65), !dbg !71 ; var:"k" !DIExpression() func:"PS_bright_pass"
+  %17 = fcmp fast ogt float %15, %13, !dbg !72 ; line:44 col:14
+  call void @llvm.dbg.value(metadata float %13, i64 0, metadata !51, metadata !58), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 32, 32) func:"PS_bright_pass"
+  call void @llvm.dbg.value(metadata float %15, i64 0, metadata !51, metadata !60), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 64, 32) func:"PS_bright_pass"
+  %18 = select i1 %17, float %15, float %13, !dbg !76 ; line:44 col:9
+  %19 = select i1 %17, float %13, float %15, !dbg !76 ; line:44 col:9
+  call void @llvm.dbg.value(metadata i32 2, i64 0, metadata !63, metadata !65), !dbg !66 ; var:"j" !DIExpression() func:"PS_bright_pass"
+  call void @llvm.dbg.value(metadata i32 0, i64 0, metadata !67, metadata !65), !dbg !71 ; var:"k" !DIExpression() func:"PS_bright_pass"
+  %20 = fcmp fast ogt float %16, %19, !dbg !72 ; line:44 col:14
+  call void @llvm.dbg.value(metadata float %19, i64 0, metadata !51, metadata !55), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 0, 32) func:"PS_bright_pass"
+  call void @llvm.dbg.value(metadata float %16, i64 0, metadata !51, metadata !58), !dbg !56 ; var:"v" !DIExpression(DW_OP_bit_piece, 32, 32) func:"PS_bright_pass"
+  %21 = select i1 %20, float %16, float %19, !dbg !76 ; line:44 col:9
+  %22 = select i1 %20, float %19, float %16, !dbg !76 ; line:44 col:9
+  call void @llvm.dbg.value(metadata i32 1, i64 0, metadata !67, metadata !65), !dbg !71 ; var:"k" !DIExpression() func:"PS_bright_pass"
+  call void @llvm.dbg.value(metadata i32 3, i64 0, metadata !63, metadata !65), !dbg !66 ; var:"j" !DIExpression() func:"PS_bright_pass"
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %22), !dbg !77 ; line:53 col:2  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %21), !dbg !77 ; line:53 col:2  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %18), !dbg !77 ; line:53 col:2  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %12), !dbg !77 ; line:53 col:2  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !77 ; line:53 col:2
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!23, !24}
+!llvm.ident = !{!25}
+!dx.source.contents = !{!26}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!27}
+!dx.source.args = !{!28}
+!dx.version = !{!29}
+!dx.valver = !{!30}
+!dx.shaderModel = !{!31}
+!dx.resources = !{!32}
+!dx.typeAnnotations = !{!35, !38}
+!dx.viewIdState = !{!41}
+!dx.entryPoints = !{!42}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !16, globals: !20)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, line: 31, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, line: 31, size: 128, align: 32, elements: !6, templateParams: !12)
+!6 = !{!7, !9, !10, !11}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 31, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 31, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, line: 31, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !5, file: !1, line: 31, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!12 = !{!13, !14}
+!13 = !DITemplateTypeParameter(name: "element", type: !8)
+!14 = !DITemplateValueParameter(name: "element_count", type: !15, value: i32 4)
+!15 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!16 = !{!17}
+!17 = !DISubprogram(name: "PS_bright_pass", scope: !1, file: !1, line: 33, type: !18, isLocal: false, isDefinition: true, scopeLine: 34, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @PS_bright_pass)
+!18 = !DISubroutineType(types: !19)
+!19 = !{!4, !4}
+!20 = !{!21, !21}
+!21 = !DIGlobalVariable(name: "g_in", linkageName: "\01?g_in@@3V?$vector@M$03@@B", scope: !0, file: !1, line: 31, type: !22, isLocal: false, isDefinition: true)
+!22 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
+!23 = !{i32 2, !"Dwarf Version", i32 4}
+!24 = !{i32 2, !"Debug Info Version", i32 3}
+!25 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!26 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// This is a minimal restatement of #4486. Both loop levels carry [unroll] and\0A// every bound is a compile-time constant: j runs 0..2 and k runs 0..(3-j-1), so\0A// the whole nest is six comparisons.\0A//\0A// What to look for, per pane:\0A//\0A// - SPIR-V panes (-spirv): scroll to the fragment entry point. Two structured\0A//   loop headers survive, each with a back-edge and a phi for its counter, and\0A//   only ONE float comparison inside them -- so the nest was not unrolled. Fully\0A//   unrolled code would have no loop header and six comparisons.\0A// - DXIL pane (no -spirv): the same source has no loop at all; the comparisons\0A//   are materialised in straight-line code. Same shader, same attributes, two\0A//   different answers.\0A//\0A// Note CE builds Release binaries and appends its own debug-info flags to DXC\0A// panes, so the embedded source you can see in the output is CE's doing, not the\0A// shader's.\0A//==========================================================================//\0A\0A// #4486, minimal restatement: nested [unroll] `for` loops with compile-time\0A// constant bounds, no textures, no samplers, no helper functions.\0A//\0A// Agent-constructed, not from the thread. It exists so the finding can be read\0A// in a few lines of SPIR-V and shown on Compiler Explorer; repro.hlsl stays the\0A// faithful evidence. Same loop nest as repro.hlsl (j < 3, k < 4 - j - 1) over\0A// the same bubble-sort body.\0A//\0A// Expectation: match.\0A\0Afloat4 g_in;\0A\0Afloat4 PS_bright_pass( float4 pos : SV_POSITION ) : SV_Target0\0A{\0A\09float v[4] = { g_in.x, g_in.y, g_in.z, g_in.w };\0A\0A\09[unroll]\0A\09for ( int j = 0; j < (4 - 1); j++ )\0A\09{\0A\09\09[unroll]\0A\09\09for ( int k = 0; k < (4 - j - 1); k++ )\0A\09\09{\0A\09\09\09[flatten]\0A\09\09\09if ( v[k] > v[k + 1] )\0A\09\09\09{\0A\09\09\09\09float tmp = v[k];\0A\09\09\09\09v[k] = v[k + 1];\0A\09\09\09\09v[k + 1] = tmp;\0A\09\09\09}\0A\09\09}\0A\09}\0A\0A\09return float4( v[0], v[1], v[2], v[3] );\0A}\0A"}
+!27 = !{!"/app/example.hlsl"}
+!28 = !{!"-E", !"PS_bright_pass", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug"}
+!29 = !{i32 1, i32 0}
+!30 = !{i32 1, i32 10}
+!31 = !{!"ps", i32 6, i32 0}
+!32 = !{null, null, !33, null}
+!33 = !{!34}
+!34 = !{i32 0, %"$Globals"* undef, !"$Globals", i32 0, i32 0, i32 1, i32 16, null}
+!35 = !{i32 0, %"$Globals" undef, !36}
+!36 = !{i32 16, !37}
+!37 = !{i32 6, !"g_in", i32 3, i32 0, i32 7, i32 9}
+!38 = !{i32 1, void ()* @PS_bright_pass, !39}
+!39 = !{!40}
+!40 = !{i32 0, !2, !2}
+!41 = !{[6 x i32] [i32 4, i32 4, i32 0, i32 0, i32 0, i32 0]}
+!42 = !{void ()* @PS_bright_pass, !"PS_bright_pass", !43, !32, null}
+!43 = !{!44, !47, null}
+!44 = !{!45}
+!45 = !{i32 0, !"SV_Position", i8 9, i8 3, !46, i8 4, i32 1, i8 4, i32 0, i8 0, null}
+!46 = !{i32 0}
+!47 = !{!48}
+!48 = !{i32 0, !"SV_Target", i8 9, i8 16, !46, i8 0, i32 1, i8 4, i32 0, i8 0, !49}
+!49 = !{i32 3, i32 15}
+!50 = !DILocation(line: 35, column: 17, scope: !17)
+!51 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "v", scope: !17, file: !1, line: 35, type: !52)
+!52 = !DICompositeType(tag: DW_TAG_array_type, baseType: !8, size: 128, align: 32, elements: !53)
+!53 = !{!54}
+!54 = !DISubrange(count: 4)
+!55 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!56 = !DILocation(line: 35, column: 8, scope: !17)
+!57 = !DILocation(line: 35, column: 25, scope: !17)
+!58 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!59 = !DILocation(line: 35, column: 33, scope: !17)
+!60 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!61 = !DILocation(line: 35, column: 41, scope: !17)
+!62 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!63 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "j", scope: !64, file: !1, line: 38, type: !15)
+!64 = distinct !DILexicalBlock(scope: !17, file: !1, line: 38, column: 2)
+!65 = !DIExpression()
+!66 = !DILocation(line: 38, column: 12, scope: !64)
+!67 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "k", scope: !68, file: !1, line: 41, type: !15)
+!68 = distinct !DILexicalBlock(scope: !69, file: !1, line: 41, column: 3)
+!69 = distinct !DILexicalBlock(scope: !70, file: !1, line: 39, column: 2)
+!70 = distinct !DILexicalBlock(scope: !64, file: !1, line: 38, column: 2)
+!71 = !DILocation(line: 41, column: 13, scope: !68)
+!72 = !DILocation(line: 44, column: 14, scope: !73)
+!73 = distinct !DILexicalBlock(scope: !74, file: !1, line: 44, column: 9)
+!74 = distinct !DILexicalBlock(scope: !75, file: !1, line: 42, column: 3)
+!75 = distinct !DILexicalBlock(scope: !68, file: !1, line: 41, column: 3)
+!76 = !DILocation(line: 44, column: 9, scope: !74)
+!77 = !DILocation(line: 53, column: 2, scope: !17)

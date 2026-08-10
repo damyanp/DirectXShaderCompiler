@@ -1,0 +1,283 @@
+#4351 -- downstream cost: does the rewriter's output still compile?
+
+Produced by `python downstream.py`. Every command below is echoed from
+the argv that actually ran (subprocess.list2cmdline), not transcribed.
+
+READINGS
+
+  [PASS] the original source compiles
+         the repro is a valid shader at cs_6_0 with entry point InitArgs
+  [PASS] the unchanged-mode rewriter output compiles
+         the rewriter's output shape is fine; only the removal is at issue
+  [PASS] the rewritten shader does NOT compile
+         the emitted source is not valid HLSL
+  [PASS] dxc names the removed type
+         the failure is about `Child` specifically, not some unrelated error
+
+
+VERBATIM
+
+=== the reporter's command line; stdout is the rewritten shader ===
+$ <repo>/build/Debug/bin/dxr.exe -E InitArgs -remove-unused-globals repro.hlsl
+[exit] 0
+--- stdout ---
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+--- stderr ---
+
+
+=== CONTROL: same rewriter, no rewriter option (unchanged mode) ===
+$ <repo>/build/Debug/bin/dxr.exe -E InitArgs repro.hlsl
+[exit] 0
+--- stdout ---
+// Rewrite unchanged result:
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+--- stderr ---
+
+
+=== CONTROL: the reporter's ORIGINAL source. Must compile, or nothing below is attributable to the rewrite ===
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E InitArgs repro.hlsl
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: df5d7fd5ea7e231b2cb50a94e09e38aa
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: InitArgs
+;
+;
+; Buffer Definitions:
+;
+; Resource bind info for ParentBuffer
+; {
+;
+;   struct struct.Parent
+;   {
+;
+;       struct struct.Child
+;       {
+;
+;           uint Test;                                ; Offset:    0
+;       
+;       } MultipleChildren[2];;                       ; Offset:    0
+;
+;   
+;   } $Element;                                       ; Offset:    0 Size:     8
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; ParentBuffer                          UAV  struct         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWStructuredBuffer<Parent>" = type { %struct.Parent }
+%struct.Parent = type { [2 x %struct.Child] }
+%struct.Child = type { i32 }
+
+define void @InitArgs() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 0, i32 4, i32 0, i32 undef, i32 undef, i32 undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #1
+
+attributes #0 = { nounwind readonly }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!8}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 10}
+!3 = !{!"cs", i32 6, i32 0}
+!4 = !{null, !5, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.RWStructuredBuffer<Parent>"* undef, !"", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !7}
+!7 = !{i32 1, i32 8}
+!8 = !{void ()* @InitArgs, !"InitArgs", null, !4, !9}
+!9 = !{i32 0, i64 16, i32 4, !10}
+!10 = !{i32 1, i32 1, i32 1}
+--- stderr ---
+
+
+=== CONTROL: the unchanged-mode rewriter output. Must compile -- isolates the removal from the rewriter's output shape ===
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E InitArgs <cache>/scratch4351/rewritten-unchanged.hlsl
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: df5d7fd5ea7e231b2cb50a94e09e38aa
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: InitArgs
+;
+;
+; Buffer Definitions:
+;
+; Resource bind info for ParentBuffer
+; {
+;
+;   struct struct.Parent
+;   {
+;
+;       struct struct.Child
+;       {
+;
+;           uint Test;                                ; Offset:    0
+;       
+;       } MultipleChildren[2];;                       ; Offset:    0
+;
+;   
+;   } $Element;                                       ; Offset:    0 Size:     8
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; ParentBuffer                          UAV  struct         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWStructuredBuffer<Parent>" = type { %struct.Parent }
+%struct.Parent = type { [2 x %struct.Child] }
+%struct.Child = type { i32 }
+
+define void @InitArgs() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 0, i32 4, i32 0, i32 undef, i32 undef, i32 undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #1
+
+attributes #0 = { nounwind readonly }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!8}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 10}
+!3 = !{!"cs", i32 6, i32 0}
+!4 = !{null, !5, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.RWStructuredBuffer<Parent>"* undef, !"", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !7}
+!7 = !{i32 1, i32 8}
+!8 = !{void ()* @InitArgs, !"InitArgs", null, !4, !9}
+!9 = !{i32 0, i64 16, i32 4, !10}
+!10 = !{i32 1, i32 1, i32 1}
+--- stderr ---
+
+
+=== SUBJECT: the rewritten shader from step 1 ===
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E InitArgs rewritten.hlsl
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+rewritten.hlsl:2:3: error: unknown type name 'Child'
+  Child MultipleChildren[2];
+  ^
+

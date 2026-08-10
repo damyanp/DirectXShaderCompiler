@@ -1,0 +1,18 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:24:21+00:00
+# cmd: case-out-param.hlsl /Zi /E main /Od /Fo test.mso /Tms_6_6 -Qembed_debug
+# exit: 0
+# timed_out: 0
+# match: match-assert.json
+# verdict: no-repro
+# variant: case-out-param-assert (case-out-param.hlsl)
+# expect: no-match
+
+$ dxc case-out-param.hlsl /Zi /E main /Od /Fo test.mso /Tms_6_6 -Qembed_debug
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

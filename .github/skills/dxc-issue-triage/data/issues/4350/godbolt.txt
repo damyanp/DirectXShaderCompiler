@@ -1,0 +1,1 @@
+dxc_1_6_2112:-T cs_6_6,dxc_trunk:-T cs_6_6,hlsl_clang_trunk:-T cs_6_6 -fsyntax-only,hlsl_clang_trunk:-T cs_6_6 -fsyntax-only -DCONTROL_MUTABLE

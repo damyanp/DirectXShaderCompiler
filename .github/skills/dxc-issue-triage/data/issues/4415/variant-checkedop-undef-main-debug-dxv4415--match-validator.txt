@@ -1,0 +1,40 @@
+# compiler: main-debug-dxv4415
+# exe: <triage>/issues/4415/validate.cmd
+# ran: 2026-08-10T20:18:02+00:00
+# cmd: control-checkedop-undef.ll
+# exit: 1
+# timed_out: 0
+# match: match-validator.json
+# verdict: no-repro
+# variant: checkedop-undef (?)
+# expect: no-match
+
+$ dxc control-checkedop-undef.ll
+[exe] <triage>/issues/4415/validate.cmd
+[exit] 1
+--- stdout ---
+annotatehandle-4415 harness v1
+[validator] <repo>/build/Debug/bin/dxv.exe
+[external-validator] DXC_DXIL_DLL_PATH=<unset> (internal validator from dxcompiler.dll)
+[module] control-checkedop-undef.ll (4690 bytes)
+[selftest] module-annotatehandle-calls=1
+[selftest] annotatehandle-res-operands=['%1']
+[selftest] annotatehandle-invalid-res-operand=no
+[selftest] module-requests-validator-version=1.10
+$ <repo>/build/Debug/bin/dxv.exe control-checkedop-undef.ll
+--- stdout ---
+Function: main: error: Instructions should not read uninitialized value.
+note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle undef, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+error: Resource handle should returned by createHandle.
+Function: main: error: load can only run on UAV/SRV resource.
+note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle undef, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+Function: main: error: texture load only works on Texture1D/1DArray/2D/2DArray/3D/MS2D/MS2DArray.
+note: at '%3 = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, %dx.types.Handle undef, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i32 undef)' in block '#0' of function 'main'.
+Validation failed.
+--- stderr ---
+
+[exit] 0x00000001
+[result] VALIDATION-FAILED
+
+--- stderr ---
+

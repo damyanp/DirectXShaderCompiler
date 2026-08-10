@@ -1,0 +1,480 @@
+#4351 release history -- does -remove-unused-globals ever keep the
+definition of a struct used only as the element type of a member
+array?
+
+Produced by `python measure.py --history --equiv`. Each row drives
+THAT RELEASE's own rewriter: the ground-truth dxr.exe driver is copied
+next to that release's dxcompiler.dll in a scratch directory under
+.cache, so Windows loads the release rewriter and the release's own
+option table sees exactly the reporter's options and nothing else.
+
+dxr.exe (tools/clang/tools/dxr/dxr.cpp) forwards its argv verbatim to
+IDxcRewriter2::RewriteWithOptions -- the API behind the reporter's
+command line -- and prints the returned blob. The rewriter itself
+lives in dxcompiler.dll, so the code under test is the release's, not
+the driver's. No release archive in the catalog ships dxr.exe, which
+is why the driver is held fixed and the DLL varied.
+
+triage.py bisect cannot produce this table and refuses to try: it
+would substitute each release's dxc.exe, and dxc.exe rejects
+-remove-unused-globals outright (measured -- see
+variant-dxc-rejects-rewriter-flag-main-debug.txt).
+
+SCORING is triage.classify with this issue's predicates, imported from
+scripts/triage.py -- the same code that scores out-*.txt.
+  repro    = match.json: the output still declares a member of type
+             Child, still contains the InitArgs entry point, does NOT
+             define struct Child, and did NOT print the
+             `// Rewrite unchanged result:` banner (so a rewriter
+             option was honoured by THIS release).
+  control  = the same predicate over control-single-child.hlsl, whose
+             Child member is not an array. MUST be no-repro on every
+             release.
+  fnparam  = match-fn-param.json over case-fn-param.hlsl: the unused
+             parameter's type is removed while the read parameter's
+             type survives.
+
+PROBES (each is one dxr invocation against this release's rewriter)
+  repro     repro.hlsl -E InitArgs -remove-unused-globals
+  control   control-single-child.hlsl, same options
+  fnparam   case-fn-param.hlsl, same options
+  optcheck  `-unchanged repro.hlsl`: does this release accept the
+            rewriter option surface at all?
+  noopts    `repro.hlsl` alone: does this release's rewriter run?
+
+  optcheck failing while noopts succeeds is what separates 'this
+  release predates the options' from 'this release rewrote it clean'.
+
+         release        repro      control      fnparam  optcheck  noopts  reading
+---------------- ------------ ------------ ------------ --------- -------  -------
+       v1.4.1907     no-repro     no-repro     no-repro    exit 1      ok  invalid-probe  [rewriter runs, but this release's option table carries no rewriter options at all, so the repro cannot be expressed here]
+       v1.5.2010        repro     no-repro        repro        ok      ok  repro
+       v1.6.2104        repro     no-repro        repro        ok      ok  repro
+       v1.6.2106        repro     no-repro        repro        ok      ok  repro
+       v1.6.2112        repro     no-repro        repro        ok      ok  repro
+       v1.7.2207        repro     no-repro        repro        ok      ok  repro
+       v1.7.2212        repro     no-repro        repro        ok      ok  repro
+     v1.7.2212.1        repro     no-repro        repro        ok      ok  repro
+       v1.7.2308        repro     no-repro        repro        ok      ok  repro
+       v1.8.2403        repro     no-repro        repro        ok      ok  repro
+     v1.8.2403.1        repro     no-repro        repro        ok      ok  repro
+     v1.8.2403.2        repro     no-repro        repro        ok      ok  repro
+       v1.8.2405        repro     no-repro        repro        ok      ok  repro
+       v1.8.2407        repro     no-repro        repro        ok      ok  repro
+       v1.8.2502        repro     no-repro        repro        ok      ok  repro
+       v1.8.2505        repro     no-repro        repro        ok      ok  repro
+     v1.8.2505.1        repro     no-repro        repro        ok      ok  repro
+       v1.9.2602        repro     no-repro        repro        ok      ok  repro
+    v1.9.2602.24        repro     no-repro        repro        ok      ok  repro
+       v1.9.2607        repro     no-repro        repro        ok      ok  repro
+      main-debug        repro     no-repro        repro        ok      ok  repro
+
+VERSION reported by each staged driver (`dxr.exe --version`),
+which is the DLL's own version string. A row whose string does
+not name that release would mean the staging failed and the
+ground-truth DLL answered instead:
+
+  v1.4.1907        dxcompiler.dll: 1.5(2275-582a59e8) - 1.4.1907.0
+  v1.5.2010        dxcompiler.dll: 1.5(2823-b640fa4b) - 1.5.2010.6 (b640fa4ba)
+  v1.6.2104        dxcompiler.dll: 1.6(3086-e09a454e)(1.6.2104.52) - 1.6.2104.52 (e09a454eb)
+  v1.6.2106        dxcompiler.dll: 1.6(3194-dad1cfc3)(1.6.2106.3) - 1.6.2106.3 (dad1cfc30)
+  v1.6.2112        dxcompiler.dll: 1.6(3368-770ac0cc)(1.6.2112.12) - 1.6.2112.12 (770ac0cc1)
+  v1.7.2207        dxcompiler.dll: 1.7(3605-e9137cd1)(1.7.2207.3) - 1.7.2207.3 (e9137cd1d)
+  v1.7.2212        dxcompiler.dll: 1.7(3759-8c9d92be)(1.7.2212.12) - 1.7.2212.12 (8c9d92be7)
+  v1.7.2212.1      dxcompiler.dll: 1.7(3787-e043f4a1)(1.7.2212.40) - 1.7.2212.40 (e043f4a12)
+  v1.7.2308        dxcompiler.dll: 1.7(4006-69e54e29)(1.7.2308.7) - 1.7.2308.7 (69e54e290)
+  v1.8.2403        dxcompiler.dll: 1.8(4458-c9660a8c)(1.8.2403.34) - 1.8.2403.34 (c9660a8c0)
+  v1.8.2403.1      dxcompiler.dll: 1.8(4460-9c2b8287)(1.8.2403.36) - 1.8.2403.36 (9c2b82878)
+  v1.8.2403.2      dxcompiler.dll: 1.8(4461-11e1318c)(1.8.2403.37) - 1.8.2403.37 (11e1318c3)
+  v1.8.2405        dxcompiler.dll: 1.8(4597-fd7e54bc)(1.8.2405.15) - 1.8.2405.15 (fd7e54bcd)
+  v1.8.2407        dxcompiler.dll: 1.8(4662-416fab6b)(1.8.2407.7) - 1.8.2407.7 (416fab6b5)
+  v1.8.2502        dxcompiler.dll: 1.8(4789-b4711839)(1.8.2502.8) - 1.8.2502.8 (b4711839e)
+  v1.8.2505        dxcompiler.dll: 1.9(4946-9efbb6c3)(1.8.2505.28) - 1.8.2505.28 (9efbb6c32)
+  v1.8.2505.1      dxcompiler.dll: 1.9(4950-b106a961)(1.8.2505.32) - 1.8.2505.32 (b106a961d)
+  v1.9.2602        dxcompiler.dll: 1.9(5184-21d28f72)(1.9.2602.17) - 1.9.2602.17 (21d28f727)
+  v1.9.2602.24     dxcompiler.dll: 1.9(5191-d355aa83)(1.9.2602.24) - 1.9.2602.24 (d355aa836)
+  v1.9.2607        dxcompiler.dll: 1.9(5402-0d3ee6b5)(1.9.0.5402) - 1.9.0.5402 (0d3ee6b55-dirty)
+  main-debug       dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+
+SKIPPED (not in the stable-release population)
+
+  v1.2.0-alpha                     (no build date) prerelease
+  v1.5.2003                        2020-03-25   prerelease
+  v1.8.2306-preview                2023-06-21   prerelease
+  v1.8.2405-mesh-nodes-preview     2024-07-17   prerelease
+  v1.10.2605.2                     2026-04-22   prerelease
+  v1.10.2605.24                    2026-05-22   prerelease
+
+#4351's text names no prerelease, so none opts in under
+release-policy.json.
+
+
+EQUIVALENCE CONTROL -- scratch-directory substitution vs
+`-external <dll> -external-fn DxcCreateInstance`, same
+release, same repro probe. Equal SHA-256 over combined
+stdout+stderr means the two mechanisms drive the same
+rewriter, so the table above is not an artefact of how the DLL
+was selected. A DIFFERENT row is expected only where
+-external is itself unparseable by that release.
+
+  v1.4.1907        IDENTICAL
+    staged   c17207c251167c268f26de628fbfb72f7a7d8d01e1bbeaf17bc49bde1be5a8a7
+    external c17207c251167c268f26de628fbfb72f7a7d8d01e1bbeaf17bc49bde1be5a8a7
+  v1.5.2010        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.6.2104        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.6.2106        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.6.2112        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.7.2207        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.7.2212        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.7.2212.1      IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.7.2308        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.8.2403        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.8.2403.1      IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.8.2403.2      IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.8.2405        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.8.2407        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.8.2502        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.8.2505        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.8.2505.1      IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.9.2602        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.9.2602.24     IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+  v1.9.2607        IDENTICAL
+    staged   f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+    external f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+
+
+VERBATIM. The oldest release in the population, the first that
+can express the repro, the newest release, and ground truth.
+
+=== v1.4.1907  probe: repro ===
+$ <cache>/rw4351/v1.4.1907/dxr.exe -E InitArgs -remove-unused-globals repro.hlsl
+[exit] 1
+[verdict] no-repro
+
+Compilation failed - error code 0x80070057.
+
+=== v1.4.1907  probe: control ===
+$ <cache>/rw4351/v1.4.1907/dxr.exe -E InitArgs -remove-unused-globals control-single-child.hlsl
+[exit] 1
+[verdict] no-repro
+
+Compilation failed - error code 0x80070057.
+
+=== v1.4.1907  probe: fnparam ===
+$ <cache>/rw4351/v1.4.1907/dxr.exe -E InitArgs -remove-unused-globals case-fn-param.hlsl
+[exit] 1
+[verdict] no-repro
+
+Compilation failed - error code 0x80070057.
+
+=== v1.4.1907  probe: optcheck ===
+$ <cache>/rw4351/v1.4.1907/dxr.exe -unchanged repro.hlsl
+[exit] 1
+
+Compilation failed - error code 0x80070057.
+
+=== v1.4.1907  probe: noopts ===
+$ <cache>/rw4351/v1.4.1907/dxr.exe repro.hlsl
+[exit] 0
+
+// Rewrite unchanged result:
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== v1.5.2010  probe: repro ===
+$ <cache>/rw4351/v1.5.2010/dxr.exe -E InitArgs -remove-unused-globals repro.hlsl
+[exit] 0
+[verdict] repro
+
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== v1.5.2010  probe: control ===
+$ <cache>/rw4351/v1.5.2010/dxr.exe -E InitArgs -remove-unused-globals control-single-child.hlsl
+[exit] 0
+[verdict] no-repro
+
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child SingleChild;
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== v1.5.2010  probe: fnparam ===
+$ <cache>/rw4351/v1.5.2010/dxr.exe -E InitArgs -remove-unused-globals case-fn-param.hlsl
+[exit] 0
+[verdict] repro
+
+struct ParamUsed {
+  uint B;
+};
+uint Helper(ParamUnused notRead, ParamUsed isRead) {
+  return isRead.B;
+}
+
+
+RWStructuredBuffer<uint> OutBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  OutBuffer[0] = Helper((ParamUnused)0, (ParamUsed)0);
+}
+
+=== v1.5.2010  probe: optcheck ===
+$ <cache>/rw4351/v1.5.2010/dxr.exe -unchanged repro.hlsl
+[exit] 0
+
+// Rewrite unchanged result:
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== v1.5.2010  probe: noopts ===
+$ <cache>/rw4351/v1.5.2010/dxr.exe repro.hlsl
+[exit] 0
+
+// Rewrite unchanged result:
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== v1.9.2607  probe: repro ===
+$ <cache>/rw4351/v1.9.2607/dxr.exe -E InitArgs -remove-unused-globals repro.hlsl
+[exit] 0
+[verdict] repro
+
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== v1.9.2607  probe: control ===
+$ <cache>/rw4351/v1.9.2607/dxr.exe -E InitArgs -remove-unused-globals control-single-child.hlsl
+[exit] 0
+[verdict] no-repro
+
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child SingleChild;
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== v1.9.2607  probe: fnparam ===
+$ <cache>/rw4351/v1.9.2607/dxr.exe -E InitArgs -remove-unused-globals case-fn-param.hlsl
+[exit] 0
+[verdict] repro
+
+struct ParamUsed {
+  uint B;
+};
+uint Helper(ParamUnused notRead, ParamUsed isRead) {
+  return isRead.B;
+}
+
+
+RWStructuredBuffer<uint> OutBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  OutBuffer[0] = Helper((ParamUnused)0, (ParamUsed)0);
+}
+
+=== v1.9.2607  probe: optcheck ===
+$ <cache>/rw4351/v1.9.2607/dxr.exe -unchanged repro.hlsl
+[exit] 0
+
+// Rewrite unchanged result:
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== v1.9.2607  probe: noopts ===
+$ <cache>/rw4351/v1.9.2607/dxr.exe repro.hlsl
+[exit] 0
+
+// Rewrite unchanged result:
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== main-debug  probe: repro ===
+$ <repo>/build/Debug/bin/dxr.exe -E InitArgs -remove-unused-globals repro.hlsl
+[exit] 0
+[verdict] repro
+
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== main-debug  probe: control ===
+$ <repo>/build/Debug/bin/dxr.exe -E InitArgs -remove-unused-globals control-single-child.hlsl
+[exit] 0
+[verdict] no-repro
+
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child SingleChild;
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== main-debug  probe: fnparam ===
+$ <repo>/build/Debug/bin/dxr.exe -E InitArgs -remove-unused-globals case-fn-param.hlsl
+[exit] 0
+[verdict] repro
+
+struct ParamUsed {
+  uint B;
+};
+uint Helper(ParamUnused notRead, ParamUsed isRead) {
+  return isRead.B;
+}
+
+
+RWStructuredBuffer<uint> OutBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  OutBuffer[0] = Helper((ParamUnused)0, (ParamUsed)0);
+}
+
+=== main-debug  probe: optcheck ===
+$ <repo>/build/Debug/bin/dxr.exe -unchanged repro.hlsl
+[exit] 0
+
+// Rewrite unchanged result:
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== main-debug  probe: noopts ===
+$ <repo>/build/Debug/bin/dxr.exe repro.hlsl
+[exit] 0
+
+// Rewrite unchanged result:
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+

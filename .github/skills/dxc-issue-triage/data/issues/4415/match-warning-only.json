@@ -1,0 +1,11 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains",
+      "value": "warning: variable 'CBV' is uninitialized when used within its own initialization [-Wuninitialized]" },
+    { "kind": "contains", "value": "define void @main()" },
+    { "kind": "not_contains", "value": "error:" },
+    { "kind": "nonzero_exit", "invert": true }
+  ],
+  "note": "#4415 ask A: `Using CBV.u before defining CBV to a specific resource should result in error. It does result in a warning ... Should we make this warning an error by default?` The symptom is that the front end only WARNS. Clause 1 is the diagnostic quoted verbatim in the issue body; clause 2 proves codegen actually completed (a positive anchor, so the absence clause 3 cannot be satisfied by a compile that died early -- SKILL.md); clause 3 is the ask itself, that nothing was promoted to an error; clause 4 that dxc exited 0. Scored on the same capture as the primary predicate, from the RUN line in the issue body. This ask is a QUESTION to the project, not a defect claim, and a `repro` here means only that the behaviour is unchanged since 2022-04-25."
+}

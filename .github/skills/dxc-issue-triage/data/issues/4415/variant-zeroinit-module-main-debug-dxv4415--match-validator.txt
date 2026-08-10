@@ -1,0 +1,33 @@
+# compiler: main-debug-dxv4415
+# exe: <triage>/issues/4415/validate.cmd
+# ran: 2026-08-10T20:17:55+00:00
+# cmd: zeroinit.ll
+# exit: 0
+# timed_out: 0
+# match: match-validator.json
+# verdict: repro
+# variant: zeroinit-module (?)
+# expect: match
+
+$ dxc zeroinit.ll
+[exe] <triage>/issues/4415/validate.cmd
+[exit] 0
+--- stdout ---
+annotatehandle-4415 harness v1
+[validator] <repo>/build/Debug/bin/dxv.exe
+[external-validator] DXC_DXIL_DLL_PATH=<unset> (internal validator from dxcompiler.dll)
+[module] zeroinit.ll (3597 bytes)
+[selftest] module-annotatehandle-calls=1
+[selftest] annotatehandle-res-operands=['zeroinitializer']
+[selftest] annotatehandle-invalid-res-operand=yes
+[selftest] module-requests-validator-version=1.10
+$ <repo>/build/Debug/bin/dxv.exe zeroinit.ll
+--- stdout ---
+Validation succeeded.
+--- stderr ---
+
+[exit] 0x00000000
+[result] VALIDATION-SUCCEEDED
+
+--- stderr ---
+

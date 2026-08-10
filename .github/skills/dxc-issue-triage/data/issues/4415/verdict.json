@@ -1,0 +1,22 @@
+{
+  "batch": "batch-015",
+  "confidence": "high",
+  "created_at": "2022-04-25T18:56:55Z",
+  "expected_symptom": "DXIL validation accepts dx.op.annotateHandle whose res operand is an invalid handle (zeroinitializer or undef); the compiler emits exactly that from the issue shader and exits 0.",
+  "godbolt_url": "https://godbolt.org/z/156dMcvPv",
+  "history": "always-repro'd since SM 6.6 shipped: repro on all 16 stable releases from v1.6.2112 (2021-12-08) to v1.9.2607, and the doctored module is accepted by the dxv.exe of all 6 releases that ship one (v1.8.2502 onward). v1.4.1907 and v1.5.2010 are invalid-probe (no vs_6_6). bisect reports non-monotonic because v1.6.2104/v1.6.2106 are no-repro, but those SM 6.6 preview builds lower ResourceDescriptorHeap to createHandleForLib and are rejected by \"opcode CreateHandleForLib should only be used in Library\" -- an unrelated rule, not an invalid-handle check that later regressed.",
+  "labels": "bug,validation",
+  "labels_now": "bug,validation",
+  "notes_path": "issues/4415/notes.md",
+  "number": 4415,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Both asks reproduce on main (1.9.0.5433, 13730886e). The front end still only warns (-Wuninitialized, exit 0), and DXIL validation still accepts dx.op.annotateHandle with a zeroinitializer/undef handle -- DXC own output, plus modules DXC never emitted, plus Microsoft signed dxil.dll from the v1.8.2505.1 archive. The decisive control: the same operand value on textureLoad is rejected by name (\"Instructions should not read uninitialized value.\"), and corrupting the same annotateHandle props operand is also rejected, so the instruction is inspected but its handle operand never is. Source agrees: ValidateHandleArgs() routes AnnotateHandle, AnnotateNodeHandle, AnnotateNodeRecordHandle and CreateHandleForLib to break under \"TODO: add custom validation for these intrinsics\" while every other opcode reaches ValidateHandleArgsForInstruction(); that check landed in 9468120e6 (PR #5399, 2023-07-21), a year after this issue, and excluded AnnotateHandle from the start.",
+  "title": "Validator needs to prevent invalid handle in AnnotateHandle",
+  "triaged_at": "2026-08-10T21:54:34+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4415"
+}

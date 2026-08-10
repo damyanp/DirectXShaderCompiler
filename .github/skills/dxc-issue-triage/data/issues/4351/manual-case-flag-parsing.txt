@@ -1,0 +1,125 @@
+#4351 -- is -remove-unused-globals parsed and honoured?
+
+Produced by `python flagcheck.py`. Every case is the same dxr.exe over
+the same repro.hlsl, differing only in the token occupying the
+-remove-unused-globals slot. sha256 is over combined stdout+stderr.
+
+  `struct Child` is the definition this issue says is wrongly removed.
+  The `// Rewrite unchanged result:` banner is printed by
+  tools/clang/tools/libclang/dxcrewriteunused.cpp:1087 only when
+  NEITHER -remove-unused-globals NOR -remove-unused-functions was set,
+  so it is a positive marker of which code path the run took -- which
+  exit status alone cannot tell you.
+
+           case  exit  struct Child  unchanged banner  sha256(first 16)
+--------------- ----- ------------- -----------------  ----------------
+      real-dash     0       REMOVED                no  f70a7e2565ffb2ee
+     real-slash     0       REMOVED                no  f70a7e2565ffb2ee
+         absent     0       present               yes  7b4e730f9339264a
+ nonsense-slash     0       REMOVED                no  f70a7e2565ffb2ee
+  nonsense-dash     1           n/a               n/a  81795e9205ea9925
+     misspelled     1           n/a               n/a  d76bf27772c3fbe0
+
+WHAT EACH CASE IS FOR
+
+  real-dash       the reporter's spelling, exactly as filed
+  real-slash      MSVC-style prefix of the same option
+  absent          baseline: the option removed entirely
+  nonsense-slash  SKILL.md's silent-ignore control, alongside the real option
+  nonsense-dash   the same nonsense with a '-' prefix
+  misspelled      the real option minus one character -- proves the exact spelling is what the parser recognises, so real-dash was not an accidental near-match
+
+READINGS
+
+  [PASS] real-dash differs from absent
+         the option changes the output, so it is parsed and honoured -- not silently ignored
+  [PASS] the difference is exactly the removal under test
+         with the option, `struct Child` is gone; without it, `struct Child` is present -- so the removal is attributable to this option and to nothing else in the command line
+  [PASS] real-dash and real-slash are byte-identical
+         both spellings of the real option reach the same code
+  [PASS] nonsense-slash is byte-identical to real-dash
+         /ZZZNONSENSE exits 0 and does nothing: a clean exit proves nothing about a '/'-prefixed flag, exactly as SKILL.md warns
+  [PASS] nonsense-dash is diagnosed
+         the '-' prefix IS validated by dxr's own option parse, so the silent-ignore hazard is specific to '/'
+  [PASS] misspelled is diagnosed
+         the parser recognises the exact spelling
+  [PASS] the unchanged-rewrite banner tracks the option
+         confirms match.json clause 4 is a valid in-run self-test that a rewriter option was honoured
+
+
+VERBATIM
+
+=== real-dash ===
+$ <repo>/build/Debug/bin/dxr.exe -E InitArgs -remove-unused-globals repro.hlsl
+[exit] 0
+[sha256] f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== real-slash ===
+$ <repo>/build/Debug/bin/dxr.exe -E InitArgs /remove-unused-globals repro.hlsl
+[exit] 0
+[sha256] f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== absent ===
+$ <repo>/build/Debug/bin/dxr.exe -E InitArgs repro.hlsl
+[exit] 0
+[sha256] 7b4e730f9339264a8632622643ac35894313bff391209632e52293092b020545
+
+// Rewrite unchanged result:
+struct Child {
+  uint Test;
+};
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== nonsense-slash ===
+$ <repo>/build/Debug/bin/dxr.exe -E InitArgs /ZZZNONSENSE -remove-unused-globals repro.hlsl
+[exit] 0
+[sha256] f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2
+
+struct Parent {
+  Child MultipleChildren[2];
+};
+RWStructuredBuffer<Parent> ParentBuffer;
+[numthreads(1, 1, 1)]
+void InitArgs() {
+  ParentBuffer[0] = (Parent)0;
+}
+
+=== nonsense-dash ===
+$ <repo>/build/Debug/bin/dxr.exe -E InitArgs -ZZZNONSENSE -remove-unused-globals repro.hlsl
+[exit] 1
+[sha256] 81795e9205ea9925d4868e4ccde78ca66a31e13c55e9dafa9c8ef0a101ccf801
+
+dxc failed : Unknown argument: '-ZZZNONSENSE'
+
+=== misspelled ===
+$ <repo>/build/Debug/bin/dxr.exe -E InitArgs -remove-unused-global repro.hlsl
+[exit] 1
+[sha256] d76bf27772c3fbe0590f05f0bc4907dc2180ac69b91e9d389f26554f26c75e4b
+
+dxc failed : Unknown argument: '-remove-unused-global'
+

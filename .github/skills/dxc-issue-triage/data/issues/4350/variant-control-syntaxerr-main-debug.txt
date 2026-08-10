@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:30:57+00:00
+# cmd: -T vs_6_0 control-syntax-error.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-syntaxerr (control-syntax-error.hlsl)
+# expect: no-match
+
+$ dxc -T vs_6_0 control-syntax-error.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-syntax-error.hlsl:10:16: error: expected ';' after expression
+        Idx = 1
+               ^
+               ;
+
+

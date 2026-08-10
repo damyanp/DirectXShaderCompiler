@@ -1,0 +1,107 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:20:19+00:00
+# cmd: -T ps_6_0 -E PS_bright_pass -spirv control-runtime-loop.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: runtime-loop (control-runtime-loop.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E PS_bright_pass -spirv control-runtime-loop.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 51
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %PS_bright_pass "PS_bright_pass" %in_var_TEXCOORD %out_var_SV_Target0
+               OpExecutionMode %PS_bright_pass OriginUpperLeft
+               OpSource HLSL 600
+               OpName %type_2d_image "type.2d.image"
+               OpName %g_srcMap "g_srcMap"
+               OpName %type_sampler "type.sampler"
+               OpName %g_RTLinearSampler "g_RTLinearSampler"
+               OpName %type__Globals "type.$Globals"
+               OpMemberName %type__Globals 0 "g_srcSize"
+               OpName %_Globals "$Globals"
+               OpName %in_var_TEXCOORD "in.var.TEXCOORD"
+               OpName %out_var_SV_Target0 "out.var.SV_Target0"
+               OpName %PS_bright_pass "PS_bright_pass"
+               OpName %type_sampled_image "type.sampled.image"
+               OpDecorate %in_var_TEXCOORD Location 0
+               OpDecorate %out_var_SV_Target0 Location 0
+               OpDecorate %g_srcMap DescriptorSet 0
+               OpDecorate %g_srcMap Binding 0
+               OpDecorate %g_RTLinearSampler DescriptorSet 0
+               OpDecorate %g_RTLinearSampler Binding 1
+               OpDecorate %_Globals DescriptorSet 0
+               OpDecorate %_Globals Binding 2
+               OpMemberDecorate %type__Globals 0 Offset 0
+               OpDecorate %type__Globals Block
+      %float = OpTypeFloat 32
+    %float_0 = OpConstant %float 0
+    %v3float = OpTypeVector %float 3
+         %14 = OpConstantComposite %v3float %float_0 %float_0 %float_0
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_1 = OpConstant %int 1
+%type_2d_image = OpTypeImage %float 2D 2 0 0 1 Unknown
+%_ptr_UniformConstant_type_2d_image = OpTypePointer UniformConstant %type_2d_image
+%type_sampler = OpTypeSampler
+%_ptr_UniformConstant_type_sampler = OpTypePointer UniformConstant %type_sampler
+    %v4float = OpTypeVector %float 4
+%type__Globals = OpTypeStruct %v4float
+%_ptr_Uniform_type__Globals = OpTypePointer Uniform %type__Globals
+    %v2float = OpTypeVector %float 2
+%_ptr_Input_v2float = OpTypePointer Input %v2float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %26 = OpTypeFunction %void
+%_ptr_Uniform_float = OpTypePointer Uniform %float
+       %bool = OpTypeBool
+%type_sampled_image = OpTypeSampledImage %type_2d_image
+   %g_srcMap = OpVariable %_ptr_UniformConstant_type_2d_image UniformConstant
+%g_RTLinearSampler = OpVariable %_ptr_UniformConstant_type_sampler UniformConstant
+   %_Globals = OpVariable %_ptr_Uniform_type__Globals Uniform
+%in_var_TEXCOORD = OpVariable %_ptr_Input_v2float Input
+%out_var_SV_Target0 = OpVariable %_ptr_Output_v4float Output
+%PS_bright_pass = OpFunction %void None %26
+         %29 = OpLabel
+         %30 = OpLoad %v2float %in_var_TEXCOORD
+               OpBranch %31
+         %31 = OpLabel
+         %32 = OpPhi %v3float %14 %29 %33 %34
+         %35 = OpPhi %int %int_0 %29 %36 %34
+         %37 = OpAccessChain %_ptr_Uniform_float %_Globals %int_0 %int_0
+         %38 = OpLoad %float %37
+         %39 = OpConvertFToS %int %38
+         %40 = OpSLessThan %bool %35 %39
+               OpLoopMerge %41 %34 None
+               OpBranchConditional %40 %34 %41
+         %34 = OpLabel
+         %42 = OpLoad %type_2d_image %g_srcMap
+         %43 = OpLoad %type_sampler %g_RTLinearSampler
+         %44 = OpSampledImage %type_sampled_image %42 %43
+         %45 = OpImageSampleExplicitLod %v4float %44 %30 Lod %float_0
+         %46 = OpVectorShuffle %v3float %45 %45 0 1 2
+         %33 = OpFAdd %v3float %32 %46
+         %36 = OpIAdd %int %35 %int_1
+               OpBranch %31
+         %41 = OpLabel
+         %47 = OpCompositeExtract %float %32 0
+         %48 = OpCompositeExtract %float %32 1
+         %49 = OpCompositeExtract %float %32 2
+         %50 = OpCompositeConstruct %v4float %47 %48 %49 %float_0
+               OpStore %out_var_SV_Target0 %50
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

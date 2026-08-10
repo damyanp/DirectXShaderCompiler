@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:24:29+00:00
+# cmd: -T cs_6_0 -E main control-uint3-scalar-init.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-diag.json
+# verdict: repro
+# variant: uint3-scalar-init (control-uint3-scalar-init.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main control-uint3-scalar-init.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-uint3-scalar-init.hlsl:1:11: error: non-integral type 'uint3' is an invalid underlying type
+enum EE : uint3 {
+          ^
+
+

@@ -1,0 +1,21 @@
+-T ps_6_6 -E test1 repro.hlsl
+
+# This is the configuration a maintainer published for this issue: llvm-beanz's
+# Compiler Explorer link (2024-10-01, https://godbolt.org/z/xr6nv5z89) compiles the
+# issue body's snippet in two dxc_trunk panes, "-T ps_6_6 -E test1" and
+# "-T ps_6_6 -E test2".  The issue body itself gives no command line at all.
+#
+# cmd.txt lowers the profile to ps_6_0 for one reason only: ps_6_6 did not exist
+# before 2021, so every release older than SM 6.6 would be an invalid probe and the
+# release history would stop at the point where the profile was added rather than
+# where the behaviour changed.  ps_6_0 is accepted by every catalogued release back
+# to v1.4.1907.
+#
+# The change is not assumed inert, it is measured:
+#   variant-asfiled-ps66-main-debug.txt   -T ps_6_6 -E test1   --expect match
+#   variant-ps62-main-debug.txt           -T ps_6_2 -E test1   --expect match
+# The only difference the profile makes is which DXIL op the StructuredBuffer load
+# lowers to -- dx.op.bufferLoad (opcode 68) at SM 6.0/6.1, dx.op.rawBufferLoad
+# (opcode 139) at SM 6.2 and above, which is what the reporter's own quoted IR
+# shows.  The control-flow shape the issue is about is identical in all three.
+# match.json's regex matches both spellings for exactly this reason.

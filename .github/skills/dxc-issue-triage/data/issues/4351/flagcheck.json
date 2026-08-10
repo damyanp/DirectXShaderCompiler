@@ -1,0 +1,62 @@
+[
+  {
+    "case": "real-dash",
+    "why": "the reporter's spelling, exactly as filed",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E InitArgs -remove-unused-globals repro.hlsl",
+    "exit": 0,
+    "sha256": "f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2",
+    "child_defn_present": false,
+    "unchanged_banner": false,
+    "output": "struct Parent {\n  Child MultipleChildren[2];\n};\nRWStructuredBuffer<Parent> ParentBuffer;\n[numthreads(1, 1, 1)]\nvoid InitArgs() {\n  ParentBuffer[0] = (Parent)0;\n}\n\n\n\n"
+  },
+  {
+    "case": "real-slash",
+    "why": "MSVC-style prefix of the same option",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E InitArgs /remove-unused-globals repro.hlsl",
+    "exit": 0,
+    "sha256": "f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2",
+    "child_defn_present": false,
+    "unchanged_banner": false,
+    "output": "struct Parent {\n  Child MultipleChildren[2];\n};\nRWStructuredBuffer<Parent> ParentBuffer;\n[numthreads(1, 1, 1)]\nvoid InitArgs() {\n  ParentBuffer[0] = (Parent)0;\n}\n\n\n\n"
+  },
+  {
+    "case": "absent",
+    "why": "baseline: the option removed entirely",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E InitArgs repro.hlsl",
+    "exit": 0,
+    "sha256": "7b4e730f9339264a8632622643ac35894313bff391209632e52293092b020545",
+    "child_defn_present": true,
+    "unchanged_banner": true,
+    "output": "// Rewrite unchanged result:\nstruct Child {\n  uint Test;\n};\nstruct Parent {\n  Child MultipleChildren[2];\n};\nRWStructuredBuffer<Parent> ParentBuffer;\n[numthreads(1, 1, 1)]\nvoid InitArgs() {\n  ParentBuffer[0] = (Parent)0;\n}\n\n\n\n"
+  },
+  {
+    "case": "nonsense-slash",
+    "why": "SKILL.md's silent-ignore control, alongside the real option",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E InitArgs /ZZZNONSENSE -remove-unused-globals repro.hlsl",
+    "exit": 0,
+    "sha256": "f70a7e2565ffb2ee5aad0f94d97a3f06766d69857ea416692ddd1b8638ce7cb2",
+    "child_defn_present": false,
+    "unchanged_banner": false,
+    "output": "struct Parent {\n  Child MultipleChildren[2];\n};\nRWStructuredBuffer<Parent> ParentBuffer;\n[numthreads(1, 1, 1)]\nvoid InitArgs() {\n  ParentBuffer[0] = (Parent)0;\n}\n\n\n\n"
+  },
+  {
+    "case": "nonsense-dash",
+    "why": "the same nonsense with a '-' prefix",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E InitArgs -ZZZNONSENSE -remove-unused-globals repro.hlsl",
+    "exit": 1,
+    "sha256": "81795e9205ea9925d4868e4ccde78ca66a31e13c55e9dafa9c8ef0a101ccf801",
+    "child_defn_present": false,
+    "unchanged_banner": false,
+    "output": "dxc failed : Unknown argument: '-ZZZNONSENSE'\n"
+  },
+  {
+    "case": "misspelled",
+    "why": "the real option minus one character -- proves the exact spelling is what the parser recognises, so real-dash was not an accidental near-match",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E InitArgs -remove-unused-global repro.hlsl",
+    "exit": 1,
+    "sha256": "d76bf27772c3fbe0590f05f0bc4907dc2180ac69b91e9d389f26554f26c75e4b",
+    "child_defn_present": false,
+    "unchanged_banner": false,
+    "output": "dxc failed : Unknown argument: '-remove-unused-global'\n"
+  }
+]

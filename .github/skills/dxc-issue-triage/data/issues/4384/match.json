@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Ask 1 of #4384 -- the ICE. Exit status only, never a message match: the reporter saw an access violation at a varying address through IDxcCompiler3::Compile, while the ground-truth Debug build reports DXC_E_LLVM_UNREACHABLE (0x80AA001C) with 'unknown conversion kind', and other releases may print nothing at all. E_FAIL (0x80004005) is an ordinary diagnosed error and is deliberately NOT matched -- the compiler rejecting this source with a diagnostic is the fixed outcome for this half. Controls: control-valid-enum.hlsl (valid code) and control-float-enum.hlsl / control-uint3-scalar-init.hlsl (both cleanly diagnosed) must all score no-match, which proves this predicate does not fire on every failing compile. NOT an NDEBUG artefact: include/llvm/Support/ErrorHandling.h:101 wraps llvm_unreachable in `#if 1 // HLSL Change`, so it throws in Release builds too -- release binaries are valid evidence here."
+}

@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:30:00+00:00
+# cmd: -T ps_6_0 -E PS_bright_pass control-nonconst-nested.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-dxil-unrolled.json
+# verdict: no-repro
+# variant: dxil-nonconst (control-nonconst-nested.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E PS_bright_pass control-nonconst-nested.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-nonconst-nested.hlsl:27:9: error: Could not unroll loop. Loop bound could not be deduced at compile time. Use [unroll(n)] to give an explicit count. Use '-HV 2016' to treat this as warning.
+                        if ( v[k] > v[k + 1] )
+                             ^
+control-nonconst-nested.hlsl:24:27: error: Could not unroll loop. Loop bound could not be deduced at compile time. Use [unroll(n)] to give an explicit count. Use '-HV 2016' to treat this as warning.
+                for ( int k = 0; k < (4 - j - 1); k++ )
+                                        ^
+
+

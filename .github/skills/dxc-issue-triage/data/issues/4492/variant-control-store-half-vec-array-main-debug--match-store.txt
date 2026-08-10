@@ -1,0 +1,119 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:41:13+00:00
+# cmd: -T cs_6_2 -E testStructuredBufferMatrixLoad2 -enable-16bit-types control-store-half-vec-array.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-store.json
+# verdict: no-repro
+# variant: control-store-half-vec-array (control-store-half-vec-array.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_2 -E testStructuredBufferMatrixLoad2 -enable-16bit-types control-store-half-vec-array.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       Use native low precision
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: 3a74fe94c1c7a75efdd1da0215ce8e3e
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: testStructuredBufferMatrixLoad2
+;
+;
+; Buffer Definitions:
+;
+; Resource bind info for buf
+; {
+;
+;   struct struct.Data
+;   {
+;
+;       half4 v[4];                                   ; Offset:    0
+;   
+;   } $Element;                                       ; Offset:    0 Size:    32
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; buf                                   UAV  struct         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWStructuredBuffer<Data>" = type { %struct.Data }
+%struct.Data = type { [4 x <4 x half>] }
+
+define void @testStructuredBufferMatrixLoad2() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @dx.op.rawBufferStore.f16(i32 140, %dx.types.Handle %1, i32 0, i32 2, half 0xH3C00, half undef, half undef, half undef, i8 1, i32 2)  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  call void @dx.op.rawBufferStore.f16(i32 140, %dx.types.Handle %1, i32 0, i32 30, half 0xH4000, half undef, half undef, half undef, i8 1, i32 2)  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.rawBufferStore.f16(i32, %dx.types.Handle, i32, i32, half, half, half, half, i8, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!8}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 2}
+!2 = !{i32 1, i32 10}
+!3 = !{!"cs", i32 6, i32 2}
+!4 = !{null, !5, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.RWStructuredBuffer<Data>"* undef, !"", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !7}
+!7 = !{i32 1, i32 32}
+!8 = !{void ()* @testStructuredBufferMatrixLoad2, !"testStructuredBufferMatrixLoad2", null, !4, !9}
+!9 = !{i32 0, i64 8388656, i32 4, !10}
+!10 = !{i32 1, i32 1, i32 1}
+
+
+--- stderr ---
+

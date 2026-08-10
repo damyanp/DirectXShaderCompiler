@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "note": "#4492 STORE-direction predicate. match.json anchors on @dx.op.rawBufferLoad.f16, so a store-only shader emits none and would score no-match for an instrument reason rather than a behavioural one -- exactly the 'score controls against the instrument, not an unrelated anchor' trap. This is the same test rebuilt around rawBufferStore.f16 so store-matrix.hlsl gets a meaningful verdict.  Clauses mirror match.json: (1) ANTI-VACUITY / SELF-TEST, '@dx.op.rawBufferStore.f16(' present, proving the compile succeeded and native 16-bit stores were really emitted; (2) ELEMENT-SIZE SELF-TEST, the UAV's $Element reported as 32 bytes, which is what makes clause 3 mean out of bounds; (3) SYMPTOM, some rawBufferStore.f16 at elementOffset >= 32, i.e. a WRITE past the end of the element and into the next buffer element.  store-matrix.hlsl writes a[0][1] and a[3][3] of a row_major half4x4, whose correct byte offsets are 2 and 30; the doubled stride puts them at 4 and 60. Scope: this is adjacent to the issue, which is about loads, and it is not the verdict predicate. It exists so that the claim 'the store direction is affected too' is measured rather than inferred from the fact that TranslateStructBufMatSubscript shares one idxList between its load and store users. The negative control for it is control-half-vec-array.hlsl in manual-case-release-matrix.txt, which shows correct 2-byte striding through the same ops on every release.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "@dx\\.op\\.rawBufferStore\\.f16\\("
+    },
+    {
+      "kind": "regex",
+      "value": "\\$Element;\\s+; Offset:\\s+0 Size:\\s+32\\b"
+    },
+    {
+      "kind": "regex",
+      "value": "@dx\\.op\\.rawBufferStore\\.f16\\(i32 \\d+, %dx\\.types\\.Handle %[\\w.]+, i32 [^,]+, i32 (?:3[2-9]|[4-9][0-9]|[1-9][0-9]{2,})[,)]"
+    }
+  ]
+}
