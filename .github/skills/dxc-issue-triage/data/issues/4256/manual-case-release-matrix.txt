@@ -1,44 +1,133 @@
+# 21 unpacked release tree(s), found across both roots:
+#   <triage>/.cache/compilers/releases
+#   <repo>/build/tools/clang/test/dxc_releases
+# Ordering is the catalogued build date, not the tag or the publish
+# date: servicing patches ship long after their snapshot.
 
-================ v1.4.1907 ================
+================ v1.4.1907 (2019-07-15, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.4.1907
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.5.2003 ================
+================ v1.5.2003 (2020-03-25, prerelease) ================
+[tree] <triage>/.cache/compilers/releases/v1.5.2003
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.5.2010 ================
+================ v1.5.2010 (2020-10-22, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.5.2010
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.6.2104 ================
+================ v1.6.2104 (2021-04-20, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.6.2104
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.6.2106 ================
+================ v1.6.2106 (2021-07-01, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.6.2106
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.7.2207 ================
+================ v1.6.2112 (2021-12-08, stable) ================
+[tree] <repo>/build/tools/clang/test/dxc_releases/v1.6.2112
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.7.2212 ================
+================ v1.7.2207 (2022-07-18, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.7.2207
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.7.2212.1 ================
+================ v1.7.2212 (2022-12-16, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.7.2212
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.8.2403 ================
+================ v1.7.2212.1 (2023-03-01, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.7.2212.1
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.8.2403.1 ================
+================ v1.7.2308 (2023-08-14, stable) ================
+[tree] <repo>/build/tools/clang/test/dxc_releases/v1.7.2308
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.8.2403.2 ================
+================ v1.8.2403 (2024-03-07, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.8.2403
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.8.2405 ================
+================ v1.8.2403.1 (2024-03-22, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.8.2403.1
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.8.2407 ================
+================ v1.8.2403.2 (2024-03-29, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.8.2403.2
+[ships dxv.exe] no
 [skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
 
-================ v1.8.2505 ================
+================ v1.8.2405 (2024-05-24, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.8.2405
+[ships dxv.exe] no
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.8.2407 (2024-07-31, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.8.2407
+[ships dxv.exe] no
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.8.2502 (2025-02-20, stable) ================
+[tree] <repo>/build/tools/clang/test/dxc_releases/v1.8.2502
+[ships dxv.exe] yes (3 arch flavour(s); using <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxv.exe)
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe --version
+dxcompiler.dll: 1.8 - 1.8.2502.8 (b4711839e); dxil.dll: 1.8(1.8.2502.8)
+[exit] 0x00000000
+[dxil.dll beside dxv] yes
+[DXC_DXIL_DLL_PATH] <unset>
+
+---- val18-full.ll: CONTROL, must validate: unmodified DXC output
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxv.exe val18-full.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-badsig.ll: CONTROL, must fail: storeOutput with an out-of-range sig id
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxv.exe val18-badsig.ll
+Function: main: error: Constant values must be in-range for operation.
+note: at 'call void @dx.op.storeOutput.f32(i32 5, i32 7, i32 0, i8 3, float %4)' in block '#0' of function 'main'.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-sm60.ll: CONTROL, must fail: ViewID op under shader model 6.0
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxv.exe val18-sm60.ll
+error: Shader model requires Dxil Version 1.0.
+Function: main: error: Opcode ViewID not valid in shader model vs_6_0.
+note: at '%9 = call i32 @dx.op.viewID.i32(i32 138)' in block '#0' of function 'main'.
+Function: main: error: Entry function performs some operation that is incompatible with the shader stage or other entry properties.  See other errors for details.
+Function: main: error: Function uses features incompatible with the shader model.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-nostate.ll: SUBJECT: dx.viewIdState deleted
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxv.exe val18-nostate.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-zerodeps.ll: SUBJECT: state kept, every dependency bit cleared
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxv.exe val18-zerodeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-wrongdeps.ll: SUBJECT: state kept, dependency bits replaced with a lie
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxv.exe val18-wrongdeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+================ v1.8.2505 (2025-05-24, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.8.2505
+[ships dxv.exe] yes (3 arch flavour(s); using <triage>/.cache/compilers/releases/v1.8.2505/bin/x64/dxv.exe)
 $ <triage>/.cache/compilers/releases/v1.8.2505/bin/x64/dxc.exe --version
 dxcompiler.dll: 1.9 - 1.8.2505.28 (9efbb6c32); dxil.dll: 1.9(1.8.2505.28)
 [exit] 0x00000000
@@ -82,7 +171,55 @@ $ <triage>/.cache/compilers/releases/v1.8.2505/bin/x64/dxv.exe val18-wrongdeps.l
 Validation succeeded.
 [exit] 0x00000000
 
-================ v1.9.2602 ================
+================ v1.8.2505.1 (2025-07-14, stable) ================
+[tree] <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1
+[ships dxv.exe] yes (3 arch flavour(s); using <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxv.exe)
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe --version
+dxcompiler.dll: 1.9 - 1.8.2505.32 (b106a961d); dxil.dll: 1.9(1.8.2505.32)
+[exit] 0x00000000
+[dxil.dll beside dxv] yes
+[DXC_DXIL_DLL_PATH] <unset>
+
+---- val18-full.ll: CONTROL, must validate: unmodified DXC output
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxv.exe val18-full.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-badsig.ll: CONTROL, must fail: storeOutput with an out-of-range sig id
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxv.exe val18-badsig.ll
+Function: main: error: Constant values must be in-range for operation.
+note: at 'call void @dx.op.storeOutput.f32(i32 5, i32 7, i32 0, i8 3, float %4)' in block '#0' of function 'main'.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-sm60.ll: CONTROL, must fail: ViewID op under shader model 6.0
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxv.exe val18-sm60.ll
+error: Shader model requires Dxil Version 1.0.
+Function: main: error: Opcode ViewID not valid in shader model vs_6_0.
+note: at '%9 = call i32 @dx.op.viewID.i32(i32 138)' in block '#0' of function 'main'.
+Function: main: error: Entry function performs some operation that is incompatible with the shader stage or other entry properties.  See other errors for details.
+Function: main: error: Function uses features incompatible with the shader model.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-nostate.ll: SUBJECT: dx.viewIdState deleted
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxv.exe val18-nostate.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-zerodeps.ll: SUBJECT: state kept, every dependency bit cleared
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxv.exe val18-zerodeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-wrongdeps.ll: SUBJECT: state kept, dependency bits replaced with a lie
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxv.exe val18-wrongdeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+================ v1.9.2602 (2026-02-20, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.9.2602
+[ships dxv.exe] yes (3 arch flavour(s); using <triage>/.cache/compilers/releases/v1.9.2602/bin/x64/dxv.exe)
 $ <triage>/.cache/compilers/releases/v1.9.2602/bin/x64/dxc.exe --version
 dxcompiler.dll: 1.9(5184-21d28f72)(1.9.2602.17) - 1.9.2602.17 (21d28f727)
 [exit] 0x00000000
@@ -126,7 +263,9 @@ $ <triage>/.cache/compilers/releases/v1.9.2602/bin/x64/dxv.exe val18-wrongdeps.l
 Validation succeeded.
 [exit] 0x00000000
 
-================ v1.9.2602.24 ================
+================ v1.9.2602.24 (2026-05-27, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.9.2602.24
+[ships dxv.exe] yes (3 arch flavour(s); using <triage>/.cache/compilers/releases/v1.9.2602.24/bin/x64/dxv.exe)
 $ <triage>/.cache/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe --version
 dxcompiler.dll: 1.9(5191-d355aa83)(1.9.2602.24) - 1.9.2602.24 (d355aa836)
 [exit] 0x00000000
@@ -170,7 +309,9 @@ $ <triage>/.cache/compilers/releases/v1.9.2602.24/bin/x64/dxv.exe val18-wrongdep
 Validation succeeded.
 [exit] 0x00000000
 
-================ v1.9.2607 ================
+================ v1.9.2607 (2026-07-29, stable) ================
+[tree] <triage>/.cache/compilers/releases/v1.9.2607
+[ships dxv.exe] yes (3 arch flavour(s); using <triage>/.cache/compilers/releases/v1.9.2607/bin/x64/dxv.exe)
 $ <triage>/.cache/compilers/releases/v1.9.2607/bin/x64/dxc.exe --version
 dxcompiler.dll: 1.9(5402-0d3ee6b5)(1.9.0.5402) - 1.9.0.5402 (0d3ee6b55-dirty)
 [exit] 0x00000000
@@ -213,6 +354,11 @@ Validation succeeded.
 $ <triage>/.cache/compilers/releases/v1.9.2607/bin/x64/dxv.exe val18-wrongdeps.ll
 Validation succeeded.
 [exit] 0x00000000
+
+================ coverage summary ================
+# stable releases that ship dxv.exe, oldest first (6): v1.8.2502, v1.8.2505, v1.8.2505.1, v1.9.2602, v1.9.2602.24, v1.9.2607
+# every other catalogued release above ships no dxv.exe, so the
+# measurable window starts at v1.8.2502.
 
 ================ ground truth (main @ 13730886e) ============
 # equivalence control: the same val18 set on the build the verdict

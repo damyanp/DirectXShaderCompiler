@@ -3,7 +3,9 @@
 > [#4256](https://github.com/microsoft/DirectXShaderCompiler/issues/4256).
 
 Still accurate. The validator does not recompute the ViewID state, on `main`
-(1.9.0.5433, 13730886e) or on any shipped `dxv.exe` back to v1.8.2505.
+(1.9.0.5433, 13730886e) or on any shipped `dxv.exe` back to v1.8.2502 — the six
+stable releases that ship the tool at all (v1.8.2502, v1.8.2505, v1.8.2505.1,
+v1.9.2602, v1.9.2602.24, v1.9.2607).
 
 `createComputeViewIdStatePass()` has three call sites — `PassManagerBuilder.cpp:391`
 and `:709` (the compile pipeline) and `DxilLinker.cpp:1293`. None is in

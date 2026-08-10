@@ -151,29 +151,50 @@ replacement — it holds the modules and the question fixed and varies only the
 validator binary. Output in `manual-case-release-matrix.txt`.
 
 Bounded by packaging, not by the question: **`dxv.exe` first appears in a stable
-release archive at v1.8.2505.** The thirteen catalogued releases from v1.4.1907
-to v1.8.2407 ship `dxc.exe` and `dxcompiler.dll` but no `dxv.exe`, so the
-validator cannot be driven over a hand-written module there at all. Each is
-reported as a skip with that reason rather than silently omitted.
+release archive at v1.8.2502** (2025-02-20, stable — the catalogue's
+`prerelease` flag is 0 and the archive is `dxc_2025_02_20`). Fifteen of the 21
+unpacked release trees, from v1.4.1907 to v1.8.2407, ship `dxc.exe` and
+`dxcompiler.dll` but no `dxv.exe`, so the validator cannot be driven over a
+hand-written module there at all. Each is reported as a skip with that reason
+rather than silently omitted, and the one prerelease among them (v1.5.2003) is
+labelled as such rather than counted as stable history.
 
-Over the four releases that do ship it — v1.8.2505, v1.9.2602, v1.9.2602.24,
-v1.9.2607 — plus ground truth, the result is identical everywhere: `full.ll`
-validates, `badsig.ll` and `sm60.ll` are rejected with the same diagnostics, and
-`nostate.ll`, `zerodeps.ll` and `wrongdeps.ll` all report `Validation
-succeeded.` The per-release controls are what make that mean anything.
+Over the six releases that do ship it — v1.8.2502, v1.8.2505, v1.8.2505.1,
+v1.9.2602, v1.9.2602.24, v1.9.2607 — plus ground truth, the result is identical
+everywhere: `full.ll` validates, `badsig.ll` and `sm60.ll` are rejected with the
+same diagnostics, and `nostate.ll`, `zerodeps.ll` and `wrongdeps.ll` all report
+`Validation succeeded.` The per-release controls are what make that mean
+anything.
+
+**The floor was first reported as v1.8.2505 over four releases, and that was
+wrong.** Unpacked releases live in two roots — the triage cache, and the trees
+`catalog --seed-from` adopts from `build/tools/clang/test/dxc_releases` — and
+the first `release-matrix.py` walked only the first. v1.8.2502 and v1.8.2505.1
+are in the second only, so two dxv-shipping releases were dropped and the floor
+came out three months late. The script now enumerates both roots and orders them
+by the catalogued build date; `manual-case-release-matrix.txt` prints a
+`[ships dxv.exe]` line and the owning tree for every release, so the count is
+checkable from the capture. The error understated the evidence: the two releases
+added behave exactly like the other four. See `method-notes.md`.
+
+v1.8.2502 also fixes the module set's floor in place: its `dxcompiler.dll`
+reports **1.8**, so the `-validator-version 1.8` set is the newest one it would
+accept. A 1.9 set would have been refused there for the same reason the original
+1.10 set was refused everywhere.
 
 **The first run of the matrix was an `invalid-probe` and is not the result
 above.** The modules declare `!dx.valver = !{i32 1, i32 10}` and every shipped
-validator caps at 1.9, so all six cases on all four releases came back
-`error: Validator version in metadata (1.10) is not supported; maximum: (1.9).`
-— including the positive control, which is the tell. `make-modules.py` now emits
-a second `val18-` set compiled with `-validator-version 1.8`, and the matrix uses
+validator caps at 1.9, so on every release that run reached, all six cases came
+back `error: Validator version in metadata (1.10) is not supported; maximum:
+(1.9).` — including the positive control, which is the tell. (That run scanned
+one cache root, so it reached four of the six.) `make-modules.py` now emits a
+second `val18-` set compiled with `-validator-version 1.8`, and the matrix uses
 that. The deviation is measured rather than assumed inert: the same val18 set was
 run on ground truth (last block of `manual-case-release-matrix.txt`, and
 `variant-val18-equivalence-main-debug-dxv.txt` as a tool capture) and gives the
 same answers as the default-valver set.
 
-So: always-repro'd within the measurable window (v1.8.2505 → `main`), and the
+So: always-repro'd within the measurable window (v1.8.2502 → `main`), and the
 source dating extends it backwards — the pass has never been called from
 validation, and the only ViewID-state check that has ever existed there arrived
 in 2024 and compares metadata with itself.
@@ -219,6 +240,12 @@ python make-modules.py                       # regenerates both module sets
 python release-matrix.py                     # the release history
 python ../../../scripts/triage.py run --issue 4256 --compiler main-debug-dxv
 ```
+
+`release-matrix.py` resolves releases through the catalog, so
+`triage.py catalog --seed-from <repo>/build/tools/clang/test/dxc_releases` must
+have been run: without the seed the two roots are not reconciled and the two
+oldest `dxv`-shipping releases are invisible. It prints one `[ships dxv.exe]`
+line per release either way, so a short matrix is visible rather than implied.
 
 `main-debug-dxv` must be registered first:
 

@@ -3,24 +3,61 @@
 Observations that should change how a future batch runs, not findings about the
 issue itself.
 
-## `dxv.exe` ships in only four stable releases — validator history is short
+## `dxv.exe` ships in only six stable releases — validator history is short
 
-`release-matrix.py` walked every catalogued release. Thirteen of them
-(v1.4.1907, v1.5.2003, v1.5.2010, v1.6.2104, v1.6.2106, v1.7.2207, v1.7.2212,
-v1.7.2212.1, v1.8.2403, v1.8.2403.1, v1.8.2403.2, v1.8.2405, v1.8.2407) ship
-`dxc.exe` and `dxcompiler.dll` but **no `dxv.exe`**. Only v1.8.2505, v1.9.2602,
-v1.9.2602.24 and v1.9.2607 have one.
+`release-matrix.py` walks every catalogued release across **both** cache roots.
+Fifteen of the 21 unpacked trees (v1.4.1907, v1.5.2003, v1.5.2010, v1.6.2104,
+v1.6.2106, v1.6.2112, v1.7.2207, v1.7.2212, v1.7.2212.1, v1.7.2308, v1.8.2403,
+v1.8.2403.1, v1.8.2403.2, v1.8.2405, v1.8.2407) ship `dxc.exe` and
+`dxcompiler.dll` but **no `dxv.exe`**. Only v1.8.2502, v1.8.2505, v1.8.2505.1,
+v1.9.2602, v1.9.2602.24 and v1.9.2607 have one. All six are stable
+(`releases.prerelease = 0`); v1.5.2003 is the one prerelease in the skip list
+and is labelled as such.
 
 Any issue whose symptom needs the validator driven over a module DXC did not
-produce therefore has a history window starting at v1.8.2505, no matter how old
-the report. That is worth stating in `SKILL.md` next to the existing remark about
-`dxl.exe`, so the next agent budgets for it instead of discovering it after
-building a matrix. The substitute for the earlier period is source dating.
+produce therefore has a history window starting at v1.8.2502 (2025-02-20), no
+matter how old the report. That is worth stating in `SKILL.md` next to the
+existing remark about `dxl.exe`, so the next agent budgets for it instead of
+discovering it after building a matrix. The substitute for the earlier period is
+source dating.
+
+Note also that v1.8.2502's `dxcompiler.dll` reports **1.8**, one below the other
+five. A module set emitted with `-validator-version 1.9` would be refused there,
+so 1.8 is the floor for any artifact intended to run on every release that has
+a `dxv` at all.
 
 Worth checking whether `dxcompiler.dll`'s `IDxcValidator` could be driven
 directly from a small Python/C++ harness against the *older* releases — that
-would recover the pre-2505 window for validator issues generally. Not attempted
+would recover the pre-2502 window for validator issues generally. Not attempted
 here; `dxv` was sufficient for the window that mattered.
+
+### Correction: the floor was first published as v1.8.2505 over four releases
+
+That was wrong, and the cause is worth more than the fact. Unpacked releases
+live in **two** roots — `<triage>/.cache/compilers/releases`, downloaded lazily,
+and `<repo>/build/tools/clang/test/dxc_releases`, which the lit release tests
+unpack and `catalog --seed-from` adopts. The first `release-matrix.py` walked
+only the first. v1.8.2502 and v1.8.2505.1 exist only in the second, so two
+dxv-shipping releases were dropped, the count came out as four, and the floor
+came out three months late. **A one-root walk does not fail; it silently returns
+a smaller, plausible answer.**
+
+Caught by cross-checking against #4415's release matrix, which hit the same trap
+in a later batch, noticed it, and says so (`data/issues/4415/method-notes.md`,
+"Look in both release cache roots"). Two independent issues making the same
+mistake is a defect in the method, not in the worker: SKILL.md's "Setup" section
+already says release-matrix scripts should resolve releases through the
+catalog's `releases.cached_path` column rather than walking a root, and that
+advice needs to be where the matrix is written, not only where the cache is
+described.
+
+The correction was measured, not assumed: v1.8.2502 and v1.8.2505.1 were run
+through the same harness and the same `val18-` modules, with the same
+per-release controls, and behave exactly like the other four. The error
+**understated** the evidence — the corrected finding is the stronger one.
+`manual-case-release-matrix.txt` now prints a `[ships dxv.exe]` line, the owning
+tree and the catalogued build date for every release, so the count can be
+re-derived from the capture instead of trusted.
 
 ## Validator-version metadata silently invalidates every release probe
 
@@ -121,6 +158,15 @@ module the compiler never made. Two caveats to record with it:
 
 ## Cross-issue
 
-Nothing. #4256 has no cross-references in its timeline and no comments, and no
-other issue in this batch touched ViewID state. Recorded so that the absence is
-distinguishable from not having looked.
+#4256 itself has no cross-references in its timeline and no comments, and no
+other issue in **its** batch (014) touched ViewID state. Recorded so that the
+absence is distinguishable from not having looked.
+
+One later issue matters for the method rather than the subject: **#4415**
+(batch-015) builds its own `dxv` release matrix, independently hit the two-root
+under-count, and recorded the corrected fact — "a related earlier claim, that
+`dxv.exe` first ships in v1.8.2505, is also an artefact of scanning one root:
+**v1.8.2502 ships it too**". That is what this issue's release floor was
+re-checked against. Its `release-matrix.py` is also the model to copy for the
+next one: it lists both roots explicitly and normalises captured paths through
+`triage.redact_paths` rather than a second local implementation of the rule.
