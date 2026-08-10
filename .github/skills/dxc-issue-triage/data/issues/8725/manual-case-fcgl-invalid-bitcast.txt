@@ -26,27 +26,27 @@ CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 -fcgl repro.
 
 Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
 File:
-C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+<repo>\tools\clang\lib\CodeGen\CGCall.cpp(2962)
 Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
 (8074.3c54): Unknown exception - code e0000001 (first chance)
 Error: assert(castIsValid(op, S, Ty) && "Invalid cast!")
 File:
-C:\prj\DirectXShaderCompiler\lib\IR\Instructions.cpp(2257)
+<repo>\lib\IR\Instructions.cpp(2257)
 Func:	llvm::CastInst::Create
 (8074.3c54): Unknown exception - code e0000001 (first chance)
 Error: assert(castIsValid(getOpcode(), S, Ty) && "Illegal BitCast")
 File:
-C:\prj\DirectXShaderCompiler\lib\IR\Instructions.cpp(2942)
+<repo>\lib\IR\Instructions.cpp(2942)
 Func:	llvm::BitCastInst::BitCastInst
 (8074.3c54): Unknown exception - code e0000001 (first chance)
 Error: assert(castIsValid(op, S, Ty) && "Invalid cast!")
 File:
-C:\prj\DirectXShaderCompiler\lib\IR\Instructions.cpp(2257)
+<repo>\lib\IR\Instructions.cpp(2257)
 Func:	llvm::CastInst::Create
 (8074.3c54): Unknown exception - code e0000001 (first chance)
 Error: assert(castIsValid(getOpcode(), S, Ty) && "Illegal BitCast")
 File:
-C:\prj\DirectXShaderCompiler\lib\IR\Instructions.cpp(2942)
+<repo>\lib\IR\Instructions.cpp(2942)
 Func:	llvm::BitCastInst::BitCastInst
 (8074.3c54): Unknown exception - code e0000001 (first chance)
 ;

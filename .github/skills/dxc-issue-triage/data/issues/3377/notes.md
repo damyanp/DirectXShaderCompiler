@@ -34,7 +34,7 @@ reaches stderr. Under `cdb` (`assert-stack.cmd` → `manual-case-assert-stack.tx
 ```
 Error: 	!(argIdx < endArgIdx)
 File:
-C:\prj\DirectXShaderCompiler\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
+<repo>\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
 Func:	AllocateSemanticIndex.
 	arg index out of bound
 ```

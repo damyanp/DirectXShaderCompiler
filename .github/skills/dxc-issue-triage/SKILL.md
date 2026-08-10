@@ -1243,6 +1243,25 @@ know a draft is a draft.
 Name the issue, so a file found on its own is traceable. Claim only what the file can know:
 "unposted" is not verifiable by a file that outlives its own posting.
 
+> **Redact machine paths to `<repo>`, but never redact by blind search-and-replace.** The
+> workspace convention is already `<repo>` (`triage.py`'s `display_exe`); files that escape it
+> should be brought back in line. Three traps, all met in practice:
+>
+> - **Some paths are evidence and belong to someone else.** `3429/issue.json` contains a
+>   reporter's `C:\Users\n\Downloads\...`, quoted verbatim from the public issue. It is already
+>   public, and rewriting it falsifies a quotation. Redact *your* layout, not theirs.
+> - **Some paths are executable logic.** `3377/trim-cdb.py` matched stack frames with an
+>   absolute prefix; redacting it silently stopped the script matching anything. Where a path
+>   appears in a regex or an `open()`, make it machine-independent instead — anchoring on the
+>   repository *name* is both portable and not a leak. Prove it with controls drawn from
+>   several different machine layouts.
+> - **Escaped forms hide from the obvious grep.** In JSON, the path is `C:\\prj\\...`, which
+>   does not contain the literal `C:\prj\` your pattern is looking for. Scan for the escaped
+>   variant too, replace it first, and re-parse every JSON file you touch before writing it.
+>
+> Binaries (`.obj`, `.pdb`, `.pyc`) embed paths and cannot be edited. Confirm they are
+> gitignored rather than trying to clean them.
+
 Never invent an `@mention`. Verify every handle against `issue.json`'s `author.login`; an empty
 login means the account is unavailable, so refer to the comment by date instead. #2604 caught a
 guessed public attribution before it shipped.

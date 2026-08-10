@@ -31,7 +31,7 @@ CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T ps_6_0 -E main_fragm
 (60f0.6cf8): Break instruction exception - code 80000003 (first chance)
 Error: 	!(argIdx < endArgIdx)
 File:
-C:\prj\DirectXShaderCompiler\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
+<repo>\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
 Func:	AllocateSemanticIndex.
 	arg index out of bound
 (60f0.6cf8): Break instruction exception - code 80000003 (first chance)
@@ -59,7 +59,7 @@ CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T ps_6_0 -E main_fragm
 (29dc.c94): Break instruction exception - code 80000003 (first chance)
 Error: 	!(argIdx < endArgIdx)
 File:
-C:\prj\DirectXShaderCompiler\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
+<repo>\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
 Func:	AllocateSemanticIndex.
 	arg index out of bound
 (29dc.c94): Break instruction exception - code 80000003 (first chance)
@@ -89,7 +89,7 @@ CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T ps_6_0 -E main_fragm
 (4ddc.fa4): Break instruction exception - code 80000003 (first chance)
 Error: 	!(argIdx < endArgIdx)
 File:
-C:\prj\DirectXShaderCompiler\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
+<repo>\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(4791)
 Func:	AllocateSemanticIndex.
 	arg index out of bound
 (4ddc.fa4): Break instruction exception - code 80000003 (first chance)

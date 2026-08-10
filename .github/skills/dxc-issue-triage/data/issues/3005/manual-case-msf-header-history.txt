@@ -1,5 +1,5 @@
 === main-debug ===
-  exe             : C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+  exe             : <repo>\build\Debug\bin\dxc.exe
   version         : dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\main-debug\as-filed\ -Fo pdb\main-debug\as-filed\a.dxbc
@@ -65,7 +65,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.4.1907 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
   version         : dxc failed : Unknown argument: '--version'
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.4.1907\as-filed\ -Fo pdb\v1.4.1907\as-filed\a.dxbc
@@ -131,7 +131,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.5.2010 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
   version         : dxc failed : Unknown argument: '--version'
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.5.2010\as-filed\ -Fo pdb\v1.5.2010\as-filed\a.dxbc
@@ -197,7 +197,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.6.2104 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe
   version         : dxc failed : Unknown argument: '--version'
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.6.2104\as-filed\ -Fo pdb\v1.6.2104\as-filed\a.dxbc
@@ -263,7 +263,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.6.2106 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
   version         : dxc failed : Unknown argument: '--version'
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.6.2106\as-filed\ -Fo pdb\v1.6.2106\as-filed\a.dxbc
@@ -329,7 +329,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.6.2112 ===
-  exe             : C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe
+  exe             : <repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.6 - 1.6.2112.12 (770ac0cc1); dxil.dll: 1.6(101.6.2112.2)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.6.2112\as-filed\ -Fo pdb\v1.6.2112\as-filed\a.dxbc
@@ -395,7 +395,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.7.2207 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.7 - 1.7.2207.3 (e9137cd1d); dxil.dll: 1.7(101.7.2207.10)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2207\as-filed\ -Fo pdb\v1.7.2207\as-filed\a.dxbc
@@ -461,7 +461,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.7.2212 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.7 - 1.7.2212.12 (8c9d92be7); dxil.dll: 1.7(101.7.2212.14)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2212\as-filed\ -Fo pdb\v1.7.2212\as-filed\a.dxbc
@@ -527,7 +527,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.7.2212.1 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.7 - 1.7.2212.40 (e043f4a12); dxil.dll: 1.7(101.7.2212.36)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2212.1\as-filed\ -Fo pdb\v1.7.2212.1\as-filed\a.dxbc
@@ -593,7 +593,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.7.2308 ===
-  exe             : C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
+  exe             : <repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.7 - 1.7.2308.7 (69e54e290); dxil.dll: 1.7(101.7.2308.12)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.7.2308\as-filed\ -Fo pdb\v1.7.2308\as-filed\a.dxbc
@@ -659,7 +659,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.8.2403 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.8 - 1.8.2403.34 (c9660a8c0); dxil.dll: 1.8(101.8.2403.18)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2403\as-filed\ -Fo pdb\v1.8.2403\as-filed\a.dxbc
@@ -725,7 +725,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.8.2403.1 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.8 - 1.8.2403.36 (9c2b82878); dxil.dll: 1.8(101.8.2403.21)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2403.1\as-filed\ -Fo pdb\v1.8.2403.1\as-filed\a.dxbc
@@ -791,7 +791,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.8.2403.2 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.8 - 1.8.2403.37 (11e1318c3); dxil.dll: 1.8(101.8.2403.24)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2403.2\as-filed\ -Fo pdb\v1.8.2403.2\as-filed\a.dxbc
@@ -857,7 +857,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.8.2405 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.8 - 1.8.2405.15 (fd7e54bcd); dxil.dll: 1.8(101.8.2405.17)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2405\as-filed\ -Fo pdb\v1.8.2405\as-filed\a.dxbc
@@ -923,7 +923,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.8.2407 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.8 - 1.8.2407.7 (416fab6b5); dxil.dll: 1.8(101.8.2407.12)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2407\as-filed\ -Fo pdb\v1.8.2407\as-filed\a.dxbc
@@ -989,7 +989,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.8.2502 ===
-  exe             : C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
+  exe             : <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.8 - 1.8.2502.8 (b4711839e); dxil.dll: 1.8(1.8.2502.8)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2502\as-filed\ -Fo pdb\v1.8.2502\as-filed\a.dxbc
@@ -1055,7 +1055,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.8.2505 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.9 - 1.8.2505.28 (9efbb6c32); dxil.dll: 1.9(1.8.2505.28)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2505\as-filed\ -Fo pdb\v1.8.2505\as-filed\a.dxbc
@@ -1121,7 +1121,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.8.2505.1 ===
-  exe             : C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe
+  exe             : <repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.9 - 1.8.2505.32 (b106a961d); dxil.dll: 1.9(1.8.2505.32)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.8.2505.1\as-filed\ -Fo pdb\v1.8.2505.1\as-filed\a.dxbc
@@ -1187,7 +1187,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.9.2602 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.9(5184-21d28f72)(1.9.2602.17) - 1.9.2602.17 (21d28f727)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.9.2602\as-filed\ -Fo pdb\v1.9.2602\as-filed\a.dxbc
@@ -1253,7 +1253,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.9.2602.24 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.9(5191-d355aa83)(1.9.2602.24) - 1.9.2602.24 (d355aa836)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.9.2602.24\as-filed\ -Fo pdb\v1.9.2602.24\as-filed\a.dxbc
@@ -1319,7 +1319,7 @@
     00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
 
 === v1.9.2607 ===
-  exe             : C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
+  exe             : <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
   version         : dxcompiler.dll: 1.9(5402-0d3ee6b5)(1.9.0.5402) - 1.9.0.5402 (0d3ee6b55-dirty)
   -- as-filed --
   $ dxc -Zi -Qstrip_debug -Zsb repro.hlsl -T ps_6_0 -Fd pdb\v1.9.2607\as-filed\ -Fo pdb\v1.9.2607\as-filed\a.dxbc

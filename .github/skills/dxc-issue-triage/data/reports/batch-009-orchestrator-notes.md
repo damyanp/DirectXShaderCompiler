@@ -159,7 +159,7 @@ Run with `Select-String` over every artifact directory. Two hits:
 - `3429/issue.json` — contains `D:\local\Temp\...` and `C:\Users\n\Downloads\...`. **Benign.**
   These are the *reporter's* paths, quoted verbatim from the public issue body by
   `triage.py fetch`. Already public; nothing to redact.
-- `3237/measure.json` — contains this machine's checkout path (`C:\prj\DirectXShaderCompiler\...`).
+- `3237/measure.json` — contains this machine's checkout path (`<repo>\...`).
   **Genuine.** Everything `triage.py run` writes is redacted to `<repo>` / `<cache>`; a
   worker-authored harness bypassed that convention. Sent back for regeneration.
 

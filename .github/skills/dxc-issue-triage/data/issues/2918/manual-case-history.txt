@@ -20,7 +20,7 @@
 RESULTS
 stage 1: dxc -T cs_6_0 -E main -Od -Zi -Qembed_debug repro.hlsl
 stage 2: dxopt module.ll -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
-driver : C:\prj\DirectXShaderCompiler\build\Debug\bin\dxopt.exe
+driver : <repo>\build\Debug\bin\dxopt.exe
 
 build          compile   baseline  control   PIX passes  verdict
 ----------------------------------------------------------------

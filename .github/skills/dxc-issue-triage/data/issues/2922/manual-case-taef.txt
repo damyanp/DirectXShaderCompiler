@@ -31,7 +31,7 @@ The line they removed read, verbatim:
 
 So "run the taef tests" IS the -O1 test today. Running them:
 
-    $ cd C:\prj\DirectXShaderCompiler\build\Debug\bin
+    $ cd <repo>\build\Debug\bin
     $ "C:\Program Files (x86)\Windows Kits\10\Testing\Runtimes\TAEF\x64\TE.exe" \
           ClangHLSLTests.dll /name:PixTest::PixStructAnnotation_*
 

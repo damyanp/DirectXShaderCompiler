@@ -6,7 +6,7 @@
 #
 # Run by: python probe-positions.py   (writes this file)
 
-# dxc: C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+# dxc: <repo>\build\Debug\bin\dxc.exe
 # version: dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
 
 ==============================================================================

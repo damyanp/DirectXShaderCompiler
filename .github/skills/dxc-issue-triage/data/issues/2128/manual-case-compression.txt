@@ -1,6 +1,6 @@
 # case: compression ratio of dxc vs fxc shader objects, and per-container-part breakdown
 # harness: measure.py (committed beside this file); re-run with `python measure.py`
-# compiler: main-debug  C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+# compiler: main-debug  <repo>\build\Debug\bin\dxc.exe
 # contrast: fxc.exe 10.0.26100.0 (Windows SDK), /T ps_5_1 -- fxc cannot emit SM6, and the
 #           migration from fxc to dxc is exactly the comparison the reporter made
 # ran: 2026-08-07T05:05:26Z
@@ -9,7 +9,7 @@
 #       exactly, and a .zip compresses each member independently, which is the reporter's
 #       "if I will zip same shaders"
 
-dxc: C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
+dxc: <repo>\build\Debug\bin\dxc.exe
 fxc: C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\fxc.exe
 dxc --version: dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
 dxc args: -T ps_6_0 -E main -O3
@@ -22,8 +22,8 @@ HARNESS CONTROLS
   compressible (repro.hlsl source)       3328   1323      0.398  <= 0.50  PASS
 
 COMMANDS RUN
-  $ C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe -T ps_6_0 -E main -O3 -Fo artifacts\corpus-small.dxc.cso corpus-small.hlsl   (and the same for the other two shaders)
-  $ C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe -T ps_6_0 -E main -O3 -Qstrip_reflect -Fo artifacts\corpus-small.dxc-strip.cso corpus-small.hlsl   (and the same for the other two shaders)
+  $ <repo>\build\Debug\bin\dxc.exe -T ps_6_0 -E main -O3 -Fo artifacts\corpus-small.dxc.cso corpus-small.hlsl   (and the same for the other two shaders)
+  $ <repo>\build\Debug\bin\dxc.exe -T ps_6_0 -E main -O3 -Qstrip_reflect -Fo artifacts\corpus-small.dxc-strip.cso corpus-small.hlsl   (and the same for the other two shaders)
   $ C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\fxc.exe /T ps_5_1 /E main /O3 /nologo /Fo artifacts\corpus-small.fxc.cso corpus-small.hlsl   (and the same for the other two shaders)
   $ C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\fxc.exe /T ps_5_1 /E main /O3 /nologo /Qstrip_reflect /Fo artifacts\corpus-small.fxc-strip.cso corpus-small.hlsl   (and the same for the other two shaders)
 

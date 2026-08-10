@@ -8,7 +8,7 @@ hand: compile, write a container with `-Fo`, and read the 16-byte digest at offs
 by `ComputeHashRetail` -- `lib/DxilContainer/DxcContainerBuilder.cpp:185-204`,
 `tools/clang/tools/dxcvalidator/dxcvalidator.cpp:36-52`).
 
-Shell: PowerShell 7.  `$GT` = `C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe`
+Shell: PowerShell 7.  `$GT` = `<repo>\build\Debug\bin\dxc.exe`
 (ground truth, `1.9.0.5433 (triage, ab5400907)`).  Run from this directory.  `.dxo` outputs
 are scratch and were deleted after the digests below were read; re-running the commands
 regenerates them.
@@ -40,9 +40,9 @@ only when `DXC_DXIL_DLL_PATH` names an absolute path
 (`lib/DxcSupport/dxcapi.extval.cpp:433-462`).
 
 ```
-$ $env:DXC_DXIL_DLL_PATH='C:\prj\DirectXShaderCompiler\build\Debug\bin\dxil.dll'
+$ $env:DXC_DXIL_DLL_PATH='<repo>\build\Debug\bin\dxil.dll'
 $ $GT --version
-dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907); C:\prj\DirectXShaderCompiler\build\Debug\bin\dxil.dll: 1.10 - 1.9.0.5393 (damyanp/fix-resource-struct-zero-init, dc2088b20-dirty)
+dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907); <repo>\build\Debug\bin\dxil.dll: 1.10 - 1.9.0.5393 (damyanp/fix-resource-struct-zero-init, dc2088b20-dirty)
 
 $ $GT -T ps_6_0 -E MainPS control-default-case.hlsl -Fo sign-probe-ext.dxo
 exit=0

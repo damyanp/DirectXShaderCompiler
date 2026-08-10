@@ -35,10 +35,10 @@ ntdll!LdrpDoDebuggerBreak+0x35:
 0:000> cdb: Reading initial command 'g;kn 40;q'
 Error: 	!(Ty)
 File:
-C:\prj\DirectXShaderCompiler\lib\DXIL\DxilUtil.cpp(877)
+<repo>\lib\DXIL\DxilUtil.cpp(877)
 Func:	hlsl::dxilutil::WrapInArrayTypes.
 (7b7c.30dc): Break instruction exception - code 80000003 (first chance)
-*** WARNING: Unable to verify checksum for C:\prj\DirectXShaderCompiler\build\Debug\bin\dxcompiler.dll
+*** WARNING: Unable to verify checksum for <repo>\build\Debug\bin\dxcompiler.dll
  # Child-SP          RetAddr               Call Site
 00 00000049`fcb852a0 00007ff8`2e1759e6     dxcompiler!hlsl::dxilutil::WrapInArrayTypes+0x5f
 01 00000049`fcb85320 00007ff8`2e17c651     dxcompiler!TranslatePtrIfUsedByLoweredFn+0x266

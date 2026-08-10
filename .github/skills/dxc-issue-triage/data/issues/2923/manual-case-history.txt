@@ -36,8 +36,8 @@
 # main-debug(ab5400907)     2026-08-06                match/test-FAILS          match/test-FAILS          no-match/test-passes      no-match/test-passes      
 
 ### v1.4.1907 (2019-07-15)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -50,8 +50,8 @@ error: invalid profile as_6_5
 # exit: 1   predicate: invalid-probe(rc=1)   PixTest emulation: -
 
 ### v1.4.1907 (2019-07-15)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -64,8 +64,8 @@ error: invalid profile as_6_5
 # exit: 1   predicate: invalid-probe(rc=1)   PixTest emulation: -
 
 ### v1.4.1907 (2019-07-15)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -78,8 +78,8 @@ error: invalid profile as_6_5
 # exit: 1   predicate: invalid-probe(rc=1)   PixTest emulation: -
 
 ### v1.4.1907 (2019-07-15)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -92,8 +92,8 @@ error: invalid profile as_6_5
 # exit: 1   predicate: invalid-probe(rc=1)   PixTest emulation: -
 
 ### v1.5.2003 (2020-03-25)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -101,7 +101,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3208 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                                                                                                                                      
 InstructionCount:46
 
@@ -169,8 +169,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-FAILS
 
 ### v1.5.2003 (2020-03-25)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -178,7 +178,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2868 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                          
 InstructionCount:33
 
@@ -235,8 +235,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.5.2003 (2020-03-25)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -244,7 +244,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2708 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                      
 InstructionCount:26
 
@@ -279,8 +279,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-FAILS
 
 ### v1.5.2003 (2020-03-25)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -288,7 +288,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2532 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2003\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                      
 InstructionCount:15
 
@@ -314,8 +314,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-FAILS
 
 ### v1.5.2010 (2020-10-22)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -323,7 +323,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 2968 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                                                                   
 InstructionCount:40
 
@@ -389,8 +389,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-FAILS
 
 ### v1.5.2010 (2020-10-22)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -398,7 +398,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2876 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                        
 InstructionCount:33
 
@@ -459,8 +459,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.5.2010 (2020-10-22)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -468,7 +468,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2604 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                    
 InstructionCount:20
 
@@ -501,8 +501,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-FAILS
 
 ### v1.5.2010 (2020-10-22)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -510,7 +510,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2532 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                     
 InstructionCount:15
 
@@ -540,8 +540,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-FAILS
 
 ### v1.6.2104 (2021-04-20)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -549,7 +549,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3068 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                                                                   
 InstructionCount:40
 
@@ -622,8 +622,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-FAILS
 
 ### v1.6.2104 (2021-04-20)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -631,7 +631,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2936 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                        
 InstructionCount:33
 
@@ -692,8 +692,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.6.2104 (2021-04-20)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -701,7 +701,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2780 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                    
 InstructionCount:20
 
@@ -741,8 +741,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.6.2104 (2021-04-20)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -750,7 +750,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2716 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                     
 InstructionCount:15
 
@@ -780,8 +780,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-FAILS
 
 ### v1.6.2106 (2021-07-01)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -789,7 +789,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3068 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                                                                  
 InstructionCount:28
 
@@ -857,8 +857,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !49 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.6.2106 (2021-07-01)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -866,7 +866,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2936 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                        
 InstructionCount:21
 
@@ -922,8 +922,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !49 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.6.2106 (2021-07-01)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -931,7 +931,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2780 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                    
 InstructionCount:20
 
@@ -971,8 +971,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.6.2106 (2021-07-01)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -980,7 +980,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2716 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                     
 InstructionCount:15
 
@@ -1010,8 +1010,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-FAILS
 
 ### v1.6.2112 (2021-12-08)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1019,7 +1019,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3068 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                                                                    
 InstructionCount:28
 
@@ -1087,8 +1087,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !59 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.6.2112 (2021-12-08)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1096,7 +1096,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2936 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                          
 InstructionCount:21
 
@@ -1152,8 +1152,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !53 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.6.2112 (2021-12-08)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1161,7 +1161,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2780 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                    
 InstructionCount:20
 
@@ -1201,8 +1201,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.6.2112 (2021-12-08)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1210,7 +1210,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2716 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                     
 InstructionCount:15
 
@@ -1240,8 +1240,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-FAILS
 
 ### v1.7.2207 (2022-07-18)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1249,7 +1249,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3068 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                                                                  
 InstructionCount:28
 
@@ -1317,8 +1317,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !49 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.7.2207 (2022-07-18)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1326,7 +1326,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2936 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                                                                                                                                                                           
 InstructionCount:48
 
@@ -1419,8 +1419,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !49 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.7.2207 (2022-07-18)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1428,7 +1428,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2780 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                    
 InstructionCount:20
 
@@ -1468,8 +1468,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.7.2207 (2022-07-18)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1477,7 +1477,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2716 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                                                                                 
 InstructionCount:42
 
@@ -1544,8 +1544,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.7.2212 (2022-12-16)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1553,7 +1553,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3012 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                                                                
 InstructionCount:28
 InstructionRange: 0 28 main
@@ -1620,8 +1620,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !48 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.7.2212 (2022-12-16)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1629,7 +1629,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2880 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                                                                                                                                                                         
 InstructionCount:48
 InstructionRange: 0 48 main
@@ -1721,8 +1721,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !68 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.7.2212 (2022-12-16)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1730,7 +1730,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2724 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                  
 InstructionCount:20
 InstructionRange: 0 20 main
@@ -1769,8 +1769,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.7.2212 (2022-12-16)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1778,7 +1778,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2652 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                                                                                                                                                                                               
 InstructionCount:42
 InstructionRange: 0 42 main
@@ -1844,8 +1844,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.7.2212.1 (2023-03-01)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1853,7 +1853,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3012 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                    
 InstructionCount:28
 InstructionRange: 0 28 main
@@ -1908,8 +1908,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !48 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.7.2212.1 (2023-03-01)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1917,7 +1917,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2880 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                    
 InstructionCount:48
 InstructionRange: 0 48 main
@@ -1990,8 +1990,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !68 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.7.2212.1 (2023-03-01)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -1999,7 +1999,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2724 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                    
 InstructionCount:20
 InstructionRange: 0 20 main
@@ -2034,8 +2034,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.7.2212.1 (2023-03-01)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2043,7 +2043,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2652 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                                                                                                                    
 InstructionCount:42
 InstructionRange: 0 42 main
@@ -2096,8 +2096,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.7.2308 (2023-08-14)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2105,7 +2105,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3020 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 28 main as
 
 InstructionCount:28
@@ -2156,8 +2156,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !48 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.7.2308 (2023-08-14)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2165,7 +2165,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2888 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 48 main as
 
 InstructionCount:48
@@ -2234,8 +2234,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !68 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.7.2308 (2023-08-14)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2243,7 +2243,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2732 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 20 main as
 
 InstructionCount:20
@@ -2274,8 +2274,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.7.2308 (2023-08-14)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2283,7 +2283,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2660 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 42 main as
 
 InstructionCount:42
@@ -2332,8 +2332,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2403 (2024-03-07)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2341,7 +2341,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3020 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -2392,8 +2392,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2403 (2024-03-07)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2401,7 +2401,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2896 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -2470,8 +2470,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2403 (2024-03-07)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2479,7 +2479,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2728 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -2510,8 +2510,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2403 (2024-03-07)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2519,7 +2519,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2672 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -2568,8 +2568,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2403.1 (2024-03-22)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2577,7 +2577,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3020 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -2628,8 +2628,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2403.1 (2024-03-22)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2637,7 +2637,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2896 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -2706,8 +2706,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2403.1 (2024-03-22)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2715,7 +2715,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2728 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -2746,8 +2746,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2403.1 (2024-03-22)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2755,7 +2755,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2672 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -2804,8 +2804,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2403.2 (2024-03-29)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2813,7 +2813,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3020 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -2864,8 +2864,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2403.2 (2024-03-29)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2873,7 +2873,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2896 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -2942,8 +2942,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2403.2 (2024-03-29)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2951,7 +2951,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2728 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -2982,8 +2982,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2403.2 (2024-03-29)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -2991,7 +2991,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2672 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -3040,8 +3040,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2405 (2024-05-24)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3049,7 +3049,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3020 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -3100,8 +3100,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2405 (2024-05-24)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3109,7 +3109,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2896 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -3178,8 +3178,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2405 (2024-05-24)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3187,7 +3187,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2728 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -3218,8 +3218,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2405 (2024-05-24)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3227,7 +3227,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2672 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -3276,8 +3276,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2407 (2024-07-31)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3285,7 +3285,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3020 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -3336,8 +3336,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2407 (2024-07-31)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3345,7 +3345,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2896 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -3414,8 +3414,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2407 (2024-07-31)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3423,7 +3423,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2724 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -3454,8 +3454,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2407 (2024-07-31)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3463,7 +3463,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2668 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -3512,8 +3512,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2502 (2025-02-20)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3521,7 +3521,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3020 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -3572,8 +3572,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2502 (2025-02-20)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3581,7 +3581,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2896 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -3650,8 +3650,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2502 (2025-02-20)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3659,7 +3659,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2724 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -3690,8 +3690,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2502 (2025-02-20)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3699,7 +3699,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2668 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -3748,8 +3748,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2505 (2025-05-24)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3757,7 +3757,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3012 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -3808,8 +3808,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2505 (2025-05-24)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3817,7 +3817,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2892 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -3886,8 +3886,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2505 (2025-05-24)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3895,7 +3895,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2720 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -3926,8 +3926,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2505 (2025-05-24)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3935,7 +3935,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2664 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -3984,8 +3984,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2505.1 (2025-07-14)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -3993,7 +3993,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3012 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -4044,8 +4044,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2505.1 (2025-07-14)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4053,7 +4053,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2892 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -4122,8 +4122,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.8.2505.1 (2025-07-14)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4131,7 +4131,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2720 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -4162,8 +4162,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.8.2505.1 (2025-07-14)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe
+# PIX_DLL=<repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4171,7 +4171,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2664 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -4220,8 +4220,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.9.2602 (2026-02-20)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4229,7 +4229,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3012 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -4280,8 +4280,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.9.2602 (2026-02-20)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4289,7 +4289,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2892 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -4358,8 +4358,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.9.2602 (2026-02-20)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4367,7 +4367,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2720 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -4398,8 +4398,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.9.2602 (2026-02-20)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4407,7 +4407,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2664 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -4456,8 +4456,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.9.2602.24 (2026-05-27)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4465,7 +4465,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3012 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -4516,8 +4516,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.9.2602.24 (2026-05-27)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4525,7 +4525,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2892 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -4594,8 +4594,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.9.2602.24 (2026-05-27)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4603,7 +4603,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2720 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -4634,8 +4634,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.9.2602.24 (2026-05-27)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4643,7 +4643,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2664 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -4692,8 +4692,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.9.2607 (2026-07-29)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4701,7 +4701,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3020 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -4752,8 +4752,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.9.2607 (2026-07-29)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4761,7 +4761,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2900 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -4830,8 +4830,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### v1.9.2607 (2026-07-29)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4839,7 +4839,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2732 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -4870,8 +4870,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### v1.9.2607 (2026-07-29)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll
+# PIX_DXC=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe
+# PIX_DLL=<repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4879,7 +4879,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2676 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -4928,8 +4928,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### main-debug(ab5400907) (2026-08-06)  repro.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\Debug\bin\dxcompiler.dll
+# PIX_DXC=<repo>\build\Debug\bin\dxc.exe
+# PIX_DLL=<repo>\build\Debug\bin\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -Od
 # shader: repro.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4937,7 +4937,7 @@ $ run-2923.cmd repro.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-Od.dxo
 $ dxa -extractpart=dbgmodule -o=repro-Od.ildb.bc repro-Od.dxo
 3040 bytes written to repro-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\Debug\bin\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\Debug\bin\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-Od.annotated.bc repro-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 19 main as
 
 InstructionCount:19
@@ -4988,8 +4988,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !47 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### main-debug(ab5400907) (2026-08-06)  repro.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\Debug\bin\dxcompiler.dll
+# PIX_DXC=<repo>\build\Debug\bin\dxc.exe
+# PIX_DLL=<repo>\build\Debug\bin\dxcompiler.dll
 $ run-2923.cmd repro.hlsl -O1
 # shader: repro.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -4997,7 +4997,7 @@ $ run-2923.cmd repro.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug repro.hlsl -Forepro-O1.dxo
 $ dxa -extractpart=dbgmodule -o=repro-O1.ildb.bc repro-O1.dxo
 2924 bytes written to repro-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\Debug\bin\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\Debug\bin\dxcompiler.dll -external-fn DxcCreateInstance -o=repro-O1.annotated.bc repro-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35
@@ -5066,8 +5066,8 @@ PIX-2923: DECLARED-BUT-UNWRITTEN 6 register(s) -- !61 "p" [DW_TAG_auto_variable 
 # exit: 0   predicate: match   PixTest emulation: test-FAILS
 
 ### main-debug(ab5400907) (2026-08-06)  control-no-subroutine.hlsl -Od
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\Debug\bin\dxcompiler.dll
+# PIX_DXC=<repo>\build\Debug\bin\dxc.exe
+# PIX_DLL=<repo>\build\Debug\bin\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -Od
 # shader: control-no-subroutine.hlsl    optimization: -Od
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -5075,7 +5075,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -Od
 $ dxc -T as_6_5 -E main -Od -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-Od.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-Od.ildb.bc control-no-subroutine-Od.dxo
 2736 bytes written to control-no-subroutine-Od.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\Debug\bin\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\Debug\bin\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-Od.annotated.bc control-no-subroutine-Od.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 17 main as
 
 InstructionCount:17
@@ -5106,8 +5106,8 @@ PIX-2923: ALL-DECLARED-REGISTERS-WRITTEN
 # exit: 0   predicate: no-match   PixTest emulation: test-passes
 
 ### main-debug(ab5400907) (2026-08-06)  control-no-subroutine.hlsl -O1
-# PIX_DXC=C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe
-# PIX_DLL=C:\prj\DirectXShaderCompiler\build\Debug\bin\dxcompiler.dll
+# PIX_DXC=<repo>\build\Debug\bin\dxc.exe
+# PIX_DLL=<repo>\build\Debug\bin\dxcompiler.dll
 $ run-2923.cmd control-no-subroutine.hlsl -O1
 # shader: control-no-subroutine.hlsl    optimization: -O1
 # (PixTest.cpp compiles with /Zi /Qembed_debug -HV 2018 -enable-16bit-types)
@@ -5115,7 +5115,7 @@ $ run-2923.cmd control-no-subroutine.hlsl -O1
 $ dxc -T as_6_5 -E main -O1 -HV 2018 -enable-16bit-types -Zi -Qembed_debug control-no-subroutine.hlsl -Focontrol-no-subroutine-O1.dxo
 $ dxa -extractpart=dbgmodule -o=control-no-subroutine-O1.ildb.bc control-no-subroutine-O1.dxo
 2680 bytes written to control-no-subroutine-O1.ildb.bc
-$ dxopt -external C:\prj\DirectXShaderCompiler\build\Debug\bin\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
+$ dxopt -external <repo>\build\Debug\bin\dxcompiler.dll -external-fn DxcCreateInstance -o=control-no-subroutine-O1.annotated.bc control-no-subroutine-O1.ildb.bc -opt-mod-passes -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs
                                                       InstructionRange: 0 35 main as
 
 InstructionCount:35

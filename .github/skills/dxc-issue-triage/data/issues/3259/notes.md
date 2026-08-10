@@ -3,7 +3,7 @@
 **Verdict: `repros`. History: always-repro'd (v1.5.2010 → v1.9.2607, 19 releases).
 Repro quality: complete. Suggested action: still-valid-keep-open.**
 
-Ground truth: `main-debug`, `C:\prj\DirectXShaderCompiler\build\Debug\bin\dxc.exe`,
+Ground truth: `main-debug`, `<repo>\build\Debug\bin\dxc.exe`,
 commit `ab5400907`, version string verified before any measurement:
 
 ```

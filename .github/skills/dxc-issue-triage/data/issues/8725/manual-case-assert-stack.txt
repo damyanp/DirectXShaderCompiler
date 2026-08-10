@@ -28,7 +28,7 @@ CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 repro.hlsl
 
 Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
 File:
-C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+<repo>\tools\clang\lib\CodeGen\CGCall.cpp(2962)
 Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
 (be4.6cf4): Unknown exception - code e0000001 (first chance)
  # Child-SP          RetAddr               Call Site
@@ -91,7 +91,7 @@ CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 repro.hlsl
 
 Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
 File:
-C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+<repo>\tools\clang\lib\CodeGen\CGCall.cpp(2962)
 Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
 (1a88.3918): Unknown exception - code e0000001 (first chance)
  # Child-SP          RetAddr               Call Site
@@ -105,7 +105,7 @@ Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
 07 00000079`125854a0 00007ff8`2e69c050     dxcompiler!`anonymous namespace'::ScalarExprEmitter::VisitCallExpr+0xe8
 Error: assert(castIsValid(op, S, Ty) && "Invalid cast!")
 File:
-C:\prj\DirectXShaderCompiler\lib\IR\Instructions.cpp(2257)
+<repo>\lib\IR\Instructions.cpp(2257)
 Func:	llvm::CastInst::Create
 (1a88.3918): Unknown exception - code e0000001 (first chance)
  # Child-SP          RetAddr               Call Site
@@ -119,7 +119,7 @@ Func:	llvm::CastInst::Create
 07 00000079`125852a0 00007ff8`2e6a9138     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCallExpr+0x613
 Error: assert(castIsValid(getOpcode(), S, Ty) && "Illegal BitCast")
 File:
-C:\prj\DirectXShaderCompiler\lib\IR\Instructions.cpp(2942)
+<repo>\lib\IR\Instructions.cpp(2942)
 Func:	llvm::BitCastInst::BitCastInst
 (1a88.3918): Unknown exception - code e0000001 (first chance)
  # Child-SP          RetAddr               Call Site
@@ -133,7 +133,7 @@ Func:	llvm::BitCastInst::BitCastInst
 07 00000079`125841c0 00007ff8`2e6675e3     dxcompiler!clang::CodeGen::CodeGenFunction::EmitCall+0xf1c
 Error: assert(castIsValid(getOpcode(), S, Ty) && "Illegal BitCast")
 File:
-C:\prj\DirectXShaderCompiler\lib\IR\Instructions.cpp(2942)
+<repo>\lib\IR\Instructions.cpp(2942)
 Func:	llvm::BitCastInst::BitCastInst
 (1a88.3918): Unknown exception - code e0000001 (first chance)
  # Child-SP          RetAddr               Call Site
@@ -244,7 +244,7 @@ CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 variant-stat
 
 Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
 File:
-C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+<repo>\tools\clang\lib\CodeGen\CGCall.cpp(2962)
 Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
 (5690.3124): Unknown exception - code e0000001 (first chance)
  # Child-SP          RetAddr               Call Site
@@ -285,7 +285,7 @@ CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 variant-hito
 
 Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
 File:
-C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+<repo>\tools\clang\lib\CodeGen\CGCall.cpp(2962)
 Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
 (4154.62cc): Unknown exception - code e0000001 (first chance)
  # Child-SP          RetAddr               Call Site
@@ -326,7 +326,7 @@ CommandLine: "..\..\..\..\..\..\build\Debug\bin\dxc.exe" -T lib_6_9 -disable-pay
 
 Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
 File:
-C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+<repo>\tools\clang\lib\CodeGen\CGCall.cpp(2962)
 Func:	clang::CodeGen::CodeGenFunction::EmitCallArg
 (6f48.2c24): Unknown exception - code e0000001 (first chance)
  # Child-SP          RetAddr               Call Site

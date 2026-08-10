@@ -71,7 +71,7 @@ them. First assert (CASE 1):
 
 ```
 Error: assert(type->isReferenceType() == E->isGLValue() && "reference binding to unmaterialized r-value!")
-File:  C:\prj\DirectXShaderCompiler\tools\clang\lib\CodeGen\CGCall.cpp(2962)
+File:  <repo>\tools\clang\lib\CodeGen\CGCall.cpp(2962)
 Func:  clang::CodeGen::CodeGenFunction::EmitCallArg
 ```
 

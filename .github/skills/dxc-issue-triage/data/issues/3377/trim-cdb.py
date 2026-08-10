@@ -13,7 +13,10 @@ import sys
 KEEP = re.compile(
     r"^(###|CommandLine:|Error:\s|File:|Func:|\s+arg index|\s+#\s+Child-SP|"
     r"[0-9a-f]{2} [0-9a-f]{8}`|Last event:|\(\w+\.\w+\): |"
-    r"C:\\prj\\DirectXShaderCompiler\\lib\\|C:\\prj\\DirectXShaderCompiler\\include\\)"
+    # Match relative to the repo name, not an absolute path: this has to match
+    # a live cdb transcript on any machine, and an absolute prefix both leaks
+    # the author's layout and stops matching anywhere else.
+    r".*DirectXShaderCompiler\\(lib|include)\\)"
 )
 DROP = re.compile(r"^(ModLoad:|NatVis|\s*$|0:000> cdb: Reading|ntdll!LdrpDoDebuggerBreak)")
 

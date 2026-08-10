@@ -5,7 +5,7 @@
 # ran: 2026-08-07T05:03:57Z
 # verdict: unscored
 
-dxc: C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
+dxc: <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe
 dxc --version: 
 
 HARNESS CONTROLS
@@ -15,7 +15,7 @@ HARNESS CONTROLS
   compressible (repro.hlsl source)       3328   1323      0.398  <= 0.50  PASS
 
 COMMANDS RUN
-  $ C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe -T ps_6_0 -E main -O3 -Fo artifacts\corpus-small.v141907.cso corpus-small.hlsl   (and the same for the other two shaders)
+  $ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe -T ps_6_0 -E main -O3 -Fo artifacts\corpus-small.v141907.cso corpus-small.hlsl   (and the same for the other two shaders)
 
 PART BREAKDOWN -- v141907
   shader             part          bytes  deflated  ratio
@@ -39,7 +39,7 @@ PART BREAKDOWN -- v141907
   corpus-large.hlsl  DXIL          68700  33561     0.489
   corpus-large.hlsl  (whole file)  69232  33732     0.487
 
-dxc: C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
+dxc: <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe
 dxc --version: 
 
 HARNESS CONTROLS
@@ -49,7 +49,7 @@ HARNESS CONTROLS
   compressible (repro.hlsl source)       3328   1323      0.398  <= 0.50  PASS
 
 COMMANDS RUN
-  $ C:\prj\DirectXShaderCompiler\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe -T ps_6_0 -E main -O3 -Fo artifacts\corpus-small.v152010.cso corpus-small.hlsl   (and the same for the other two shaders)
+  $ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe -T ps_6_0 -E main -O3 -Fo artifacts\corpus-small.v152010.cso corpus-small.hlsl   (and the same for the other two shaders)
 
 PART BREAKDOWN -- v152010
   shader             part          bytes  deflated  ratio
