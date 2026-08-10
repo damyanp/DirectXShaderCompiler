@@ -251,7 +251,7 @@ for desc, pred, want in [
 # --- feature-absence diagnostics are invalid probes, not clean runs --------
 # Measured on #3038: v1.4.1907 predates DXR 1.1 and answers "use of undeclared
 # identifier 'RayQuery'". That is not evidence the bug was absent.
-_unsupported_re = r"(?i)invalid profile|unsupported profile|unrecognized (?:argument|option)|unknown argument|is not supported|requires shader model|CodeGen not available|recompile with -D|use of undeclared identifier|unknown type name|no member named|no matching function for call to"
+_unsupported_re = r"(?i)invalid profile|unsupported profile|unrecognized (?:argument|option)|unknown argument|unknown HLSL version|is not supported|requires shader model|CodeGen not available|recompile with -D|use of undeclared identifier|unknown type name|no member named|no matching function for call to"
 
 for desc, text, want in [
     ("undeclared identifier is an invalid probe",
@@ -261,6 +261,8 @@ for desc, text, want in [
     ("no matching function is an invalid probe",
      "error: no matching function for call to 'TraceRayInline'", True),
     ("invalid profile still detected", "error: invalid profile ps_6_7", True),
+    ("unknown HLSL version is an invalid probe",
+     "dxc failed : Unknown HLSL version: 2021", True),
     ("an ordinary syntax error is NOT an invalid probe",
      "error: expected ';' after expression", False),
     ("clean output is NOT an invalid probe", "; shader hash: abc", False),
@@ -285,11 +287,24 @@ for desc, line, want in [
 ]:
     check(desc, triage.retarget_cmd(line, "control.hlsl"), want)
 
+check("a source-less line in a command chain is preserved",
+      triage.retarget_cmd("-T ps_6_0 -E main -Zi preprocessed.i",
+                          "control.hlsl"),
+      "-T ps_6_0 -E main -Zi preprocessed.i")
+check("multi-invocation retargeting skips non-HLSL consumers",
+      triage.retarget_cmds(
+          ["-P repro.hlsl -Fi preprocessed.i",
+           "-T ps_6_0 -E main -Zi preprocessed.i"],
+          "control.hlsl"),
+      ["-P control.hlsl -Fi preprocessed.i",
+       "-T ps_6_0 -E main -Zi preprocessed.i"])
 try:
-    triage.retarget_cmd("-T cs_6_5 -E main", "control.hlsl")
-    check("refuses a command with no source", "no error", "SystemExit")
+    triage.retarget_cmds(["-T cs_6_5 -E main"], "control.hlsl")
+    check("a wholly source-less command list is still refused",
+          "no error", "SystemExit")
 except SystemExit:
-    check("refuses a command with no source", "SystemExit", "SystemExit")
+    check("a wholly source-less command list is still refused",
+          "SystemExit", "SystemExit")
 
 # A control's expected result is the whole point of running it, and it runs in
 # both directions: #3009's control must NOT match (a predicate firing on a
@@ -429,6 +444,15 @@ check("a release predating the intrinsic is still an invalid probe",
       triage.classify(1877, "error: use of undeclared identifier 'RayQuery'",
                       1, False),
       "invalid-probe")
+check("a release predating HLSL 2021 is an invalid probe",
+      triage.classify(1877, "dxc failed : Unknown HLSL version: 2021",
+                      1, False),
+      "invalid-probe")
+_write_pred({"kind": "contains", "value": "Unknown HLSL version: 2021"})
+check("an issue explicitly about that HLSL-version diagnostic is not demoted",
+      triage.classify(1877, "dxc failed : Unknown HLSL version: 2021",
+                      1, False),
+      "repro")
 _write_pred({"kind": "not_contains", "value": "fptosi"})
 check("an absence predicate satisfied by an early failure is still demoted",
       triage.classify(1877, "error: use of undeclared identifier 'RayQuery'",
@@ -472,6 +496,13 @@ check("explain defaults off, so callers keep getting a bare verdict",
 check("a clean verdict carries no reason",
       triage.classify(1877, "; shader hash: abc", 0, False, explain=True),
       ("no-repro", None))
+check("an unknown option warns that it may shorten the history range",
+      triage.invalid_option_range_warning(
+          "dxc failed : Unknown argument: '-Wno-parentheses-equality'")
+      is not None, True)
+check("a profile rejection does not trigger the unrelated-option warning",
+      triage.invalid_option_range_warning("error: invalid profile ps_9_9"),
+      None)
 
 _reasoned = _os.path.join(_tmp, "out-reason-test.txt")
 with open(_reasoned, "w", encoding="utf-8") as fh:
@@ -509,6 +540,59 @@ for desc, line, want in [
     with open(_os.path.join(_ce, "cmd.txt"), "w") as fh:
         fh.write(line + "\n")
     check(desc, triage.ce_args(0)[0], want)
+with open(_os.path.join(_ce, "cmd.txt"), "w") as fh:
+    fh.write("-T vs_6_0 -E VS repro.hlsl\n")
+    fh.write("-T ps_6_0 -E PS repro.hlsl\n")
+check("ce_args keeps its legacy two-value return",
+      len(triage.ce_args(0)), 2)
+check("ce_args reports how many invocations it found",
+      triage.ce_args(0, include_count=True)[2], 2)
+try:
+    triage.ce_compiler_specs(
+        "dxc_trunk,dxc_1_6_2112", "-T vs_6_0 -E VS",
+        "cmd.txt has 2 invocations")
+    check("multi-invocation CE links require explicit pane arguments",
+          "no error", "SystemExit")
+except SystemExit:
+    check("multi-invocation CE links require explicit pane arguments",
+          "SystemExit", "SystemExit")
+check("explicit pane arguments make a multi-invocation CE link unambiguous",
+      triage.ce_compiler_specs(
+          "dxc_trunk:-T vs_6_0 -E VS,dxc_1_6_2112:-T ps_6_0 -E PS",
+          "-T ignored", "cmd.txt has 2 invocations"),
+      [("dxc_trunk", "-T vs_6_0 -E VS"),
+       ("dxc_1_6_2112", "-T ps_6_0 -E PS")])
+
+_verify_dir = _tf.mkdtemp()
+_latest, _archived = triage.write_godbolt_verify(_verify_dir, "first panes\n")
+check("the first CE verification needs no archive", _archived, None)
+_latest, _archived = triage.write_godbolt_verify(_verify_dir, "second panes\n")
+check("a later CE run archives the previous full pane output",
+      _archived is not None and
+      open(_archived, encoding="utf-8").read() == "first panes\n", True)
+check("the canonical CE verification is the latest run",
+      open(_latest, encoding="utf-8").read(), "second panes\n")
+_before = sorted(_os.listdir(_verify_dir))
+triage.write_godbolt_verify(_verify_dir, "second panes\n")
+check("rerunning identical CE panes creates no duplicate archive",
+      sorted(_os.listdir(_verify_dir)), _before)
+
+try:
+    triage.reject_windows_dash_fc(
+        ["-T cs_6_0 -E main -Fc - repro.hlsl"], platform="nt")
+    check("Windows -Fc dash is refused before it can fake empty stdout",
+          "no error", "SystemExit")
+except SystemExit:
+    check("Windows -Fc dash is refused before it can fake empty stdout",
+          "SystemExit", "SystemExit")
+check("a real Windows -Fc filename remains valid",
+      triage.reject_windows_dash_fc(
+          ["-T cs_6_0 -E main -Fc out.ll repro.hlsl"], platform="nt"),
+      None)
+check("the CE/Linux -Fc dash convention remains available",
+      triage.reject_windows_dash_fc(
+          ["-T cs_6_0 -E main -Fc - repro.hlsl"], platform="posix"),
+      None)
 triage.issue_dir = lambda n: _tmp
 _write_pred({"kind": "contains", "value": "never appears in this text"})
 

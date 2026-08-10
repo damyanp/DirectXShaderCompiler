@@ -1,0 +1,22 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "cbAlpha"
+    },
+    {
+      "kind": "contains",
+      "value": "!\"POSITION\""
+    },
+    {
+      "kind": "not_regex",
+      "value": "\\bmPos\\b"
+    },
+    {
+      "kind": "not_regex",
+      "value": "\\bmColor\\b"
+    }
+  ],
+  "note": "The symptom is that an HLSL identifier cannot be recovered from reflection, which is an absence claim, so both of SKILL.md's absence traps are closed inside the predicate rather than in prose. Clause 3 and clause 4 are the symptom: the member names of the struct used as the vertex shader's input parameter (`mPos`, `mColor`) appear nowhere in dxc's output. Clause 1 is the in-run SELF-TEST: `cbAlpha` is a member of a struct reached through a constant buffer in the same shader and the same container, and without -Zi the only route by which that string can reach dxc's output is the reflection-derived `; Buffer Definitions:` block -- so a build (or a future change) that stopped rendering HLSL member names at all scores no-match instead of manufacturing a clean absence. `variant-stripreflect-*` (--expect no-match) demonstrates that clause 1 is live: with -Qstrip_reflect the reflection part is gone, `cbAlpha` disappears, and the predicate stops matching even though the shader is unchanged. Clause 2 is the positive anchor required by SKILL.md for absence predicates: `!\"POSITION\"` is a metadata string inside the emitted !dx.entryPoints input signature, so a compile that failed, or that never got as far as building an input signature from the struct, cannot satisfy it -- and it also proves the struct's fields really were processed into signature elements, which is what makes the absence of their names meaningful rather than vacuous. Two controls prove clauses 3 and 4 can fail. control-cb-echo.hlsl (--expect no-match) puts the very same identifiers `mPos`/`mColor` in a constant-buffer struct instead of the input signature: reflection carries them, dxc prints them, and the predicate correctly stops matching -- the one-variable contrast that shows the loss belongs to the signature path. `variant-debuginfo-*` (--expect no-match) recompiles the identical source with -Zi -Qembed_debug, which embeds the source text and DW_TAG_member debug info, so the same tokens appear for a reason unrelated to reflection; this is also why a Compiler Explorer pane cannot be searched for these identifiers, since CE appends -Zi -Qembed_debug to every DXC pane. control-flat-params.hlsl (--expect match) is the identity control: the same entry point with flat named parameters instead of a struct must give the same answer, because the finding is that reflection records no source-level name for a signature element, not that structs specifically are mishandled. Note what this predicate does NOT test: it measures the data the container carries, which is what any reflection API could return, not the API surface itself. That half -- that D3D12_SIGNATURE_PARAMETER_DESC has no name field and that no ID3D12ShaderReflection call reaches an input parameter's type -- is established from d3d12shader.h and lib/HLSL/DxilContainerReflection.cpp, and shown observationally by the full ID3D12ShaderReflection walk in manual-case-witnesses.txt section 2."
+}

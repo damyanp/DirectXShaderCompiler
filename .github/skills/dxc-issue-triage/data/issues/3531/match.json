@@ -1,0 +1,11 @@
+{
+  "kind": "all_of",
+  "note": "Issue 3531: a resource declared as a LOCAL variable and initialised from ResourceDescriptorHeap gets no debug-info metadata naming it. The finding is an ABSENCE, so four positive clauses guard it and only the fifth is the symptom. (1) createHandleFromHeap proves the compile reached DXIL codegen and really used the descriptor heap - a failed or rejected compile cannot emit it. (2) the declaration under test, read back out of the -Zi embedded source in !dx.source.contents, proves this run compiled a shader that actually declares the local dynamic resource; without it the absence clause is vacuously true for any shader that never mentions the name (SKILL.md, #8732). (3) a DILocalVariable for the ordinary local 'val' proves local-variable debug info IS being emitted in this same run. (4) a DIGlobalVariable for 'DynamicBuffer' proves debug info for a DYNAMIC resource IS emitted in this same run when it is a global - so clauses 3 and 4 together pin the gap to exactly local x dynamic. (5) the symptom: no DILocalVariable and no DIGlobalVariable names the local dynamic resource. The absence is deliberately anchored on the metadata form and NOT on the bare identifier, because -Zi embeds the shader source into !dx.source.contents and the identifier therefore appears in every run. Control control-name-selftest.hlsl gives a non-resource local the same name and must score no-match, proving clause 5 can fail.",
+  "value": [
+    { "kind": "regex", "value": "@dx\\.op\\.createHandleFromHeap" },
+    { "kind": "regex", "value": "RWByteAddressBuffer DynamicallyIndexedDynamicBuffer = ResourceDescriptorHeap" },
+    { "kind": "regex", "value": "!DILocalVariable\\([^\\n]*name: \"val\"" },
+    { "kind": "regex", "value": "!DIGlobalVariable\\([^\\n]*name: \"DynamicBuffer\"" },
+    { "kind": "not_regex", "value": "!DI(Local|Global)Variable\\([^\\n]*name: \"DynamicallyIndexedDynamicBuffer\"" }
+  ]
+}

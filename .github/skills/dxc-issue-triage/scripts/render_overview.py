@@ -27,6 +27,16 @@ OUT = os.path.join(ROOT, "reports", "overview.md")
 
 REPO = "https://github.com/microsoft/DirectXShaderCompiler"
 
+# These were deliberately selected outside the oldest-100 sweep. Keeping the
+# exception set explicit prevents a recent issue from silently changing that
+# progress figure.
+NON_OLDEST_SWEEP = {5293, 8527, 8725, 8732, 8737}
+
+RECENT_ACTIVITY = {
+    5293: ("New external report on 2026-08-10: Release crash and Debug assert; "
+           "the thread is actively watched."),
+}
+
 # (key, heading, why it sits here). Order is the report order.
 TIERS = [
     ("close-fixed", "Ready to close",
@@ -95,6 +105,10 @@ def action_rank(row):
     return (score, row["number"])
 
 
+def activity_flag(number):
+    return " 🔔" if number in RECENT_ACTIVITY else ""
+
+
 def esc(text):
     """Keep a summary on one line and inside its table cell."""
     return " ".join((text or "").split()).replace("|", "\\|")
@@ -133,6 +147,21 @@ def main():
       f"{len(batches)} batches ({', '.join(batches)}). "
       "Ordered by what a maintainer can act on, most actionable first.")
     w("")
+    exceptions = sorted(
+        (r for r in rows if r["number"] in NON_OLDEST_SWEEP),
+        key=lambda r: r["number"])
+    w(f"**Oldest-100 progress: {len(rows) - len(exceptions)}/100.** "
+      f"{len(exceptions)} deliberately selected issues are counted separately: "
+      + ", ".join(f"[#{r['number']}]({REPO}/issues/{r['number']})"
+                  for r in exceptions)
+      + ".")
+    w("")
+    for r in sorted((r for r in rows if r["number"] in RECENT_ACTIVITY),
+                    key=lambda r: r["number"]):
+        w(f"> 🔔 **Recent activity — [#{r['number']}]"
+          f"({REPO}/issues/{r['number']}):** "
+          f"{RECENT_ACTIVITY[r['number']]}")
+        w("")
     w("Nothing here has been applied. No issue has been edited, commented on, "
       "closed or relabelled; every recommendation is a proposal, and every "
       "draft comment is unposted.")
@@ -178,6 +207,7 @@ def main():
         w("| --- | --- | --- | --- | --- | --- | --- | --- |")
         for r in got:
             flag = " ⚠️" if r["text_stale"] else ""
+            flag += activity_flag(r["number"])
             w("| [#{n}]({repo}/issues/{n}) | {t}{flag} | {st} | {h} | {c} "
               "| {q} | {ce} | {art} |".format(
                   n=r["number"], repo=REPO, t=esc(r["title"]) or "—",
@@ -195,6 +225,10 @@ def main():
               + (f" · reviewed by `{r['reviewed_by']}`"
                  if r["reviewed_by"] else "") + "</sub>")
             w("")
+            if r["number"] in RECENT_ACTIVITY:
+                w(f"> 🔔 **Recent activity.** "
+                  f"{RECENT_ACTIVITY[r['number']]}")
+                w("")
             if r["summary"]:
                 w(esc(r["summary"]))
                 w("")

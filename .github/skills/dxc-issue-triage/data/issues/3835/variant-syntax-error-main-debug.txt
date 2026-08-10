@@ -1,0 +1,30 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T05:16:14+00:00
+# cmd: control-syntax-error.hlsl -T vs_5_0 -E vert_main -Wno-parentheses-equality -Zi -Qembed_debug
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: syntax-error (control-syntax-error.hlsl)
+# expect: no-match
+
+$ dxc control-syntax-error.hlsl -T vs_5_0 -E vert_main -Wno-parentheses-equality -Zi -Qembed_debug
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+warning: Promoting older shader model profile to 6.0 version.
+control-syntax-error.hlsl:14:1: error: expected ')'
+}
+^
+control-syntax-error.hlsl:13:18: note: to match this '('
+    return float4(vertexinput.a_pos2, 0.0, 1.0
+                 ^
+control-syntax-error.hlsl:13:47: error: expected ';' after return statement
+    return float4(vertexinput.a_pos2, 0.0, 1.0
+                                              ^
+                                              ;
+
+

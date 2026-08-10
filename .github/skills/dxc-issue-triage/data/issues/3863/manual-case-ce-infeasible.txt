@@ -1,0 +1,34 @@
+compiler explorer: https://godbolt.org, compiler id dxc_trunk
+note: CE appends -Zi -Qembed_debug -Fc - to every DXC pane, so the
+      arguments below are not the whole command line.
+
+== 1  no #include, compile +-H
+   userArguments: -T ps_6_0 -E main -H
+   exit=0 crashed=False  contains 'Opening file ['=False
+   | ;
+   | ; Input signature:
+   | ;
+   | ; Name                 Index   Mask Register SysValue  Format   Used
+   | ; -------------------- ----- ------ -------- -------- ------- ------
+   | ; no parameters
+
+== 2  #include, compile +-H
+   userArguments: -T ps_6_0 -E main -H
+   exit=5 crashed=False  contains 'Opening file ['=False
+   | <source>:1:10: fatal error: 'inc-pp-a.h' file not found
+   | #include "inc-pp-a.h"
+   |          ^
+   | <Compilation failed>
+
+== 3  #include, -P -Fi out.i -H
+   userArguments: -T ps_6_0 -E main -P -Fi out.i -H
+   exit=0 crashed=False  contains 'Opening file ['=False
+   | <source>:1:10: fatal error: 'inc-pp-a.h' file not found
+   | #include "inc-pp-a.h"
+   |          ^
+   | <No output file>
+
+conclusion inputs
+  case 1 produced an include trace with no headers: False
+  case 2 (pane tried to #include its own header) resolved it: False
+  case 3 (-P with -H) produced a trace: False

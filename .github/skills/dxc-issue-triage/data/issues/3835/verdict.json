@@ -1,0 +1,21 @@
+{
+  "batch": "batch-013",
+  "confidence": "high",
+  "created_at": "2021-06-17T09:27:36Z",
+  "godbolt_url": "https://godbolt.org/z/aYedzh96v",
+  "history": "always-repro'd across all 20 bisectable stable releases v1.4.1907..v1.9.2607 (linear sweep, no invalid probes); earliest reproduction predates the 2021-06 report by two years",
+  "labels": "bug,crash,incorrect-code",
+  "labels_add": "correctness, fxc-disagrees, hlsl-next",
+  "notes_path": "issues/3835/notes.md",
+  "number": 3835,
+  "repro_quality": "complete",
+  "reviewed_by": "gemini-3.1-pro-preview",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Crashes in clang CodeGen, not in DXIL validation despite the title. An incomplete array type initialised by array assignment (float x[] = s.arr) reaches EmitAutoVarAlloca uncompleted and trips assert(!isIncompleteType()) in isConstantSizeType; with asserts compiled out the same input null-derefs in ConvertScalarOrVector/AddMissingCastOpsInInitList, which is the reported access violation (proved by stepping past the asserts in the debug binary). Second shape: the 5-line minimal repro does not crash on release builds but silently emits an empty entry point on all 20 releases, and as a compute restatement produces undef UAV stores that DXC own validator rejects. FXC compiles the filed shader and generates correct code; Clang HLSL front end rejects it with array initializer must be an initializer list on exactly the crashing lines. Predicate is internal_failure keyed on exit status, not message: 0xE0000001 on the debug build, 0xC0000005 on releases, one of them empty-stderr, so any message-based predicate would invent a fix boundary.",
+  "title": "Internal compiler error on shader validation",
+  "triaged_at": "2026-08-10T16:27:35+00:00",
+  "triaged_by": "claude-opus-4.5 (GitHub Copilot CLI 1.0.79-2)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3835"
+}

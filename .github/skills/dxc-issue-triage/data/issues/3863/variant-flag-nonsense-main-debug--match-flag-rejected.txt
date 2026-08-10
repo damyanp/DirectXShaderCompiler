@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T14:14:19+00:00
+# cmd: -P repro.hlsl -Fi flag-probe.i -ZZZNONSENSE3863
+# exit: 1
+# timed_out: 0
+# match: match-flag-rejected.json
+# verdict: repro
+# variant: flag-nonsense (repro.hlsl)
+# expect: match
+
+$ dxc -P repro.hlsl -Fi flag-probe.i -ZZZNONSENSE3863
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-ZZZNONSENSE3863'
+

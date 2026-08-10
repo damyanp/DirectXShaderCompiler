@@ -1,0 +1,306 @@
+3535 ground-truth witnesses: what reflection carries for a struct used as a VS input
+====================================================================================
+
+compiler: main-debug (see .cache/compilers/main-debug.json); the binary
+self-reports a fork-local commit, cite 13730886e.
+
+$ <repo>\build\Debug\bin\dxc.exe --version
+[exit] 0
+    dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+
+------------------------------------------------------------------------
+1. The whole ID3D12ShaderReflection surface for the repro
+------------------------------------------------------------------------
+dxa -dumpreflection walks ID3D12ShaderReflection through DXC's own
+D3DReflectionDumper and prints every field of every descriptor it can
+reach. This is the answer to 'what can an application actually ask for'.
+
+$ <repo>\build\Debug\bin\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\repro.dxo repro.hlsl
+[exit] 0
+[check] PASS  repro compiled
+$ <repo>\build\Debug\bin\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\repro.dxo
+[exit] 0
+
+    ID3D12ShaderReflection:
+      D3D12_SHADER_DESC:
+        Shader Version: Vertex 6.0
+        Creator: dxc(private) 1.9.0.5433 (triage, ab5400907)
+        Flags: 0
+        ConstantBuffers: 1
+        BoundResources: 1
+        InputParameters: 2
+        OutputParameters: 2
+        InstructionCount: 29
+        TempArrayCount: 0
+        DynamicFlowControlCount: 0
+        ArrayInstructionCount: 0
+        TextureNormalInstructions: 0
+        TextureLoadInstructions: 0
+        TextureCompInstructions: 0
+        TextureBiasInstructions: 0
+        TextureGradientInstructions: 0
+        FloatInstructionCount: 6
+        IntInstructionCount: 0
+        UintInstructionCount: 0
+        CutInstructionCount: 0
+        EmitInstructionCount: 0
+        cBarrierInstructions: 0
+        cInterlockedInstructions: 0
+        cTextureStoreInstructions: 0
+      InputParameter Elements: 2
+        D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: POSITION SemanticIndex: 0
+          Register: 0
+          SystemValueType: D3D_NAME_UNDEFINED
+          ComponentType: D3D_REGISTER_COMPONENT_FLOAT32
+          Mask: xyz- (7)
+          ReadWriteMask: xyz- (7) (AlwaysReads/NeverWrites)
+          Stream: 0
+          MinPrecision: D3D_MIN_PRECISION_DEFAULT
+        D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: COLOR SemanticIndex: 0
+          Register: 1
+          SystemValueType: D3D_NAME_UNDEFINED
+          ComponentType: D3D_REGISTER_COMPONENT_FLOAT32
+          Mask: xyz- (7)
+          ReadWriteMask: xyz- (7) (AlwaysReads/NeverWrites)
+          Stream: 0
+          MinPrecision: D3D_MIN_PRECISION_DEFAULT
+      OutputParameter Elements: 2
+        D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: SV_POSITION SemanticIndex: 0
+          Register: 0
+          SystemValueType: D3D_NAME_POSITION
+          ComponentType: D3D_REGISTER_COMPONENT_FLOAT32
+          Mask: xyzw (15)
+          ReadWriteMask: ---- (0) (AlwaysReads/NeverWrites)
+          Stream: 0
+          MinPrecision: D3D_MIN_PRECISION_DEFAULT
+        D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: COLOR SemanticIndex: 0
+          Register: 1
+          SystemValueType: D3D_NAME_UNDEFINED
+          ComponentType: D3D_REGISTER_COMPONENT_FLOAT32
+          Mask: xyz- (7)
+          ReadWriteMask: ---w (8) (AlwaysReads/NeverWrites)
+          Stream: 0
+          MinPrecision: D3D_MIN_PRECISION_DEFAULT
+      Constant Buffers:
+        ID3D12ShaderReflectionConstantBuffer:
+          D3D12_SHADER_BUFFER_DESC: Name: Params
+            Type: D3D_CT_CBUFFER
+            Size: 32
+            uFlags: 0
+            Num Variables: 1
+          {
+            ID3D12ShaderReflectionVariable:
+              D3D12_SHADER_VARIABLE_DESC: Name: gParams
+                Size: 28
+                StartOffset: 0
+                uFlags: (D3D_SVF_USED)
+                DefaultValue: <nullptr>
+              ID3D12ShaderReflectionType:
+                D3D12_SHADER_TYPE_DESC: Name: CbStruct
+                  Class: D3D_SVC_STRUCT
+                  Type: D3D_SVT_VOID
+                  Elements: 0
+                  Rows: 1
+                  Columns: 6
+                  Members: 2
+                  Offset: 0
+                {
+                  ID3D12ShaderReflectionType:
+                    D3D12_SHADER_TYPE_DESC: Name: float3
+                      Class: D3D_SVC_VECTOR
+                      Type: D3D_SVT_FLOAT
+                      Elements: 0
+                      Rows: 1
+                      Columns: 3
+                      Members: 0
+                      Offset: 0
+                  ID3D12ShaderReflectionType:
+                    D3D12_SHADER_TYPE_DESC: Name: float3
+                      Class: D3D_SVC_VECTOR
+                      Type: D3D_SVT_FLOAT
+                      Elements: 0
+                      Rows: 1
+                      Columns: 3
+                      Members: 0
+                      Offset: 16
+                }
+              CBuffer: Params
+          }
+      Bound Resources:
+        D3D12_SHADER_INPUT_BIND_DESC: Name: Params
+          Type: D3D_SIT_CBUFFER
+          uID: 0
+          BindCount: 1
+          BindPoint: 0
+          Space: 0
+          ReturnType: <unknown: 0>
+          Dimension: D3D_SRV_DIMENSION_UNKNOWN
+          NumSamples (or stride): 0
+          uFlags: (D3D_SIF_USERPACKED)
+
+[check] PASS  the walk reached input parameters
+[check] PASS  the walk reached constant-buffer type reflection (self-test: the instrument does read type information)
+[check] PASS  no input-struct member name anywhere in the reflection walk
+------------------------------------------------------------------------
+2. The member names dxc prints come from the reflection part
+------------------------------------------------------------------------
+Three measurements. (a) A default compile prints the cbuffer struct's
+HLSL field names, though the DXIL module it prints has no
+!dx.typeAnnotations to hold them. (b) Disassembling the container with
+-dumpbin prints them too. (c) -Qstrip_reflect removes the reflection
+part and they disappear. So the names are rendered from reflection data.
+
+$ <repo>\build\Debug\bin\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+(a) default compile:
+    ;           float3 cbAlpha;                           ; Offset:    0
+[check] PASS  (a) cbuffer field name printed
+[check] PASS  (a) module carries no !dx.typeAnnotations to print it from
+
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\repro.dxo
+[exit] 0
+(b) -dumpbin of the same container:
+    ;           float3 cbAlpha;                           ; Offset:    0
+[check] PASS  (b) container disassembly prints the field name
+
+$ <repo>\build\Debug\bin\dxc.exe -T vs_6_0 -E VS -Qstrip_reflect -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\stripped.dxo repro.hlsl
+[exit] 0
+$ <repo>\build\Debug\bin\dxa.exe -listparts <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\repro.dxo
+[exit] 0
+    Part count: 7
+    #0 - SFI0 (8 bytes)
+    #1 - ISG1 (88 bytes)
+    #2 - OSG1 (92 bytes)
+    #3 - PSV0 (232 bytes)
+    #4 - STAT (1580 bytes)
+    #5 - HASH (20 bytes)
+    #6 - DXIL (1668 bytes)
+$ <repo>\build\Debug\bin\dxa.exe -listparts <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\stripped.dxo
+[exit] 0
+    Part count: 6
+    #0 - SFI0 (8 bytes)
+    #1 - ISG1 (88 bytes)
+    #2 - OSG1 (92 bytes)
+    #3 - PSV0 (232 bytes)
+    #4 - HASH (20 bytes)
+    #5 - DXIL (1668 bytes)
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\stripped.dxo
+[exit] 0
+[check] PASS  (c) STAT present when reflection is kept
+[check] PASS  (c) STAT gone with -Qstrip_reflect
+[check] PASS  (c) field name gone with the reflection part
+[check] PASS  (c) the shader is otherwise unchanged: buffer-definitions block still emitted
+------------------------------------------------------------------------
+3. The front end holds the field name and the semantic together
+------------------------------------------------------------------------
+-fcgl stops before DXIL lowering. Tag 6 is
+kDxilFieldAnnotationFieldNameTag and tag 4 is
+kDxilFieldAnnotationSemanticStringTag
+(include/dxc/DXIL/DxilMetadataHelper.h:247,249), so one annotation
+carries both halves of the mapping the reporter is asking for.
+
+$ <repo>\build\Debug\bin\dxc.exe -T vs_6_0 -E VS -fcgl repro.hlsl
+[exit] 0
+    !6 = !{i32 0, %struct.CbStruct undef, !7, %struct.VertexOut undef, !10, %struct.VertexIn undef, !13, %Params undef, !16}
+    !8 = !{i32 6, !"cbAlpha", i32 3, i32 0, i32 7, i32 9}
+    !14 = !{i32 6, !"mPos", i32 3, i32 0, i32 4, !"POSITION", i32 7, i32 9}
+    !15 = !{i32 6, !"mColor", i32 3, i32 16, i32 4, !"COLOR", i32 7, i32 9}
+[check] PASS  field name and semantic appear in one annotation before lowering
+------------------------------------------------------------------------
+4. What survives into reflection metadata after lowering
+------------------------------------------------------------------------
+-Qkeep_reflect_in_dxil keeps the reflection metadata in the DXIL part so
+it can be read directly. The constant-buffer struct is annotated; the
+input struct has no annotation at all, and its type is gone.
+
+$ <repo>\build\Debug\bin\dxc.exe -T vs_6_0 -E VS -Qkeep_reflect_in_dxil repro.hlsl
+[exit] 0
+    %struct.CbStruct = type { <3 x float>, <3 x float> }
+    !dx.typeAnnotations = !{!7, !13}
+    !7 = !{i32 0, %struct.CbStruct undef, !8, %Params undef, !11}
+    !9 = !{i32 6, !"cbAlpha", i32 3, i32 0, i32 7, i32 9}
+[check] PASS  reflection metadata is present to inspect
+[check] PASS  cbuffer struct is annotated with its field names
+[check] PASS  input struct has no field-name annotation
+[check] PASS  input struct type is not even declared in the module
+------------------------------------------------------------------------
+5. The names do survive in debug info
+------------------------------------------------------------------------
+-Zi keeps DWARF-style member metadata. This is not reflection and is not
+reachable through ID3D12ShaderReflection, but it does mean the names
+still exist in a -Zi build's debug module. It is also why a Compiler
+Explorer pane cannot be searched for these identifiers: CE appends
+-Zi -Qembed_debug to every DXC pane.
+
+$ <repo>\build\Debug\bin\dxc.exe -T vs_6_0 -E VS -Zi -Qembed_debug repro.hlsl
+[exit] 0
+    !32 = !DICompositeType(tag: DW_TAG_structure_type, name: "VertexIn", file: !1, line: 31, size: 192, align: 32, elements: !33)
+    !34 = !DIDerivedType(tag: DW_TAG_member, name: "mPos", scope: !32, file: !1, line: 32, baseType: !24, size: 96, align: 32)
+    !35 = !DIDerivedType(tag: DW_TAG_member, name: "mColor", scope: !32, file: !1, line: 33, baseType: !24, size: 96, align: 32, offset: 96)
+[check] PASS  debug info names the struct members
+------------------------------------------------------------------------
+6. D3D12_SIGNATURE_PARAMETER_DESC is the whole of what a signature
+   element can report, and no call reaches a type from one
+------------------------------------------------------------------------
+Quoted from the header this build compiles against.
+
+    external/DirectX-Headers/include/directx/d3d12shader.h
+    typedef struct _D3D12_SIGNATURE_PARAMETER_DESC
+    {
+        LPCSTR                      SemanticName;   // Name of the semantic
+        UINT                        SemanticIndex;  // Index of the semantic
+        UINT                        Register;       // Number of member variables
+        D3D_NAME                    SystemValueType;// A predefined system value, or D3D_NAME_UNDEFINED if not applicable
+        D3D_REGISTER_COMPONENT_TYPE ComponentType;  // Scalar type (e.g. uint, float, etc.)
+        BYTE                        Mask;           // Mask to indicate which components of the register
+                                                    // are used (combination of D3D10_COMPONENT_MASK values)
+        BYTE                        ReadWriteMask;  // Mask to indicate whether a given component is
+                                                    // never written (if this is an output signature) or
+                                                    // always read (if this is an input signature).
+                                                    // (combination of D3D_MASK_* values)
+        UINT                        Stream;         // Stream index
+        D3D_MIN_PRECISION           MinPrecision;   // Minimum desired interpolation precision
+    } D3D12_SIGNATURE_PARAMETER_DESC;
+[check] PASS  SemanticName is the only string in the descriptor
+
+And there is no indirect route either. ID3D12ShaderReflectionType is
+the only interface that can name a struct's members
+(GetMemberTypeName), and the whole of ID3D12ShaderReflection is:
+
+    STDMETHOD(QueryInterface)(THIS_ _In_ REFIID iid,
+    STDMETHOD_(ULONG, AddRef)(THIS) PURE;
+    STDMETHOD_(ULONG, Release)(THIS) PURE;
+    STDMETHOD(GetDesc)(THIS_ _Out_ D3D12_SHADER_DESC *pDesc) PURE;
+    STDMETHOD_(ID3D12ShaderReflectionConstantBuffer*, GetConstantBufferByIndex)(THIS_ _In_ UINT Index) PURE;
+    STDMETHOD_(ID3D12ShaderReflectionConstantBuffer*, GetConstantBufferByName)(THIS_ _In_ LPCSTR Name) PURE;
+    STDMETHOD(GetResourceBindingDesc)(THIS_ _In_ UINT ResourceIndex,
+    STDMETHOD(GetInputParameterDesc)(THIS_ _In_ UINT ParameterIndex,
+    STDMETHOD(GetOutputParameterDesc)(THIS_ _In_ UINT ParameterIndex,
+    STDMETHOD(GetPatchConstantParameterDesc)(THIS_ _In_ UINT ParameterIndex,
+    STDMETHOD_(ID3D12ShaderReflectionVariable*, GetVariableByName)(THIS_ _In_ LPCSTR Name) PURE;
+    STDMETHOD(GetResourceBindingDescByName)(THIS_ _In_ LPCSTR Name,
+    STDMETHOD_(UINT, GetMovInstructionCount)(THIS) PURE;
+    STDMETHOD_(UINT, GetMovcInstructionCount)(THIS) PURE;
+    STDMETHOD_(UINT, GetConversionInstructionCount)(THIS) PURE;
+    STDMETHOD_(UINT, GetBitwiseInstructionCount)(THIS) PURE;
+    STDMETHOD_(D3D_PRIMITIVE, GetGSInputPrimitive)(THIS) PURE;
+    STDMETHOD_(BOOL, IsSampleFrequencyShader)(THIS) PURE;
+    STDMETHOD_(UINT, GetNumInterfaceSlots)(THIS) PURE;
+    STDMETHOD(GetMinFeatureLevel)(THIS_ _Out_ enum D3D_FEATURE_LEVEL* pLevel) PURE;
+    STDMETHOD_(UINT, GetThreadGroupSize)(THIS_
+    STDMETHOD_(UINT64, GetRequiresFlags)(THIS) PURE;
+
+Only GetConstantBufferByIndex/ByName and GetVariableByName lead to a
+type object. Nothing accepts a signature parameter index and returns
+one, so GetMemberTypeName cannot be called for an input struct at all.
+This is a COM vtable, so it is fixed for every version of the API.
+[check] PASS  no method maps a signature parameter to a reflection type
+[check] PASS  the only routes to a type object are the two cbuffer accessors and GetVariableByName
+
+Note what this means for the instrument in section 1:
+D3DReflectionDumper never calls GetMemberTypeName, so the absence of a
+member name from that dump is on its own ambiguous. The dump settles
+that no *other* printed descriptor field carries the identifier; this
+section is what settles that no reachable call could return it.
+
+all self-checks passed

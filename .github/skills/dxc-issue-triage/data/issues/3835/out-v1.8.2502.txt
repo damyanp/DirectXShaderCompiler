@@ -1,0 +1,18 @@
+# compiler: v1.8.2502
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe
+# ran: 2026-08-10T14:10:25+00:00
+# cmd: repro.hlsl -T vs_5_0 -E vert_main -Zi -Qembed_debug
+# exit: 3221225477
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc repro.hlsl -T vs_5_0 -E vert_main -Zi -Qembed_debug
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe
+[exit] 3221225477
+--- stdout ---
+
+--- stderr ---
+warning: Promoting older shader model profile to 6.0 version.
+Internal compiler error: access violation. Attempted to read from address 0x0000000000000008
+

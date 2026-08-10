@@ -1,0 +1,60 @@
+issue 3863 -- did `-H` ever print an include trace under `-P`?
+linear sweep of every stable (non-prerelease) release, oldest first,
+plus the ground-truth build. Prereleases are excluded by policy: the
+issue text names none.
+
+release         -P   compile   -P ran    -P +-H   -P +-Vi  compile   -P    
+                gram +-H CTRL  (pp'd ok) trace    trace    +-M       +-M   
+---------------------------------------------------------------------------
+v1.4.1907       old  yes       yes       no       no       rejected  rejctd
+v1.5.2010       old  yes       yes       no       no       rejected  rejctd
+v1.6.2104       old  yes       yes       no       no       rejected  rejctd
+v1.6.2106       old  yes       yes       no       no       rejected  rejctd
+v1.6.2112       old  yes       yes       no       no       rejected  rejctd
+v1.7.2207       old  yes       yes       no       no       yes       no    
+v1.7.2212       new  yes       yes       no       no       yes       no    
+v1.7.2212.1     new  yes       yes       no       no       yes       no    
+v1.7.2308       new  yes       yes       no       no       yes       no    
+v1.8.2403       new  yes       yes       no       no       yes       no    
+v1.8.2403.1     new  yes       yes       no       no       yes       no    
+v1.8.2403.2     new  yes       yes       no       no       yes       no    
+v1.8.2405       new  yes       yes       no       no       yes       no    
+v1.8.2407       new  yes       yes       no       no       yes       no    
+v1.8.2502       new  yes       yes       no       no       yes       no    
+v1.8.2505       new  yes       yes       no       no       yes       no    
+v1.8.2505.1     new  yes       yes       no       no       yes       no    
+v1.9.2602       new  yes       yes       no       no       yes       no    
+v1.9.2602.24    new  yes       yes       no       no       yes       no    
+v1.9.2607       new  yes       yes       no       no       yes       no    
+main-debug      new  yes       yes       no       no       yes       no    
+
+releases whose positive control fired AND which really preprocessed: 21 of 21
+of those, releases printing an include trace under -P with -H:  0
+of those, releases printing an include trace under -P with -Vi: 0
+any release rejected -H/-Vi as an unknown argument under -P:    False
+first release where -M lists dependencies on a normal compile:  v1.7.2207
+any release where -M lists dependencies under -P:               none
+any probe mutated its own input evidence:                       False
+
+verbatim: what `-P ... -H` said, per release
+  v1.4.1907       exit=0   (no output at all)
+  v1.5.2010       exit=0   (no output at all)
+  v1.6.2104       exit=0   (no output at all)
+  v1.6.2106       exit=0   (no output at all)
+  v1.6.2112       exit=0   (no output at all)
+  v1.7.2207       exit=0   (no output at all)
+  v1.7.2212       exit=0   (no output at all)
+  v1.7.2212.1     exit=0   (no output at all)
+  v1.7.2308       exit=0   (no output at all)
+  v1.8.2403       exit=0   (no output at all)
+  v1.8.2403.1     exit=0   (no output at all)
+  v1.8.2403.2     exit=0   (no output at all)
+  v1.8.2405       exit=0   (no output at all)
+  v1.8.2407       exit=0   (no output at all)
+  v1.8.2502       exit=0   (no output at all)
+  v1.8.2505       exit=0   (no output at all)
+  v1.8.2505.1     exit=0   (no output at all)
+  v1.9.2602       exit=0   (no output at all)
+  v1.9.2602.24    exit=0   (no output at all)
+  v1.9.2607       exit=0   (no output at all)
+  main-debug      exit=0   (no output at all)

@@ -1,0 +1,142 @@
+[
+  {
+    "release": "v1.4.1907",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "yes",
+    "note": ""
+  },
+  {
+    "release": "v1.5.2010",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.6.2104",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.6.2106",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.6.2112",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.7.2207",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.7.2212",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.7.2212.1",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.7.2308",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.8.2403",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.8.2403.1",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.8.2403.2",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.8.2405",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.8.2407",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.8.2502",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.8.2505",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.8.2505.1",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.9.2602",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.9.2602.24",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  },
+  {
+    "release": "v1.9.2607",
+    "api_member_name_hits": "0",
+    "selftest": "ok",
+    "module_field_annotation": "no",
+    "note": ""
+  }
+]

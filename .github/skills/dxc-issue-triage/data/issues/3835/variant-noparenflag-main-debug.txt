@@ -1,0 +1,20 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T05:20:58+00:00
+# cmd: repro.hlsl -T vs_5_0 -E vert_main -Zi -Qembed_debug
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: noparenflag (repro.hlsl)
+# expect: match
+
+$ dxc repro.hlsl -T vs_5_0 -E vert_main -Zi -Qembed_debug
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+warning: Promoting older shader model profile to 6.0 version.
+Internal compiler error: LLVM Assert
+

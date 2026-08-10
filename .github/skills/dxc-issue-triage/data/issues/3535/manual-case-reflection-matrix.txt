@@ -1,0 +1,408 @@
+3535 release matrix: has any shipped ID3D12ShaderReflection ever named an input struct's members?
+=================================================================================================
+
+`triage.py bisect` cannot answer this: it substitutes each release's
+dxc.exe, and dxc.exe never calls a reflection interface. So the
+instrument is held fixed (dxa.exe from the ground-truth build, which
+statically links D3DReflectionDumper) while the thing under test -- the
+reflection implementation, which lives in dxcompiler.dll -- is varied by
+copying each release's DLL next to it. Each release also compiles the
+repro with its own dxc.exe, so the container is period-correct too.
+
+Columns:
+  api-member-names : hits for mPos/mColor anywhere in the reflection walk
+  selftest         : the walk reached constant-buffer type reflection,
+                     so a zero in the previous column is a finding and
+                     not a walk that stopped early
+  module-annot     : the release's own disassembly carries a field-name
+                     annotation for the input struct (!"mPos")
+
+------------------------------------------------------------------------
+release v1.4.1907
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:d5c8d027a25b
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.4.1907\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.4.1907\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.4.1907\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.4.1907\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : yes
+[check] PASS  v1.4.1907: reflection walk reached type information
+[check] PASS  v1.4.1907: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.5.2010
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:b7490aa95b51
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.5.2010\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.5.2010\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.5.2010\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.5.2010\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.5.2010: reflection walk reached type information
+[check] PASS  v1.5.2010: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.6.2104
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:0a6c90037d0d
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.6.2104\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2104\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.6.2104\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.6.2104\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.6.2104: reflection walk reached type information
+[check] PASS  v1.6.2104: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.6.2106
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:f57549d1df4a
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.6.2106\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.6.2106\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.6.2106\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.6.2106\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.6.2106: reflection walk reached type information
+[check] PASS  v1.6.2106: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.6.2112
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:64e5feb3db31
+$ <repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.6.2112\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.6.2112\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.6.2112\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.6.2112: reflection walk reached type information
+[check] PASS  v1.6.2112: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.7.2207
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:b0849eef9757
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2207\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2207\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2207\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2207\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.7.2207: reflection walk reached type information
+[check] PASS  v1.7.2207: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.7.2212
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:120fb99ac1be
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2212\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2212\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2212\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.7.2212: reflection walk reached type information
+[check] PASS  v1.7.2212: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.7.2212.1
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:9ffdd0783576
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2212.1\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2212.1\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2212.1\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.7.2212.1: reflection walk reached type information
+[check] PASS  v1.7.2212.1: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.7.2308
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:570a1a735789
+$ <repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2308\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2308\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.7.2308\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.7.2308: reflection walk reached type information
+[check] PASS  v1.7.2308: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.8.2403
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:5de48b783260
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2403\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2403\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2403\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.8.2403: reflection walk reached type information
+[check] PASS  v1.8.2403: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.8.2403.1
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:2cd630e3b121
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2403.1\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2403.1\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2403.1\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.8.2403.1: reflection walk reached type information
+[check] PASS  v1.8.2403.1: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.8.2403.2
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:eb0e6196eae9
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2403.2\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2403.2\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2403.2\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.8.2403.2: reflection walk reached type information
+[check] PASS  v1.8.2403.2: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.8.2405
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:1e8bdd9f7363
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2405\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2405\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2405\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2405\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.8.2405: reflection walk reached type information
+[check] PASS  v1.8.2405: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.8.2407
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:1220478c87af
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2407\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2407\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2407\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2407\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.8.2407: reflection walk reached type information
+[check] PASS  v1.8.2407: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.8.2502
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:f79943b02f73
+$ <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2502\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2502\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2502\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.8.2502: reflection walk reached type information
+[check] PASS  v1.8.2502: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.8.2505
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:75c019e35419
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2505\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.8.2505\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2505\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2505\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.8.2505: reflection walk reached type information
+[check] PASS  v1.8.2505: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.8.2505.1
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:5888d3e590f5
+$ <repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2505.1\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2505.1\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.8.2505.1\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.8.2505.1: reflection walk reached type information
+[check] PASS  v1.8.2505.1: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.9.2602
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:b86a738ece4c
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.9.2602\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.9.2602\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.9.2602\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.9.2602: reflection walk reached type information
+[check] PASS  v1.9.2602: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.9.2602.24
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:9b5e10ed756c
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.9.2602.24\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.9.2602.24\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.9.2602.24\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.9.2602.24: reflection walk reached type information
+[check] PASS  v1.9.2602.24: reflection walk reached the input signature
+
+------------------------------------------------------------------------
+release v1.9.2607
+------------------------------------------------------------------------
+    dxcompiler.dll under test: sha256:9a5100511e12
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe -T vs_6_0 -E VS -Fo <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.9.2607\repro.dxo repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\.cache\compilers\releases\v1.9.2607\bin\x64\dxc.exe -T vs_6_0 -E VS repro.hlsl
+[exit] 0
+$ <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.9.2607\dxa.exe -dumpreflection <repo>\.github\skills\dxc-issue-triage\data\issues\3535\out\probe-v1.9.2607\repro.dxo
+[exit] 0
+    semantic names reported : POSITION COLOR SV_POSITION COLOR
+    api-member-names        : 0
+    selftest(type walk)     : ok
+    input params reached    : ok
+    module-annot(!"mPos")   : no
+[check] PASS  v1.9.2607: reflection walk reached type information
+[check] PASS  v1.9.2607: reflection walk reached the input signature
+
+========================================================================
+summary
+========================================================================
+release           api-member-names   selftest  module-annot
+v1.4.1907                        0         ok           yes  
+v1.5.2010                        0         ok            no  
+v1.6.2104                        0         ok            no  
+v1.6.2106                        0         ok            no  
+v1.6.2112                        0         ok            no  
+v1.7.2207                        0         ok            no  
+v1.7.2212                        0         ok            no  
+v1.7.2212.1                      0         ok            no  
+v1.7.2308                        0         ok            no  
+v1.8.2403                        0         ok            no  
+v1.8.2403.1                      0         ok            no  
+v1.8.2403.2                      0         ok            no  
+v1.8.2405                        0         ok            no  
+v1.8.2407                        0         ok            no  
+v1.8.2502                        0         ok            no  
+v1.8.2505                        0         ok            no  
+v1.8.2505.1                      0         ok            no  
+v1.9.2602                        0         ok            no  
+v1.9.2602.24                     0         ok            no  
+v1.9.2607                        0         ok            no  
+
+releases measured: 20
+[check] PASS  no release exposed an input-struct member name through the API
+
+all self-checks passed

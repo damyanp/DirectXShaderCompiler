@@ -1,0 +1,15 @@
+# Issue 3535. The reporter's configuration: a vertex shader whose entry point
+# takes a struct parameter. No flags beyond target and entry point, because the
+# issue names none.
+#
+# vs_6_0 is the oldest vertex profile in the release sequence, per SKILL.md's
+# "target the repro at the oldest profile and flag set that still shows the
+# symptom" -- every release from v1.4.1907 on can compile it.
+#
+# With no -Fo, dxc prints the compiled result's disassembly to stdout. That
+# text is the instrument: DXC's disassembler renders the container's reflection
+# data as the "; Buffer Definitions:" comment block, so HLSL struct member
+# names that reflection carries appear there. manual-case-witnesses.txt section
+# 3 proves it -- strip the reflection part and the names vanish while the
+# module is otherwise unchanged.
+-T vs_6_0 -E VS repro.hlsl

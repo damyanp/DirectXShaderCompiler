@@ -1,0 +1,12 @@
+# The reporter's exact command line is kept in cmd-as-filed.txt. It differs from
+# this one by a single token, -Wno-parentheses-equality, dropped here because
+# v1.4.1907 -- the bisection floor -- answers "Unknown argument:
+# '-Wno-parentheses-equality'" and is demoted to invalid-probe, hiding the oldest
+# checkable release behind an option that has nothing to do with the bug.
+# The removal is measured, not assumed: variant-noparenflag-main-debug.txt is
+# byte-identical to the as-filed capture apart from its command header, and
+# variant-as-filed-main-debug.txt re-runs the filed line verbatim. With the flag
+# dropped v1.4.1907 reproduces (0xC0000005), so the history covers all 20 stable
+# releases instead of 19. The profile stays at the reporter's vs_5_0, which every
+# release accepts and promotes to 6.0 with a warning.
+repro.hlsl -T vs_5_0 -E vert_main -Zi -Qembed_debug

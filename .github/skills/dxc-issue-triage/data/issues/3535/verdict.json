@@ -1,0 +1,23 @@
+{
+  "batch": "batch-013",
+  "confidence": "high",
+  "created_at": "2021-03-04T02:46:36Z",
+  "expected_symptom": "HLSL member names of a struct used as a vertex-shader input parameter (mPos/mColor) are not retrievable through reflection: no ID3D12ShaderReflection call returns them, and they are not present in a non-debug container for a future API to return.",
+  "godbolt_url": "https://godbolt.org/z/aYqW8oeWE",
+  "history": "Never worked; nothing regressed. bisect --linear reports v1.4.1907 no-repro then repro from v1.5.2010, which is an ARTEFACT and must not be read as a regression: before v1.5.2010 reflection metadata was left in the DXIL part rather than moved to STAT, so v1.4.1907's disassembly still carries the input struct's field-name annotation and the stdout predicate does not fire. That release's reflection API returns nothing, exactly like every release since (manual-case-reflection-matrix.txt, 20 releases, fixed instrument + per-release dxcompiler.dll). 5 prereleases excluded by policy; v1.2.0-alpha has no usable asset.",
+  "labels": "user-support",
+  "labels_add": "reflection, enhancement, api",
+  "labels_now": "user-support",
+  "notes_path": "notes.md",
+  "number": 3535,
+  "repro_quality": "partial",
+  "reviewed_by": "gemini-3.1-pro-preview",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Confirmed on main (13730886e). Two separate gaps, both measured. (1) API: D3D12_SIGNATURE_PARAMETER_DESC has one string, SemanticName; and the full ID3D12ShaderReflection vtable has only GetConstantBufferByIndex/ByName and GetVariableByName leading to an ID3D12ShaderReflectionType, so GetMemberTypeName is unreachable from a signature parameter in any version. (2) Data: the names are never emitted -- with -Qkeep_reflect_in_dxil the reflection type table annotates %struct.CbStruct's fields but has no entry for the input struct, whose type is not even in the module; the field-name/semantic pair exists only pre-lowering at -fcgl. A fix is therefore preserve-then-expose, not a descriptor addition. Verified against dxa -dumpreflection driving each of 20 stable releases' own dxcompiler.dll (v1.4.1907..v1.9.2607): zero releases report the names. aclysma's GetMemberTypeName comment is correct about the method but it is cbuffer-only, so it does not satisfy this issue; coopp's 'I do not see a way' is correct. FXC behaves identically and DxilContainerTest asserts DXC matches d3dcompiler, so this is the D3D reflection model, not a DXC omission. Names do survive under -Zi as DW_TAG_member debug info -- a workaround for a code generator that owns its compile step.",
+  "title": "Retrieving reflection data for structs used in input signatures",
+  "triaged_at": "2026-08-10T16:27:34+00:00",
+  "triaged_by": "GPT-5 (Copilot CLI)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3535"
+}

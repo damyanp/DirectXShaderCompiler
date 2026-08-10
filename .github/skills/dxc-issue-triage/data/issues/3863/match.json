@@ -1,0 +1,22 @@
+{
+  "kind": "all_of",
+  "note": "SYMPTOM (issue 3863): `-H` (and its alias `-Vi`) lists included headers on a normal compile but produces no list when dxc is run as a preprocessor with `-P`. The finding is an ABSENCE, so every clause exists to stop the absence being satisfied -- or falsified -- for free. Clause 1 is the SELF-TEST and it runs inside every probe rather than beside it: `-H` on an ordinary compile of control-compile.hlsl must print the two `; Opening file [...], stack top [n]` lines, so a build where -H is broken, renamed or reworded scores no-match instead of manufacturing a clean absence for the -P arm. Clause 2 anchors on the `-P` invocation of THIS run exiting 0, so a stale preprocessed.i left by an earlier probe cannot satisfy anything. Clause 3 is the positive anchor: `dxc -P` writes only to a file, so cmd.txt line 3 compiles that file with -Zi and DXC embeds it in !dx.source.contents; requiring the preprocessed text to carry BOTH header bodies (ppnested3863 from the nested include and ppmarker3863 from the first) proves the -P run really preprocessed and really opened both headers -- which is what makes the missing trace a missing trace rather than a missing include. Clause 4 is the finding itself: no `Opening file [` line names either of the -P arm's headers. It is anchored on the literal `Opening file [` prefix because both header names also occur inside the embedded preprocessed text as `#line` markers, and an unanchored search for the file name would match those and report the symptom as fixed. The two arms use disjoint header names (inc-pp-*.h vs inc-comp-*.h) precisely so clauses 1 and 4 cannot be confused in a single capture. SEPARATE CAPTURED CONTROLS: variant-flag-nonsense proves an unparsed `-` flag in -H's position IS diagnosed (`Unknown argument`, exit 1), so -H exiting 0 means it was parsed rather than swallowed; variant-flag-h and variant-flag-vi are the same probe with `-H` and with the `-Vi` alias, both accepted silently; variant-h-on-compile-of-repro is the clause-4 falsifiability control -- the SAME file, headers and flag without `-P` -- and must score no-match because the trace appears, proving the absence clause can fail; variant-p-arm-alone runs only the `-P` invocation, so the absence on its own does not satisfy the predicate; variant-no-input scores this predicate against a preprocess of a file that does not exist and must be no-match. manual-case-flag-inert.txt compares SHA-256 of the produced .i with -H, with -Vi and with no flag at all. LIMIT: this tracks the driver-visible behaviour of dxc.exe. The include trace IS captured in the result's DXC_OUT_REMARKS output even in -P mode (measured in manual-case-api-remarks.txt); a fix that only prints it from the driver would flip clause 4 and correctly score no-repro.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "; Opening file \\[[^\\]]*inc-comp-a\\.h\\], stack top \\[0\\][\\s\\S]*?; Opening file \\[[^\\]]*inc-comp-b\\.h\\], stack top \\[1\\]"
+    },
+    {
+      "kind": "regex",
+      "value": "\\$ dxc [-/]P repro\\.hlsl [-/]Fi preprocessed\\.i -H\\r?\\n\\[exe\\][^\\n]*\\r?\\n\\[exit\\] 0\\r?\\n"
+    },
+    {
+      "kind": "regex",
+      "value": "!\\{!\"preprocessed\\.i\", !\"[^\"\\n]*ppnested3863 = 2;[^\"\\n]*ppmarker3863 = 1;"
+    },
+    {
+      "kind": "not_regex",
+      "value": "Opening file \\[[^\\]]*inc-pp-[ab]\\.h\\]"
+    }
+  ]
+}

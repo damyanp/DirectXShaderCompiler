@@ -1,0 +1,9 @@
+{
+  "kind": "all_of",
+  "note": "Issue 3531, detector only: does ANY debug-info entry name the locally-declared resource? This is match.json with the two heap-specific clauses (createHandleFromHeap, and the ResourceDescriptorHeap initialiser in the embedded source) relaxed, so that the same instrument can be pointed at a locally-declared BOUND resource. SKILL.md: score a control against the detector, not against an unrelated anchor. Clause 1 is the self-test - local-variable debug info is emitted in this run; clause 2 is the anti-vacuity anchor read back out of the -Zi embedded source, proving the input really declared a local resource with that name; clause 3 is the symptom. Used for control-local-bound.hlsl and re-run on repro.hlsl so the two are directly comparable.",
+  "value": [
+    { "kind": "regex", "value": "!DILocalVariable\\([^\\n]*name: \"val\"" },
+    { "kind": "regex", "value": "RWByteAddressBuffer DynamicallyIndexedDynamicBuffer = " },
+    { "kind": "not_regex", "value": "!DI(Local|Global)Variable\\([^\\n]*name: \"DynamicallyIndexedDynamicBuffer\"" }
+  ]
+}

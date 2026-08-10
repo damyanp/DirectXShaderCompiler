@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T14:39:16+00:00
+# cmd: -E main -T cs_6_6 repro-asobo-scalar-out.hlsl -HV 2021
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: asobo-scalar-out (repro-asobo-scalar-out.hlsl)
+# expect: match
+
+$ dxc -E main -T cs_6_6 repro-asobo-scalar-out.hlsl -HV 2021
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

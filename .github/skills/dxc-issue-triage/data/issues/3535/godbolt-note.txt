@@ -1,0 +1,96 @@
+What the Compiler Explorer link shows, and what it deliberately does not
+=======================================================================
+
+Link: https://godbolt.org/z/aYqW8oeWE
+Panes: dxc_1_6_2112, dxc_trunk (both `-T vs_6_0 -E VS`),
+       fxc_10_0_19041 (`/T vs_5_0 /E VS`).
+Full pane text: manual-case-godbolt-verify.txt.
+
+READ THIS BEFORE SEARCHING THE PANES FOR `mPos`
+-----------------------------------------------
+Every pane in this link contains the literal strings `mPos` and `mColor`, and
+in none of them does that mean reflection can retrieve them. This is the one
+way to read this link wrong, so it is first.
+
+* The DXC panes contain them because Compiler Explorer appends its own debug
+  flags. The panes prove it themselves -- each one ends with
+
+      !48 = !{!"-E", !"VS", !"-T", !"vs_6_0", !"-Zi", !"-Qembed_debug"}
+
+  so `-Zi -Qembed_debug` embeds the entire source text into
+  `!dx.source.contents` (which includes this repro's comment header, itself
+  quoting the issue) and emits DWARF member metadata:
+
+      !34 = !DIDerivedType(tag: DW_TAG_member, name: "mPos", scope: !32, ...)
+      !32 = !DICompositeType(tag: DW_TAG_structure_type, name: "VertexIn", ...)
+
+  That is debug information. `ID3D12ShaderReflection` does not read it, and a
+  shipping shader is not normally compiled with it.
+
+* The FXC pane contains them in its listing comment:
+
+      // Initial variable locations:
+      //   v0.x <- vin.mPos.x; v0.y <- vin.mPos.y; v0.z <- vin.mPos.z;
+
+  That is FXC's disassembly annotation, not a reflection field either. It is,
+  however, the closest thing in either compiler to what the issue asks for,
+  which is worth knowing.
+
+The local evidence is not vulnerable to this: `cmd.txt` is `-T vs_6_0 -E VS`
+with no debug flags, and manual-case-witnesses.txt walks the reflection API
+itself rather than reading disassembly text.
+
+WHAT TO ACTUALLY LOOK AT
+------------------------
+1. The input signature, in all three panes. DXC prints
+
+       ; Name                 Index   Mask Register SysValue  Format   Used
+       ; POSITION                 0   xyz         0     NONE   float   xyz
+       ; COLOR                    0   xyz         1     NONE   float   xyz
+
+   and FXC prints the same table under `// Input signature:`. A signature
+   element is identified by its semantic. There is no column for the HLSL
+   member the semantic came from, in either compiler, because
+   D3D12_SIGNATURE_PARAMETER_DESC has no such field.
+
+2. The contrast with the constant buffer, in all three panes. The buffer
+   definitions block names HLSL members:
+
+       //       float3 cbAlpha;                // Offset:    0
+
+   Both compilers can name a struct's members -- when the struct is a constant
+   buffer. `CbStruct` in this repro exists only to make that contrast visible
+   in the same compilation; it is not part of the reported problem.
+
+3. The metadata behind that contrast, in the DXC panes. `!dx.typeAnnotations`
+   is the reflection type table, and it has an entry for the cbuffer struct:
+
+       !55 = !{i32 0, %struct.CbStruct undef, !56, %Params undef, !59}
+       !57 = !{i32 6, !"cbAlpha", i32 3, i32 0, i32 7, i32 9}
+
+   (tag 6 is kDxilFieldAnnotationFieldNameTag). There is no corresponding
+   entry for the entry point's parameter struct. Searching either DXC pane for
+   `%struct.VertexIn` finds nothing at all: the type does not survive into the
+   module, so there is nothing for reflection to annotate. The input signature
+   is instead metadata keyed by semantic string:
+
+       !68 = !{i32 0, !"POSITION", i8 9, i8 0, !69, i8 0, i32 1, i8 3, ...}
+
+   Note that this holds even in these panes, which were compiled with `-Zi`
+   and therefore keep reflection metadata in the module -- the annotation is
+   not being stripped, it is never created.
+
+WHY FXC IS IN THE LINK
+----------------------
+The question is whether this is a DXC gap or the D3D reflection model. FXC is
+the reference implementation of that model, and
+tools/clang/unittests/HLSL/DxilContainerTest.cpp compiles the same shader with
+d3dcompiler.lib and asserts DXC's reflection matches it field by field. The
+FXC pane shows FXC naming signature elements by semantic and cbuffer fields by
+identifier, exactly as DXC does. So the answer the issue got is a property of
+the API, not a DXC-specific omission -- which is why the suggested action is a
+feature request against the reflection surface rather than a bug report.
+
+Clang is deliberately absent: hlsl_clang_trunk cannot lower vertex-stage
+signature I/O, so a pane would show a failure that has nothing to do with this
+issue.

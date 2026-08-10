@@ -1,0 +1,30 @@
+# Issue 3863 -- "Support -H and -P at the same time"
+#
+# GRAMMAR WARNING. Do not read a generic `bisect` result as this issue's
+# release history. dxc's preprocess option changed grammar at 8bf2b087c
+# (PR 4624, 2022-08-31): before it, `P : Separate<["-","/"],"P">`, so
+# `-P <name>` names the OUTPUT file and `-Fi` does not exist. Releases up to
+# v1.7.2207 answer `Unknown argument: '-Fi'` for line 2 below, and the
+# `/Fi` spelling retry that provokes turns line 2 into
+# `-P repro.hlsl /Fi preprocessed.i -H`, i.e. "preprocess preprocessed.i into
+# repro.hlsl" -- which overwrites the repro at exit 0. The runner now isolates
+# every attempt and hard-fails input mutation, so the committed evidence is
+# safe, but no single command line spans both eras. Release history therefore
+# comes from manual-case-release-history.txt, which uses the spelling each
+# release accepts and visits every stable release (a linear scan).
+#
+# 1: CONTROL, and it runs inside every probe rather than beside it. `-H` on an
+#    ordinary compile must print `Opening file [...]` for inc-comp-a.h. This is
+#    match.json's self-test: it proves the instrument is alive in this very run,
+#    so the absence measured on line 2 cannot be a dead search.
+# 2: THE REPRO. `-P` plus `-H`, with `-H` last so it sits where the option under
+#    test goes.
+# 3: `dxc -P` writes only to a file, so nothing it produced would reach a
+#    predicate. Compiling the generated .i with -Zi embeds that text in
+#    !dx.source.contents, which puts the preprocessed output -- header bodies
+#    included -- onto stdout where match.json can require it. That is the
+#    positive anchor proving line 2 really preprocessed and really opened both
+#    headers.
+-T ps_6_0 -E main -H control-compile.hlsl
+-P repro.hlsl -Fi preprocessed.i -H
+-T ps_6_0 -E main -Zi preprocessed.i

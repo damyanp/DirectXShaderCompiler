@@ -1,0 +1,61 @@
+{
+  "kind": "all_of",
+  "note": "INSTRUMENT-PORTABLE twin of match.json for #3872, written AFTER the first `bisect --linear` reported v1.4.1907 as no-repro and every later release as repro. That transition was an artefact, and the self-test in match.json is what exposed it: on v1.4.1907 all five `$ dxc` blocks exit 0 -- including the spec-legal VSOut self-test -- but no block matches the row anchor, because the 2019 disassembler prints 'NONE' in the SysValue column for a semantic kind its printer table did not know, where today's prints 'SHDINGRATE' (tools/clang/tools/dxcompiler/dxcdisassembler.cpp:200). The compiler's own classification is byte-identical across the two: both emit the feature banner 'Note: shader requires additional functionality: Shading Rate' and both emit the signature element metadata !{i32 1, !\"SV_ShadingRate\", i8 5, i8 29, ...}, whose 4th field is the DXIL SystemValue kind. So match.json measures 'accepted AND printed the modern way' and this predicate measures 'accepted' alone, portably. Clauses are still all positive and still per-block: the row anchor accepts either SysValue spelling but keeps the trailing 'uint' format column, which the PSV runtime-info copy of the signature tables never prints (it prints the interpolation mode), so it cannot match the wrong table. Clause 3 is the instrument-independent half of the self-test: it asserts the DXIL metadata that says this element IS system-value kind 29, so a build whose printer says NONE still has to prove it treated the semantic as a system value. Use this predicate for HISTORY; use match.json for the headline measurement on main-debug.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T vs_6_4 -E VSMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "SELF-TEST 1: the spec-legal position (VSOut) compiles cleanly on this build."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T vs_6_4 -E VSMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Output signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*(?:SHDINGRATE|\\s+NONE)\\s+uint",
+      "note": "SELF-TEST 2: this build knows SV_ShadingRate and emitted a real DXIL signature row for it, in either SysValue spelling."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T vs_6_4 -E VSMain (?:(?!^\\$ dxc )[\\s\\S])*?!\\\"SV_ShadingRate\\\", i8 5, i8 29,",
+      "note": "SELF-TEST 3: instrument-independent. The signature element metadata records SystemValue kind 29 (ShadingRate), so 'NONE' in an old disassembler's SysValue column cannot be mistaken for 'the compiler treated it as arbitrary'."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T hs_6_4 -E HSCPInMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "HSCPIn: accepted with no diagnostic."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T hs_6_4 -E HSCPInMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Input signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*(?:SHDINGRATE|\\s+NONE)\\s+uint",
+      "note": "HSCPIn: reached the hull shader INPUT signature."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T hs_6_4 -E HSCPOutMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "HSCPOut: accepted with no diagnostic."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T hs_6_4 -E HSCPOutMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Output signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*(?:SHDINGRATE|\\s+NONE)\\s+uint",
+      "note": "HSCPOut: reached the hull shader OUTPUT control-point signature."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T ds_6_4 -E DSCPInMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "DSCPIn: accepted with no diagnostic."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T ds_6_4 -E DSCPInMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Input signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*(?:SHDINGRATE|\\s+NONE)\\s+uint",
+      "note": "DSCPIn: reached the domain shader INPUT control-point signature."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T ds_6_4 -E DSOutMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "DSOut: accepted with no diagnostic. This is the cell the VRS spec rules out by name."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T ds_6_4 -E DSOutMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Output signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*(?:SHDINGRATE|\\s+NONE)\\s+uint",
+      "note": "DSOut: reached the domain shader OUTPUT signature."
+    }
+  ]
+}

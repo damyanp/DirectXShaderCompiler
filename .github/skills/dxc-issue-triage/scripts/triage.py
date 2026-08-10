@@ -928,7 +928,9 @@ def retarget_cmd(line, shader):
     Only the source operand changes, so a control is run with byte-identical
     arguments to the repro. A flag's *value* is a separate token -- `-I` takes
     a path, `-Fo` a filename -- and must survive untouched, or the control
-    stops differing from the repro in exactly one way.
+    stops differing from the repro in exactly one way. Lines with no HLSL
+    source are preserved: a multi-invocation chain may preprocess a `.hlsl`
+    and then consume the generated `.i` or `.bc` on a later line.
     """
     toks, values = command_token_roles(line)
     out, replaced = [], False
@@ -940,8 +942,26 @@ def retarget_cmd(line, shader):
         out.append(shader if is_source else tok)
         replaced = replaced or is_source
     if not replaced:
-        raise SystemExit(f"no source file to replace in: {line}")
+        return line
     return subprocess.list2cmdline(out)
+
+
+def retarget_cmds(lines, shader):
+    """Retarget every HLSL-bearing line, requiring at least one such line."""
+    rewritten = []
+    found_source = False
+    for line in lines:
+        toks, values = command_token_roles(line)
+        found_source = found_source or any(
+            tok.lower().endswith(".hlsl")
+            and not tok.startswith(("-", "/"))
+            and i not in values
+            for i, tok in enumerate(toks)
+        )
+        rewritten.append(retarget_cmd(line, shader))
+    if not found_source:
+        raise SystemExit("no source file to replace in command list")
+    return rewritten
 
 
 UNKNOWN_ARGUMENT_RE = re.compile(
@@ -956,6 +976,19 @@ def unknown_argument_token(text):
     if not hit:
         return None
     return next((g for g in hit.groups() if g), None)
+
+
+def invalid_option_range_warning(text):
+    """Warn when an unsupported option, rather than the subject, trims history."""
+    token = unknown_argument_token(text)
+    if not token:
+        return None
+    return (
+        f"warning: this release rejected option {token}. An unrelated option "
+        "can make a valid repro look unprobeable and silently shorten the "
+        "history range; verify the option is load-bearing for the symptom, "
+        "or compare and drop it before accepting the range."
+    )
 
 
 def argument_spelling_variants(arg):
@@ -1102,7 +1135,8 @@ def classify(issue, text, rc, timed_out, match_file="match.json", explain=False)
     # so the anchoring changes no existing verdict.
     hit = re.search(
         r"(?i)invalid profile|unsupported profile|unrecognized (?:argument|option)|"
-        r"unknown argument|requires shader model|"
+        r"unknown argument|unknown HLSL version(?::\s*[^\r\n]+)?|"
+        r"requires shader model|"
         r"is not supported (?:for|on|in|with) "
         r"(?:the current |this |target )*(?:target|profile|shader model|stage)|"
         r"CodeGen not available|recompile with -D|"
@@ -1463,9 +1497,10 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
     # the output was never captured -- the claim survived only in the
     # operator's head. A control nobody can re-run is not a control.
     if shader:
-        cmds = [retarget_cmd(line, shader) for line in cmds]
+        cmds = retarget_cmds(cmds, shader)
 
     requested_cmds = list(cmds)
+    reject_windows_dash_fc(cmds)
     probe = _run_probe_command_list(
         exe, d, cmds, protect_cmds=requested_cmds, sync_outputs=True)
     worst_rc, timed_out, text = (
@@ -1929,6 +1964,7 @@ def cmd_bisect(a):
         f"from the search by policy"
     ) if probeable_prereleases else ""
     invalid_tags = set()
+    warned_invalid_options = set()
 
     def probe(tag):
         r = execute(a.issue, tag, a.match, repeat=a.repeat)
@@ -1937,6 +1973,11 @@ def cmd_bisect(a):
             invalid_tags.add(tag)
             print(f"  {tag:<14} n/a (never compiled the repro -- profile, flag "
                   f"or feature unsupported)")
+            token = unknown_argument_token(r.get("text", ""))
+            key = token.lower() if token else None
+            if key and key not in warned_invalid_options:
+                warned_invalid_options.add(key)
+                print("  " + invalid_option_range_warning(r["text"]))
             return None
         rate = f"  [{r['hits']}/{r['attempts']}]" if r.get("attempts", 1) > 1 else ""
         print(f"  {tag:<14} {v}{rate}")
@@ -2173,7 +2214,7 @@ def ce_get_json(path):
         return json.loads(r.read().decode())
 
 
-def ce_args(issue):
+def ce_args(issue, include_count=False):
     """Turn cmd.txt into CE user arguments: drop the source file name.
 
     Only a *positional* source file is dropped (CE supplies the source
@@ -2188,13 +2229,14 @@ def ce_args(issue):
     on #8732, whose cmd.txt ends `-spirv repro.hlsl`: CE was handed a second,
     nonexistent input alongside the pane's own source, and every pane had to be
     written out by hand with an `id:<args>` override.
+
+    Keep the historical two-value return by default for issue-local scripts;
+    the built-in publisher opts into the invocation count.
     """
     d = issue_dir(issue)
     with open(os.path.join(d, "cmd.txt")) as f:
         lines = [ln.strip() for ln in f
                  if ln.strip() and not ln.startswith("#")]
-    if len(lines) > 1:
-        print("  warning: multi-invocation cmd.txt; linking the first only")
     toks, values = command_token_roles(lines[0])
     keep = []
     for i, t in enumerate(toks):
@@ -2202,7 +2244,65 @@ def ce_args(issue):
         if positional and os.path.exists(os.path.join(d, t)):
             continue
         keep.append(t)
-    return subprocess.list2cmdline(keep), lines[0]
+    result = (subprocess.list2cmdline(keep), lines[0])
+    return result + (len(lines),) if include_count else result
+
+
+def ce_compiler_specs(spec, default_args, override_reason=None):
+    """Resolve CE compiler specs, requiring explicit args when inference is unsafe."""
+    compilers = []
+    missing_overrides = []
+    for entry in spec.split(","):
+        entry = entry.strip()
+        if not entry:
+            continue
+        cid, _, override = entry.partition(":")
+        override = override.strip()
+        if override_reason and not override:
+            missing_overrides.append(cid)
+        compilers.append((cid, override or default_args))
+    if missing_overrides:
+        sys.exit(
+            f"{override_reason}; give explicit id:<args> overrides for every "
+            f"pane (missing: {', '.join(missing_overrides)})")
+    return compilers
+
+
+def write_godbolt_verify(directory, content):
+    """Write the latest CE verification and archive any differing predecessor."""
+    path = os.path.join(directory, "manual-case-godbolt-verify.txt")
+    archived = None
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            old = f.read()
+        if old != content:
+            digest = hashlib.sha256(old.encode("utf-8")).hexdigest()[:12]
+            archived = os.path.join(
+                directory, f"manual-case-godbolt-verify-{digest}.txt")
+            if not os.path.exists(archived):
+                with open(archived, "w", encoding="utf-8", newline="\n") as f:
+                    f.write(old)
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(content)
+    return path, archived
+
+
+def reject_windows_dash_fc(cmds, platform=None):
+    """Refuse `-Fc -` on Windows, where `-` is a literal output filename."""
+    if (platform or os.name) != "nt":
+        return
+    for line in cmds:
+        toks = split_cmd(line)
+        for i, tok in enumerate(toks):
+            separate = option_key(tok) == "-fc" \
+                and i + 1 < len(toks) and toks[i + 1] == "-"
+            joined = re.fullmatch(r"(?i)[/-]fc(?::|=)?-", tok) is not None
+            if separate or joined:
+                raise SystemExit(
+                    "`-Fc -` does not mean stdout on Windows: dxc creates a "
+                    "literal file named `-`, so a stdout predicate sees "
+                    "nothing. Use a real output filename and a harness that "
+                    "reads it.")
 
 
 # DXC emits the resource-binding table and signature tables as *comments* in
@@ -2291,7 +2391,7 @@ def cmd_godbolt(a):
     if name != "repro.hlsl":
         print(f"  publishing {name} (not repro.hlsl) for #{a.issue}")
     source = annotate(a.issue, open(src_path, encoding="utf-8").read())
-    args, full = ce_args(a.issue)
+    args, full, invocation_count = ce_args(a.issue, include_count=True)
     # A non-default compiler set (e.g. adding FXC for contrast) is worth
     # keeping: it is part of how the issue is demonstrated, so persist it
     # alongside the repro and reuse it on later runs.
@@ -2306,21 +2406,17 @@ def cmd_godbolt(a):
     # "id" uses the issue's own arguments; "id:<args>" overrides them, which
     # is how a contrasting compiler (e.g. FXC, with /T instead of -T) is put
     # side by side with DXC in one link.
-    compilers = []
-    missing_overrides = []
-    for entry in spec.split(","):
-        entry = entry.strip()
-        if not entry:
-            continue
-        cid, _, override = entry.partition(":")
-        if name != "repro.hlsl" and not override.strip():
-            missing_overrides.append(cid)
-        compilers.append((cid, override.strip() or args))
-    if missing_overrides:
-        sys.exit(
-            f"--source {name} changes the source but cannot infer its profile; "
-            "give explicit id:<args> overrides for every pane "
-            f"(missing: {', '.join(missing_overrides)})")
+    override_reasons = []
+    if name != "repro.hlsl":
+        override_reasons.append(
+            f"--source {name} changes the source and its profile cannot be "
+            "inferred")
+    if invocation_count > 1:
+        override_reasons.append(
+            f"cmd.txt has {invocation_count} invocations and Compiler "
+            "Explorer can compile only one command per pane")
+    compilers = ce_compiler_specs(
+        spec, args, "; ".join(override_reasons) or None)
 
     extra = [f for f in os.listdir(d) if f.endswith((".h", ".hlsli"))]
     if extra:
@@ -2356,9 +2452,9 @@ def cmd_godbolt(a):
                        f"# args:     {cargs}",
                        f"# exit:     {rc}{'  CRASH' if crashed else ''}",
                        "", text, ""]
-        vpath = os.path.join(d, "manual-case-godbolt-verify.txt")
-        with open(vpath, "w", encoding="utf-8", newline="\n") as f:
-            f.write("\n".join(verify))
+        vpath, archived = write_godbolt_verify(d, "\n".join(verify))
+        if archived:
+            print(f"  archived previous panes: {os.path.basename(archived)}")
         print(f"  panes: {os.path.basename(vpath)}")
 
     url = ce_post("/api/shortener", {"sessions": [{

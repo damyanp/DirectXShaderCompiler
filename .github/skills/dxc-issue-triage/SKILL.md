@@ -274,9 +274,10 @@ already downloaded, for free.
 
 The catalog is also the reconciliation layer for the two physical release roots: downloaded
 assets under `.cache` and test-seeded trees under
-`build/tools/clang/test/dxc_releases`. Its `releases.cached_path` / `seed_local` records point
-at the usable tree. Release-matrix scripts should query the database rather than walking one
-root and silently missing the other.
+`build/tools/clang/test/dxc_releases`. The `seed_local()` importer writes the selected
+executable into the single `releases.cached_path` column; there is no `seed_local` column.
+Release-matrix scripts should query `cached_path` rather than walking one root and silently
+missing the other.
 
 ### `reindex` is a regression test over every past batch
 
@@ -575,6 +576,12 @@ to a file, so a stdout predicate sees nothing; #3044 compiled the generated `.i`
 in a second invocation to put the text into `!dx.source.contents`. A file-producing mode
 needs a command chain or harness that brings that artifact into the scored capture.
 
+**For a missing artifact, probe the earliest stage that should contain it.** `-fcgl` is not
+only a diagnostic-layer tool. On #3531 it showed the missing `DILocalVariable` and
+`llvm.dbg.declare` before DXIL lowering, converting "debug info is absent" into the more
+actionable "the front end emits it and lowering drops it." Do this before concluding an
+artifact was never produced.
+
 ### 4. Define the symptom predicate
 
 `match.json` encodes "the symptom is present" so the same test is applied to every compiler
@@ -695,6 +702,11 @@ you happen to run will report it fixed:
 > broken state that Release spins on. A bare `timeout` predicate scores the Debug ground truth
 > as `no-repro` and reports this open, always-reproducing bug as **fixed**. Neither signature
 > alone is the symptom; failing to compile a valid shader is.
+>
+> Compose by **observable signature**, not by source file. #5293's Debug assert
+> (`0xE0000001`) and Release access violation (`0xC0000005`) both satisfy one
+> `internal_failure` predicate; what differed was the shader needed to expose each face.
+> Capture and date both inputs rather than inventing a redundant second predicate.
 
 **Decompose multi-ask issues before choosing one verdict.** A request with five bullets can
 contain already-satisfied, partly-satisfied and still-missing pieces at the same time. Record
@@ -733,6 +745,21 @@ rule applies to a **presence** finding: anchor it on evidence that compilation c
 that the subject existed in the input. Otherwise a failed compile falsifies the predicate in
 the fix-inventing direction, or a shader that never declared the resource satisfies it for
 free. Required clauses belong inside the predicate so `reindex` re-checks them forever.
+
+**A predicate reads the instrument as well as the behaviour.** Check its self-test on every
+release, not only on `main`. Two tidy-looking regressions were instrument changes instead:
+#3535's v1.4.1907 disassembly still held reflection metadata in DXIL before it moved to
+`STAT`, and #3872's 2019 disassembler printed `NONE` where current builds print
+`SHDINGRATE` even though the acceptance clauses and `i8 29` metadata were unchanged. If the
+self-test flips while the behavioural clauses do not, that release is unmeasurable under the
+predicate, not `no-repro`; write an instrument-portable twin or use a fixed reader.
+
+With `-Zi`, embedded source is both a hazard and a free control. Never test a missing
+identifier by its bare spelling — `!dx.source.contents` manufactures that hit in every run.
+Anchor on the metadata form (`!DILocalVariable(... name: "X")`), and use the embedded
+declaration as a positive anti-vacuity clause proving the shader really declared `X`.
+Keep any self-test variable live: dead-code elimination can remove its metadata and make a
+working instrument look broken.
 
 ```bash
 python triage.py run --issue <N> --shader control-separate-raydesc.hlsl \
@@ -790,12 +817,13 @@ real absence from a typo in a regex.
 > repeat the source filename even when `--shader` also names it. Omitting it gives dxc no
 > input and the resulting error looks like a compiler behaviour.
 >
-> With a multi-invocation `cmd.txt`, `run --shader` retargets **every** line, so a control
-> source must define every entry point those lines name. `run --args` still represents only
-> one invocation and cannot express a per-stage variation of a multi-line repro. A chain that
-> includes a non-HLSL input (`.i`, `.bc`, `.dxil`) cannot be retargeted with `--shader` at all,
-> because that line has no source token to replace. Use labelled `--args` captures for single
-> arms or a command-echoing matrix harness for the whole chain.
+> With a multi-invocation `cmd.txt`, `run --shader` retargets every line that contains an
+> HLSL source and preserves consumer lines that name generated `.i`, `.bc` or `.dxil` files.
+> A control source must still define every entry point used by the HLSL lines, and generated
+> filenames must remain compatible with later consumers. `run --args` represents only one
+> invocation and cannot express a per-stage variation of a multi-line repro. Use labelled
+> `--args` captures for single arms or a command-echoing matrix harness when the whole chain
+> needs different arguments.
 
 > **`audit` wants a tool-made capture for every `.hlsl` in the directory.** A matrix driven by
 > a hand-written script leaves shaders with no `variant-*.txt` beside them, and the audit is
@@ -857,6 +885,13 @@ A/B over code reading, and keep a self-test in any parser or harness. `match.jso
 `cmd.txt` may be deliberately absent when compiler output cannot answer the question; do not
 manufacture a hollow predicate merely to make the directory look complete.
 
+For reflection questions, try `dxa -dumpreflection` before writing a host program. It drives
+`ID3D12ShaderReflection` through DXC's own `D3DReflectionDumper`; read that dumper's source
+too, because an absent field proves nothing if it never calls the accessor. For release
+history, hold the reader fixed and vary each release's `dxcompiler.dll` beside it, compiling
+the container with the matching release `dxc.exe`. `dxc.exe` alone does not exercise a
+reflection interface.
+
 > **Name the population in metadata censuses.** "All releases" is ambiguous when drafts exist.
 > On #3686, 26 published releases carried 73 assets; one unpublished draft was separate.
 > Its empty tag exposed a sharper trap: `gh release view ""` silently resolves the latest
@@ -901,6 +936,12 @@ manufacture a hollow predicate merely to make the directory look complete.
 > and prefer writing prose into files with an editor rather than through the shell. Note the
 > converse: `U+001B` in a *captured* file is usually legitimate — Compiler Explorer returns
 > ANSI-coloured Clang output — so do not "clean" it.
+>
+> **Do not read `$LASTEXITCODE` after truncating a native command through
+> `Select-Object -First`.** The downstream command closes the pipeline early and can replace
+> the compiler's status, turning a crash into a clean measurement. Capture the full output
+> first (`Out-String` preserves the native status), save `$LASTEXITCODE`, then trim only the
+> displayed copy. Measured on #5293.
 
 **Judge a `does-not-repro` against the configuration the reporter used.** A Debug build is the
 right ground truth for asserts, but it is the *wrong* one for issues the reporter says only
@@ -1005,6 +1046,12 @@ across issues.
 > zero whenever the following value token already named a file. A probe that modifies any
 > input hard-errors and no issue artifact is changed. Do not special-case `-P`; the invariant
 > is that an option retry may never mutate its own evidence.
+>
+> **An invalid option can shorten history for a reason unrelated to the issue.** #3835's
+> filed `-Wno-parentheses-equality` made v1.4.1907 unprobeable even though the flag was inert
+> for the crash; dropping it after a byte-identity control extended the history two years.
+> `bisect` warns when an unknown option causes a demotion. Verify the option is load-bearing,
+> or compare with and without it and remove it before accepting the narrower range.
 
 > **The same trap fires one level up, in the front end.** A release predating a language
 > *feature* — a type, an intrinsic, an attribute — rejects the repro with an ordinary semantic
@@ -1022,6 +1069,10 @@ across issues.
 > target/profile/shader-model forms. Noticed on #8732. If you add a marker, add it because you
 > watched it fire on a release that genuinely predated the feature — guessing silently discards
 > evidence.
+>
+> A driver can reject the language mode itself before parsing any source.
+> `dxc failed : Unknown HLSL version: 2021` is an `invalid-probe`, not a clean result; four
+> old releases did exactly this on #5293. The classifier recognises it explicitly.
 
 > **The markers break down on an issue whose reported symptom IS a diagnostic**, because then
 > the signal ("this build rejected the input before reaching the code under test") and the
@@ -1070,6 +1121,12 @@ across issues.
 > count in the final result. If binary search encounters an unprobeable release **inside** a
 > candidate transition interval, it hard-errors and requires `--linear`; an unexercised
 > release cannot be assigned to either side of the boundary.
+>
+> #5293 is the same trap in a clean compile: releases through v1.7.2212.1 accept HLSL 2021
+> but predate the uninitialised-`out` analysis, so exit 0 cannot answer whether that analysis
+> is buggy. A `-Wparameter-usage` presence control and source ancestry agreed on the first
+> release that could exercise it. When the subsystem is newer than the syntax, make the
+> subsystem announce itself before treating an old clean run as evidence.
 >
 > The same rule is mandatory for `never-repro'd-in-releases`: run a positive control that the
 > predicate **must match** at every release. Otherwise "none reproduced" is indistinguishable
@@ -1254,6 +1311,11 @@ notes cannot publish as `// //`.
 compiled with those same flags. #3044's preprocess/comment evidence required that control
 before CE could corroborate it.
 
+On **Windows**, `-Fc -` does not mean stdout: dxc creates a literal file named `-`. A stdout
+predicate then sees nothing and can report a plausible false absence. `triage.py run` refuses
+that command on Windows; use a real output filename and a harness that reads it. CE's Linux
+adapter is a separate environment and may use `-Fc -` internally.
+
 **Not every issue deserves a link.** If the whole behaviour is a one-line error, or the issue
 is a pure feature request with nothing to see, record that decision instead of forcing one:
 
@@ -1265,6 +1327,9 @@ But revisit that call once you have tried a Clang pane. #1627 was skipped as "ju
 unknown-argument error" — until Clang turned out to *have* the capability, reachable as
 `-Xclang -include`, which reframed the request from "add a feature" to "expose an existing one
 at the driver level". A comparison can create something worth seeing where there was nothing.
+For an absence claim, also ask whether CE can display the corresponding presence. #3863's
+single-file panes could not produce an include trace even in the working non-`-P` control, so
+an empty pane was unfalsifiable and a measured skip was more honest than a link.
 
 Use `--compilers` for anything more interesting; the spec is saved to the issue's
 `godbolt.txt` and reused afterwards. `id:<args>` overrides the arguments for one compiler,
@@ -1316,6 +1381,9 @@ reproduces before adopting it, and keep the stage-accurate original as the local
 When `--source` selects a restatement, give **every** pane an explicit `id:<args>` override:
 the source does not carry its target profile, and reusing `cmd.txt`'s pixel arguments for a
 compute restatement invalidates every pane. `godbolt` now refuses that ambiguous combination.
+The same rule applies to a multi-invocation `cmd.txt`: CE can execute only one command per
+pane, so `godbolt` requires explicit arguments for every pane rather than silently linking
+line 1.
 
 > **A Clang error is not evidence until you have a control.** Clang's DXIL backend is
 > incomplete, so it fails on inputs that have nothing to do with the issue. #1702 looked like
@@ -1342,6 +1410,10 @@ compute restatement invalidates every pane. `godbolt` now refuses that ambiguous
 >
 > **FXC panes need controls too.** The control discipline above is written about Clang, but an
 > FXC pane is a different compiler with its own failure modes and the same reasoning applies.
+>
+> CE gives every pane one shared source. For a one-variable A/B, put the construct behind a
+> preprocessor guard and add a second pane with `-D<CONTROL>`; #3872 used this after selecting
+> a different entry point failed because Clang still parsed the whole translation unit.
 
 > **`godbolt` prints only the FIRST line of each pane, and that hid the finding twice in one
 > batch.** On #3092 `hlsl_clang_trunk`'s first line is a `-Qembed_debug` unused-argument
@@ -1353,6 +1425,10 @@ compute restatement invalidates every pane. `godbolt` now refuses that ambiguous
 > every pane to `manual-case-godbolt-verify.txt`, so the summary line stays short and the
 > evidence is complete and on disk. Read that file rather than the console — and still open
 > the link before citing it.
+>
+> Re-running `godbolt` with different panes no longer destroys the previous evidence: before
+> replacing `manual-case-godbolt-verify.txt`, the tool archives differing prior contents under
+> a content-hashed filename.
 
 > **Verify the short link by reading it back, not by trusting the 200.**
 > `GET https://godbolt.org/api/shortlinkinfo/<id>` returns the stored session: compiler ids,
@@ -1443,6 +1519,10 @@ What to look for, having just established what the issue actually does:
   Clang". These are the ones that make the backlog searchable later.
 - **Missing routing labels** on issues that are really feature requests.
 
+A label whose description is a to-do should be proposed only while that work remains open.
+For example, do not add `check-in-clang` after the Clang comparison has already been run and
+reported.
+
 Read the label *descriptions*, not just the names — several are narrower than they sound. For
 example `validation` means **DXIL validation** specifically, not "the compiler should validate
 this"; a request for a compile-time diagnostic is mislabelled by it.
@@ -1454,7 +1534,8 @@ Recorded, **never applied**.
 Write `issues/<nnnn>/comment.md` — what a maintainer could post, ready to use. Open it with
 a **rendered** warning callout, not an HTML comment: these files are committed and browsable
 on github.com, where `<!-- ... -->` is invisible to exactly the audience that most needs to
-know a draft is a draft.
+know a draft is a draft. Do not carry both forms; the rendered callout is the only draft
+marker.
 
 ```markdown
 > [!WARNING]
@@ -1772,6 +1853,12 @@ shared file is not a shared root cause. When you can find a maintainer's own sta
 separating them, quote it; here jeffnn, asked in PR #3746 whether it might fix #2922,
 answered *"I don't think so- that bug is all about not even handling the pointer properly."*
 That is worth more than any amount of code reading.
+
+Inherit a neighbouring issue's **measurements**, not its explanations. #3044's source reading
+suggested `-H` could not run with `-P`; #3863 measured the opposite through
+`IDxcCompiler3::Compile`: the trace already existed in `DXC_OUT_REMARKS` and only the driver
+failed to print it. A source reading that was not load-bearing for the earlier verdict is a
+hypothesis and must be re-tested before it becomes a duplicate or root-cause claim.
 
 **Two workers hitting the same trap independently is much stronger evidence than one.** They
 worked in isolation and could not have copied each other, so a repeated cost is a tool defect

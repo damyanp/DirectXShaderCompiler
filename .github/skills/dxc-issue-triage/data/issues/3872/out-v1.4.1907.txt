@@ -1,0 +1,905 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-10T14:22:10+00:00
+# cmd: -T vs_6_4 -E VSMain repro.hlsl ; -T hs_6_4 -E HSCPInMain repro.hlsl ; -T hs_6_4 -E HSCPOutMain repro.hlsl ; -T ds_6_4 -E DSCPInMain repro.hlsl ; -T ds_6_4 -E DSOutMain repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -T vs_6_4 -E VSMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       Shading Rate
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; POSITION                 0   xyzw        0     NONE   float       
+; RATE                     0   x           1     NONE    uint       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; SV_ShadingRate           0   x           1     NONE    uint   x   
+;
+;
+; Pipeline Runtime Information: 
+;
+; Vertex Shader
+; OutputPositionPresent=1
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; POSITION                 0                              
+; RATE                     0                              
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; SV_ShadingRate           0        nointerpolation       
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 5, outputs: 5
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0 }
+;   output 1 depends on inputs: { 1 }
+;   output 2 depends on inputs: { 2 }
+;   output 3 depends on inputs: { 3 }
+;   output 4 depends on inputs: { 4 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.VSOutRate = type { <4 x float>, i32 }
+%struct.PatchConst = type { [3 x float], float }
+%struct.VSOutPlain = type { <4 x float>, <2 x float> }
+
+define void @VSMain() {
+  %1 = call i32 @dx.op.loadInput.i32(i32 4, i32 1, i32 0, i8 0, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %3 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %5 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %2)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %3)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %4)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %5)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.i32(i32 5, i32 1, i32 0, i8 0, i32 %1)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.loadInput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!1}
+!dx.shaderModel = !{!2}
+!dx.typeAnnotations = !{!3, !12}
+!dx.viewIdState = !{!16}
+!dx.entryPoints = !{!17}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 4}
+!2 = !{!"vs", i32 6, i32 4}
+!3 = !{i32 0, %struct.VSOutRate undef, !4, %struct.PatchConst undef, !7, %struct.VSOutPlain undef, !10}
+!4 = !{i32 20, !5, !6}
+!5 = !{i32 6, !"pos", i32 3, i32 0, i32 4, !"SV_Position", i32 7, i32 9}
+!6 = !{i32 6, !"rate", i32 3, i32 16, i32 4, !"SV_ShadingRate", i32 7, i32 5}
+!7 = !{i32 40, !8, !9}
+!8 = !{i32 6, !"edges", i32 3, i32 0, i32 4, !"SV_TessFactor", i32 7, i32 9}
+!9 = !{i32 6, !"inside", i32 3, i32 36, i32 4, !"SV_InsideTessFactor", i32 7, i32 9}
+!10 = !{i32 24, !5, !11}
+!11 = !{i32 6, !"uv", i32 3, i32 16, i32 4, !"TEXCOORD0", i32 7, i32 9}
+!12 = !{i32 1, void ()* @VSMain, !13}
+!13 = !{!14}
+!14 = !{i32 0, !15, !15}
+!15 = !{}
+!16 = !{[7 x i32] [i32 5, i32 5, i32 1, i32 2, i32 4, i32 8, i32 16]}
+!17 = !{void ()* @VSMain, !"VSMain", !18, null, !26}
+!18 = !{!19, !23, null}
+!19 = !{!20, !22}
+!20 = !{i32 0, !"POSITION", i8 9, i8 0, !21, i8 0, i32 1, i8 4, i32 0, i8 0, null}
+!21 = !{i32 0}
+!22 = !{i32 1, !"RATE", i8 5, i8 0, !21, i8 0, i32 1, i8 1, i32 1, i8 0, null}
+!23 = !{!24, !25}
+!24 = !{i32 0, !"SV_Position", i8 9, i8 3, !21, i8 4, i32 1, i8 4, i32 0, i8 0, null}
+!25 = !{i32 1, !"SV_ShadingRate", i8 5, i8 29, !21, i8 1, i32 1, i8 1, i32 1, i8 0, null}
+!26 = !{i32 0, i64 16777216}
+
+
+--- stderr ---
+
+
+$ dxc -T hs_6_4 -E HSCPInMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       Shading Rate
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float       
+; SV_ShadingRate           0   x           1     NONE    uint       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; TEXCOORD                 0   xy          1     NONE   float   xy  
+;
+;
+; Patch Constant signature signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_TessFactor            0      w        0  TRIEDGE   float      w
+; SV_TessFactor            1      w        1  TRIEDGE   float      w
+; SV_TessFactor            2      w        2  TRIEDGE   float      w
+; SV_InsideTessFactor      0   x           3   TRIINT   float   x   
+;
+;
+; Pipeline Runtime Information: 
+;
+; Hull Shader
+; InputControlPointCount=3
+; OutputControlPointCount=3
+; Domain=tri
+; OutputPrimitive=triangle_cw
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; SV_ShadingRate           0        nointerpolation       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; TEXCOORD                 0                 linear       
+;
+; Patch Constant signature signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_TessFactor            0                              
+; SV_InsideTessFactor      0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 5, outputs: 6, patchconst: 13
+; Outputs dependent on ViewId: {  }
+; PCOutputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0 }
+;   output 1 depends on inputs: { 1 }
+;   output 2 depends on inputs: { 2 }
+;   output 3 depends on inputs: { 3 }
+;   output 4 depends on inputs: { 4 }
+;   output 5 depends on inputs: { 4 }
+; Inputs contributing to computation of PCOutputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.PatchConst = type { [3 x float], float }
+%struct.VSOutPlain = type { <4 x float>, <2 x float> }
+%struct.VSOutRate = type { <4 x float>, i32 }
+
+define void @"\01?PCMainRate@@YA?AUPatchConst@@V?$InputPatch@UVSOutRate@@$02@@@Z"() {
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 0, i32 0, i8 0, float 1.000000e+00)  ; StorePatchConstant(outputSigID,row,col,value)
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 0, i32 1, i8 0, float 1.000000e+00)  ; StorePatchConstant(outputSigID,row,col,value)
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 0, i32 2, i8 0, float 1.000000e+00)  ; StorePatchConstant(outputSigID,row,col,value)
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 1, i32 0, i8 0, float 1.000000e+00)  ; StorePatchConstant(outputSigID,row,col,value)
+  ret void
+}
+
+define void @HSCPInMain() {
+  %1 = call i32 @dx.op.outputControlPointID.i32(i32 107)  ; OutputControlPointID()
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 %1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %3 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 %1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 %1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %5 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 %1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %2)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %3)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %4)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %5)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  %6 = call i32 @dx.op.loadInput.i32(i32 4, i32 1, i32 0, i8 0, i32 %1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %7 = uitofp i32 %6 to float
+  call void @dx.op.storeOutput.f32(i32 5, i32 1, i32 0, i8 0, float %7)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 1, i32 0, i8 1, float %7)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.outputControlPointID.i32(i32) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.loadInput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.storePatchConstant.f32(i32, i32, i32, i8, float) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!1}
+!dx.shaderModel = !{!2}
+!dx.typeAnnotations = !{!3, !12}
+!dx.viewIdState = !{!16}
+!dx.entryPoints = !{!17}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 4}
+!2 = !{!"hs", i32 6, i32 4}
+!3 = !{i32 0, %struct.PatchConst undef, !4, %struct.VSOutPlain undef, !7, %struct.VSOutRate undef, !10}
+!4 = !{i32 40, !5, !6}
+!5 = !{i32 6, !"edges", i32 3, i32 0, i32 4, !"SV_TessFactor", i32 7, i32 9}
+!6 = !{i32 6, !"inside", i32 3, i32 36, i32 4, !"SV_InsideTessFactor", i32 7, i32 9}
+!7 = !{i32 24, !8, !9}
+!8 = !{i32 6, !"pos", i32 3, i32 0, i32 4, !"SV_Position", i32 7, i32 9}
+!9 = !{i32 6, !"uv", i32 3, i32 16, i32 4, !"TEXCOORD0", i32 7, i32 9}
+!10 = !{i32 20, !8, !11}
+!11 = !{i32 6, !"rate", i32 3, i32 16, i32 4, !"SV_ShadingRate", i32 7, i32 5}
+!12 = !{i32 1, void ()* @"\01?PCMainRate@@YA?AUPatchConst@@V?$InputPatch@UVSOutRate@@$02@@@Z", !13, void ()* @HSCPInMain, !13}
+!13 = !{!14}
+!14 = !{i32 0, !15, !15}
+!15 = !{}
+!16 = !{[13 x i32] [i32 5, i32 6, i32 1, i32 2, i32 4, i32 8, i32 48, i32 13, i32 0, i32 0, i32 0, i32 0, i32 0]}
+!17 = !{void ()* @HSCPInMain, !"HSCPInMain", !18, null, !29}
+!18 = !{!19, !23, !25}
+!19 = !{!20, !22}
+!20 = !{i32 0, !"SV_Position", i8 9, i8 3, !21, i8 4, i32 1, i8 4, i32 0, i8 0, null}
+!21 = !{i32 0}
+!22 = !{i32 1, !"SV_ShadingRate", i8 5, i8 29, !21, i8 1, i32 1, i8 1, i32 1, i8 0, null}
+!23 = !{!20, !24}
+!24 = !{i32 1, !"TEXCOORD", i8 9, i8 0, !21, i8 2, i32 1, i8 2, i32 1, i8 0, null}
+!25 = !{!26, !28}
+!26 = !{i32 0, !"SV_TessFactor", i8 9, i8 25, !27, i8 0, i32 3, i8 1, i32 0, i8 3, null}
+!27 = !{i32 0, i32 1, i32 2}
+!28 = !{i32 1, !"SV_InsideTessFactor", i8 9, i8 26, !21, i8 0, i32 1, i8 1, i32 3, i8 0, null}
+!29 = !{i32 0, i64 16777216, i32 3, !30}
+!30 = !{void ()* @"\01?PCMainRate@@YA?AUPatchConst@@V?$InputPatch@UVSOutRate@@$02@@@Z", i32 3, i32 3, i32 2, i32 1, i32 3, float 6.400000e+01}
+
+
+--- stderr ---
+
+
+$ dxc -T hs_6_4 -E HSCPOutMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       Shading Rate
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float       
+; TEXCOORD                 0   xy          1     NONE   float       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; SV_ShadingRate           0   x           1     NONE    uint   x   
+;
+;
+; Patch Constant signature signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_TessFactor            0      w        0  TRIEDGE   float      w
+; SV_TessFactor            1      w        1  TRIEDGE   float      w
+; SV_TessFactor            2      w        2  TRIEDGE   float      w
+; SV_InsideTessFactor      0   x           3   TRIINT   float   x   
+;
+;
+; Pipeline Runtime Information: 
+;
+; Hull Shader
+; InputControlPointCount=3
+; OutputControlPointCount=3
+; Domain=tri
+; OutputPrimitive=triangle_cw
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; TEXCOORD                 0                 linear       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; SV_ShadingRate           0        nointerpolation       
+;
+; Patch Constant signature signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_TessFactor            0                              
+; SV_InsideTessFactor      0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 6, outputs: 5, patchconst: 13
+; Outputs dependent on ViewId: {  }
+; PCOutputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0 }
+;   output 1 depends on inputs: { 1 }
+;   output 2 depends on inputs: { 2 }
+;   output 3 depends on inputs: { 3 }
+;   output 4 depends on inputs: { 4 }
+; Inputs contributing to computation of PCOutputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.PatchConst = type { [3 x float], float }
+%struct.VSOutPlain = type { <4 x float>, <2 x float> }
+%struct.VSOutRate = type { <4 x float>, i32 }
+
+define void @"\01?PCMain@@YA?AUPatchConst@@V?$InputPatch@UVSOutPlain@@$02@@@Z"() {
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 0, i32 0, i8 0, float 1.000000e+00)  ; StorePatchConstant(outputSigID,row,col,value)
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 0, i32 1, i8 0, float 1.000000e+00)  ; StorePatchConstant(outputSigID,row,col,value)
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 0, i32 2, i8 0, float 1.000000e+00)  ; StorePatchConstant(outputSigID,row,col,value)
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 1, i32 0, i8 0, float 1.000000e+00)  ; StorePatchConstant(outputSigID,row,col,value)
+  ret void
+}
+
+define void @HSCPOutMain() {
+  %1 = call i32 @dx.op.outputControlPointID.i32(i32 107)  ; OutputControlPointID()
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 %1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %3 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 %1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 %1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %5 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 %1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %2)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %3)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %4)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %5)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  %6 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 0, i32 %1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %7 = fptoui float %6 to i32
+  call void @dx.op.storeOutput.i32(i32 5, i32 1, i32 0, i8 0, i32 %7)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.outputControlPointID.i32(i32) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.storePatchConstant.f32(i32, i32, i32, i8, float) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!1}
+!dx.shaderModel = !{!2}
+!dx.typeAnnotations = !{!3, !12}
+!dx.viewIdState = !{!16}
+!dx.entryPoints = !{!17}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 4}
+!2 = !{!"hs", i32 6, i32 4}
+!3 = !{i32 0, %struct.PatchConst undef, !4, %struct.VSOutPlain undef, !7, %struct.VSOutRate undef, !10}
+!4 = !{i32 40, !5, !6}
+!5 = !{i32 6, !"edges", i32 3, i32 0, i32 4, !"SV_TessFactor", i32 7, i32 9}
+!6 = !{i32 6, !"inside", i32 3, i32 36, i32 4, !"SV_InsideTessFactor", i32 7, i32 9}
+!7 = !{i32 24, !8, !9}
+!8 = !{i32 6, !"pos", i32 3, i32 0, i32 4, !"SV_Position", i32 7, i32 9}
+!9 = !{i32 6, !"uv", i32 3, i32 16, i32 4, !"TEXCOORD0", i32 7, i32 9}
+!10 = !{i32 20, !8, !11}
+!11 = !{i32 6, !"rate", i32 3, i32 16, i32 4, !"SV_ShadingRate", i32 7, i32 5}
+!12 = !{i32 1, void ()* @"\01?PCMain@@YA?AUPatchConst@@V?$InputPatch@UVSOutPlain@@$02@@@Z", !13, void ()* @HSCPOutMain, !13}
+!13 = !{!14}
+!14 = !{i32 0, !15, !15}
+!15 = !{}
+!16 = !{[15 x i32] [i32 6, i32 5, i32 1, i32 2, i32 4, i32 8, i32 16, i32 0, i32 13, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0]}
+!17 = !{void ()* @HSCPOutMain, !"HSCPOutMain", !18, null, !29}
+!18 = !{!19, !23, !25}
+!19 = !{!20, !22}
+!20 = !{i32 0, !"SV_Position", i8 9, i8 3, !21, i8 4, i32 1, i8 4, i32 0, i8 0, null}
+!21 = !{i32 0}
+!22 = !{i32 1, !"TEXCOORD", i8 9, i8 0, !21, i8 2, i32 1, i8 2, i32 1, i8 0, null}
+!23 = !{!20, !24}
+!24 = !{i32 1, !"SV_ShadingRate", i8 5, i8 29, !21, i8 1, i32 1, i8 1, i32 1, i8 0, null}
+!25 = !{!26, !28}
+!26 = !{i32 0, !"SV_TessFactor", i8 9, i8 25, !27, i8 0, i32 3, i8 1, i32 0, i8 3, null}
+!27 = !{i32 0, i32 1, i32 2}
+!28 = !{i32 1, !"SV_InsideTessFactor", i8 9, i8 26, !21, i8 0, i32 1, i8 1, i32 3, i8 0, null}
+!29 = !{i32 0, i64 16777216, i32 3, !30}
+!30 = !{void ()* @"\01?PCMain@@YA?AUPatchConst@@V?$InputPatch@UVSOutPlain@@$02@@@Z", i32 3, i32 3, i32 2, i32 1, i32 3, float 6.400000e+01}
+
+
+--- stderr ---
+
+
+$ dxc -T ds_6_4 -E DSCPInMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       Shading Rate
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float       
+; SV_ShadingRate           0   x           1     NONE    uint       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; TEXCOORD                 0   xy          1     NONE   float   xy  
+;
+;
+; Patch Constant signature signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_TessFactor            0      w        0  TRIEDGE   float   xyzw
+; SV_TessFactor            1      w        1  TRIEDGE   float   xyzw
+; SV_TessFactor            2      w        2  TRIEDGE   float   xyzw
+; SV_InsideTessFactor      0   x           3   TRIINT   float   xyzw
+;
+;
+; Pipeline Runtime Information: 
+;
+; Domain Shader
+; InputControlPointCount=3
+; OutputPositionPresent=1
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; SV_ShadingRate           0        nointerpolation       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; TEXCOORD                 0                 linear       
+;
+; Patch Constant signature signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_TessFactor            0                              
+; SV_InsideTessFactor      0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 5, outputs: 6, patchconst: 13
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0 }
+;   output 1 depends on inputs: { 1 }
+;   output 2 depends on inputs: { 2 }
+;   output 3 depends on inputs: { 3 }
+;   output 4 depends on inputs: { 4 }
+;   output 5 depends on inputs: { 4 }
+; PCInputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.PatchConst = type { [3 x float], float }
+%struct.VSOutPlain = type { <4 x float>, <2 x float> }
+%struct.VSOutRate = type { <4 x float>, i32 }
+
+define void @DSCPInMain() {
+  %1 = call float @dx.op.domainLocation.f32(i32 105, i8 0)  ; DomainLocation(component)
+  %2 = call float @dx.op.domainLocation.f32(i32 105, i8 1)  ; DomainLocation(component)
+  %3 = call float @dx.op.domainLocation.f32(i32 105, i8 2)  ; DomainLocation(component)
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 0)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %5 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 0)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %6 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 0)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %7 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 0)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i0 = fmul fast float %4, %1
+  %.i1 = fmul fast float %5, %1
+  %.i2 = fmul fast float %6, %1
+  %.i3 = fmul fast float %7, %1
+  %8 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %9 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %10 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %11 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i01 = fmul fast float %8, %2
+  %.i12 = fmul fast float %9, %2
+  %.i23 = fmul fast float %10, %2
+  %.i34 = fmul fast float %11, %2
+  %.i05 = fadd fast float %.i01, %.i0
+  %.i16 = fadd fast float %.i12, %.i1
+  %.i27 = fadd fast float %.i23, %.i2
+  %.i38 = fadd fast float %.i34, %.i3
+  %12 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 2)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %13 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 2)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %14 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 2)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %15 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 2)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i09 = fmul fast float %12, %3
+  %.i110 = fmul fast float %13, %3
+  %.i211 = fmul fast float %14, %3
+  %.i312 = fmul fast float %15, %3
+  %.i013 = fadd fast float %.i05, %.i09
+  %.i114 = fadd fast float %.i16, %.i110
+  %.i215 = fadd fast float %.i27, %.i211
+  %.i316 = fadd fast float %.i38, %.i312
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %.i013)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %.i114)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %.i215)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %.i316)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  %16 = call i32 @dx.op.loadInput.i32(i32 4, i32 1, i32 0, i8 0, i32 0)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %17 = uitofp i32 %16 to float
+  call void @dx.op.storeOutput.f32(i32 5, i32 1, i32 0, i8 0, float %17)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 1, i32 0, i8 1, float %17)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.domainLocation.f32(i32, i8) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.loadInput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!1}
+!dx.shaderModel = !{!2}
+!dx.typeAnnotations = !{!3, !12}
+!dx.viewIdState = !{!16}
+!dx.entryPoints = !{!17}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 4}
+!2 = !{!"ds", i32 6, i32 4}
+!3 = !{i32 0, %struct.PatchConst undef, !4, %struct.VSOutPlain undef, !7, %struct.VSOutRate undef, !10}
+!4 = !{i32 40, !5, !6}
+!5 = !{i32 6, !"edges", i32 3, i32 0, i32 4, !"SV_TessFactor", i32 7, i32 9}
+!6 = !{i32 6, !"inside", i32 3, i32 36, i32 4, !"SV_InsideTessFactor", i32 7, i32 9}
+!7 = !{i32 24, !8, !9}
+!8 = !{i32 6, !"pos", i32 3, i32 0, i32 4, !"SV_Position", i32 7, i32 9}
+!9 = !{i32 6, !"uv", i32 3, i32 16, i32 4, !"TEXCOORD0", i32 7, i32 9}
+!10 = !{i32 20, !8, !11}
+!11 = !{i32 6, !"rate", i32 3, i32 16, i32 4, !"SV_ShadingRate", i32 7, i32 5}
+!12 = !{i32 1, void ()* @DSCPInMain, !13}
+!13 = !{!14}
+!14 = !{i32 0, !15, !15}
+!15 = !{}
+!16 = !{[21 x i32] [i32 5, i32 6, i32 1, i32 2, i32 4, i32 8, i32 48, i32 13, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0]}
+!17 = !{void ()* @DSCPInMain, !"DSCPInMain", !18, null, !29}
+!18 = !{!19, !23, !25}
+!19 = !{!20, !22}
+!20 = !{i32 0, !"SV_Position", i8 9, i8 3, !21, i8 4, i32 1, i8 4, i32 0, i8 0, null}
+!21 = !{i32 0}
+!22 = !{i32 1, !"SV_ShadingRate", i8 5, i8 29, !21, i8 1, i32 1, i8 1, i32 1, i8 0, null}
+!23 = !{!20, !24}
+!24 = !{i32 1, !"TEXCOORD", i8 9, i8 0, !21, i8 2, i32 1, i8 2, i32 1, i8 0, null}
+!25 = !{!26, !28}
+!26 = !{i32 0, !"SV_TessFactor", i8 9, i8 25, !27, i8 0, i32 3, i8 1, i32 0, i8 3, null}
+!27 = !{i32 0, i32 1, i32 2}
+!28 = !{i32 1, !"SV_InsideTessFactor", i8 9, i8 26, !21, i8 0, i32 1, i8 1, i32 3, i8 0, null}
+!29 = !{i32 0, i64 16777216, i32 2, !30}
+!30 = !{i32 2, i32 3}
+
+
+--- stderr ---
+
+
+$ dxc -T ds_6_4 -E DSOutMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       Shading Rate
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float       
+; TEXCOORD                 0   xy          1     NONE   float       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; SV_ShadingRate           0   x           1     NONE    uint   x   
+;
+;
+; Patch Constant signature signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_TessFactor            0      w        0  TRIEDGE   float   xyzw
+; SV_TessFactor            1      w        1  TRIEDGE   float   xyzw
+; SV_TessFactor            2      w        2  TRIEDGE   float   xyzw
+; SV_InsideTessFactor      0   x           3   TRIINT   float   xyzw
+;
+;
+; Pipeline Runtime Information: 
+;
+; Domain Shader
+; InputControlPointCount=3
+; OutputPositionPresent=1
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; TEXCOORD                 0                 linear       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; SV_ShadingRate           0        nointerpolation       
+;
+; Patch Constant signature signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_TessFactor            0                              
+; SV_InsideTessFactor      0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 6, outputs: 5, patchconst: 13
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0 }
+;   output 1 depends on inputs: { 1 }
+;   output 2 depends on inputs: { 2 }
+;   output 3 depends on inputs: { 3 }
+;   output 4 depends on inputs: { 4 }
+; PCInputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.PatchConst = type { [3 x float], float }
+%struct.VSOutPlain = type { <4 x float>, <2 x float> }
+%struct.VSOutRate = type { <4 x float>, i32 }
+
+define void @DSOutMain() {
+  %1 = call float @dx.op.domainLocation.f32(i32 105, i8 0)  ; DomainLocation(component)
+  %2 = call float @dx.op.domainLocation.f32(i32 105, i8 1)  ; DomainLocation(component)
+  %3 = call float @dx.op.domainLocation.f32(i32 105, i8 2)  ; DomainLocation(component)
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 0)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %5 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 0)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %6 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 0)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %7 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 0)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i0 = fmul fast float %4, %1
+  %.i1 = fmul fast float %5, %1
+  %.i2 = fmul fast float %6, %1
+  %.i3 = fmul fast float %7, %1
+  %8 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %9 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %10 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %11 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 1)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i01 = fmul fast float %8, %2
+  %.i12 = fmul fast float %9, %2
+  %.i23 = fmul fast float %10, %2
+  %.i34 = fmul fast float %11, %2
+  %.i05 = fadd fast float %.i01, %.i0
+  %.i16 = fadd fast float %.i12, %.i1
+  %.i27 = fadd fast float %.i23, %.i2
+  %.i38 = fadd fast float %.i34, %.i3
+  %12 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 2)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %13 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 2)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %14 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 2)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %15 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 2)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i09 = fmul fast float %12, %3
+  %.i110 = fmul fast float %13, %3
+  %.i211 = fmul fast float %14, %3
+  %.i312 = fmul fast float %15, %3
+  %.i013 = fadd fast float %.i05, %.i09
+  %.i114 = fadd fast float %.i16, %.i110
+  %.i215 = fadd fast float %.i27, %.i211
+  %.i316 = fadd fast float %.i38, %.i312
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %.i013)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %.i114)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %.i215)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %.i316)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  %16 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 0, i32 0)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %17 = fptoui float %16 to i32
+  call void @dx.op.storeOutput.i32(i32 5, i32 1, i32 0, i8 0, i32 %17)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.domainLocation.f32(i32, i8) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!1}
+!dx.shaderModel = !{!2}
+!dx.typeAnnotations = !{!3, !12}
+!dx.viewIdState = !{!16}
+!dx.entryPoints = !{!17}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 4}
+!2 = !{!"ds", i32 6, i32 4}
+!3 = !{i32 0, %struct.PatchConst undef, !4, %struct.VSOutPlain undef, !7, %struct.VSOutRate undef, !10}
+!4 = !{i32 40, !5, !6}
+!5 = !{i32 6, !"edges", i32 3, i32 0, i32 4, !"SV_TessFactor", i32 7, i32 9}
+!6 = !{i32 6, !"inside", i32 3, i32 36, i32 4, !"SV_InsideTessFactor", i32 7, i32 9}
+!7 = !{i32 24, !8, !9}
+!8 = !{i32 6, !"pos", i32 3, i32 0, i32 4, !"SV_Position", i32 7, i32 9}
+!9 = !{i32 6, !"uv", i32 3, i32 16, i32 4, !"TEXCOORD0", i32 7, i32 9}
+!10 = !{i32 20, !8, !11}
+!11 = !{i32 6, !"rate", i32 3, i32 16, i32 4, !"SV_ShadingRate", i32 7, i32 5}
+!12 = !{i32 1, void ()* @DSOutMain, !13}
+!13 = !{!14}
+!14 = !{i32 0, !15, !15}
+!15 = !{}
+!16 = !{[22 x i32] [i32 6, i32 5, i32 1, i32 2, i32 4, i32 8, i32 16, i32 0, i32 13, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0]}
+!17 = !{void ()* @DSOutMain, !"DSOutMain", !18, null, !29}
+!18 = !{!19, !23, !25}
+!19 = !{!20, !22}
+!20 = !{i32 0, !"SV_Position", i8 9, i8 3, !21, i8 4, i32 1, i8 4, i32 0, i8 0, null}
+!21 = !{i32 0}
+!22 = !{i32 1, !"TEXCOORD", i8 9, i8 0, !21, i8 2, i32 1, i8 2, i32 1, i8 0, null}
+!23 = !{!20, !24}
+!24 = !{i32 1, !"SV_ShadingRate", i8 5, i8 29, !21, i8 1, i32 1, i8 1, i32 1, i8 0, null}
+!25 = !{!26, !28}
+!26 = !{i32 0, !"SV_TessFactor", i8 9, i8 25, !27, i8 0, i32 3, i8 1, i32 0, i8 3, null}
+!27 = !{i32 0, i32 1, i32 2}
+!28 = !{i32 1, !"SV_InsideTessFactor", i8 9, i8 26, !21, i8 0, i32 1, i8 1, i32 3, i8 0, null}
+!29 = !{i32 0, i64 16777216, i32 2, !30}
+!30 = !{i32 2, i32 3}
+
+
+--- stderr ---
+

@@ -1,0 +1,21 @@
+{
+  "kind": "all_of",
+  "note": "Control predicate for #3872, never used to score the repro. It exists so that 'DXC does not diagnose SV_ShadingRate in HSCPIn/HSCPOut/DSCPIn/DSOut' is readable: silence has two innocent explanations (the compiler never looks, or there was nothing to say), and this pins down that the diagnostic exists and that the repro's own five command lines reach it in the very stages under dispute. control-diagnosed.hlsl is the same VS/HS/DS pipeline with SV_ShadingRate moved into three cells the SAME table marks NA in the SAME stages -- VSIn, PCOut (hull patch-constant output) and DSIn (domain patch-constant input) -- and is run against this predicate with --expect match. Same-subject on purpose: a generic invalid shader would prove only that the command line compiles something, not that this semantic family is checked in hs and ds. Two different emitters are asserted because DXC has two: CGMSHLSLRuntime::CheckParameterAnnotation (tools/clang/lib/CodeGen/CGHLSLMS.cpp:521) produces the \"invalid semantic '%0' for %1 %2.%3\" form, checked by tools/clang/test/HLSLFileCheck/hlsl/semantics/sv_shadingrate/shadingrate3.hlsl; HLSignatureLower::ProcessArgument (lib/HLSL/HLSignatureLower.cpp:356) produces the \"Semantic %0 is invalid for shader model: %1\" form on the NA arm of its switch over SigPoint::GetInterpretation. Clauses 2 and 3 are the load-bearing ones: they show that arm firing for hs and for ds, which is the exact code path the repro walks past.",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "error: invalid semantic 'SV_ShadingRate' for vs 6.4",
+      "note": "VSIn is NA: the CodeGen-side check fires."
+    },
+    {
+      "kind": "contains",
+      "value": "error: Semantic SV_ShadingRate is invalid for shader model: hs",
+      "note": "PCOut is NA: HLSignatureLower's NA arm fires in the HULL stage, under the repro's own hs_6_4 command lines."
+    },
+    {
+      "kind": "contains",
+      "value": "error: Semantic SV_ShadingRate is invalid for shader model: ds",
+      "note": "DSIn is NA: the same arm fires in the DOMAIN stage, under the repro's own ds_6_4 command lines."
+    }
+  ]
+}

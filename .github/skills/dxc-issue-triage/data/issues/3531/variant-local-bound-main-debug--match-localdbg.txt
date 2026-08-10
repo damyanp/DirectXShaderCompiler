@@ -1,0 +1,174 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T05:21:07+00:00
+# cmd: -T cs_6_6 -E DynamicResources -Zi -Qembed_debug control-local-bound.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-localdbg.json
+# verdict: repro
+# variant: local-bound (control-local-bound.hlsl)
+# expect: match
+
+$ dxc -T cs_6_6 -E DynamicResources -Zi -Qembed_debug control-local-bound.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: a65950a9391c91cfa41c2e4ded7a85cc.pdb
+; shader hash: a65950a9391c91cfa41c2e4ded7a85cc
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: DynamicResources
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; floatRWUAV                            UAV     f32         buf      U0             u0     1
+; BoundBuffer                           UAV    byte         r/w      U1             u1     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResBind = type { i32, i32, i32, i8 }
+%dx.types.ResourceProperties = type { i32, i32 }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%"class.RWBuffer<float>" = type { float }
+%struct.RWByteAddressBuffer = type { i32 }
+
+define void @DynamicResources() {
+entry:
+  %BoundBuffer_UAV_rawbuf = call %dx.types.Handle @dx.op.createHandleFromBinding(i32 217, %dx.types.ResBind { i32 1, i32 1, i32 0, i8 1 }, i32 1, i1 false), !dbg !39 ; line:11 col:44  ; CreateHandleFromBinding(bind,index,nonUniformIndex)
+  %floatRWUAV_UAV_buf = call %dx.types.Handle @dx.op.createHandleFromBinding(i32 217, %dx.types.ResBind { i32 0, i32 0, i32 0, i8 1 }, i32 0, i1 false), !dbg !39 ; line:11 col:44  ; CreateHandleFromBinding(bind,index,nonUniformIndex)
+  %0 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %BoundBuffer_UAV_rawbuf, %dx.types.ResourceProperties { i32 4107, i32 0 }), !dbg !41 ; line:15 col:16  ; AnnotateHandle(res,props)  resource: RWByteAddressBuffer
+  %RawBufferLoad = call %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32 139, %dx.types.Handle %0, i32 0, i32 undef, i8 1, i32 4), !dbg !41 ; line:15 col:16  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %1 = extractvalue %dx.types.ResRet.i32 %RawBufferLoad, 0, !dbg !41 ; line:15 col:16
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !42, metadata !45), !dbg !46 ; var:"val" !DIExpression() func:"DynamicResources"
+  %conv = uitofp i32 %1 to float, !dbg !47 ; line:17 col:34
+  %and = and i32 %1, 15, !dbg !48 ; line:17 col:26
+  %2 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %floatRWUAV_UAV_buf, %dx.types.ResourceProperties { i32 4106, i32 265 }), !dbg !49 ; line:17 col:5  ; AnnotateHandle(res,props)  resource: RWTypedBuffer<F32>
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %2, i32 %and, i32 undef, float %conv, float %conv, float %conv, float %conv, i8 15), !dbg !50 ; line:17 col:32  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void, !dbg !51 ; line:18 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32, %dx.types.Handle, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #2
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @dx.op.annotateHandle(i32, %dx.types.Handle, %dx.types.ResourceProperties) #0
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @dx.op.createHandleFromBinding(i32, %dx.types.ResBind, i32, i1) #0
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!19, !20}
+!llvm.ident = !{!21}
+!dx.source.contents = !{!22}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!23}
+!dx.source.args = !{!24}
+!dx.version = !{!25}
+!dx.valver = !{!26}
+!dx.shaderModel = !{!27}
+!dx.resources = !{!28}
+!dx.typeAnnotations = !{!33}
+!dx.entryPoints = !{!36}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.5433 (triage, ab5400907)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !10)
+!1 = !DIFile(filename: "control-local-bound.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4, !7, !8}
+!4 = !DISubprogram(name: "DynamicResources", scope: !1, file: !1, line: 13, type: !5, isLocal: false, isDefinition: true, scopeLine: 14, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @DynamicResources)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !DISubprogram(name: "??__EDynamicBuffer@@YAXXZ", scope: !1, file: !1, line: 11, type: !5, isLocal: true, isDefinition: true, scopeLine: 11, flags: DIFlagPrototyped, isOptimized: false)
+!8 = !DISubprogram(linkageName: "_GLOBAL__sub_I_control_local_bound.hlsl", scope: !1, file: !1, type: !9, isLocal: true, isDefinition: true, flags: DIFlagArtificial, isOptimized: false)
+!9 = !DISubroutineType(types: !2)
+!10 = !{!11, !16, !18}
+!11 = !DIGlobalVariable(name: "floatRWUAV", linkageName: "\01?floatRWUAV@@3V?$RWBuffer@M@@A", scope: !0, file: !1, line: 8, type: !12, isLocal: false, isDefinition: true)
+!12 = !DICompositeType(tag: DW_TAG_class_type, name: "RWBuffer<float>", file: !1, line: 8, size: 32, align: 32, elements: !2, templateParams: !13)
+!13 = !{!14}
+!14 = !DITemplateTypeParameter(name: "element", type: !15)
+!15 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!16 = !DIGlobalVariable(name: "BoundBuffer", linkageName: "\01?BoundBuffer@@3URWByteAddressBuffer@@A", scope: !0, file: !1, line: 9, type: !17, isLocal: false, isDefinition: true)
+!17 = !DICompositeType(tag: DW_TAG_structure_type, name: "RWByteAddressBuffer", file: !1, line: 16, size: 32, align: 32, elements: !2)
+!18 = !DIGlobalVariable(name: "DynamicBuffer", scope: !0, file: !1, line: 11, type: !17, isLocal: true, isDefinition: true)
+!19 = !{i32 2, !"Dwarf Version", i32 4}
+!20 = !{i32 2, !"Debug Info Version", i32 3}
+!21 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!22 = !{!"control-local-bound.hlsl", !"// Control for issue 3531: is the gap specific to DYNAMIC resources, or does any locally\0D\0A// declared resource lack debug info?\0D\0A//\0D\0A// Identical in shape to repro.hlsl except that the local resource aliases an ordinary bound\0D\0A// RWByteAddressBuffer instead of ResourceDescriptorHeap. `val` is kept live so the detector's\0D\0A// self-test clause is exercised here exactly as it is in the repro.\0D\0A\0D\0ARWBuffer<float> floatRWUAV : register(u0);\0D\0ARWByteAddressBuffer BoundBuffer : register(u1);\0D\0A\0D\0Astatic RWByteAddressBuffer DynamicBuffer = BoundBuffer;\0D\0A[numthreads(1, 1, 1)]\0D\0Avoid DynamicResources()\0D\0A{\0D\0A    uint val = DynamicBuffer.Load(0u);\0D\0A    RWByteAddressBuffer DynamicallyIndexedDynamicBuffer = BoundBuffer;\0D\0A    floatRWUAV[256 + val &0xf] = DynamicallyIndexedDynamicBuffer.Load(0);\0D\0A}\0D\0A"}
+!23 = !{!"control-local-bound.hlsl"}
+!24 = !{!"-E", !"DynamicResources", !"-T", !"cs_6_6", !"-Zi", !"-Qembed_debug"}
+!25 = !{i32 1, i32 6}
+!26 = !{i32 1, i32 10}
+!27 = !{!"cs", i32 6, i32 6}
+!28 = !{null, !29, null, null}
+!29 = !{!30, !32}
+!30 = !{i32 0, %"class.RWBuffer<float>"* undef, !"floatRWUAV", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !31}
+!31 = !{i32 0, i32 9}
+!32 = !{i32 1, %struct.RWByteAddressBuffer* undef, !"BoundBuffer", i32 0, i32 1, i32 1, i32 11, i1 false, i1 false, i1 false, null}
+!33 = !{i32 1, void ()* @DynamicResources, !34}
+!34 = !{!35}
+!35 = !{i32 1, !2, !2}
+!36 = !{void ()* @DynamicResources, !"DynamicResources", null, !28, !37}
+!37 = !{i32 0, i64 16, i32 4, !38}
+!38 = !{i32 1, i32 1, i32 1}
+!39 = !DILocation(line: 11, column: 44, scope: !7, inlinedAt: !40)
+!40 = distinct !DILocation(line: 13, scope: !4)
+!41 = !DILocation(line: 15, column: 16, scope: !4)
+!42 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "val", scope: !4, file: !1, line: 15, type: !43)
+!43 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 15, baseType: !44)
+!44 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!45 = !DIExpression()
+!46 = !DILocation(line: 15, column: 10, scope: !4)
+!47 = !DILocation(line: 17, column: 34, scope: !4)
+!48 = !DILocation(line: 17, column: 26, scope: !4)
+!49 = !DILocation(line: 17, column: 5, scope: !4)
+!50 = !DILocation(line: 17, column: 32, scope: !4)
+!51 = !DILocation(line: 18, column: 1, scope: !4)
+
+
+--- stderr ---
+

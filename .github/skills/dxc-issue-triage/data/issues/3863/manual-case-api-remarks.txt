@@ -1,0 +1,36 @@
+compiler: main-debug
+dll:      <repo>/build/Debug/bin/dxcompiler.dll
+version:  dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+api:      IDxcCompiler3::Compile, then IDxcResult::HasOutput/GetOutput(DXC_OUT_REMARKS=11)
+
+== A  -P with -H
+   args: repro.hlsl -P -Fi api-h.i -H
+   Compile hr=0x00000000
+   GetStatus=0x00000000
+   HasOutput(DXC_OUT_REMARKS)=True  bytes=86  contains 'Opening file ['=True
+   | Opening file [./inc-pp-a.h], stack top [0]
+   | Opening file [./inc-pp-b.h], stack top [1]
+
+== B  -P no flag
+   args: repro.hlsl -P -Fi api-plain.i
+   Compile hr=0x00000000
+   GetStatus=0x00000000
+   HasOutput(DXC_OUT_REMARKS)=True  bytes=0  contains 'Opening file ['=False
+
+== C  compile -H
+   args: repro.hlsl -T ps_6_0 -E main -H
+   Compile hr=0x00000000
+   GetStatus=0x00000000
+   HasOutput(DXC_OUT_REMARKS)=True  bytes=86  contains 'Opening file ['=True
+   | Opening file [./inc-pp-a.h], stack top [0]
+   | Opening file [./inc-pp-b.h], stack top [1]
+
+summary
+case             HasOutput(REMARKS)          bytes trace in REMARKS      
+A  -P with -H    True                           86 True                  
+B  -P no flag    True                            0 False                 
+C  compile -H    True                           86 True                  
+
+CONTROLS: B (no -H) must show no trace: PASS
+          C (compile with -H) must show a trace: PASS
+FINDING:  A (-P with -H) carries the include trace in REMARKS: True

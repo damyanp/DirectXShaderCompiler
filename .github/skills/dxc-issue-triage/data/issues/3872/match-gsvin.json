@@ -1,0 +1,16 @@
+{
+  "kind": "all_of",
+  "note": "Predicate for the OPEN-QUESTION arm of #3872 (GSVIn), kept separate from match.json so the falsifiable claim and the question are never scored together. Both clauses are positive and both must hold, so a gs_6_4 compile that failed, or one that produced no disassembly, scores no-match instead of manufacturing an answer. Clause 2 doubles as the self-test: it can only match if this build knows SV_ShadingRate and printed a real DXIL signature table, using the SysValue-column token SHDINGRATE that only the container signature tables print (tools/clang/tools/dxcompiler/dxcdisassembler.cpp:200), not the PSV runtime-info copy. Run against probe-gsvin.hlsl with --expect match: the interpretation table gives GSVIn = SV _64, so acceptance is the predicted behaviour and this records it as measured fact. NOTE for the reader: a match here is NOT a defect finding. The reporter raised GSVIn as a question ('probably should be NA as well, but I'm not sure') and the D3D12 VRS spec text that settles the four asserted cells -- 'Setting SV_ShadingRate is permitted from VS, GS or MS stages' -- is about WRITING the value, and so does not by itself decide whether a GS may READ a per-vertex rate coming from the VS. This capture states what DXC does; it does not claim what DXC should do.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T gs_6_4 -E GSVInMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "GSVIn: accepted with no diagnostic."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T gs_6_4 -E GSVInMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Input signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*SHDINGRATE\\s+uint",
+      "note": "GSVIn: reached the geometry shader per-vertex INPUT signature, not merely a clean parse."
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "kind": "all_of",
+  "note": "#3872 is a MISSING-DIAGNOSTIC issue: the reported symptom is that DXC ACCEPTS SV_ShadingRate in four SemanticInterpretation table cells (HSCPIn, HSCPOut, DSCPIn, DSOut) the reporter says should be NA. 'The symptom is present' therefore means a CLEAN COMPILE, which is the direction that manufactures false positives most easily, so every clause here is POSITIVE -- there is no absence clause anywhere in this predicate, and no clause can be satisfied by a compile that failed, by a compile that never mentioned SV_ShadingRate, or by a build whose disassembler produced nothing. Structure: cmd.txt compiles one source five times, once per signature position, so each `$ dxc ...` block in the capture isolates exactly one table cell and every clause is scoped to its own block by a gap that may not cross the next '$ dxc ' line. Clauses 1-2 are the SELF-TEST and use VSOut, the position the D3D12 VRS spec explicitly permits ('Setting SV_ShadingRate is permitted from VS, GS or MS stages'): they require that this build can express SM 6.4, knows the SV_ShadingRate semantic, ran codegen to completion and printed a DXIL signature table containing the row this predicate's regex is looking for. A build that predates the semantic, rejects the profile or emits no disassembly therefore scores NO-MATCH rather than a fake symptom, and the self-test keeps matching even after the four disputed cells are fixed. Clauses 3-10 are the symptom, two per disputed cell: the block exited 0 (no diagnostic) AND the DXIL signature table for that stage carries the SV_ShadingRate row. The row anchor uses the SysValue column token SHDINGRATE (tools/clang/tools/dxcompiler/dxcdisassembler.cpp:200), which the PSV runtime-info copy of the signature tables does not print -- it prints the interpolation mode instead -- so the regex cannot match the wrong table. The section anchors ('; Input signature:' / '; Output signature:') name which half of the signature each claim is about. CONTROLS, all captured in this directory: (a) control-nosr.hlsl, the identical five-entry-point VS/HS/DS pipeline with SV_ShadingRate replaced by an arbitrary RATE semantic (expect no-match) -- proves the predicate is not satisfied by any successful compile of a similar pipeline; (b) control-diagnosed.hlsl, SV_ShadingRate moved into three cells the same table marks NA in the same stages -- VSIn, PCOut and DSIn (expect no-match here, and expect MATCH under match-diag.json) -- proves DXC does have this diagnostic and that these exact command lines reach it, so the silence on the repro is a table decision rather than an unreached check. The block anchors deliberately do NOT pin the source filename, so a control differs from the repro in its content, not in the shape of the capture.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T vs_6_4 -E VSMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "SELF-TEST 1: the spec-legal position (VSOut) compiles cleanly on this build."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T vs_6_4 -E VSMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Output signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*SHDINGRATE\\s+uint",
+      "note": "SELF-TEST 2: this build knows SV_ShadingRate, emits it into a DXIL signature table, and the row regex used by clauses 4/6/8/10 really does match a known-present row."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T hs_6_4 -E HSCPInMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "HSCPIn: accepted with no diagnostic."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T hs_6_4 -E HSCPInMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Input signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*SHDINGRATE\\s+uint",
+      "note": "HSCPIn: reached the hull shader INPUT signature, not merely a clean parse."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T hs_6_4 -E HSCPOutMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "HSCPOut: accepted with no diagnostic."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T hs_6_4 -E HSCPOutMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Output signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*SHDINGRATE\\s+uint",
+      "note": "HSCPOut: reached the hull shader OUTPUT control-point signature."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T ds_6_4 -E DSCPInMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "DSCPIn: accepted with no diagnostic."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T ds_6_4 -E DSCPInMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Input signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*SHDINGRATE\\s+uint",
+      "note": "DSCPIn: reached the domain shader INPUT control-point signature."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T ds_6_4 -E DSOutMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "DSOut: accepted with no diagnostic. This is the cell the VRS spec rules out by name ('It is not permitted from other stages, for example DS')."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T ds_6_4 -E DSOutMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Output signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*SHDINGRATE\\s+uint",
+      "note": "DSOut: reached the domain shader OUTPUT signature."
+    }
+  ]
+}

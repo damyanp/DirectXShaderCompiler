@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T05:17:23+00:00
+# cmd: control-validation-error.hlsl -T vs_5_0 -E vert_main -Wno-parentheses-equality -Zi -Qembed_debug
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: validation-error (control-validation-error.hlsl)
+# expect: no-match
+
+$ dxc control-validation-error.hlsl -T vs_5_0 -E vert_main -Wno-parentheses-equality -Zi -Qembed_debug
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+warning: Promoting older shader model profile to 6.0 version.
+error: validation errors
+
+error: Semantic 'LOC' overlap at 0.
+Validation failed.
+
+
+

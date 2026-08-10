@@ -1,0 +1,26 @@
+What to look at in this link
+============================
+
+Source is repro-release-crash.hlsl, not repro.hlsl. That is deliberate. Compiler Explorer
+runs Release builds of DXC, so the assert this issue is titled after is compiled out there
+and the description's own example exits 0 on every CE pane -- which looks like "fixed" and
+is not. repro-release-crash.hlsl is the same construct with 32 locals instead of one, which
+turns the same defect into a memory fault that a Release build cannot hide.
+
+Three panes, chosen to straddle the introduction:
+
+  dxc 1.7.2212   exit 0        -- last release before the analysis existed
+  dxc 1.7.2308   SIGSEGV       -- first release containing 1380cf88e
+  dxc trunk      SIGSEGV       -- still present
+
+Scope and limits of this link:
+
+  * CE corroborates; it does not overrule the local build. The verdict in this triage rests
+    on the local Debug build of 13730886e, which asserts (0xE0000001). CE cannot show that
+    assert at all, because it has no Debug DXC.
+  * CE's crash is SIGSEGV on Linux; locally the same source gives 0xC0000005 on the shipped
+    Windows v1.9.2607 binary. Same class of fault -- an out-of-bounds access -- reached by
+    two independent toolchains, which is why it is worth citing.
+  * The 1.7.2212 pane is a genuine negative, not a missing feature: it compiles the file and
+    exits 0. HLSL 2021 templates are available from 1.6.2112 onward, so every pane here can
+    actually parse the source. Releases at or below 1.6.2106 cannot, and are excluded.

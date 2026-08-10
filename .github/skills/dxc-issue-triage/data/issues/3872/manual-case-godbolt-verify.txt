@@ -1,0 +1,992 @@
+# Compiler Explorer panes for #3872, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ds_6_4 -E DSOutMain
+# exit:     0
+
+;
+; Note: shader requires additional functionality:
+;       Shading Rate
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; TEXCOORD                 0   xy          1     NONE   float   x   
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; SV_ShadingRate           0   x           1SHDINGRATE    uint   x   
+;
+;
+; Patch Constant signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_TessFactor            0      w        0  TRIEDGE   float   xyzw
+; SV_TessFactor            1      w        1  TRIEDGE   float   xyzw
+; SV_TessFactor            2      w        2  TRIEDGE   float   xyzw
+; SV_InsideTessFactor      0   x           3   TRIINT   float   xyzw
+;
+; shader debug name: 9200c4ee1c6fbc1c0f74df4d9d5182cd.pdb
+; shader hash: 9200c4ee1c6fbc1c0f74df4d9d5182cd
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Domain Shader
+; InputControlPointCount=3
+; OutputPositionPresent=1
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 2
+; SigOutputElements: 2
+; SigPatchConstOrPrimElements: 2
+; SigInputVectors: 2
+; SigOutputVectors[0]: 2
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: DSOutMain
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; TEXCOORD                 0                 linear       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; SV_ShadingRate           0        nointerpolation       
+;
+; Patch Constant signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_TessFactor            0                              
+; SV_InsideTessFactor      0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 6, outputs: 5, patchconst: 13
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0 }
+;   output 1 depends on inputs: { 1 }
+;   output 2 depends on inputs: { 2 }
+;   output 3 depends on inputs: { 3 }
+;   output 4 depends on inputs: { 4 }
+; PCInputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @DSOutMain() {
+  %1 = call float @dx.op.domainLocation.f32(i32 105, i8 0), !dbg !116 ; line:153 col:54  ; DomainLocation(component)
+  %2 = call float @dx.op.domainLocation.f32(i32 105, i8 1), !dbg !116 ; line:153 col:54  ; DomainLocation(component)
+  %3 = call float @dx.op.domainLocation.f32(i32 105, i8 2), !dbg !116 ; line:153 col:54  ; DomainLocation(component)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !117, metadata !118), !dbg !119 ; var:"bary" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !117, metadata !120), !dbg !119 ; var:"bary" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !117, metadata !121), !dbg !119 ; var:"bary" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DSOutMain"
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 0), !dbg !122 ; line:155 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %5 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 0), !dbg !122 ; line:155 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %6 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 0), !dbg !122 ; line:155 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %7 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 0), !dbg !122 ; line:155 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i0 = fmul fast float %4, %1, !dbg !123 ; line:155 col:24
+  %.i1 = fmul fast float %5, %1, !dbg !123 ; line:155 col:24
+  %.i2 = fmul fast float %6, %1, !dbg !123 ; line:155 col:24
+  %.i3 = fmul fast float %7, %1, !dbg !123 ; line:155 col:24
+  %8 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 1), !dbg !124 ; line:155 col:44  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %9 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 1), !dbg !124 ; line:155 col:44  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %10 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 1), !dbg !124 ; line:155 col:44  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %11 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 1), !dbg !124 ; line:155 col:44  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i01 = fmul fast float %8, %2, !dbg !125 ; line:155 col:48
+  %.i12 = fmul fast float %9, %2, !dbg !125 ; line:155 col:48
+  %.i23 = fmul fast float %10, %2, !dbg !125 ; line:155 col:48
+  %.i34 = fmul fast float %11, %2, !dbg !125 ; line:155 col:48
+  %.i05 = fadd fast float %.i01, %.i0, !dbg !126 ; line:155 col:33
+  %.i16 = fadd fast float %.i12, %.i1, !dbg !126 ; line:155 col:33
+  %.i27 = fadd fast float %.i23, %.i2, !dbg !126 ; line:155 col:33
+  %.i38 = fadd fast float %.i34, %.i3, !dbg !126 ; line:155 col:33
+  %12 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 2), !dbg !127 ; line:155 col:68  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %13 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 2), !dbg !127 ; line:155 col:68  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %14 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 2), !dbg !127 ; line:155 col:68  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %15 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 2), !dbg !127 ; line:155 col:68  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i09 = fmul fast float %12, %3, !dbg !128 ; line:155 col:72
+  %.i110 = fmul fast float %13, %3, !dbg !128 ; line:155 col:72
+  %.i211 = fmul fast float %14, %3, !dbg !128 ; line:155 col:72
+  %.i312 = fmul fast float %15, %3, !dbg !128 ; line:155 col:72
+  %.i013 = fadd fast float %.i05, %.i09, !dbg !129 ; line:155 col:57
+  %.i114 = fadd fast float %.i16, %.i110, !dbg !129 ; line:155 col:57
+  %.i215 = fadd fast float %.i27, %.i211, !dbg !129 ; line:155 col:57
+  %.i316 = fadd fast float %.i38, %.i312, !dbg !129 ; line:155 col:57
+  call void @llvm.dbg.value(metadata float %.i013, i64 0, metadata !130, metadata !118), !dbg !131 ; var:"o" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %.i114, i64 0, metadata !130, metadata !120), !dbg !131 ; var:"o" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %.i215, i64 0, metadata !130, metadata !121), !dbg !131 ; var:"o" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %.i316, i64 0, metadata !130, metadata !132), !dbg !131 ; var:"o" !DIExpression(DW_OP_bit_piece, 96, 32) func:"DSOutMain"
+  %16 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 0, i32 0), !dbg !133 ; line:156 col:18  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %17 = fptoui float %16 to i32, !dbg !133 ; line:156 col:18
+  call void @llvm.dbg.value(metadata i32 %17, i64 0, metadata !130, metadata !134), !dbg !131 ; var:"o" !DIExpression(DW_OP_bit_piece, 128, 32) func:"DSOutMain"
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %.i013), !dbg !135 ; line:157 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %.i114), !dbg !135 ; line:157 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %.i215), !dbg !135 ; line:157 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %.i316), !dbg !135 ; line:157 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.i32(i32 5, i32 1, i32 0, i8 0, i32 %17), !dbg !135 ; line:157 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !136 ; line:157 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.domainLocation.f32(i32, i8) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!87, !88}
+!llvm.ident = !{!89}
+!dx.source.contents = !{!90}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!91}
+!dx.source.args = !{!92}
+!dx.version = !{!93}
+!dx.valver = !{!94}
+!dx.shaderModel = !{!95}
+!dx.typeAnnotations = !{!96}
+!dx.viewIdState = !{!99}
+!dx.entryPoints = !{!100}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !6)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 102, baseType: !5)
+!5 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!6 = !{!7, !49, !63, !79}
+!7 = !DISubprogram(name: "PCMain", linkageName: "\01?PCMain@@YA?AUPatchConst@@V?$InputPatch@UVSOutPlain@@$02@@@Z", scope: !1, file: !1, line: 95, type: !8, isLocal: false, isDefinition: true, scopeLine: 95, flags: DIFlagPrototyped, isOptimized: false)
+!8 = !DISubroutineType(types: !9)
+!9 = !{!10, !18}
+!10 = !DICompositeType(tag: DW_TAG_structure_type, name: "PatchConst", file: !1, line: 72, size: 128, align: 32, elements: !11)
+!11 = !{!12, !17}
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "edges", scope: !10, file: !1, line: 73, baseType: !13, size: 96, align: 32)
+!13 = !DICompositeType(tag: DW_TAG_array_type, baseType: !14, size: 96, align: 32, elements: !15)
+!14 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!15 = !{!16}
+!16 = !DISubrange(count: 3)
+!17 = !DIDerivedType(tag: DW_TAG_member, name: "inside", scope: !10, file: !1, line: 74, baseType: !14, size: 32, align: 32, offset: 96)
+!18 = !DICompositeType(tag: DW_TAG_class_type, name: "InputPatch<VSOutPlain, 3>", file: !1, size: 576, align: 32, elements: !19, templateParams: !46)
+!19 = !{!20, !23}
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "Length", scope: !18, file: !1, baseType: !21, flags: DIFlagPublic | DIFlagStaticMember, extraData: i32 3)
+!21 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !22)
+!22 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "h", scope: !18, file: !1, baseType: !24, size: 576, align: 32)
+!24 = !DICompositeType(tag: DW_TAG_array_type, baseType: !25, size: 576, align: 32, elements: !15)
+!25 = !DICompositeType(tag: DW_TAG_structure_type, name: "VSOutPlain", file: !1, line: 67, size: 192, align: 32, elements: !26)
+!26 = !{!27, !38}
+!27 = !DIDerivedType(tag: DW_TAG_member, name: "pos", scope: !25, file: !1, line: 68, baseType: !28, size: 128, align: 32)
+!28 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, baseType: !29)
+!29 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, size: 128, align: 32, elements: !30, templateParams: !35)
+!30 = !{!31, !32, !33, !34}
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !29, file: !1, baseType: !14, size: 32, align: 32, flags: DIFlagPublic)
+!32 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !29, file: !1, baseType: !14, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!33 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !29, file: !1, baseType: !14, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!34 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !29, file: !1, baseType: !14, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!35 = !{!36, !37}
+!36 = !DITemplateTypeParameter(name: "element", type: !14)
+!37 = !DITemplateValueParameter(name: "element_count", type: !22, value: i32 4)
+!38 = !DIDerivedType(tag: DW_TAG_member, name: "uv", scope: !25, file: !1, line: 69, baseType: !39, size: 64, align: 32, offset: 128)
+!39 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, baseType: !40)
+!40 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, size: 64, align: 32, elements: !41, templateParams: !44)
+!41 = !{!42, !43}
+!42 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !40, file: !1, baseType: !14, size: 32, align: 32, flags: DIFlagPublic)
+!43 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !40, file: !1, baseType: !14, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!44 = !{!36, !45}
+!45 = !DITemplateValueParameter(name: "element_count", type: !22, value: i32 2)
+!46 = !{!47, !48}
+!47 = !DITemplateTypeParameter(name: "element", type: !25)
+!48 = !DITemplateValueParameter(name: "count", type: !22, value: i32 3)
+!49 = !DISubprogram(name: "PCMainRate", linkageName: "\01?PCMainRate@@YA?AUPatchConst@@V?$InputPatch@UVSOutRate@@$02@@@Z", scope: !1, file: !1, line: 104, type: !50, isLocal: false, isDefinition: true, scopeLine: 104, flags: DIFlagPrototyped, isOptimized: false)
+!50 = !DISubroutineType(types: !51)
+!51 = !{!10, !52}
+!52 = !DICompositeType(tag: DW_TAG_class_type, name: "InputPatch<VSOutRate, 3>", file: !1, line: 102, size: 480, align: 32, elements: !53, templateParams: !61)
+!53 = !{!54, !55}
+!54 = !DIDerivedType(tag: DW_TAG_member, name: "Length", scope: !52, file: !1, line: 102, baseType: !21, flags: DIFlagPublic | DIFlagStaticMember, extraData: i32 3)
+!55 = !DIDerivedType(tag: DW_TAG_member, name: "h", scope: !52, file: !1, line: 102, baseType: !56, size: 480, align: 32)
+!56 = !DICompositeType(tag: DW_TAG_array_type, baseType: !57, size: 480, align: 32, elements: !15)
+!57 = !DICompositeType(tag: DW_TAG_structure_type, name: "VSOutRate", file: !1, line: 62, size: 160, align: 32, elements: !58)
+!58 = !{!59, !60}
+!59 = !DIDerivedType(tag: DW_TAG_member, name: "pos", scope: !57, file: !1, line: 63, baseType: !28, size: 128, align: 32)
+!60 = !DIDerivedType(tag: DW_TAG_member, name: "rate", scope: !57, file: !1, line: 64, baseType: !4, size: 32, align: 32, offset: 128)
+!61 = !{!62, !48}
+!62 = !DITemplateTypeParameter(name: "element", type: !57)
+!63 = !DISubprogram(name: "DSOutMain", scope: !1, file: !1, line: 152, type: !64, isLocal: false, isDefinition: true, scopeLine: 153, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @DSOutMain)
+!64 = !DISubroutineType(types: !65)
+!65 = !{!57, !10, !66, !74}
+!66 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, line: 111, baseType: !67)
+!67 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, line: 111, size: 96, align: 32, elements: !68, templateParams: !72)
+!68 = !{!69, !70, !71}
+!69 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !67, file: !1, line: 111, baseType: !14, size: 32, align: 32, flags: DIFlagPublic)
+!70 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !67, file: !1, line: 111, baseType: !14, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!71 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !67, file: !1, line: 111, baseType: !14, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!72 = !{!36, !73}
+!73 = !DITemplateValueParameter(name: "element_count", type: !22, value: i32 3)
+!74 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !75)
+!75 = !DICompositeType(tag: DW_TAG_class_type, name: "OutputPatch<VSOutPlain, 3>", file: !1, line: 111, size: 576, align: 32, elements: !76, templateParams: !46)
+!76 = !{!77, !78}
+!77 = !DIDerivedType(tag: DW_TAG_member, name: "Length", scope: !75, file: !1, line: 111, baseType: !21, flags: DIFlagPublic | DIFlagStaticMember, extraData: i32 3)
+!78 = !DIDerivedType(tag: DW_TAG_member, name: "h", scope: !75, file: !1, line: 111, baseType: !24, size: 576, align: 32)
+!79 = !DISubprogram(name: "PCMainBad", linkageName: "\01?PCMainBad@@YA?AUPatchConstSR@@V?$InputPatch@UVSOutPlain@@$02@@@Z", scope: !1, file: !1, line: 172, type: !80, isLocal: false, isDefinition: true, scopeLine: 172, flags: DIFlagPrototyped, isOptimized: false)
+!80 = !DISubroutineType(types: !81)
+!81 = !{!82, !18}
+!82 = !DICompositeType(tag: DW_TAG_structure_type, name: "PatchConstSR", file: !1, line: 79, size: 160, align: 32, elements: !83)
+!83 = !{!84, !85, !86}
+!84 = !DIDerivedType(tag: DW_TAG_member, name: "edges", scope: !82, file: !1, line: 80, baseType: !13, size: 96, align: 32)
+!85 = !DIDerivedType(tag: DW_TAG_member, name: "inside", scope: !82, file: !1, line: 81, baseType: !14, size: 32, align: 32, offset: 96)
+!86 = !DIDerivedType(tag: DW_TAG_member, name: "rate", scope: !82, file: !1, line: 82, baseType: !4, size: 32, align: 32, offset: 128)
+!87 = !{i32 2, !"Dwarf Version", i32 4}
+!88 = !{i32 2, !"Debug Info Version", i32 3}
+!89 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!90 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 3872: SV_ShadingRate is accepted in hull and domain shader control-point\0A// signatures. The complaint is that DXC says nothing, so what you are looking for\0A// is an ABSENCE -- and an absence is only readable next to a control.\0A//\0A// This one file feeds five panes. Two compile positions the report says should be\0A// rejected; two are controls that put the same semantic, in the same stage, with\0A// the same compiler, into a position the interpretation table already marks NA.\0A//\0A//   1. dxc_trunk  -T ds_6_4 -E DSOutMain   the domain shader WRITES the rate.\0A//      ACCEPTED. Scroll to \22Output signature\22 and read the SysValue column of the\0A//      SV_ShadingRate row: it says SHDINGRATE, so this was lowered as a system\0A//      value, not quietly demoted to an arbitrary semantic. The D3D12 Variable\0A//      Rate Shading spec says the rate may be set from VS, GS or MS and \22It is\0A//      not permitted from other stages, for example DS\22.\0A//   2. dxc_trunk  -T ds_6_4 -E DSInBad     CONTROL, same compiler, same stage:\0A//      \22Semantic SV_ShadingRate is invalid for shader model: ds\22. So the check\0A//      exists and these command lines reach it. Pane 1's silence is a decision\0A//      recorded in a table, not a check that never ran.\0A//   3. dxc_trunk  -T hs_6_4 -E HSCPInMain  hull shader input control point.\0A//      ACCEPTED, same reading as pane 1 but in \22Input signature\22.\0A//   4. dxc_trunk  -T hs_6_4 -E HSPCOutBad  CONTROL for the hull stage.\0A//   5. dxc 1.6.2112  -T ds_6_4 -E DSOutMain   the release closest to the report\0A//      date. Same result: this is not a recent regression. Locally it also\0A//      reproduces on every release from 1.4.1907 onward.\0A//\0A// Not shown, and why: the DXIL validator does not catch it either -- dxv accepts\0A// all four containers, and both gates read the same SemanticInterpretation table.\0A// Clang trunk cannot be asked this question yet; it rejects the name outright with\0A// \22unknown HLSL semantic\22. FXC rejects it too, but it rejects it in the vertex\0A// shader as well, because the feature postdates Shader Model 5.1.\0A//==========================================================================//\0A\0A// Issue 3872 -- the source published to Compiler Explorer.\0A//\0A// It is repro.hlsl plus three CONTROL entry points, in one file, so that the\0A// link carries its own control: the same compiler, the same stage and the same\0A// semantic, once in a cell the interpretation table marks SV and once in a cell\0A// it marks NA. A link that only showed acceptance would be unreadable, because\0A// silence has an innocent explanation (nothing was checked) that a reader\0A// cannot rule out from the outside.\0A//\0A// What each pane compiles, and what to look at:\0A//\0A//   -T ds_6_4 -E DSOutMain    ACCEPTED. The D3D12 Variable Rate Shading spec\0A//                             says the rate may be set from VS, GS or MS and\0A//                             \22It is not permitted from other stages, for\0A//                             example DS\22. Look at the Output signature table:\0A//                             the row's SysValue column says SHDINGRATE, so\0A//                             this was lowered as a system value, not treated\0A//                             as an arbitrary semantic.\0A//   -T ds_6_4 -E DSInBad      CONTROL, same compiler and stage: DXC does have\0A//                             this diagnostic and does reach it here.\0A//   -T hs_6_4 -E HSCPInMain   ACCEPTED, hull shader input control point.\0A//   -T hs_6_4 -E HSPCOutBad   CONTROL, same compiler and stage.\0A//   dxc_1_6_2112 ds_6_4       The release closest to the report date, same\0A//                             result: this is not a recent regression.\0A//\0A// Locally this file is compiled by `triage.py run --shader godbolt-source.hlsl\0A// --label ce`, so the published source is not an untested variant of the repro.\0A\0Astruct VSOutRate {\0A  float4 pos : SV_Position;\0A  uint rate : SV_ShadingRate;\0A};\0A\0Astruct VSOutPlain {\0A  float4 pos : SV_Position;\0A  float2 uv : TEXCOORD0;\0A};\0A\0Astruct PatchConst {\0A  float edges[3] : SV_TessFactor;\0A  float inside : SV_InsideTessFactor;\0A};\0A\0A// The same struct with the rate moved into the patch-constant signature, which\0A// the table marks NA for both PCOut and DSIn.\0Astruct PatchConstSR {\0A  float edges[3] : SV_TessFactor;\0A  float inside : SV_InsideTessFactor;\0A  uint rate : SV_ShadingRate;\0A};\0A\0A// ---------------------------------------------------------------- accepted --\0A// SV_ShadingRate as a vertex shader output: permitted by the VRS spec, and the\0A// reason a reader can tell this build knows the semantic at all.\0AVSOutRate VSMain(float4 pos : POSITION, uint rate : RATE) {\0A  VSOutRate o;\0A  o.pos = pos;\0A  o.rate = rate;\0A  return o;\0A}\0A\0APatchConst PCMain(InputPatch<VSOutPlain, 3> ip) {\0A  PatchConst c;\0A  c.edges[0] = 1;\0A  c.edges[1] = 1;\0A  c.edges[2] = 1;\0A  c.inside = 1;\0A  return c;\0A}\0A\0APatchConst PCMainRate(InputPatch<VSOutRate, 3> ip) {\0A  PatchConst c;\0A  c.edges[0] = 1;\0A  c.edges[1] = 1;\0A  c.edges[2] = 1;\0A  c.inside = 1;\0A  return c;\0A}\0A\0A// HSCPIn: the hull shader's INPUT control point carries SV_ShadingRate.\0A[domain(\22tri\22)]\0A[partitioning(\22integer\22)]\0A[outputtopology(\22triangle_cw\22)]\0A[outputcontrolpoints(3)]\0A[patchconstantfunc(\22PCMainRate\22)]\0AVSOutPlain HSCPInMain(InputPatch<VSOutRate, 3> ip, uint i : SV_OutputControlPointID) {\0A  VSOutPlain o;\0A  o.pos = ip[i].pos;\0A  o.uv = (float2)ip[i].rate;\0A  return o;\0A}\0A\0A// HSCPOut: the hull shader's OUTPUT control point carries SV_ShadingRate.\0A[domain(\22tri\22)]\0A[partitioning(\22integer\22)]\0A[outputtopology(\22triangle_cw\22)]\0A[outputcontrolpoints(3)]\0A[patchconstantfunc(\22PCMain\22)]\0AVSOutRate HSCPOutMain(InputPatch<VSOutPlain, 3> ip, uint i : SV_OutputControlPointID) {\0A  VSOutRate o;\0A  o.pos = ip[i].pos;\0A  o.rate = (uint)ip[i].uv.x;\0A  return o;\0A}\0A\0A// DSCPIn: the domain shader's INPUT control point carries SV_ShadingRate.\0A[domain(\22tri\22)]\0AVSOutPlain DSCPInMain(PatchConst pc, float3 bary : SV_DomainLocation,\0A                      const OutputPatch<VSOutRate, 3> patch) {\0A  VSOutPlain o;\0A  o.pos = patch[0].pos * bary.x + patch[1].pos * bary.y + patch[2].pos * bary.z;\0A  o.uv = (float2)patch[0].rate;\0A  return o;\0A}\0A\0A// DSOut: the domain shader WRITES SV_ShadingRate. This is the position the VRS\0A// spec rules out by name.\0A[domain(\22tri\22)]\0AVSOutRate DSOutMain(PatchConst pc, float3 bary : SV_DomainLocation,\0A                    const OutputPatch<VSOutPlain, 3> patch) {\0A  VSOutRate o;\0A  o.pos = patch[0].pos * bary.x + patch[1].pos * bary.y + patch[2].pos * bary.z;\0A  o.rate = (uint)patch[0].uv.x;\0A  return o;\0A}\0A\0A// ----------------------------------------------------------------- controls --\0A// The same semantic in three cells the same table already marks NA, so a reader\0A// can see the diagnostic exists and fires in these very stages.\0A\0A// VSIn is NA: expect \22invalid semantic 'SV_ShadingRate' for vs 6.4\22.\0AVSOutPlain VSInBad(float4 pos : POSITION, uint rate : SV_ShadingRate) {\0A  VSOutPlain o;\0A  o.pos = pos;\0A  o.uv = (float2)rate;\0A  return o;\0A}\0A\0APatchConstSR PCMainBad(InputPatch<VSOutPlain, 3> ip) {\0A  PatchConstSR c;\0A  c.edges[0] = 1;\0A  c.edges[1] = 1;\0A  c.edges[2] = 1;\0A  c.inside = 1;\0A  c.rate = 1;\0A  return c;\0A}\0A\0A// PCOut is NA: expect \22Semantic SV_ShadingRate is invalid for shader model: hs\22.\0A[domain(\22tri\22)]\0A[partitioning(\22integer\22)]\0A[outputtopology(\22triangle_cw\22)]\0A[outputcontrolpoints(3)]\0A[patchconstantfunc(\22PCMainBad\22)]\0AVSOutPlain HSPCOutBad(InputPatch<VSOutPlain, 3> ip, uint i : SV_OutputControlPointID) {\0A  VSOutPlain o;\0A  o.pos = ip[i].pos;\0A  o.uv = ip[i].uv;\0A  return o;\0A}\0A\0A// DSIn is NA: expect \22Semantic SV_ShadingRate is invalid for shader model: ds\22.\0A[domain(\22tri\22)]\0AVSOutPlain DSInBad(PatchConstSR pc, float3 bary : SV_DomainLocation,\0A                   const OutputPatch<VSOutPlain, 3> patch) {\0A  VSOutPlain o;\0A  o.pos = patch[0].pos * bary.x + patch[1].pos * bary.y + patch[2].pos * bary.z;\0A  o.uv = (float2)pc.rate;\0A  return o;\0A}\0A"}
+!91 = !{!"/app/example.hlsl"}
+!92 = !{!"-E", !"DSOutMain", !"-T", !"ds_6_4", !"-Zi", !"-Qembed_debug"}
+!93 = !{i32 1, i32 4}
+!94 = !{i32 1, i32 10}
+!95 = !{!"ds", i32 6, i32 4}
+!96 = !{i32 1, void ()* @DSOutMain, !97}
+!97 = !{!98}
+!98 = !{i32 0, !2, !2}
+!99 = !{[22 x i32] [i32 6, i32 5, i32 1, i32 2, i32 4, i32 8, i32 16, i32 0, i32 13, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0]}
+!100 = !{void ()* @DSOutMain, !"DSOutMain", !101, null, !114}
+!101 = !{!102, !108, !110}
+!102 = !{!103, !106}
+!103 = !{i32 0, !"SV_Position", i8 9, i8 3, !104, i8 4, i32 1, i8 4, i32 0, i8 0, !105}
+!104 = !{i32 0}
+!105 = !{i32 3, i32 15}
+!106 = !{i32 1, !"TEXCOORD", i8 9, i8 0, !104, i8 2, i32 1, i8 2, i32 1, i8 0, !107}
+!107 = !{i32 3, i32 1}
+!108 = !{!103, !109}
+!109 = !{i32 1, !"SV_ShadingRate", i8 5, i8 29, !104, i8 1, i32 1, i8 1, i32 1, i8 0, !107}
+!110 = !{!111, !113}
+!111 = !{i32 0, !"SV_TessFactor", i8 9, i8 25, !112, i8 0, i32 3, i8 1, i32 0, i8 3, null}
+!112 = !{i32 0, i32 1, i32 2}
+!113 = !{i32 1, !"SV_InsideTessFactor", i8 9, i8 26, !104, i8 0, i32 1, i8 1, i32 3, i8 0, null}
+!114 = !{i32 0, i64 16777216, i32 2, !115}
+!115 = !{i32 2, i32 3}
+!116 = !DILocation(line: 153, column: 54, scope: !63)
+!117 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "bary", arg: 2, scope: !63, file: !1, line: 152, type: !66)
+!118 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!119 = !DILocation(line: 152, column: 43, scope: !63)
+!120 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!121 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!122 = !DILocation(line: 155, column: 20, scope: !63)
+!123 = !DILocation(line: 155, column: 24, scope: !63)
+!124 = !DILocation(line: 155, column: 44, scope: !63)
+!125 = !DILocation(line: 155, column: 48, scope: !63)
+!126 = !DILocation(line: 155, column: 33, scope: !63)
+!127 = !DILocation(line: 155, column: 68, scope: !63)
+!128 = !DILocation(line: 155, column: 72, scope: !63)
+!129 = !DILocation(line: 155, column: 57, scope: !63)
+!130 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "o", scope: !63, file: !1, line: 154, type: !57)
+!131 = !DILocation(line: 154, column: 13, scope: !63)
+!132 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!133 = !DILocation(line: 156, column: 18, scope: !63)
+!134 = !DIExpression(DW_OP_bit_piece, 128, 32)
+!135 = !DILocation(line: 157, column: 10, scope: !63)
+!136 = !DILocation(line: 157, column: 3, scope: !63)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ds_6_4 -E DSInBad
+# exit:     5
+
+<source>:197:1: error: Semantic SV_ShadingRate is invalid for shader model: ds
+VSOutPlain DSInBad(PatchConstSR pc, float3 bary : SV_DomainLocation,
+^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T hs_6_4 -E HSCPInMain
+# exit:     0
+
+;
+; Note: shader requires additional functionality:
+;       Shading Rate
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; SV_ShadingRate           0   x           1SHDINGRATE    uint   x   
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; TEXCOORD                 0   xy          1     NONE   float   xy  
+;
+;
+; Patch Constant signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_TessFactor            0      w        0  TRIEDGE   float      w
+; SV_TessFactor            1      w        1  TRIEDGE   float      w
+; SV_TessFactor            2      w        2  TRIEDGE   float      w
+; SV_InsideTessFactor      0   x           3   TRIINT   float   x   
+;
+; shader debug name: 0fe83f98a65661bae747371d41636687.pdb
+; shader hash: 0fe83f98a65661bae747371d41636687
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Hull Shader
+; InputControlPointCount=3
+; OutputControlPointCount=3
+; Domain=tri
+; OutputPrimitive=triangle_cw
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 2
+; SigOutputElements: 2
+; SigPatchConstOrPrimElements: 2
+; SigInputVectors: 2
+; SigOutputVectors[0]: 2
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: HSCPInMain
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; SV_ShadingRate           0        nointerpolation       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; TEXCOORD                 0                 linear       
+;
+; Patch Constant signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_TessFactor            0                              
+; SV_InsideTessFactor      0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 5, outputs: 6, patchconst: 13
+; Outputs dependent on ViewId: {  }
+; PCOutputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0 }
+;   output 1 depends on inputs: { 1 }
+;   output 2 depends on inputs: { 2 }
+;   output 3 depends on inputs: { 3 }
+;   output 4 depends on inputs: { 4 }
+;   output 5 depends on inputs: { 4 }
+; Inputs contributing to computation of PCOutputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @"\01?PCMainRate@@YA?AUPatchConst@@V?$InputPatch@UVSOutRate@@$02@@@Z"() {
+  call void @llvm.dbg.value(metadata float 1.000000e+00, i64 0, metadata !104, metadata !105), !dbg !106 ; var:"c" !DIExpression(DW_OP_bit_piece, 0, 32) func:"PCMainRate"
+  call void @llvm.dbg.value(metadata float 1.000000e+00, i64 0, metadata !104, metadata !107), !dbg !106 ; var:"c" !DIExpression(DW_OP_bit_piece, 64, 32) func:"PCMainRate"
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 0, i32 0, i8 0, float 1.000000e+00), !dbg !108 ; line:110 col:10  ; StorePatchConstant(outputSigID,row,col,value)
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 0, i32 1, i8 0, float 1.000000e+00), !dbg !108 ; line:110 col:10  ; StorePatchConstant(outputSigID,row,col,value)
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 0, i32 2, i8 0, float 1.000000e+00), !dbg !108 ; line:110 col:10  ; StorePatchConstant(outputSigID,row,col,value)
+  call void @dx.op.storePatchConstant.f32(i32 106, i32 1, i32 0, i8 0, float 1.000000e+00), !dbg !108 ; line:110 col:10  ; StorePatchConstant(outputSigID,row,col,value)
+  ret void, !dbg !109 ; line:110 col:3
+}
+
+define void @HSCPInMain() {
+  %1 = call i32 @dx.op.outputControlPointID.i32(i32 107), !dbg !110 ; line:119 col:48  ; OutputControlPointID()
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !111, metadata !112), !dbg !113 ; var:"i" !DIExpression() func:"HSCPInMain"
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 %1), !dbg !114 ; line:121 col:17  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %3 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 %1), !dbg !114 ; line:121 col:17  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 %1), !dbg !114 ; line:121 col:17  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %5 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 %1), !dbg !114 ; line:121 col:17  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !115, metadata !105), !dbg !116 ; var:"o" !DIExpression(DW_OP_bit_piece, 0, 32) func:"HSCPInMain"
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !115, metadata !117), !dbg !116 ; var:"o" !DIExpression(DW_OP_bit_piece, 32, 32) func:"HSCPInMain"
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !115, metadata !107), !dbg !116 ; var:"o" !DIExpression(DW_OP_bit_piece, 64, 32) func:"HSCPInMain"
+  call void @llvm.dbg.value(metadata float %5, i64 0, metadata !115, metadata !118), !dbg !116 ; var:"o" !DIExpression(DW_OP_bit_piece, 96, 32) func:"HSCPInMain"
+  %6 = call i32 @dx.op.loadInput.i32(i32 4, i32 1, i32 0, i8 0, i32 %1), !dbg !119 ; line:122 col:24  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %7 = uitofp i32 %6 to float, !dbg !120 ; line:122 col:18
+  call void @llvm.dbg.value(metadata float %7, i64 0, metadata !115, metadata !121), !dbg !116 ; var:"o" !DIExpression(DW_OP_bit_piece, 128, 32) func:"HSCPInMain"
+  call void @llvm.dbg.value(metadata float %7, i64 0, metadata !115, metadata !122), !dbg !116 ; var:"o" !DIExpression(DW_OP_bit_piece, 160, 32) func:"HSCPInMain"
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %2), !dbg !123 ; line:123 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %3), !dbg !123 ; line:123 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %4), !dbg !123 ; line:123 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %5), !dbg !123 ; line:123 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 1, i32 0, i8 0, float %7), !dbg !123 ; line:123 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 1, i32 0, i8 1, float %7), !dbg !123 ; line:123 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !124 ; line:123 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.outputControlPointID.i32(i32) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.loadInput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.storePatchConstant.f32(i32, i32, i32, i8, float) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!74, !75}
+!llvm.ident = !{!76}
+!dx.source.contents = !{!77}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!78}
+!dx.source.args = !{!79}
+!dx.version = !{!80}
+!dx.valver = !{!81}
+!dx.shaderModel = !{!82}
+!dx.typeAnnotations = !{!83}
+!dx.viewIdState = !{!86}
+!dx.entryPoints = !{!87}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !14)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, size: 64, align: 32, elements: !6, templateParams: !10)
+!6 = !{!7, !9}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !{!11, !12}
+!11 = !DITemplateTypeParameter(name: "element", type: !8)
+!12 = !DITemplateValueParameter(name: "element_count", type: !13, value: i32 2)
+!13 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!14 = !{!15, !47, !63, !66}
+!15 = !DISubprogram(name: "PCMain", linkageName: "\01?PCMain@@YA?AUPatchConst@@V?$InputPatch@UVSOutPlain@@$02@@@Z", scope: !1, file: !1, line: 95, type: !16, isLocal: false, isDefinition: true, scopeLine: 95, flags: DIFlagPrototyped, isOptimized: false)
+!16 = !DISubroutineType(types: !17)
+!17 = !{!18, !25}
+!18 = !DICompositeType(tag: DW_TAG_structure_type, name: "PatchConst", file: !1, line: 72, size: 128, align: 32, elements: !19)
+!19 = !{!20, !24}
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "edges", scope: !18, file: !1, line: 73, baseType: !21, size: 96, align: 32)
+!21 = !DICompositeType(tag: DW_TAG_array_type, baseType: !8, size: 96, align: 32, elements: !22)
+!22 = !{!23}
+!23 = !DISubrange(count: 3)
+!24 = !DIDerivedType(tag: DW_TAG_member, name: "inside", scope: !18, file: !1, line: 74, baseType: !8, size: 32, align: 32, offset: 96)
+!25 = !DICompositeType(tag: DW_TAG_class_type, name: "InputPatch<VSOutPlain, 3>", file: !1, size: 576, align: 32, elements: !26, templateParams: !44)
+!26 = !{!27, !29}
+!27 = !DIDerivedType(tag: DW_TAG_member, name: "Length", scope: !25, file: !1, baseType: !28, flags: DIFlagPublic | DIFlagStaticMember, extraData: i32 3)
+!28 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !13)
+!29 = !DIDerivedType(tag: DW_TAG_member, name: "h", scope: !25, file: !1, baseType: !30, size: 576, align: 32)
+!30 = !DICompositeType(tag: DW_TAG_array_type, baseType: !31, size: 576, align: 32, elements: !22)
+!31 = !DICompositeType(tag: DW_TAG_structure_type, name: "VSOutPlain", file: !1, line: 67, size: 192, align: 32, elements: !32)
+!32 = !{!33, !43}
+!33 = !DIDerivedType(tag: DW_TAG_member, name: "pos", scope: !31, file: !1, line: 68, baseType: !34, size: 128, align: 32)
+!34 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, baseType: !35)
+!35 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, size: 128, align: 32, elements: !36, templateParams: !41)
+!36 = !{!37, !38, !39, !40}
+!37 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !35, file: !1, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!38 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !35, file: !1, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!39 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !35, file: !1, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!40 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !35, file: !1, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!41 = !{!11, !42}
+!42 = !DITemplateValueParameter(name: "element_count", type: !13, value: i32 4)
+!43 = !DIDerivedType(tag: DW_TAG_member, name: "uv", scope: !31, file: !1, line: 69, baseType: !4, size: 64, align: 32, offset: 128)
+!44 = !{!45, !46}
+!45 = !DITemplateTypeParameter(name: "element", type: !31)
+!46 = !DITemplateValueParameter(name: "count", type: !13, value: i32 3)
+!47 = !DISubprogram(name: "PCMainRate", linkageName: "\01?PCMainRate@@YA?AUPatchConst@@V?$InputPatch@UVSOutRate@@$02@@@Z", scope: !1, file: !1, line: 104, type: !48, isLocal: false, isDefinition: true, scopeLine: 104, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @"\01?PCMainRate@@YA?AUPatchConst@@V?$InputPatch@UVSOutRate@@$02@@@Z")
+!48 = !DISubroutineType(types: !49)
+!49 = !{!18, !50}
+!50 = !DICompositeType(tag: DW_TAG_class_type, name: "InputPatch<VSOutRate, 3>", file: !1, line: 102, size: 480, align: 32, elements: !51, templateParams: !61)
+!51 = !{!52, !53}
+!52 = !DIDerivedType(tag: DW_TAG_member, name: "Length", scope: !50, file: !1, line: 102, baseType: !28, flags: DIFlagPublic | DIFlagStaticMember, extraData: i32 3)
+!53 = !DIDerivedType(tag: DW_TAG_member, name: "h", scope: !50, file: !1, line: 102, baseType: !54, size: 480, align: 32)
+!54 = !DICompositeType(tag: DW_TAG_array_type, baseType: !55, size: 480, align: 32, elements: !22)
+!55 = !DICompositeType(tag: DW_TAG_structure_type, name: "VSOutRate", file: !1, line: 62, size: 160, align: 32, elements: !56)
+!56 = !{!57, !58}
+!57 = !DIDerivedType(tag: DW_TAG_member, name: "pos", scope: !55, file: !1, line: 63, baseType: !34, size: 128, align: 32)
+!58 = !DIDerivedType(tag: DW_TAG_member, name: "rate", scope: !55, file: !1, line: 64, baseType: !59, size: 32, align: 32, offset: 128)
+!59 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 102, baseType: !60)
+!60 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!61 = !{!62, !46}
+!62 = !DITemplateTypeParameter(name: "element", type: !55)
+!63 = !DISubprogram(name: "HSCPInMain", scope: !1, file: !1, line: 119, type: !64, isLocal: false, isDefinition: true, scopeLine: 119, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @HSCPInMain)
+!64 = !DISubroutineType(types: !65)
+!65 = !{!31, !50, !59}
+!66 = !DISubprogram(name: "PCMainBad", linkageName: "\01?PCMainBad@@YA?AUPatchConstSR@@V?$InputPatch@UVSOutPlain@@$02@@@Z", scope: !1, file: !1, line: 172, type: !67, isLocal: false, isDefinition: true, scopeLine: 172, flags: DIFlagPrototyped, isOptimized: false)
+!67 = !DISubroutineType(types: !68)
+!68 = !{!69, !25}
+!69 = !DICompositeType(tag: DW_TAG_structure_type, name: "PatchConstSR", file: !1, line: 79, size: 160, align: 32, elements: !70)
+!70 = !{!71, !72, !73}
+!71 = !DIDerivedType(tag: DW_TAG_member, name: "edges", scope: !69, file: !1, line: 80, baseType: !21, size: 96, align: 32)
+!72 = !DIDerivedType(tag: DW_TAG_member, name: "inside", scope: !69, file: !1, line: 81, baseType: !8, size: 32, align: 32, offset: 96)
+!73 = !DIDerivedType(tag: DW_TAG_member, name: "rate", scope: !69, file: !1, line: 82, baseType: !59, size: 32, align: 32, offset: 128)
+!74 = !{i32 2, !"Dwarf Version", i32 4}
+!75 = !{i32 2, !"Debug Info Version", i32 3}
+!76 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!77 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 3872: SV_ShadingRate is accepted in hull and domain shader control-point\0A// signatures. The complaint is that DXC says nothing, so what you are looking for\0A// is an ABSENCE -- and an absence is only readable next to a control.\0A//\0A// This one file feeds five panes. Two compile positions the report says should be\0A// rejected; two are controls that put the same semantic, in the same stage, with\0A// the same compiler, into a position the interpretation table already marks NA.\0A//\0A//   1. dxc_trunk  -T ds_6_4 -E DSOutMain   the domain shader WRITES the rate.\0A//      ACCEPTED. Scroll to \22Output signature\22 and read the SysValue column of the\0A//      SV_ShadingRate row: it says SHDINGRATE, so this was lowered as a system\0A//      value, not quietly demoted to an arbitrary semantic. The D3D12 Variable\0A//      Rate Shading spec says the rate may be set from VS, GS or MS and \22It is\0A//      not permitted from other stages, for example DS\22.\0A//   2. dxc_trunk  -T ds_6_4 -E DSInBad     CONTROL, same compiler, same stage:\0A//      \22Semantic SV_ShadingRate is invalid for shader model: ds\22. So the check\0A//      exists and these command lines reach it. Pane 1's silence is a decision\0A//      recorded in a table, not a check that never ran.\0A//   3. dxc_trunk  -T hs_6_4 -E HSCPInMain  hull shader input control point.\0A//      ACCEPTED, same reading as pane 1 but in \22Input signature\22.\0A//   4. dxc_trunk  -T hs_6_4 -E HSPCOutBad  CONTROL for the hull stage.\0A//   5. dxc 1.6.2112  -T ds_6_4 -E DSOutMain   the release closest to the report\0A//      date. Same result: this is not a recent regression. Locally it also\0A//      reproduces on every release from 1.4.1907 onward.\0A//\0A// Not shown, and why: the DXIL validator does not catch it either -- dxv accepts\0A// all four containers, and both gates read the same SemanticInterpretation table.\0A// Clang trunk cannot be asked this question yet; it rejects the name outright with\0A// \22unknown HLSL semantic\22. FXC rejects it too, but it rejects it in the vertex\0A// shader as well, because the feature postdates Shader Model 5.1.\0A//==========================================================================//\0A\0A// Issue 3872 -- the source published to Compiler Explorer.\0A//\0A// It is repro.hlsl plus three CONTROL entry points, in one file, so that the\0A// link carries its own control: the same compiler, the same stage and the same\0A// semantic, once in a cell the interpretation table marks SV and once in a cell\0A// it marks NA. A link that only showed acceptance would be unreadable, because\0A// silence has an innocent explanation (nothing was checked) that a reader\0A// cannot rule out from the outside.\0A//\0A// What each pane compiles, and what to look at:\0A//\0A//   -T ds_6_4 -E DSOutMain    ACCEPTED. The D3D12 Variable Rate Shading spec\0A//                             says the rate may be set from VS, GS or MS and\0A//                             \22It is not permitted from other stages, for\0A//                             example DS\22. Look at the Output signature table:\0A//                             the row's SysValue column says SHDINGRATE, so\0A//                             this was lowered as a system value, not treated\0A//                             as an arbitrary semantic.\0A//   -T ds_6_4 -E DSInBad      CONTROL, same compiler and stage: DXC does have\0A//                             this diagnostic and does reach it here.\0A//   -T hs_6_4 -E HSCPInMain   ACCEPTED, hull shader input control point.\0A//   -T hs_6_4 -E HSPCOutBad   CONTROL, same compiler and stage.\0A//   dxc_1_6_2112 ds_6_4       The release closest to the report date, same\0A//                             result: this is not a recent regression.\0A//\0A// Locally this file is compiled by `triage.py run --shader godbolt-source.hlsl\0A// --label ce`, so the published source is not an untested variant of the repro.\0A\0Astruct VSOutRate {\0A  float4 pos : SV_Position;\0A  uint rate : SV_ShadingRate;\0A};\0A\0Astruct VSOutPlain {\0A  float4 pos : SV_Position;\0A  float2 uv : TEXCOORD0;\0A};\0A\0Astruct PatchConst {\0A  float edges[3] : SV_TessFactor;\0A  float inside : SV_InsideTessFactor;\0A};\0A\0A// The same struct with the rate moved into the patch-constant signature, which\0A// the table marks NA for both PCOut and DSIn.\0Astruct PatchConstSR {\0A  float edges[3] : SV_TessFactor;\0A  float inside : SV_InsideTessFactor;\0A  uint rate : SV_ShadingRate;\0A};\0A\0A// ---------------------------------------------------------------- accepted --\0A// SV_ShadingRate as a vertex shader output: permitted by the VRS spec, and the\0A// reason a reader can tell this build knows the semantic at all.\0AVSOutRate VSMain(float4 pos : POSITION, uint rate : RATE) {\0A  VSOutRate o;\0A  o.pos = pos;\0A  o.rate = rate;\0A  return o;\0A}\0A\0APatchConst PCMain(InputPatch<VSOutPlain, 3> ip) {\0A  PatchConst c;\0A  c.edges[0] = 1;\0A  c.edges[1] = 1;\0A  c.edges[2] = 1;\0A  c.inside = 1;\0A  return c;\0A}\0A\0APatchConst PCMainRate(InputPatch<VSOutRate, 3> ip) {\0A  PatchConst c;\0A  c.edges[0] = 1;\0A  c.edges[1] = 1;\0A  c.edges[2] = 1;\0A  c.inside = 1;\0A  return c;\0A}\0A\0A// HSCPIn: the hull shader's INPUT control point carries SV_ShadingRate.\0A[domain(\22tri\22)]\0A[partitioning(\22integer\22)]\0A[outputtopology(\22triangle_cw\22)]\0A[outputcontrolpoints(3)]\0A[patchconstantfunc(\22PCMainRate\22)]\0AVSOutPlain HSCPInMain(InputPatch<VSOutRate, 3> ip, uint i : SV_OutputControlPointID) {\0A  VSOutPlain o;\0A  o.pos = ip[i].pos;\0A  o.uv = (float2)ip[i].rate;\0A  return o;\0A}\0A\0A// HSCPOut: the hull shader's OUTPUT control point carries SV_ShadingRate.\0A[domain(\22tri\22)]\0A[partitioning(\22integer\22)]\0A[outputtopology(\22triangle_cw\22)]\0A[outputcontrolpoints(3)]\0A[patchconstantfunc(\22PCMain\22)]\0AVSOutRate HSCPOutMain(InputPatch<VSOutPlain, 3> ip, uint i : SV_OutputControlPointID) {\0A  VSOutRate o;\0A  o.pos = ip[i].pos;\0A  o.rate = (uint)ip[i].uv.x;\0A  return o;\0A}\0A\0A// DSCPIn: the domain shader's INPUT control point carries SV_ShadingRate.\0A[domain(\22tri\22)]\0AVSOutPlain DSCPInMain(PatchConst pc, float3 bary : SV_DomainLocation,\0A                      const OutputPatch<VSOutRate, 3> patch) {\0A  VSOutPlain o;\0A  o.pos = patch[0].pos * bary.x + patch[1].pos * bary.y + patch[2].pos * bary.z;\0A  o.uv = (float2)patch[0].rate;\0A  return o;\0A}\0A\0A// DSOut: the domain shader WRITES SV_ShadingRate. This is the position the VRS\0A// spec rules out by name.\0A[domain(\22tri\22)]\0AVSOutRate DSOutMain(PatchConst pc, float3 bary : SV_DomainLocation,\0A                    const OutputPatch<VSOutPlain, 3> patch) {\0A  VSOutRate o;\0A  o.pos = patch[0].pos * bary.x + patch[1].pos * bary.y + patch[2].pos * bary.z;\0A  o.rate = (uint)patch[0].uv.x;\0A  return o;\0A}\0A\0A// ----------------------------------------------------------------- controls --\0A// The same semantic in three cells the same table already marks NA, so a reader\0A// can see the diagnostic exists and fires in these very stages.\0A\0A// VSIn is NA: expect \22invalid semantic 'SV_ShadingRate' for vs 6.4\22.\0AVSOutPlain VSInBad(float4 pos : POSITION, uint rate : SV_ShadingRate) {\0A  VSOutPlain o;\0A  o.pos = pos;\0A  o.uv = (float2)rate;\0A  return o;\0A}\0A\0APatchConstSR PCMainBad(InputPatch<VSOutPlain, 3> ip) {\0A  PatchConstSR c;\0A  c.edges[0] = 1;\0A  c.edges[1] = 1;\0A  c.edges[2] = 1;\0A  c.inside = 1;\0A  c.rate = 1;\0A  return c;\0A}\0A\0A// PCOut is NA: expect \22Semantic SV_ShadingRate is invalid for shader model: hs\22.\0A[domain(\22tri\22)]\0A[partitioning(\22integer\22)]\0A[outputtopology(\22triangle_cw\22)]\0A[outputcontrolpoints(3)]\0A[patchconstantfunc(\22PCMainBad\22)]\0AVSOutPlain HSPCOutBad(InputPatch<VSOutPlain, 3> ip, uint i : SV_OutputControlPointID) {\0A  VSOutPlain o;\0A  o.pos = ip[i].pos;\0A  o.uv = ip[i].uv;\0A  return o;\0A}\0A\0A// DSIn is NA: expect \22Semantic SV_ShadingRate is invalid for shader model: ds\22.\0A[domain(\22tri\22)]\0AVSOutPlain DSInBad(PatchConstSR pc, float3 bary : SV_DomainLocation,\0A                   const OutputPatch<VSOutPlain, 3> patch) {\0A  VSOutPlain o;\0A  o.pos = patch[0].pos * bary.x + patch[1].pos * bary.y + patch[2].pos * bary.z;\0A  o.uv = (float2)pc.rate;\0A  return o;\0A}\0A"}
+!78 = !{!"/app/example.hlsl"}
+!79 = !{!"-E", !"HSCPInMain", !"-T", !"hs_6_4", !"-Zi", !"-Qembed_debug"}
+!80 = !{i32 1, i32 4}
+!81 = !{i32 1, i32 10}
+!82 = !{!"hs", i32 6, i32 4}
+!83 = !{i32 1, void ()* @"\01?PCMainRate@@YA?AUPatchConst@@V?$InputPatch@UVSOutRate@@$02@@@Z", !84, void ()* @HSCPInMain, !84}
+!84 = !{!85}
+!85 = !{i32 0, !2, !2}
+!86 = !{[13 x i32] [i32 5, i32 6, i32 1, i32 2, i32 4, i32 8, i32 48, i32 13, i32 0, i32 0, i32 0, i32 0, i32 0]}
+!87 = !{void ()* @HSCPInMain, !"HSCPInMain", !88, null, !102}
+!88 = !{!89, !95, !98}
+!89 = !{!90, !93}
+!90 = !{i32 0, !"SV_Position", i8 9, i8 3, !91, i8 4, i32 1, i8 4, i32 0, i8 0, !92}
+!91 = !{i32 0}
+!92 = !{i32 3, i32 15}
+!93 = !{i32 1, !"SV_ShadingRate", i8 5, i8 29, !91, i8 1, i32 1, i8 1, i32 1, i8 0, !94}
+!94 = !{i32 3, i32 1}
+!95 = !{!90, !96}
+!96 = !{i32 1, !"TEXCOORD", i8 9, i8 0, !91, i8 2, i32 1, i8 2, i32 1, i8 0, !97}
+!97 = !{i32 3, i32 3}
+!98 = !{!99, !101}
+!99 = !{i32 0, !"SV_TessFactor", i8 9, i8 25, !100, i8 0, i32 3, i8 1, i32 0, i8 3, !94}
+!100 = !{i32 0, i32 1, i32 2}
+!101 = !{i32 1, !"SV_InsideTessFactor", i8 9, i8 26, !91, i8 0, i32 1, i8 1, i32 3, i8 0, !94}
+!102 = !{i32 0, i64 16777216, i32 3, !103}
+!103 = !{void ()* @"\01?PCMainRate@@YA?AUPatchConst@@V?$InputPatch@UVSOutRate@@$02@@@Z", i32 3, i32 3, i32 2, i32 1, i32 3, float 6.400000e+01}
+!104 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "c", scope: !47, file: !1, line: 105, type: !18)
+!105 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!106 = !DILocation(line: 105, column: 14, scope: !47)
+!107 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!108 = !DILocation(line: 110, column: 10, scope: !47)
+!109 = !DILocation(line: 110, column: 3, scope: !47)
+!110 = !DILocation(line: 119, column: 48, scope: !63)
+!111 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "i", arg: 2, scope: !63, file: !1, line: 119, type: !59)
+!112 = !DIExpression()
+!113 = !DILocation(line: 119, column: 57, scope: !63)
+!114 = !DILocation(line: 121, column: 17, scope: !63)
+!115 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "o", scope: !63, file: !1, line: 120, type: !31)
+!116 = !DILocation(line: 120, column: 14, scope: !63)
+!117 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!118 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!119 = !DILocation(line: 122, column: 24, scope: !63)
+!120 = !DILocation(line: 122, column: 18, scope: !63)
+!121 = !DIExpression(DW_OP_bit_piece, 128, 32)
+!122 = !DIExpression(DW_OP_bit_piece, 160, 32)
+!123 = !DILocation(line: 123, column: 10, scope: !63)
+!124 = !DILocation(line: 123, column: 3, scope: !63)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T hs_6_4 -E HSPCOutBad
+# exit:     5
+
+<source>:172:1: error: Semantic SV_ShadingRate is invalid for shader model: hs
+PatchConstSR PCMainBad(InputPatch<VSOutPlain, 3> ip) {
+^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ds_6_4 -E DSOutMain
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Note: shader requires additional functionality:
+;       Shading Rate
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; TEXCOORD                 0   xy          1     NONE   float   x   
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; SV_ShadingRate           0   x           1SHDINGRATE    uint   x   
+;
+;
+; Patch Constant signature signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_TessFactor            0      w        0  TRIEDGE   float   xyzw
+; SV_TessFactor            1      w        1  TRIEDGE   float   xyzw
+; SV_TessFactor            2      w        2  TRIEDGE   float   xyzw
+; SV_InsideTessFactor      0   x           3   TRIINT   float   xyzw
+;
+; shader debug name: ecb42bf4c68467719a4aee205b3582b9.pdb
+; shader hash: ecb42bf4c68467719a4aee205b3582b9
+;
+; Pipeline Runtime Information: 
+;
+; Domain Shader
+; InputControlPointCount=3
+; OutputPositionPresent=1
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; TEXCOORD                 0                 linear       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; SV_ShadingRate           0        nointerpolation       
+;
+; Patch Constant signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_TessFactor            0                              
+; SV_InsideTessFactor      0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 6, outputs: 5, patchconst: 13
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0 }
+;   output 1 depends on inputs: { 1 }
+;   output 2 depends on inputs: { 2 }
+;   output 3 depends on inputs: { 3 }
+;   output 4 depends on inputs: { 4 }
+; PCInputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.PatchConst = type { [3 x float], float }
+%struct.VSOutPlain = type { <4 x float>, <2 x float> }
+%struct.VSOutRate = type { <4 x float>, i32 }
+%struct.PatchConstSR = type { [3 x float], float, i32 }
+
+define void @DSOutMain() {
+  %1 = call float @dx.op.domainLocation.f32(i32 105, i8 0), !dbg !127 ; line:153 col:54  ; DomainLocation(component)
+  %2 = call float @dx.op.domainLocation.f32(i32 105, i8 1), !dbg !127 ; line:153 col:54  ; DomainLocation(component)
+  %3 = call float @dx.op.domainLocation.f32(i32 105, i8 2), !dbg !127 ; line:153 col:54  ; DomainLocation(component)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !128, metadata !129), !dbg !130 ; var:"bary" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !128, metadata !131), !dbg !130 ; var:"bary" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !128, metadata !132), !dbg !130 ; var:"bary" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DSOutMain"
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 0), !dbg !133 ; line:155 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %5 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 0), !dbg !133 ; line:155 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %6 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 0), !dbg !133 ; line:155 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %7 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 0), !dbg !133 ; line:155 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i0 = fmul fast float %4, %1, !dbg !134 ; line:155 col:24
+  %.i1 = fmul fast float %5, %1, !dbg !134 ; line:155 col:24
+  %.i2 = fmul fast float %6, %1, !dbg !134 ; line:155 col:24
+  %.i3 = fmul fast float %7, %1, !dbg !134 ; line:155 col:24
+  %8 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 1), !dbg !135 ; line:155 col:44  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %9 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 1), !dbg !135 ; line:155 col:44  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %10 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 1), !dbg !135 ; line:155 col:44  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %11 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 1), !dbg !135 ; line:155 col:44  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i01 = fmul fast float %8, %2, !dbg !136 ; line:155 col:48
+  %.i12 = fmul fast float %9, %2, !dbg !136 ; line:155 col:48
+  %.i23 = fmul fast float %10, %2, !dbg !136 ; line:155 col:48
+  %.i34 = fmul fast float %11, %2, !dbg !136 ; line:155 col:48
+  %.i05 = fadd fast float %.i01, %.i0, !dbg !137 ; line:155 col:33
+  %.i16 = fadd fast float %.i12, %.i1, !dbg !137 ; line:155 col:33
+  %.i27 = fadd fast float %.i23, %.i2, !dbg !137 ; line:155 col:33
+  %.i38 = fadd fast float %.i34, %.i3, !dbg !137 ; line:155 col:33
+  %12 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 2), !dbg !138 ; line:155 col:68  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %13 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 2), !dbg !138 ; line:155 col:68  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %14 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 2), !dbg !138 ; line:155 col:68  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %15 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 2), !dbg !138 ; line:155 col:68  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %.i09 = fmul fast float %12, %3, !dbg !139 ; line:155 col:72
+  %.i110 = fmul fast float %13, %3, !dbg !139 ; line:155 col:72
+  %.i211 = fmul fast float %14, %3, !dbg !139 ; line:155 col:72
+  %.i312 = fmul fast float %15, %3, !dbg !139 ; line:155 col:72
+  %.i013 = fadd fast float %.i05, %.i09, !dbg !140 ; line:155 col:57
+  %.i114 = fadd fast float %.i16, %.i110, !dbg !140 ; line:155 col:57
+  %.i215 = fadd fast float %.i27, %.i211, !dbg !140 ; line:155 col:57
+  %.i316 = fadd fast float %.i38, %.i312, !dbg !140 ; line:155 col:57
+  call void @llvm.dbg.value(metadata float %.i013, i64 0, metadata !141, metadata !129), !dbg !142 ; var:"o" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %.i114, i64 0, metadata !141, metadata !131), !dbg !142 ; var:"o" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %.i215, i64 0, metadata !141, metadata !132), !dbg !142 ; var:"o" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %.i316, i64 0, metadata !141, metadata !143), !dbg !142 ; var:"o" !DIExpression(DW_OP_bit_piece, 96, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %.i013, i64 0, metadata !141, metadata !129), !dbg !142 ; var:"o" !DIExpression(DW_OP_bit_piece, 0, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %.i114, i64 0, metadata !141, metadata !131), !dbg !142 ; var:"o" !DIExpression(DW_OP_bit_piece, 32, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %.i215, i64 0, metadata !141, metadata !132), !dbg !142 ; var:"o" !DIExpression(DW_OP_bit_piece, 64, 32) func:"DSOutMain"
+  call void @llvm.dbg.value(metadata float %.i316, i64 0, metadata !141, metadata !143), !dbg !142 ; var:"o" !DIExpression(DW_OP_bit_piece, 96, 32) func:"DSOutMain"
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %.i013), !dbg !142 ; line:155 col:9  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %.i114), !dbg !142 ; line:155 col:9  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %.i215), !dbg !142 ; line:155 col:9  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %.i316), !dbg !142 ; line:155 col:9  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  %16 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 0, i32 0), !dbg !144 ; line:156 col:18  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %17 = fptoui float %16 to i32, !dbg !144 ; line:156 col:18
+  call void @llvm.dbg.value(metadata i32 %17, i64 0, metadata !141, metadata !145), !dbg !146 ; var:"o" !DIExpression(DW_OP_bit_piece, 128, 32) func:"DSOutMain"
+  call void @dx.op.storeOutput.i32(i32 5, i32 1, i32 0, i8 0, i32 %17), !dbg !146 ; line:156 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !147 ; line:157 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.domainLocation.f32(i32, i8) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!87, !88}
+!llvm.ident = !{!89}
+!dx.source.contents = !{!90}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!91}
+!dx.source.args = !{!92}
+!dx.version = !{!93}
+!dx.valver = !{!94}
+!dx.shaderModel = !{!95}
+!dx.typeAnnotations = !{!96, !107}
+!dx.viewIdState = !{!110}
+!dx.entryPoints = !{!111}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !6)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 102, baseType: !5)
+!5 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!6 = !{!7, !49, !63, !79}
+!7 = !DISubprogram(name: "PCMain", linkageName: "\01?PCMain@@YA?AUPatchConst@@V?$InputPatch@UVSOutPlain@@$02@@@Z", scope: !1, file: !1, line: 95, type: !8, isLocal: false, isDefinition: true, scopeLine: 95, flags: DIFlagPrototyped, isOptimized: false)
+!8 = !DISubroutineType(types: !9)
+!9 = !{!10, !18}
+!10 = !DICompositeType(tag: DW_TAG_structure_type, name: "PatchConst", file: !1, line: 72, size: 128, align: 32, elements: !11)
+!11 = !{!12, !17}
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "edges", scope: !10, file: !1, line: 73, baseType: !13, size: 96, align: 32)
+!13 = !DICompositeType(tag: DW_TAG_array_type, baseType: !14, size: 96, align: 32, elements: !15)
+!14 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!15 = !{!16}
+!16 = !DISubrange(count: 3)
+!17 = !DIDerivedType(tag: DW_TAG_member, name: "inside", scope: !10, file: !1, line: 74, baseType: !14, size: 32, align: 32, offset: 96)
+!18 = !DICompositeType(tag: DW_TAG_class_type, name: "InputPatch<VSOutPlain, 3>", file: !1, size: 576, align: 32, elements: !19, templateParams: !46)
+!19 = !{!20, !23}
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "Length", scope: !18, file: !1, baseType: !21, flags: DIFlagPublic | DIFlagStaticMember, extraData: i32 3)
+!21 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !22)
+!22 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "h", scope: !18, file: !1, baseType: !24, size: 576, align: 32)
+!24 = !DICompositeType(tag: DW_TAG_array_type, baseType: !25, size: 576, align: 32, elements: !15)
+!25 = !DICompositeType(tag: DW_TAG_structure_type, name: "VSOutPlain", file: !1, line: 67, size: 192, align: 32, elements: !26)
+!26 = !{!27, !38}
+!27 = !DIDerivedType(tag: DW_TAG_member, name: "pos", scope: !25, file: !1, line: 68, baseType: !28, size: 128, align: 32)
+!28 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, baseType: !29)
+!29 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, size: 128, align: 32, elements: !30, templateParams: !35)
+!30 = !{!31, !32, !33, !34}
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !29, file: !1, baseType: !14, size: 32, align: 32, flags: DIFlagPublic)
+!32 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !29, file: !1, baseType: !14, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!33 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !29, file: !1, baseType: !14, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!34 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !29, file: !1, baseType: !14, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!35 = !{!36, !37}
+!36 = !DITemplateTypeParameter(name: "element", type: !14)
+!37 = !DITemplateValueParameter(name: "element_count", type: !22, value: i32 4)
+!38 = !DIDerivedType(tag: DW_TAG_member, name: "uv", scope: !25, file: !1, line: 69, baseType: !39, size: 64, align: 32, offset: 128)
+!39 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, baseType: !40)
+!40 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, size: 64, align: 32, elements: !41, templateParams: !44)
+!41 = !{!42, !43}
+!42 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !40, file: !1, baseType: !14, size: 32, align: 32, flags: DIFlagPublic)
+!43 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !40, file: !1, baseType: !14, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!44 = !{!36, !45}
+!45 = !DITemplateValueParameter(name: "element_count", type: !22, value: i32 2)
+!46 = !{!47, !48}
+!47 = !DITemplateTypeParameter(name: "element", type: !25)
+!48 = !DITemplateValueParameter(name: "count", type: !22, value: i32 3)
+!49 = !DISubprogram(name: "PCMainRate", linkageName: "\01?PCMainRate@@YA?AUPatchConst@@V?$InputPatch@UVSOutRate@@$02@@@Z", scope: !1, file: !1, line: 104, type: !50, isLocal: false, isDefinition: true, scopeLine: 104, flags: DIFlagPrototyped, isOptimized: false)
+!50 = !DISubroutineType(types: !51)
+!51 = !{!10, !52}
+!52 = !DICompositeType(tag: DW_TAG_class_type, name: "InputPatch<VSOutRate, 3>", file: !1, line: 102, size: 480, align: 32, elements: !53, templateParams: !61)
+!53 = !{!54, !55}
+!54 = !DIDerivedType(tag: DW_TAG_member, name: "Length", scope: !52, file: !1, line: 102, baseType: !21, flags: DIFlagPublic | DIFlagStaticMember, extraData: i32 3)
+!55 = !DIDerivedType(tag: DW_TAG_member, name: "h", scope: !52, file: !1, line: 102, baseType: !56, size: 480, align: 32)
+!56 = !DICompositeType(tag: DW_TAG_array_type, baseType: !57, size: 480, align: 32, elements: !15)
+!57 = !DICompositeType(tag: DW_TAG_structure_type, name: "VSOutRate", file: !1, line: 62, size: 160, align: 32, elements: !58)
+!58 = !{!59, !60}
+!59 = !DIDerivedType(tag: DW_TAG_member, name: "pos", scope: !57, file: !1, line: 63, baseType: !28, size: 128, align: 32)
+!60 = !DIDerivedType(tag: DW_TAG_member, name: "rate", scope: !57, file: !1, line: 64, baseType: !4, size: 32, align: 32, offset: 128)
+!61 = !{!62, !48}
+!62 = !DITemplateTypeParameter(name: "element", type: !57)
+!63 = !DISubprogram(name: "DSOutMain", scope: !1, file: !1, line: 152, type: !64, isLocal: false, isDefinition: true, scopeLine: 153, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @DSOutMain)
+!64 = !DISubroutineType(types: !65)
+!65 = !{!57, !10, !66, !74}
+!66 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, line: 111, baseType: !67)
+!67 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, line: 111, size: 96, align: 32, elements: !68, templateParams: !72)
+!68 = !{!69, !70, !71}
+!69 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !67, file: !1, line: 111, baseType: !14, size: 32, align: 32, flags: DIFlagPublic)
+!70 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !67, file: !1, line: 111, baseType: !14, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!71 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !67, file: !1, line: 111, baseType: !14, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!72 = !{!36, !73}
+!73 = !DITemplateValueParameter(name: "element_count", type: !22, value: i32 3)
+!74 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !75)
+!75 = !DICompositeType(tag: DW_TAG_class_type, name: "OutputPatch<VSOutPlain, 3>", file: !1, line: 111, size: 576, align: 32, elements: !76, templateParams: !46)
+!76 = !{!77, !78}
+!77 = !DIDerivedType(tag: DW_TAG_member, name: "Length", scope: !75, file: !1, line: 111, baseType: !21, flags: DIFlagPublic | DIFlagStaticMember, extraData: i32 3)
+!78 = !DIDerivedType(tag: DW_TAG_member, name: "h", scope: !75, file: !1, line: 111, baseType: !24, size: 576, align: 32)
+!79 = !DISubprogram(name: "PCMainBad", linkageName: "\01?PCMainBad@@YA?AUPatchConstSR@@V?$InputPatch@UVSOutPlain@@$02@@@Z", scope: !1, file: !1, line: 172, type: !80, isLocal: false, isDefinition: true, scopeLine: 172, flags: DIFlagPrototyped, isOptimized: false)
+!80 = !DISubroutineType(types: !81)
+!81 = !{!82, !18}
+!82 = !DICompositeType(tag: DW_TAG_structure_type, name: "PatchConstSR", file: !1, line: 79, size: 160, align: 32, elements: !83)
+!83 = !{!84, !85, !86}
+!84 = !DIDerivedType(tag: DW_TAG_member, name: "edges", scope: !82, file: !1, line: 80, baseType: !13, size: 96, align: 32)
+!85 = !DIDerivedType(tag: DW_TAG_member, name: "inside", scope: !82, file: !1, line: 81, baseType: !14, size: 32, align: 32, offset: 96)
+!86 = !DIDerivedType(tag: DW_TAG_member, name: "rate", scope: !82, file: !1, line: 82, baseType: !4, size: 32, align: 32, offset: 128)
+!87 = !{i32 2, !"Dwarf Version", i32 4}
+!88 = !{i32 2, !"Debug Info Version", i32 3}
+!89 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!90 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 3872: SV_ShadingRate is accepted in hull and domain shader control-point\0A// signatures. The complaint is that DXC says nothing, so what you are looking for\0A// is an ABSENCE -- and an absence is only readable next to a control.\0A//\0A// This one file feeds five panes. Two compile positions the report says should be\0A// rejected; two are controls that put the same semantic, in the same stage, with\0A// the same compiler, into a position the interpretation table already marks NA.\0A//\0A//   1. dxc_trunk  -T ds_6_4 -E DSOutMain   the domain shader WRITES the rate.\0A//      ACCEPTED. Scroll to \22Output signature\22 and read the SysValue column of the\0A//      SV_ShadingRate row: it says SHDINGRATE, so this was lowered as a system\0A//      value, not quietly demoted to an arbitrary semantic. The D3D12 Variable\0A//      Rate Shading spec says the rate may be set from VS, GS or MS and \22It is\0A//      not permitted from other stages, for example DS\22.\0A//   2. dxc_trunk  -T ds_6_4 -E DSInBad     CONTROL, same compiler, same stage:\0A//      \22Semantic SV_ShadingRate is invalid for shader model: ds\22. So the check\0A//      exists and these command lines reach it. Pane 1's silence is a decision\0A//      recorded in a table, not a check that never ran.\0A//   3. dxc_trunk  -T hs_6_4 -E HSCPInMain  hull shader input control point.\0A//      ACCEPTED, same reading as pane 1 but in \22Input signature\22.\0A//   4. dxc_trunk  -T hs_6_4 -E HSPCOutBad  CONTROL for the hull stage.\0A//   5. dxc 1.6.2112  -T ds_6_4 -E DSOutMain   the release closest to the report\0A//      date. Same result: this is not a recent regression. Locally it also\0A//      reproduces on every release from 1.4.1907 onward.\0A//\0A// Not shown, and why: the DXIL validator does not catch it either -- dxv accepts\0A// all four containers, and both gates read the same SemanticInterpretation table.\0A// Clang trunk cannot be asked this question yet; it rejects the name outright with\0A// \22unknown HLSL semantic\22. FXC rejects it too, but it rejects it in the vertex\0A// shader as well, because the feature postdates Shader Model 5.1.\0A//==========================================================================//\0A\0A// Issue 3872 -- the source published to Compiler Explorer.\0A//\0A// It is repro.hlsl plus three CONTROL entry points, in one file, so that the\0A// link carries its own control: the same compiler, the same stage and the same\0A// semantic, once in a cell the interpretation table marks SV and once in a cell\0A// it marks NA. A link that only showed acceptance would be unreadable, because\0A// silence has an innocent explanation (nothing was checked) that a reader\0A// cannot rule out from the outside.\0A//\0A// What each pane compiles, and what to look at:\0A//\0A//   -T ds_6_4 -E DSOutMain    ACCEPTED. The D3D12 Variable Rate Shading spec\0A//                             says the rate may be set from VS, GS or MS and\0A//                             \22It is not permitted from other stages, for\0A//                             example DS\22. Look at the Output signature table:\0A//                             the row's SysValue column says SHDINGRATE, so\0A//                             this was lowered as a system value, not treated\0A//                             as an arbitrary semantic.\0A//   -T ds_6_4 -E DSInBad      CONTROL, same compiler and stage: DXC does have\0A//                             this diagnostic and does reach it here.\0A//   -T hs_6_4 -E HSCPInMain   ACCEPTED, hull shader input control point.\0A//   -T hs_6_4 -E HSPCOutBad   CONTROL, same compiler and stage.\0A//   dxc_1_6_2112 ds_6_4       The release closest to the report date, same\0A//                             result: this is not a recent regression.\0A//\0A// Locally this file is compiled by `triage.py run --shader godbolt-source.hlsl\0A// --label ce`, so the published source is not an untested variant of the repro.\0A\0Astruct VSOutRate {\0A  float4 pos : SV_Position;\0A  uint rate : SV_ShadingRate;\0A};\0A\0Astruct VSOutPlain {\0A  float4 pos : SV_Position;\0A  float2 uv : TEXCOORD0;\0A};\0A\0Astruct PatchConst {\0A  float edges[3] : SV_TessFactor;\0A  float inside : SV_InsideTessFactor;\0A};\0A\0A// The same struct with the rate moved into the patch-constant signature, which\0A// the table marks NA for both PCOut and DSIn.\0Astruct PatchConstSR {\0A  float edges[3] : SV_TessFactor;\0A  float inside : SV_InsideTessFactor;\0A  uint rate : SV_ShadingRate;\0A};\0A\0A// ---------------------------------------------------------------- accepted --\0A// SV_ShadingRate as a vertex shader output: permitted by the VRS spec, and the\0A// reason a reader can tell this build knows the semantic at all.\0AVSOutRate VSMain(float4 pos : POSITION, uint rate : RATE) {\0A  VSOutRate o;\0A  o.pos = pos;\0A  o.rate = rate;\0A  return o;\0A}\0A\0APatchConst PCMain(InputPatch<VSOutPlain, 3> ip) {\0A  PatchConst c;\0A  c.edges[0] = 1;\0A  c.edges[1] = 1;\0A  c.edges[2] = 1;\0A  c.inside = 1;\0A  return c;\0A}\0A\0APatchConst PCMainRate(InputPatch<VSOutRate, 3> ip) {\0A  PatchConst c;\0A  c.edges[0] = 1;\0A  c.edges[1] = 1;\0A  c.edges[2] = 1;\0A  c.inside = 1;\0A  return c;\0A}\0A\0A// HSCPIn: the hull shader's INPUT control point carries SV_ShadingRate.\0A[domain(\22tri\22)]\0A[partitioning(\22integer\22)]\0A[outputtopology(\22triangle_cw\22)]\0A[outputcontrolpoints(3)]\0A[patchconstantfunc(\22PCMainRate\22)]\0AVSOutPlain HSCPInMain(InputPatch<VSOutRate, 3> ip, uint i : SV_OutputControlPointID) {\0A  VSOutPlain o;\0A  o.pos = ip[i].pos;\0A  o.uv = (float2)ip[i].rate;\0A  return o;\0A}\0A\0A// HSCPOut: the hull shader's OUTPUT control point carries SV_ShadingRate.\0A[domain(\22tri\22)]\0A[partitioning(\22integer\22)]\0A[outputtopology(\22triangle_cw\22)]\0A[outputcontrolpoints(3)]\0A[patchconstantfunc(\22PCMain\22)]\0AVSOutRate HSCPOutMain(InputPatch<VSOutPlain, 3> ip, uint i : SV_OutputControlPointID) {\0A  VSOutRate o;\0A  o.pos = ip[i].pos;\0A  o.rate = (uint)ip[i].uv.x;\0A  return o;\0A}\0A\0A// DSCPIn: the domain shader's INPUT control point carries SV_ShadingRate.\0A[domain(\22tri\22)]\0AVSOutPlain DSCPInMain(PatchConst pc, float3 bary : SV_DomainLocation,\0A                      const OutputPatch<VSOutRate, 3> patch) {\0A  VSOutPlain o;\0A  o.pos = patch[0].pos * bary.x + patch[1].pos * bary.y + patch[2].pos * bary.z;\0A  o.uv = (float2)patch[0].rate;\0A  return o;\0A}\0A\0A// DSOut: the domain shader WRITES SV_ShadingRate. This is the position the VRS\0A// spec rules out by name.\0A[domain(\22tri\22)]\0AVSOutRate DSOutMain(PatchConst pc, float3 bary : SV_DomainLocation,\0A                    const OutputPatch<VSOutPlain, 3> patch) {\0A  VSOutRate o;\0A  o.pos = patch[0].pos * bary.x + patch[1].pos * bary.y + patch[2].pos * bary.z;\0A  o.rate = (uint)patch[0].uv.x;\0A  return o;\0A}\0A\0A// ----------------------------------------------------------------- controls --\0A// The same semantic in three cells the same table already marks NA, so a reader\0A// can see the diagnostic exists and fires in these very stages.\0A\0A// VSIn is NA: expect \22invalid semantic 'SV_ShadingRate' for vs 6.4\22.\0AVSOutPlain VSInBad(float4 pos : POSITION, uint rate : SV_ShadingRate) {\0A  VSOutPlain o;\0A  o.pos = pos;\0A  o.uv = (float2)rate;\0A  return o;\0A}\0A\0APatchConstSR PCMainBad(InputPatch<VSOutPlain, 3> ip) {\0A  PatchConstSR c;\0A  c.edges[0] = 1;\0A  c.edges[1] = 1;\0A  c.edges[2] = 1;\0A  c.inside = 1;\0A  c.rate = 1;\0A  return c;\0A}\0A\0A// PCOut is NA: expect \22Semantic SV_ShadingRate is invalid for shader model: hs\22.\0A[domain(\22tri\22)]\0A[partitioning(\22integer\22)]\0A[outputtopology(\22triangle_cw\22)]\0A[outputcontrolpoints(3)]\0A[patchconstantfunc(\22PCMainBad\22)]\0AVSOutPlain HSPCOutBad(InputPatch<VSOutPlain, 3> ip, uint i : SV_OutputControlPointID) {\0A  VSOutPlain o;\0A  o.pos = ip[i].pos;\0A  o.uv = ip[i].uv;\0A  return o;\0A}\0A\0A// DSIn is NA: expect \22Semantic SV_ShadingRate is invalid for shader model: ds\22.\0A[domain(\22tri\22)]\0AVSOutPlain DSInBad(PatchConstSR pc, float3 bary : SV_DomainLocation,\0A                   const OutputPatch<VSOutPlain, 3> patch) {\0A  VSOutPlain o;\0A  o.pos = patch[0].pos * bary.x + patch[1].pos * bary.y + patch[2].pos * bary.z;\0A  o.uv = (float2)pc.rate;\0A  return o;\0A}\0A"}
+!91 = !{!"/app/example.hlsl"}
+!92 = !{!"-E", !"DSOutMain", !"-T", !"ds_6_4", !"-Zi", !"-Qembed_debug"}
+!93 = !{i32 1, i32 4}
+!94 = !{i32 1, i32 6}
+!95 = !{!"ds", i32 6, i32 4}
+!96 = !{i32 0, %struct.PatchConst undef, !97, %struct.VSOutPlain undef, !100, %struct.VSOutRate undef, !103, %struct.PatchConstSR undef, !105}
+!97 = !{i32 40, !98, !99}
+!98 = !{i32 6, !"edges", i32 3, i32 0, i32 4, !"SV_TessFactor", i32 7, i32 9}
+!99 = !{i32 6, !"inside", i32 3, i32 36, i32 4, !"SV_InsideTessFactor", i32 7, i32 9}
+!100 = !{i32 24, !101, !102}
+!101 = !{i32 6, !"pos", i32 3, i32 0, i32 4, !"SV_Position", i32 7, i32 9}
+!102 = !{i32 6, !"uv", i32 3, i32 16, i32 4, !"TEXCOORD0", i32 7, i32 9}
+!103 = !{i32 20, !101, !104}
+!104 = !{i32 6, !"rate", i32 3, i32 16, i32 4, !"SV_ShadingRate", i32 7, i32 5}
+!105 = !{i32 44, !98, !99, !106}
+!106 = !{i32 6, !"rate", i32 3, i32 40, i32 4, !"SV_ShadingRate", i32 7, i32 5}
+!107 = !{i32 1, void ()* @DSOutMain, !108}
+!108 = !{!109}
+!109 = !{i32 0, !2, !2}
+!110 = !{[22 x i32] [i32 6, i32 5, i32 1, i32 2, i32 4, i32 8, i32 16, i32 0, i32 13, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0]}
+!111 = !{void ()* @DSOutMain, !"DSOutMain", !112, null, !125}
+!112 = !{!113, !119, !121}
+!113 = !{!114, !117}
+!114 = !{i32 0, !"SV_Position", i8 9, i8 3, !115, i8 4, i32 1, i8 4, i32 0, i8 0, !116}
+!115 = !{i32 0}
+!116 = !{i32 3, i32 15}
+!117 = !{i32 1, !"TEXCOORD", i8 9, i8 0, !115, i8 2, i32 1, i8 2, i32 1, i8 0, !118}
+!118 = !{i32 3, i32 1}
+!119 = !{!114, !120}
+!120 = !{i32 1, !"SV_ShadingRate", i8 5, i8 29, !115, i8 1, i32 1, i8 1, i32 1, i8 0, !118}
+!121 = !{!122, !124}
+!122 = !{i32 0, !"SV_TessFactor", i8 9, i8 25, !123, i8 0, i32 3, i8 1, i32 0, i8 3, null}
+!123 = !{i32 0, i32 1, i32 2}
+!124 = !{i32 1, !"SV_InsideTessFactor", i8 9, i8 26, !115, i8 0, i32 1, i8 1, i32 3, i8 0, null}
+!125 = !{i32 0, i64 16777216, i32 2, !126}
+!126 = !{i32 2, i32 3}
+!127 = !DILocation(line: 153, column: 54, scope: !63)
+!128 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "bary", arg: 2, scope: !63, file: !1, line: 152, type: !66)
+!129 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!130 = !DILocation(line: 152, column: 43, scope: !63)
+!131 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!132 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!133 = !DILocation(line: 155, column: 20, scope: !63)
+!134 = !DILocation(line: 155, column: 24, scope: !63)
+!135 = !DILocation(line: 155, column: 44, scope: !63)
+!136 = !DILocation(line: 155, column: 48, scope: !63)
+!137 = !DILocation(line: 155, column: 33, scope: !63)
+!138 = !DILocation(line: 155, column: 68, scope: !63)
+!139 = !DILocation(line: 155, column: 72, scope: !63)
+!140 = !DILocation(line: 155, column: 57, scope: !63)
+!141 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "o", arg: 0, scope: !63, file: !1, line: 154, type: !57)
+!142 = !DILocation(line: 155, column: 9, scope: !63)
+!143 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!144 = !DILocation(line: 156, column: 18, scope: !63)
+!145 = !DIExpression(DW_OP_bit_piece, 128, 32)
+!146 = !DILocation(line: 156, column: 10, scope: !63)
+!147 = !DILocation(line: 157, column: 3, scope: !63)

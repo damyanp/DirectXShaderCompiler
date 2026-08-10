@@ -1,0 +1,56 @@
+# Compiler Explorer panes for #3835, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T vs_5_0 -E vert_main -Zi -Qembed_debug
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T vs_5_0 -E vert_main -Zi -Qembed_debug
+# exit:     139  CRASH
+
+warning: Promoting older shader model profile to 6.0 version.
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T vs_6_0 -E vert_main -fsyntax-only
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:25:32: [0m[0;1;31merror: [0m[1munknown HLSL semantic 'SV_ClipDistance'[0m
+   25 |     [0;34mfloat[0m gl_ClipDistance[[0;32m1[0m] : SV_ClipDistance;[0m
+      | [0;1;32m                               ^
+[0m[1m<source>:26:32: [0m[0;1;31merror: [0m[1munknown HLSL semantic 'SV_CullDistance'[0m
+   26 |     [0;34mfloat[0m gl_CullDistance[[0;32m1[0m] : SV_CullDistance;[0m
+      | [0;1;32m                               ^
+[0m[1m<source>:33:33: [0m[0;1;31merror: [0m[1munknown HLSL semantic 'SV_ClipDistance'[0m
+   33 |     [0;34mfloat[0m gl_ClipDistance1[[0;32m1[0m] : SV_ClipDistance;[0m
+      | [0;1;32m                                ^
+[0m[1m<source>:34:33: [0m[0;1;31merror: [0m[1munknown HLSL semantic 'SV_CullDistance'[0m
+   34 |     [0;34mfloat[0m gl_CullDistance1[[0;32m1[0m] : SV_CullDistance;[0m
+      | [0;1;32m                                ^
+[0m[1m<source>:33:11: [0m[0;1;31merror: [0m[1msemantic annotations must be present for all parameters of an entry function or patch constant function[0m
+   33 |     [0;34mfloat[0m gl_ClipDistance1[[0;32m1[0m] : SV_ClipDistance;[0m
+      | [0;1;32m          ^
+[0m[1m<source>:33:11: [0m[0;1;36mnote: [0m'gl_ClipDistance1' used here[0m
+[1m<source>:64:11: [0m[0;1;31merror: [0m[1marray initializer must be an initializer list[0m
+   64 |     [0;34mfloat[0m _expr13[] = perVertexStruct.gl_ClipDistance;[0m
+      | [0;1;32m          ^
+[0m[1m<source>:65:11: [0m[0;1;31merror: [0m[1marray initializer must be an initializer list[0m
+   65 |     [0;34mfloat[0m _expr14[] = perVertexStruct.gl_CullDistance;[0m
+      | [0;1;32m          ^
+[0m[1m<source>:66:28: [0m[0;1;31merror: [0m[1mtoo few initializers in list for type 'const type10' (expected 9 but found 7)[0m
+   66 |     [0;34mconst[0m type10 type10_ = { _expr10, _expr11, _expr12, _expr13, _expr14 };[0m
+      | [0;1;32m                           ^
+[0m8 errors generated.
+<Compilation failed>

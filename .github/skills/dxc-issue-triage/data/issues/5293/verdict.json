@@ -1,0 +1,23 @@
+{
+  "batch": "batch-013",
+  "confidence": "high",
+  "created_at": "2023-06-14T15:54:11Z",
+  "expected_symptom": "Assert idx.hasValue() at UninitializedValues.cpp:232 during template instantiation (0xE0000001 in Debug); with NDEBUG the valueless Optional is read anyway and indexes SmallBitVector out of bounds, which is exit 0 for small inputs and 0xC0000005 past 28 tracked locals.",
+  "godbolt_url": "https://godbolt.org/z/MKsnrdq4T",
+  "history": "Present in all 12 valid release probes from v1.7.2308 to v1.9.2607. v1.6.2112-v1.7.2212.1 are clean because the analysis containing the defect does not exist yet (introduced by 1380cf88e, 'Add diagnostics for uninitialized out parameters'); v1.4.1907-v1.6.2106 are invalid probes that cannot compile the repro at all (no -HV 2021). Confirmed independently by -Wparameter-usage presence and by git merge-base --is-ancestor, and reproduced on Compiler Explorer (1.7.2212 clean, 1.7.2308 SIGSEGV, trunk SIGSEGV). Note the plain repro exits 0 on every Release build because the assert is compiled out -- a bisect on it alone reports 'never reproduced' and is not evidence of a fix.",
+  "labels": "bug",
+  "labels_add": "crash, hlsl2021, diagnostic",
+  "number": 5293,
+  "regressed_in": "v1.7.2308",
+  "repro_quality": "complete",
+  "reviewed_by": "gemini-3.1-pro-preview",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces. A function template with a scalar 'out' parameter and at least one local trips assert(idx.hasValue()) in CFGBlockValues::operator[] because DeclToIndex::computeMap does not see the out ParmVarDecl of a template instantiation. Debug: 0xE0000001. Release: the same defect reads a valueless Optional and subscripts a PackedVector/SmallBitVector out of bounds -- benign below 29 tracked locals, 0xC0000005 at or above, measured on the shipped v1.9.2607 binary and on Compiler Explorer. Affects every release from v1.7.2308 to v1.9.2607. The 2026-08-10 TRayVsAABB snippet does not repro as quoted because a vector 'out' is not tracked (isTrackedVar requires isScalarType); adding one scalar 'out' to it asserts immediately. PR 8401 targets this and is open, not merged.",
+  "text_stale": "The 2023-06-23 maintainer comment states the assert has no impact on AST formation or code generation and that the code behaves correctly with the assert removed. Measured evidence contradicts this: with NDEBUG the code reads a valueless Optional and performs an out-of-bounds SmallBitVector access, which crashes 12 consecutive shipping releases once the function has 29 or more tracked locals. simontaylor81 raised exactly this in 2024 and it was never resolved on the thread.",
+  "title": "Assert in `template` + `out` functions when it has local variables",
+  "triaged_at": "2026-08-10T16:27:35+00:00",
+  "triaged_by": "claude-sonnet-4-6",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5293"
+}

@@ -1,0 +1,70 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T14:14:17+00:00
+# cmd: -T vs_6_4 -E VSMain control-diagnosed.hlsl ; -T hs_6_4 -E HSCPInMain control-diagnosed.hlsl ; -T hs_6_4 -E HSCPOutMain control-diagnosed.hlsl ; -T ds_6_4 -E DSCPInMain control-diagnosed.hlsl ; -T ds_6_4 -E DSOutMain control-diagnosed.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: diagnosed (control-diagnosed.hlsl)
+# expect: no-match
+
+$ dxc -T vs_6_4 -E VSMain control-diagnosed.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-diagnosed.hlsl:28:54: error: invalid semantic 'SV_ShadingRate' for vs 6.4
+VSOutPlain VSMain(float4 pos : POSITION, uint rate : SV_ShadingRate) {
+                                                     ^
+
+
+
+$ dxc -T hs_6_4 -E HSCPInMain control-diagnosed.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-diagnosed.hlsl:45:1: error: Semantic SV_ShadingRate is invalid for shader model: hs
+PatchConstSR PCMainRate(InputPatch<VSOutPlain, 3> ip) {
+^
+
+
+
+$ dxc -T hs_6_4 -E HSCPOutMain control-diagnosed.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-diagnosed.hlsl:35:1: error: Semantic SV_ShadingRate is invalid for shader model: hs
+PatchConstSR PCMain(InputPatch<VSOutPlain, 3> ip) {
+^
+
+
+
+$ dxc -T ds_6_4 -E DSCPInMain control-diagnosed.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-diagnosed.hlsl:80:1: error: Semantic SV_ShadingRate is invalid for shader model: ds
+VSOutPlain DSCPInMain(PatchConstSR pc, float3 bary : SV_DomainLocation,
+^
+
+
+
+$ dxc -T ds_6_4 -E DSOutMain control-diagnosed.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-diagnosed.hlsl:89:1: error: Semantic SV_ShadingRate is invalid for shader model: ds
+VSOutPlain DSOutMain(PatchConstSR pc, float3 bary : SV_DomainLocation,
+^
+
+

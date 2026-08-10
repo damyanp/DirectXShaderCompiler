@@ -1,0 +1,20 @@
+# compiler: v1.5.2010
+# exe: <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+# ran: 2026-08-10T14:43:28+00:00
+# cmd: -E main -T cs_6_6 repro.hlsl -HV 2021
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "Unknown HLSL version: 2021", so this build did not reach the code under test
+# attempts: 5
+# hits: 0
+
+$ dxc -E main -T cs_6_6 repro.hlsl -HV 2021
+[exe] <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown HLSL version: 2021
+

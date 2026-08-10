@@ -1,0 +1,23 @@
+{
+  "batch": "batch-013",
+  "confidence": "high",
+  "created_at": "2021-07-07T09:46:18Z",
+  "expected_symptom": "With -P, dxc must print the same \"; Opening file [<header>], stack top [<n>]\" lines that -H prints on a normal compile of the same source; today it prints nothing at all.",
+  "godbolt_skip": "Not demonstrable on CE, measured not assumed (manual-case-ce-infeasible.txt, dxc_trunk). The symptom is a MISSING include trace, so a pane must contain a real #include and a header beside it; a CE pane is single-source. Measured on CE: (1) with no #include, -H prints no trace at all, so the working case cannot be shown either; (2) a pane that #includes its own header gets \"fatal error: file not found\"; (3) -P additionally renders as <No output file>. An empty CE output pane would be indistinguishable from nothing having run, which is worse than no link.",
+  "history": "always-repro'd",
+  "labels": "enhancement",
+  "labels_add": "usability, low-hanging-fruit",
+  "labels_now": "enhancement",
+  "notes_path": "issues/3863/notes.md",
+  "number": 3863,
+  "repro_quality": "prose-only",
+  "reviewed_by": "gemini-3.1-pro-preview",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still absent on main (1.9.0.5433, 13730886e) and in all 21 stable releases v1.4.1907-v1.9.2607: -H/-Vi are accepted under -P (an unknown dash-flag in the same position exits 1) but produce no output and leave the preprocessed bytes identical (SHA-256). Not a design decision -- the trace IS generated under -P and IS stored as DXC_OUT_REMARKS (verified through IDxcCompiler3, with controls); DxcContext::Compile() prints REMARKS (dxc.cpp:918) and DxcContext::Preprocess() (dxc.cpp:1005) never reads it, and the combination is absent from the \"options ignored with Preprocess\" warning list. Since v1.7.2207 -M lists dependencies and composes with -H, but only in compile mode. Linear grammar-aware release sweep, because -P changed grammar at 8bf2b087c.",
+  "title": "Support -H and -P at the same time",
+  "triaged_at": "2026-08-10T16:27:35+00:00",
+  "triaged_by": "GitHub Copilot CLI (claude-opus-4.6)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3863"
+}

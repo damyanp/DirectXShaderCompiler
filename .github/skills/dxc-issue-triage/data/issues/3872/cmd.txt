@@ -1,0 +1,12 @@
+# Issue 3872. One source, five compiles; each isolates one SemanticInterpretation
+# table cell so a per-block regex can attribute the signature row it produces.
+# Line 1 is the SELF-TEST (VSOut -- the position the VRS spec permits).
+# Lines 2-5 are the four positions the issue says should be NA.
+# 6_4 is the oldest shader model that can express SV_ShadingRate (the table
+# gates every ShadingRate cell on `_64`), so this is the oldest profile that
+# can show the symptom.
+-T vs_6_4 -E VSMain repro.hlsl
+-T hs_6_4 -E HSCPInMain repro.hlsl
+-T hs_6_4 -E HSCPOutMain repro.hlsl
+-T ds_6_4 -E DSCPInMain repro.hlsl
+-T ds_6_4 -E DSOutMain repro.hlsl

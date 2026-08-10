@@ -1,0 +1,6 @@
+# DXIL containers emitted by make-evidence.py so that dxv.exe can be handed
+# something to validate. They are derived: `python make-evidence.py` recreates
+# them, and the readable result -- what dxv said about each -- is committed in
+# manual-case-dxv.txt. The script creates this directory itself, so nothing
+# depends on git storing an empty one.
+dxv-out/

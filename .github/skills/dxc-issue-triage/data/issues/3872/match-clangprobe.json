@@ -1,0 +1,16 @@
+{
+  "kind": "all_of",
+  "note": "Predicate for the local capture of godbolt-clang-probe.hlsl, the small source published to Compiler Explorer for the Clang panes. It exists so the published file is not an untested variant: the local build must agree that this is valid HLSL and that the vertex entry lowers SV_ShadingRate as a system value. If a reader later sees a Clang error on that pane, this capture is what rules out 'the file was wrong'. Both clauses are positive; the second uses the SysValue-column token SHDINGRATE, which the PSV runtime-info copy of the signature tables never prints.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T vs_6_4 -E VSRateMain [^\\n]*\\n\\[exe\\][^\\n]*\\n\\[exit\\] 0$",
+      "note": "DXC accepts the probe file's vertex entry point."
+    },
+    {
+      "kind": "regex",
+      "value": "^\\$ dxc -T vs_6_4 -E VSRateMain (?:(?!^\\$ dxc )[\\s\\S])*?^; Output signature:(?:(?!signature:)[\\s\\S])*?^;\\s+SV_ShadingRate\\s+\\d+\\s+x\\s+\\d+\\s*SHDINGRATE\\s+uint",
+      "note": "and lowers the semantic into the vertex Output signature as a system value."
+    }
+  ]
+}

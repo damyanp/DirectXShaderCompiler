@@ -1,0 +1,12 @@
+Issue 3531. Scroll to the metadata at the end of the DXIL output and look at the
+!DIGlobalVariable and !DILocalVariable entries. Three appear: two for the file-scope
+declarations, and one for the entry point's `val`. The resource declared *inside* the entry
+point gets neither kind of entry, even though the CreateHandleFromHeap call built from it does
+carry a !dbg location pointing back at its source line. Changing that declaration's type from
+a resource to a plain uint makes a !DILocalVariable entry appear for it.
+
+Compiler Explorer appends `-Zi -Qembed_debug -Fc -` to every DXC pane, so a pane always has
+debug info switched on whether or not you asked for it. Here that matches on purpose: the
+local runs behind this triage passed `-Zi -Qembed_debug` as well, so the panes test the same
+configuration rather than one Compiler Explorer chose. This banner is compiled as part of the
+source, so pane line numbers are offset from those in the local captures.

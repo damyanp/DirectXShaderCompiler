@@ -1,0 +1,23 @@
+{
+  "batch": "batch-013",
+  "confidence": "high",
+  "created_at": "2021-07-13T02:14:27Z",
+  "expected_symptom": "MISSING DIAGNOSTIC: dxc accepts SV_ShadingRate in the HSCPIn, HSCPOut, DSCPIn and DSOut sig points and lowers it as a system value (SHDINGRATE row in that stage signature table, exit 0). Symptom present = clean compile, so match.json is 10 positive clauses with a VSOut self-test and no absence clause anywhere.",
+  "godbolt_url": "https://godbolt.org/z/o8fEdbsMK",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (20 stable releases, probed linearly with match-portable.json). match.json first scored v1.4.1907 no-repro; the clause matrix shows only the disassembler-spelling clauses flipped (the 2019 disassembler prints NONE in the SysValue column where trunk prints SHDINGRATE) while every acceptance clause held, and the DXIL signature-element metadata carrying system-value kind 29 is identical in both, so that transition is an instrument artefact and not a behaviour change. The four disputed table cells are unchanged since ecb4e3b4b (2018-10-22) introduced the semantic, which predates every probeable release.",
+  "labels": "validation",
+  "labels_add": "diagnostic, incorrect-code",
+  "labels_now": "validation",
+  "notes_path": "notes.md",
+  "number": 3872,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gemini-3.1-pro-preview",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Confirmed on main at 13730886e and on every stable release back to v1.4.1907. All four SemanticInterpretation cells the reporter names (HSCPIn, HSCPOut, DSCPIn, DSOut) still accept SV_ShadingRate and emit it as a real system value; the D3D12 VRS spec permits setting it only from VS, GS or MS and rules out DS by name, so the report is correct. Controls show DXC does have the diagnostic and reaches it in hs and ds for NA cells, so the silence is a table decision rather than an unreached check. The DXIL validator does not catch it either and structurally cannot: ValidationRule::SmSemantic reads the same SigPoint::GetInterpretation table (measured with dxv plus a root-signature positive control). The fix is one CSV row in utils/hct/hctdb.py:8019 since the .inl is generated; it is source-breaking, so it likely wants a release note. GSVIn, which the reporter raised as a question rather than a claim, is also still accepted and still needs a spec answer. Clang trunk does not model the semantic at all (unknown HLSL semantic), so these cells remain an open input to the clang semantic work; FXC rejects it everywhere including the spec-legal VS position because it predates SM 6.4, so it is not evidence.",
+  "title": "SV_ShadingRate allowed in certain shader signatures where it shouldn't be allowed",
+  "triaged_at": "2026-08-10T16:27:35+00:00",
+  "triaged_by": "GitHub Copilot CLI (claude-opus-4.5)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3872"
+}

@@ -1,0 +1,90 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T14:14:35+00:00
+# cmd: -T vs_6_4 -E VSMain control-valfail.hlsl ; -T hs_6_4 -E HSCPInMain control-valfail.hlsl ; -T hs_6_4 -E HSCPOutMain control-valfail.hlsl ; -T ds_6_4 -E DSCPInMain control-valfail.hlsl ; -T ds_6_4 -E DSOutMain control-valfail.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-validator.json
+# verdict: repro
+# variant: valfail (control-valfail.hlsl)
+# expect: match
+
+$ dxc -T vs_6_4 -E VSMain control-valfail.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: Root Signature in DXIL container is not compatible with shader.
+error: Shader SRV descriptor range (RegisterSpace=0, NumDescriptors=1, BaseShaderRegister=3) is not fully bound in root signature.
+
+Validation failed.
+
+
+
+
+$ dxc -T hs_6_4 -E HSCPInMain control-valfail.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: Root Signature in DXIL container is not compatible with shader.
+error: Shader SRV descriptor range (RegisterSpace=0, NumDescriptors=1, BaseShaderRegister=3) is not fully bound in root signature.
+
+Validation failed.
+
+
+
+
+$ dxc -T hs_6_4 -E HSCPOutMain control-valfail.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: Root Signature in DXIL container is not compatible with shader.
+error: Shader SRV descriptor range (RegisterSpace=0, NumDescriptors=1, BaseShaderRegister=3) is not fully bound in root signature.
+
+Validation failed.
+
+
+
+
+$ dxc -T ds_6_4 -E DSCPInMain control-valfail.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: Root Signature in DXIL container is not compatible with shader.
+error: Shader SRV descriptor range (RegisterSpace=0, NumDescriptors=1, BaseShaderRegister=3) is not fully bound in root signature.
+
+Validation failed.
+
+
+
+
+$ dxc -T ds_6_4 -E DSOutMain control-valfail.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: Root Signature in DXIL container is not compatible with shader.
+error: Shader SRV descriptor range (RegisterSpace=0, NumDescriptors=1, BaseShaderRegister=3) is not fully bound in root signature.
+
+Validation failed.
+
+
+

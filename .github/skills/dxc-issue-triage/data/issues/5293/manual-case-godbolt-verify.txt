@@ -1,0 +1,128 @@
+# Compiler Explorer panes for #5293, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_7_2212
+# args:     -E main -T cs_6_6 -HV 2021
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 3a96a7d77a64c9154ccf2176b353af05.pdb
+; shader hash: 3a96a7d77a64c9154ccf2176b353af05
+;
+; Pipeline Runtime Information: 
+;
+; Compute Shader
+; NumThreads=(32,32,1)
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @main() {
+  call void @llvm.dbg.value(metadata i32 10, i64 0, metadata !40, metadata !41), !dbg !42 ; var:"x" !DIExpression() func:"main"
+  ret void, !dbg !43 ; line:93 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+attributes #0 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!25, !26}
+!llvm.ident = !{!27}
+!dx.source.contents = !{!28}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!29}
+!dx.source.args = !{!30}
+!dx.version = !{!31}
+!dx.valver = !{!32}
+!dx.shaderModel = !{!33}
+!dx.typeAnnotations = !{!34}
+!dx.entryPoints = !{!37}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.7.0.1 (8c9d92be)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4, !17}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 90, type: !5, isLocal: false, isDefinition: true, scopeLine: 90, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint2", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 2>", file: !1, size: 64, align: 32, elements: !9, templateParams: !13)
+!9 = !{!10, !12}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !{!14, !15}
+!14 = !DITemplateTypeParameter(name: "element", type: !11)
+!15 = !DITemplateValueParameter(name: "element_count", type: !16, value: i32 2)
+!16 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!17 = !DISubprogram(name: "test<int>", linkageName: "\01??$test@H@@YAXHAIAI@Z", scope: !1, file: !1, line: 54, type: !18, isLocal: false, isDefinition: true, scopeLine: 54, flags: DIFlagPrototyped, isOptimized: false, templateParams: !23)
+!18 = !DISubroutineType(types: !19)
+!19 = !{null, !16, !20}
+!20 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !21)
+!21 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !22)
+!22 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 91, baseType: !11)
+!23 = !{!24}
+!24 = !DITemplateTypeParameter(name: "R", type: !16)
+!25 = !{i32 2, !"Dwarf Version", i32 4}
+!26 = !{i32 2, !"Debug Info Version", i32 3}
+!27 = !{!"dxc(private) 1.7.0.1 (8c9d92be)"}
+!28 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look at in this link\0A// ============================\0A//\0A// Source is repro-release-crash.hlsl, not repro.hlsl. That is deliberate. Compiler Explorer\0A// runs Release builds of DXC, so the assert this issue is titled after is compiled out there\0A// and the description's own example exits 0 on every CE pane -- which looks like \22fixed\22 and\0A// is not. repro-release-crash.hlsl is the same construct with 32 locals instead of one, which\0A// turns the same defect into a memory fault that a Release build cannot hide.\0A//\0A// Three panes, chosen to straddle the introduction:\0A//\0A//   dxc 1.7.2212   exit 0        -- last release before the analysis existed\0A//   dxc 1.7.2308   SIGSEGV       -- first release containing 1380cf88e\0A//   dxc trunk      SIGSEGV       -- still present\0A//\0A// Scope and limits of this link:\0A//\0A//   * CE corroborates; it does not overrule the local build. The verdict in this triage rests\0A//     on the local Debug build of 13730886e, which asserts (0xE0000001). CE cannot show that\0A//     assert at all, because it has no Debug DXC.\0A//   * CE's crash is SIGSEGV on Linux; locally the same source gives 0xC0000005 on the shipped\0A//     Windows v1.9.2607 binary. Same class of fault -- an out-of-bounds access -- reached by\0A//     two independent toolchains, which is why it is worth citing.\0A//   * The 1.7.2212 pane is a genuine negative, not a missing feature: it compiles the file and\0A//     exits 0. HLSL 2021 templates are available from 1.6.2112 onward, so every pane here can\0A//     actually parse the source. Releases at or below 1.6.2106 cannot, and are excluded.\0A//==========================================================================//\0A\0A// SECOND REPRO -- the one that makes a shipped RELEASE binary crash.\0A//\0A// This is repro.hlsl with the single local replaced by 32 locals. Nothing else differs:\0A// same template, same scalar `out` parameter, same assignment.\0A//\0A// Why it matters: every catalogued release is a Release build, so the assert is compiled\0A// out and repro.hlsl exits 0 there. The 2024-05-20 and 2026-08-10 comments both report\0A// Release crashes, and this file is what makes that visible without a Debug build.\0A// Measured on the shipped v1.9.2607 x64 dxc.exe: exit 0xC0000005 (access violation).\0A//\0A// The count is not arbitrary. With the assert compiled out, the valueless Optional is read\0A// anyway and the garbage index reaches scratch[...], where scratch is\0A// PackedVector<Value, 2, SmallBitVector> (tools/clang/lib/Analysis/UninitializedValues.cpp).\0A// SmallBitVector keeps its bits inline while they fit in SmallNumDataBits = 57\0A// (include/llvm/ADT/SmallBitVector.h), i.e. 28 two-bit entries; past that it heap-allocates\0A// and the out-of-bounds index becomes a wild pointer access instead of a masked shift.\0A// Measured on v1.9.2607: 27 locals exit 0, 28 locals exit 0, 29 locals access-violate, and\0A// so does every larger count tried. 32 is used here to stay clear of the boundary.\0A//\0A// Controls beside it: control-release-crash-no-template.hlsl and\0A// control-release-crash-inout.hlsl are the same 32-local shader with the template removed\0A// and with `out` changed to `inout`. Both exit 0 on the same release binary, so the crash\0A// is this defect and not \22many locals\22.\0Atemplate <typename R>\0Avoid test(R x, out uint result) {\0A    uint v1 = 1;\0A    uint v2 = 2;\0A    uint v3 = 3;\0A    uint v4 = 4;\0A    uint v5 = 5;\0A    uint v6 = 6;\0A    uint v7 = 7;\0A    uint v8 = 8;\0A    uint v9 = 9;\0A    uint v10 = 10;\0A    uint v11 = 11;\0A    uint v12 = 12;\0A    uint v13 = 13;\0A    uint v14 = 14;\0A    uint v15 = 15;\0A    uint v16 = 16;\0A    uint v17 = 17;\0A    uint v18 = 18;\0A    uint v19 = 19;\0A    uint v20 = 20;\0A    uint v21 = 21;\0A    uint v22 = 22;\0A    uint v23 = 23;\0A    uint v24 = 24;\0A    uint v25 = 25;\0A    uint v26 = 26;\0A    uint v27 = 27;\0A    uint v28 = 28;\0A    uint v29 = 29;\0A    uint v30 = 30;\0A    uint v31 = 31;\0A    uint v32 = 32;\0A    result = 10;\0A}\0A\0A[numthreads(32, 32, 1)] void main(uint2 threadId: SV_DispatchThreadID) {\0A    uint x;\0A    test(10, x);\0A}\0A"}
+!29 = !{!"/app/example.hlsl"}
+!30 = !{!"-E", !"main", !"-T", !"cs_6_6", !"-Zi", !"-Qembed_debug", !"-HV", !"2021"}
+!31 = !{i32 1, i32 6}
+!32 = !{i32 1, i32 7}
+!33 = !{!"cs", i32 6, i32 6}
+!34 = !{i32 1, void ()* @main, !35}
+!35 = !{!36}
+!36 = !{i32 0, !2, !2}
+!37 = !{void ()* @main, !"main", null, null, !38}
+!38 = !{i32 4, !39}
+!39 = !{i32 32, i32 32, i32 1}
+!40 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "x", scope: !4, file: !1, line: 91, type: !22)
+!41 = !DIExpression()
+!42 = !DILocation(line: 91, column: 10, scope: !4)
+!43 = !DILocation(line: 93, column: 1, scope: !4)
+
+==========================================================================
+# compiler: dxc_1_7_2308
+# args:     -E main -T cs_6_6 -HV 2021
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -E main -T cs_6_6 -HV 2021
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>

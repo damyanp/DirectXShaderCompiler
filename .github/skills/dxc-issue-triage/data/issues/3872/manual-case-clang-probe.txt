@@ -1,0 +1,286 @@
+# Clang-on-Compiler-Explorer probe for #3872, full pane output.
+#
+# Produced by:
+#   triage.py godbolt --issue 3872 --source godbolt-clang-probe.hlsl \
+#     --compilers "hlsl_clang_trunk:-T cs_6_4 -E CSMain -DNO_RATE -fsyntax-only,
+#                  hlsl_clang_trunk:-T cs_6_4 -E CSMain -fsyntax-only,
+#                  hlsl_clang_trunk:-T vs_6_4 -E VSRateMain -fsyntax-only,
+#                  dxc_trunk:-T vs_6_4 -E VSRateMain"
+# and kept here because the tool overwrites manual-case-godbolt-verify.txt with
+# whichever link is published last. The published link for this issue is the DXC
+# one; this probe is supporting evidence, and its own link is
+#   https://godbolt.org/z/9f9Ej334T
+#
+# Why a separate, smaller source: Clang parses the whole translation unit, so
+# asking it about the issue's real subject (hull and domain control-point
+# signatures) would bury the answer under unrelated parse errors. The probe
+# therefore asks the one question Clang can still answer.
+#
+# READ THE FIRST PANE FIRST. It is the same file, same compiler, same flags,
+# with the declaration preprocessed out by -DNO_RATE. It exits 0. The second
+# pane differs from it in exactly one thing -- the declaration is back -- and
+# exits 1. So the diagnostic below is caused by the semantic and not by the
+# pane, the flags, or Clang's incomplete DXIL backend.
+#
+# Result: Clang trunk does not model SV_ShadingRate at all today; it rejects
+# the name outright with "unknown HLSL semantic". It therefore cannot yet
+# reproduce, or disagree with, the table decision this issue is about -- which
+# is consistent with the issue's own 2024 comment that this is something to
+# think about for the semantic work in Clang. The fourth pane is DXC on the
+# same file, confirming the file is valid HLSL.
+# Compiler Explorer panes for #3872, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_4 -E CSMain -DNO_RATE -fsyntax-only
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+<No output file>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_4 -E CSMain -fsyntax-only
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:33:15: [0m[0;1;31merror: [0m[1munknown HLSL semantic 'SV_ShadingRate'[0m
+   33 |   uint rate : SV_ShadingRate;[0m
+      | [0;1;32m              ^
+[0m1 error generated.
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T vs_6_4 -E VSRateMain -fsyntax-only
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:33:15: [0m[0;1;31merror: [0m[1munknown HLSL semantic 'SV_ShadingRate'[0m
+   33 |   uint rate : SV_ShadingRate;[0m
+      | [0;1;32m              ^
+[0m[1m<source>:33:8: [0m[0;1;31merror: [0m[1msemantic annotations must be present for all parameters of an entry function or patch constant function[0m
+   33 |   uint rate : SV_ShadingRate;[0m
+      | [0;1;32m       ^
+[0m[1m<source>:33:8: [0m[0;1;36mnote: [0m'rate' used here[0m
+2 errors generated.
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T vs_6_4 -E VSRateMain
+# exit:     0
+
+;
+; Note: shader requires additional functionality:
+;       Shading Rate
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; POSITION                 0   xyzw        0     NONE   float   xyzw
+; RATE                     0   x           1     NONE    uint   x   
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   xyzw
+; SV_ShadingRate           0   x           1SHDINGRATE    uint   x   
+;
+; shader debug name: c742176a85dbd69df1396f3d21963763.pdb
+; shader hash: c742176a85dbd69df1396f3d21963763
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Vertex Shader
+; OutputPositionPresent=1
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 2
+; SigOutputElements: 2
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 2
+; SigOutputVectors[0]: 2
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: VSRateMain
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; POSITION                 0                              
+; RATE                     0                              
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+; SV_ShadingRate           0        nointerpolation       
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 5, outputs: 5
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0 }
+;   output 1 depends on inputs: { 1 }
+;   output 2 depends on inputs: { 2 }
+;   output 3 depends on inputs: { 3 }
+;   output 4 depends on inputs: { 4 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @VSRateMain() {
+  %1 = call i32 @dx.op.loadInput.i32(i32 4, i32 1, i32 0, i8 0, i32 undef), !dbg !55 ; line:36 col:50  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 undef), !dbg !55 ; line:36 col:50  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !56, metadata !57), !dbg !58 ; var:"pos" !DIExpression(DW_OP_bit_piece, 0, 32) func:"VSRateMain"
+  %3 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 undef), !dbg !55 ; line:36 col:50  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !56, metadata !59), !dbg !58 ; var:"pos" !DIExpression(DW_OP_bit_piece, 32, 32) func:"VSRateMain"
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 undef), !dbg !55 ; line:36 col:50  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !56, metadata !60), !dbg !58 ; var:"pos" !DIExpression(DW_OP_bit_piece, 64, 32) func:"VSRateMain"
+  %5 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 undef), !dbg !55 ; line:36 col:50  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !61, metadata !62), !dbg !55 ; var:"rate" !DIExpression() func:"VSRateMain"
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !56, metadata !57), !dbg !58 ; var:"pos" !DIExpression(DW_OP_bit_piece, 0, 32) func:"VSRateMain"
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !56, metadata !59), !dbg !58 ; var:"pos" !DIExpression(DW_OP_bit_piece, 32, 32) func:"VSRateMain"
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !56, metadata !60), !dbg !58 ; var:"pos" !DIExpression(DW_OP_bit_piece, 64, 32) func:"VSRateMain"
+  call void @llvm.dbg.value(metadata float %5, i64 0, metadata !56, metadata !63), !dbg !58 ; var:"pos" !DIExpression(DW_OP_bit_piece, 96, 32) func:"VSRateMain"
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !64, metadata !57), !dbg !65 ; var:"o" !DIExpression(DW_OP_bit_piece, 0, 32) func:"VSRateMain"
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !64, metadata !59), !dbg !65 ; var:"o" !DIExpression(DW_OP_bit_piece, 32, 32) func:"VSRateMain"
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !64, metadata !60), !dbg !65 ; var:"o" !DIExpression(DW_OP_bit_piece, 64, 32) func:"VSRateMain"
+  call void @llvm.dbg.value(metadata float %5, i64 0, metadata !64, metadata !63), !dbg !65 ; var:"o" !DIExpression(DW_OP_bit_piece, 96, 32) func:"VSRateMain"
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !64, metadata !66), !dbg !65 ; var:"o" !DIExpression(DW_OP_bit_piece, 128, 32) func:"VSRateMain"
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %2), !dbg !67 ; line:40 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %3), !dbg !67 ; line:40 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %4), !dbg !67 ; line:40 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %5), !dbg !67 ; line:40 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.i32(i32 5, i32 1, i32 0, i8 0, i32 %1), !dbg !67 ; line:40 col:10  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !68 ; line:40 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.loadInput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!30, !31}
+!llvm.ident = !{!32}
+!dx.source.contents = !{!33}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!34}
+!dx.source.args = !{!35}
+!dx.version = !{!36}
+!dx.valver = !{!37}
+!dx.shaderModel = !{!38}
+!dx.typeAnnotations = !{!39}
+!dx.viewIdState = !{!42}
+!dx.entryPoints = !{!43}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !25)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "VSRateMain", scope: !1, file: !1, line: 36, type: !5, isLocal: false, isDefinition: true, scopeLine: 36, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @VSRateMain)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !10, !23}
+!7 = !DICompositeType(tag: DW_TAG_structure_type, name: "VSOutRate", file: !1, line: 31, size: 160, align: 32, elements: !8)
+!8 = !{!9, !22}
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "pos", scope: !7, file: !1, line: 32, baseType: !10, size: 128, align: 32)
+!10 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, baseType: !11)
+!11 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, size: 128, align: 32, elements: !12, templateParams: !18)
+!12 = !{!13, !15, !16, !17}
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !11, file: !1, baseType: !14, size: 32, align: 32, flags: DIFlagPublic)
+!14 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!15 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !11, file: !1, baseType: !14, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!16 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !11, file: !1, baseType: !14, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!17 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !11, file: !1, baseType: !14, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!18 = !{!19, !20}
+!19 = !DITemplateTypeParameter(name: "element", type: !14)
+!20 = !DITemplateValueParameter(name: "element_count", type: !21, value: i32 4)
+!21 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "rate", scope: !7, file: !1, line: 33, baseType: !23, size: 32, align: 32, offset: 128)
+!23 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, baseType: !24)
+!24 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!25 = !{!26}
+!26 = !DIGlobalVariable(name: "Out", linkageName: "\01?Out@@3V?$RWBuffer@I@@A", scope: !0, file: !1, line: 44, type: !27, isLocal: false, isDefinition: true)
+!27 = !DICompositeType(tag: DW_TAG_class_type, name: "RWBuffer<unsigned int>", file: !1, line: 44, size: 32, align: 32, elements: !2, templateParams: !28)
+!28 = !{!29}
+!29 = !DITemplateTypeParameter(name: "element", type: !24)
+!30 = !{i32 2, !"Dwarf Version", i32 4}
+!31 = !{i32 2, !"Debug Info Version", i32 3}
+!32 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!33 = !{!"/app/example.hlsl", !"// Issue 3872 -- narrow probe: what does Clang's HLSL front end currently know\0A// about SV_ShadingRate?  Published to Compiler Explorer as a separate, smaller\0A// source than godbolt-source.hlsl, for one reason: Clang parses the whole\0A// translation unit, so a file containing InputPatch/OutputPatch/[domain] would\0A// bury the answer under unrelated parse errors and the pane would be noise.\0A// Nothing here is stage-specific beyond a vertex entry point.\0A//\0A// The four panes differ in ONE thing at a time, so each reading is controlled:\0A//\0A//   hlsl_clang_trunk  -T cs_6_4 -E CSMain -DNO_RATE -fsyntax-only\0A//       CONTROL. Same file, same pane, same flags, with the declaration below\0A//       preprocessed out. If this is not clean, nothing else in the Clang\0A//       panes can be read -- silence and errors alike need a witness that the\0A//       pane works at all.\0A//   hlsl_clang_trunk  -T cs_6_4 -E CSMain -fsyntax-only\0A//       The same compile with the declaration put back. The ONLY difference\0A//       from the control is the semantic, so whatever changes is caused by it.\0A//   hlsl_clang_trunk  -T vs_6_4 -E VSRateMain -fsyntax-only\0A//       The same question asked at the entry point that uses it. -fsyntax-only\0A//       asks only what the front end can still answer, so an incomplete DXIL\0A//       backend cannot be mistaken for a diagnostic.\0A//   dxc_trunk         -T vs_6_4 -E VSRateMain\0A//       CONTROL. Proves this file is valid HLSL that DXC accepts, so a Clang\0A//       error here is about Clang, not about the file.\0A//\0A// VSOut is the position the D3D12 VRS spec permits, so no compiler should\0A// object to it on spec grounds. That is deliberate: this probe is about\0A// whether the semantic is modelled at all, not about who diagnoses what.\0A\0A#ifndef NO_RATE\0Astruct VSOutRate {\0A  float4 pos : SV_Position;\0A  uint rate : SV_ShadingRate;\0A};\0A\0AVSOutRate VSRateMain(float4 pos : POSITION, uint rate : RATE) {\0A  VSOutRate o;\0A  o.pos = pos;\0A  o.rate = rate;\0A  return o;\0A}\0A#endif\0A\0ARWBuffer<uint> Out : register(u0);\0A\0A[numthreads(1, 1, 1)]\0Avoid CSMain(uint id : SV_DispatchThreadID) {\0A  Out[id] = id;\0A}\0A"}
+!34 = !{!"/app/example.hlsl"}
+!35 = !{!"-E", !"VSRateMain", !"-T", !"vs_6_4", !"-Zi", !"-Qembed_debug"}
+!36 = !{i32 1, i32 4}
+!37 = !{i32 1, i32 10}
+!38 = !{!"vs", i32 6, i32 4}
+!39 = !{i32 1, void ()* @VSRateMain, !40}
+!40 = !{!41}
+!41 = !{i32 0, !2, !2}
+!42 = !{[7 x i32] [i32 5, i32 5, i32 1, i32 2, i32 4, i32 8, i32 16]}
+!43 = !{void ()* @VSRateMain, !"VSRateMain", !44, null, !54}
+!44 = !{!45, !51, null}
+!45 = !{!46, !49}
+!46 = !{i32 0, !"POSITION", i8 9, i8 0, !47, i8 0, i32 1, i8 4, i32 0, i8 0, !48}
+!47 = !{i32 0}
+!48 = !{i32 3, i32 15}
+!49 = !{i32 1, !"RATE", i8 5, i8 0, !47, i8 0, i32 1, i8 1, i32 1, i8 0, !50}
+!50 = !{i32 3, i32 1}
+!51 = !{!52, !53}
+!52 = !{i32 0, !"SV_Position", i8 9, i8 3, !47, i8 4, i32 1, i8 4, i32 0, i8 0, !48}
+!53 = !{i32 1, !"SV_ShadingRate", i8 5, i8 29, !47, i8 1, i32 1, i8 1, i32 1, i8 0, !50}
+!54 = !{i32 0, i64 16777216}
+!55 = !DILocation(line: 36, column: 50, scope: !4)
+!56 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "pos", arg: 1, scope: !4, file: !1, line: 36, type: !10)
+!57 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!58 = !DILocation(line: 36, column: 29, scope: !4)
+!59 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!60 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!61 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "rate", arg: 2, scope: !4, file: !1, line: 36, type: !23)
+!62 = !DIExpression()
+!63 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!64 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "o", scope: !4, file: !1, line: 37, type: !7)
+!65 = !DILocation(line: 37, column: 13, scope: !4)
+!66 = !DIExpression(DW_OP_bit_piece, 128, 32)
+!67 = !DILocation(line: 40, column: 10, scope: !4)
+!68 = !DILocation(line: 40, column: 3, scope: !4)

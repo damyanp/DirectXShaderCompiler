@@ -112,11 +112,21 @@ as "we could not reproduce it", which is the opposite claim. The per-release
 positive control matters more than usual here, because "the token is not in the
 output" is trivially true of a build that failed.
 
-## 8. Relationship to #3863 (noted, not triaged)
+## 8. Relationship to #3863 — corrected by batch 013 measurement
 
-#3863 "Support -H and -P at the same time" is untriaged and was left alone. It
-shares code with #3044: `dxcompilerobj.cpp`'s `isPreprocessing` branch treats
-preprocessing as an exclusive mode with a hand-built
-`PreprocessorOutputOptions`, which is both why no driver flag reaches
-`ShowComments` and why `-H` cannot run alongside `-P`. If a batch ever wants a
-"same root cause" cluster, these two belong in it.
+This note originally claimed, from source reading alone, that the
+`isPreprocessing` branch was also why `-H` could not run alongside `-P`. That
+claim was wrong.
+
+#3863 measured the path through `IDxcCompiler3::Compile`: `-H` is enabled before
+the preprocessing branch, the include trace is generated under `-P`, and
+`DXC_OUT_REMARKS` contains 86 bytes of trace text (empty without `-H`).
+`DxcContext::Preprocess()` simply never asks for REMARKS, while
+`DxcContext::Compile()` prints them.
+
+The two issues are related but not duplicates. #3044 needs a new option and
+plumbing into `PreprocessorOutputOptions`, changing the preprocessed file.
+#3863 needs the driver to print an output the library already returns, changing
+only console output. The correction is itself a method lesson: inherit a
+neighbouring issue's measurements, not a source explanation that its controls
+never tested.

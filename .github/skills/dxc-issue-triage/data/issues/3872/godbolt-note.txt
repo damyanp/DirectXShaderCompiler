@@ -1,0 +1,30 @@
+Issue 3872: SV_ShadingRate is accepted in hull and domain shader control-point
+signatures. The complaint is that DXC says nothing, so what you are looking for
+is an ABSENCE -- and an absence is only readable next to a control.
+
+This one file feeds five panes. Two compile positions the report says should be
+rejected; two are controls that put the same semantic, in the same stage, with
+the same compiler, into a position the interpretation table already marks NA.
+
+  1. dxc_trunk  -T ds_6_4 -E DSOutMain   the domain shader WRITES the rate.
+     ACCEPTED. Scroll to "Output signature" and read the SysValue column of the
+     SV_ShadingRate row: it says SHDINGRATE, so this was lowered as a system
+     value, not quietly demoted to an arbitrary semantic. The D3D12 Variable
+     Rate Shading spec says the rate may be set from VS, GS or MS and "It is
+     not permitted from other stages, for example DS".
+  2. dxc_trunk  -T ds_6_4 -E DSInBad     CONTROL, same compiler, same stage:
+     "Semantic SV_ShadingRate is invalid for shader model: ds". So the check
+     exists and these command lines reach it. Pane 1's silence is a decision
+     recorded in a table, not a check that never ran.
+  3. dxc_trunk  -T hs_6_4 -E HSCPInMain  hull shader input control point.
+     ACCEPTED, same reading as pane 1 but in "Input signature".
+  4. dxc_trunk  -T hs_6_4 -E HSPCOutBad  CONTROL for the hull stage.
+  5. dxc 1.6.2112  -T ds_6_4 -E DSOutMain   the release closest to the report
+     date. Same result: this is not a recent regression. Locally it also
+     reproduces on every release from 1.4.1907 onward.
+
+Not shown, and why: the DXIL validator does not catch it either -- dxv accepts
+all four containers, and both gates read the same SemanticInterpretation table.
+Clang trunk cannot be asked this question yet; it rejects the name outright with
+"unknown HLSL semantic". FXC rejects it too, but it rejects it in the vertex
+shader as well, because the feature postdates Shader Model 5.1.

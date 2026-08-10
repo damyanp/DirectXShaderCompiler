@@ -1,0 +1,22 @@
+{
+  "batch": "batch-013",
+  "confidence": "high",
+  "created_at": "2021-03-02T17:07:37Z",
+  "godbolt_url": "https://godbolt.org/z/b11P9EvaG",
+  "history": "always-repro'd",
+  "labels": "bug",
+  "labels_add": "debug info",
+  "labels_now": "bug",
+  "notes_path": "data/issues/3531/notes.md",
+  "number": 3531,
+  "repro_quality": "partial",
+  "reviewed_by": "gemini-3.1-pro-preview",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main and on all 18 stable releases that can compile it (v1.6.2104-v1.9.2607); v1.4.1907 and v1.5.2010 reject cs_6_6. A resource declared as a local variable gets no DILocalVariable or DIGlobalVariable entry, while the static heap resource, the bound global and the uint local in the same run all do. Not specific to dynamic resources: a local aliasing a bound buffer is also unnamed. The front end emits the variable and its dbg.declare at -fcgl, so it is lost during DXIL lowering; -Od does not restore it.",
+  "title": "No debug info for locally-declared dynamic resources (SM 6.6)",
+  "triaged_at": "2026-08-10T16:27:34+00:00",
+  "triaged_by": "GitHub Copilot CLI (claude-opus-4.5)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3531"
+}

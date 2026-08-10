@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "Unknown argument: '-[A-Za-z0-9_]+'",
+  "note": "Did dxc PARSE this argument, or reject it outright? Fires when dxc answers `Unknown argument`. Used only by the labelled flag variants, never by the primary probe. It quotes the `Unknown argument` diagnostic verbatim on purpose: that string is one of classify()'s feature-absence markers, and _predicate_quotes() suppresses the invalid-probe demotion -- and with it run()'s automatic `-`/`_`/`/` spelling re-probe -- only when the issue's own predicate spells the marker out. Without that the capture would silently record a re-probed spelling instead of the rejection being measured. `-H` and `-Vi` must NOT match (`--expect no-match`, i.e. accepted); `-ZZZNONSENSE3863` in the same position MUST match (`--expect match`). That pair is what licenses the inference 'exit 0 with no diagnostic means -H was parsed': it holds for `-`-prefixed flags because dxc diagnoses unknown ones, and it does NOT hold for `/`-prefixed flags, which dxc silently treats as input paths -- which is why every probe here uses the `-` spelling."
+}

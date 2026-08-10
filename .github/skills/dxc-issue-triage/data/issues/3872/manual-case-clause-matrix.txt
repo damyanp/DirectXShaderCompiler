@@ -1,0 +1,47 @@
+Per-clause scoring of the two repro predicates for issue #3872
+against every capture that uses the repro command list.
+A '.' means the clause did not match; 'X' means it did.
+
+captures, in column order:
+  main   out-main-debug.txt               the repro, ground truth -- expect ALL match
+  ce     variant-ce-main-debug.txt        the source published to Compiler Explorer -- the link is not an untested variant: expect ALL match
+  nosr   variant-nosr-main-debug.txt      same pipeline, arbitrary RATE semantic -- control: the disputed semantic is absent
+  diag   variant-diagnosed-main-debug.txt same semantic in NA cells of the same stages -- control: DXC does diagnose this, these command lines reach it
+  gsvin  variant-gsvin-main-debug--match-gsvin.txt the separate gs_6_4 open-question probe -- control: the repro predicate is scoped to its own five compiles
+  1.4    out-v1.4.1907.txt                the repro, oldest release -- scored no-repro by match.json; this says which clause
+  1.5    out-v1.5.2010.txt                the repro, next release -- scored repro
+  1.6    out-v1.6.2104.txt                the repro, release nearest the report -- scored repro
+  1.9    out-v1.9.2607.txt                the repro, newest release -- scored repro
+
+
+=== match.json (10 clauses) ===
+
+clause       main     ce   nosr   diag  gsvin    1.4    1.5    1.6    1.9   note
+root[0]         X      X      X      .      .      X      X      X      X   SELF-TEST 1: the spec-legal position (VSOut) compiles cleanly on this build.
+root[1]         X      X      .      .      .      .      X      X      X   SELF-TEST 2: this build knows SV_ShadingRate, emits it into a DXIL signature table, and the row regex used by clauses 4/6/8/10 really does match a known-present row.
+root[2]         X      X      X      .      .      X      X      X      X   HSCPIn: accepted with no diagnostic.
+root[3]         X      X      .      .      .      .      X      X      X   HSCPIn: reached the hull shader INPUT signature, not merely a clean parse.
+root[4]         X      X      X      .      .      X      X      X      X   HSCPOut: accepted with no diagnostic.
+root[5]         X      X      .      .      .      .      X      X      X   HSCPOut: reached the hull shader OUTPUT control-point signature.
+root[6]         X      X      X      .      .      X      X      X      X   DSCPIn: accepted with no diagnostic.
+root[7]         X      X      .      .      .      .      X      X      X   DSCPIn: reached the domain shader INPUT control-point signature.
+root[8]         X      X      X      .      .      X      X      X      X   DSOut: accepted with no diagnostic. This is the cell the VRS spec rules out by name ('It is not permitted from other stages, for example DS').
+root[9]         X      X      .      .      .      .      X      X      X   DSOut: reached the domain shader OUTPUT signature.
+
+=== match-portable.json (11 clauses) ===
+
+clause       main     ce   nosr   diag  gsvin    1.4    1.5    1.6    1.9   note
+root[0]         X      X      X      .      .      X      X      X      X   SELF-TEST 1: the spec-legal position (VSOut) compiles cleanly on this build.
+root[1]         X      X      .      .      .      X      X      X      X   SELF-TEST 2: this build knows SV_ShadingRate and emitted a real DXIL signature row for it, in either SysValue spelling.
+root[2]         X      X      .      .      .      X      X      X      X   SELF-TEST 3: instrument-independent. The signature element metadata records SystemValue kind 29 (ShadingRate), so 'NONE' in an old disassembler's SysValue column cannot be mistaken for 'the compiler treated it as arbitrary'.
+root[3]         X      X      X      .      .      X      X      X      X   HSCPIn: accepted with no diagnostic.
+root[4]         X      X      .      .      .      X      X      X      X   HSCPIn: reached the hull shader INPUT signature.
+root[5]         X      X      X      .      .      X      X      X      X   HSCPOut: accepted with no diagnostic.
+root[6]         X      X      .      .      .      X      X      X      X   HSCPOut: reached the hull shader OUTPUT control-point signature.
+root[7]         X      X      X      .      .      X      X      X      X   DSCPIn: accepted with no diagnostic.
+root[8]         X      X      .      .      .      X      X      X      X   DSCPIn: reached the domain shader INPUT control-point signature.
+root[9]         X      X      X      .      .      X      X      X      X   DSOut: accepted with no diagnostic. This is the cell the VRS spec rules out by name.
+root[10]        X      X      .      .      .      X      X      X      X   DSOut: reached the domain shader OUTPUT signature.
+
+A control is only meaningful if at least one clause flips; the columns above are that proof.
+Read the 1.4 column against the 1.5 column: the acceptance clauses hold in both.

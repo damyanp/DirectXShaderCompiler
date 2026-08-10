@@ -1,0 +1,19 @@
+# compiler: rel-1.9.2607-5293
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-10T14:53:44+00:00
+# cmd: -E main -T cs_6_6 repro-release-crash.hlsl -HV 2021
+# exit: 3221225477
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: release-crash (repro-release-crash.hlsl)
+# expect: match
+
+$ dxc -E main -T cs_6_6 repro-release-crash.hlsl -HV 2021
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 3221225477
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: access violation. Attempted to read from address 0x000001B06E1CCE50
+

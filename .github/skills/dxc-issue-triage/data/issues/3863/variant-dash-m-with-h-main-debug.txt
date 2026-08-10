@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T14:38:43+00:00
+# cmd: -T ps_6_0 -E main -M -H repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: dash-m-with-h (repro.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main -M -H repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+repro.hlsl: repro.hlsl \
+ inc-pp-a.h \
+ inc-pp-b.h
+
+; Opening file [./inc-pp-a.h], stack top [0]
+; Opening file [./inc-pp-b.h], stack top [1]
+; 
+
+--- stderr ---
+

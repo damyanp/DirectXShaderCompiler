@@ -1,0 +1,18 @@
+This is the shader from the issue, unmodified. The DXC panes are Linux Release
+builds, so the thing to look for is that both terminate abnormally with a
+signal instead of producing DXIL -- this is a compiler crash, not a diagnostic
+and not a validation error.
+
+The trigger is the pair of local variable declarations near the end of
+vert_main whose declared type has empty square brackets, initialised by
+assignment from an array member of the static struct. Give those two
+declarations an explicit bound and the same shader compiles cleanly.
+
+An assert-enabled build stops earlier, in clang CodeGen, and Compiler Explorer
+ships no such DXC, so this link shows only the Release face of the defect.
+
+The third pane is the in-progress HLSL front end in Clang, syntax-only. Ignore
+its SV_ClipDistance and SV_CullDistance errors -- those semantics are simply
+not implemented there yet and have nothing to do with this. The interesting
+lines are the two "array initializer must be an initializer list" errors, which
+land on exactly the two declarations that crash DXC.

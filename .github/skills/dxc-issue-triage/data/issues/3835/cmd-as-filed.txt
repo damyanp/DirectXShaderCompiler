@@ -1,0 +1,1 @@
+repro.hlsl -T vs_5_0 -E vert_main -Wno-parentheses-equality -Zi -Qembed_debug

@@ -1,0 +1,108 @@
+Does the DXIL validator reject SV_ShadingRate in the four
+disputed signature positions when it is asked on its own?
+
+Each case compiles with -Vd (validation disabled at compile
+time, so a container is produced either way) and then hands the
+container to dxv.exe.  dxv prints nothing and exits 0 when the
+module validates.  Silence is only readable next to a control
+that shows dxv would speak: control-valfail.hlsl is the same
+pipeline with a root signature that does not cover its SRV, and
+it goes through the identical two steps.
+
+dxv links the same lib/DxilValidation that dxc calls inline, so
+this is a cross-check against a harness artefact, NOT a second
+independent implementation.
+# dxc: <repo>/build/Debug/bin/dxc.exe
+# dxv: <repo>/build/Debug/bin/dxv.exe
+
+--- repro: vs_6_4 VSMain (repro.hlsl) ---
+
+$ <repo>/build/Debug/bin/dxc.exe -T vs_6_4 -E VSMain -Vd -Fo <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/repro-VSMain.dxbc repro.hlsl
+# exit: 0 (0x00000000)
+
+$ <repo>/build/Debug/bin/dxv.exe <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/repro-VSMain.dxbc
+# exit: 0 (0x00000000)
+Validation succeeded.
+--- repro: hs_6_4 HSCPInMain (repro.hlsl) ---
+
+$ <repo>/build/Debug/bin/dxc.exe -T hs_6_4 -E HSCPInMain -Vd -Fo <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/repro-HSCPInMain.dxbc repro.hlsl
+# exit: 0 (0x00000000)
+
+$ <repo>/build/Debug/bin/dxv.exe <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/repro-HSCPInMain.dxbc
+# exit: 0 (0x00000000)
+Validation succeeded.
+--- repro: hs_6_4 HSCPOutMain (repro.hlsl) ---
+
+$ <repo>/build/Debug/bin/dxc.exe -T hs_6_4 -E HSCPOutMain -Vd -Fo <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/repro-HSCPOutMain.dxbc repro.hlsl
+# exit: 0 (0x00000000)
+
+$ <repo>/build/Debug/bin/dxv.exe <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/repro-HSCPOutMain.dxbc
+# exit: 0 (0x00000000)
+Validation succeeded.
+--- repro: ds_6_4 DSCPInMain (repro.hlsl) ---
+
+$ <repo>/build/Debug/bin/dxc.exe -T ds_6_4 -E DSCPInMain -Vd -Fo <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/repro-DSCPInMain.dxbc repro.hlsl
+# exit: 0 (0x00000000)
+
+$ <repo>/build/Debug/bin/dxv.exe <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/repro-DSCPInMain.dxbc
+# exit: 0 (0x00000000)
+Validation succeeded.
+--- repro: ds_6_4 DSOutMain (repro.hlsl) ---
+
+$ <repo>/build/Debug/bin/dxc.exe -T ds_6_4 -E DSOutMain -Vd -Fo <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/repro-DSOutMain.dxbc repro.hlsl
+# exit: 0 (0x00000000)
+
+$ <repo>/build/Debug/bin/dxv.exe <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/repro-DSOutMain.dxbc
+# exit: 0 (0x00000000)
+Validation succeeded.
+--- control: vs_6_4 VSMain (control-valfail.hlsl) ---
+
+$ <repo>/build/Debug/bin/dxc.exe -T vs_6_4 -E VSMain -Vd -Fo <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/control-valfail-VSMain.dxbc control-valfail.hlsl
+# exit: 0 (0x00000000)
+
+$ <repo>/build/Debug/bin/dxv.exe <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/control-valfail-VSMain.dxbc
+# exit: 1 (0x00000001)
+error: Root Signature in DXIL container is not compatible with shader.
+error: Shader SRV descriptor range (RegisterSpace=0, NumDescriptors=1, BaseShaderRegister=3) is not fully bound in root signature.
+
+Validation failed.
+
+
+--- control: hs_6_4 HSCPInMain (control-valfail.hlsl) ---
+
+$ <repo>/build/Debug/bin/dxc.exe -T hs_6_4 -E HSCPInMain -Vd -Fo <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/control-valfail-HSCPInMain.dxbc control-valfail.hlsl
+# exit: 0 (0x00000000)
+
+$ <repo>/build/Debug/bin/dxv.exe <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/control-valfail-HSCPInMain.dxbc
+# exit: 1 (0x00000001)
+error: Root Signature in DXIL container is not compatible with shader.
+error: Shader SRV descriptor range (RegisterSpace=0, NumDescriptors=1, BaseShaderRegister=3) is not fully bound in root signature.
+
+Validation failed.
+
+
+--- control: ds_6_4 DSOutMain (control-valfail.hlsl) ---
+
+$ <repo>/build/Debug/bin/dxc.exe -T ds_6_4 -E DSOutMain -Vd -Fo <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/control-valfail-DSOutMain.dxbc control-valfail.hlsl
+# exit: 0 (0x00000000)
+
+$ <repo>/build/Debug/bin/dxv.exe <repo>/.github/skills/dxc-issue-triage/data/issues/3872/dxv-out/control-valfail-DSOutMain.dxbc
+# exit: 1 (0x00000001)
+error: Root Signature in DXIL container is not compatible with shader.
+error: Shader SRV descriptor range (RegisterSpace=0, NumDescriptors=1, BaseShaderRegister=3) is not fully bound in root signature.
+
+Validation failed.
+
+
+
+summary
+  repro    vs_6_4   VSMain         dxv accepted   Validation succeeded.
+  repro    hs_6_4   HSCPInMain     dxv accepted   Validation succeeded.
+  repro    hs_6_4   HSCPOutMain    dxv accepted   Validation succeeded.
+  repro    ds_6_4   DSCPInMain     dxv accepted   Validation succeeded.
+  repro    ds_6_4   DSOutMain      dxv accepted   Validation succeeded.
+  control  vs_6_4   VSMain         dxv rejected   error: Root Signature in DXIL container is not compatible with shader.
+  control  hs_6_4   HSCPInMain     dxv rejected   error: Root Signature in DXIL container is not compatible with shader.
+  control  ds_6_4   DSOutMain      dxv rejected   error: Root Signature in DXIL container is not compatible with shader.
+
+Read the control rows first: if they do not say 'dxv rejected', the repro rows say nothing.

@@ -1,0 +1,18 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T14:14:37+00:00
+# cmd: -P repro.hlsl -Fi pp-variant.i -H
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: p-arm-alone (repro.hlsl)
+# expect: no-match
+
+$ dxc -P repro.hlsl -Fi pp-variant.i -H
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

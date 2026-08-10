@@ -1,0 +1,25 @@
+compiler: main-debug
+exe:      <repo>/build/Debug/bin/dxc.exe
+version:  dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+
+$ dxc -P repro.hlsl -Fi out-no-flag.i
+  exit=0  stdout+stderr=0 bytes  (empty)
+  produced 261 bytes  sha256=2d1dcfb225ce6d3063aaddeaa4d042c0  header-bodies-present=True include-trace-printed=False
+
+$ dxc -P repro.hlsl -Fi out-h.i -H
+  exit=0  stdout+stderr=0 bytes  (empty)
+  produced 261 bytes  sha256=2d1dcfb225ce6d3063aaddeaa4d042c0  header-bodies-present=True include-trace-printed=False
+
+$ dxc -P repro.hlsl -Fi out-vi.i -Vi
+  exit=0  stdout+stderr=0 bytes  (empty)
+  produced 261 bytes  sha256=2d1dcfb225ce6d3063aaddeaa4d042c0  header-bodies-present=True include-trace-printed=False
+
+summary
+flag       sha256(preprocessed output)[:32]      bytes header-bodies  trace-printed 
+no-flag    2d1dcfb225ce6d3063aaddeaa4d042c0        261 True           False         
+-H         2d1dcfb225ce6d3063aaddeaa4d042c0        261 True           False         
+-Vi        2d1dcfb225ce6d3063aaddeaa4d042c0        261 True           False         
+
+SELF-TEST: every run produced a .i carrying both header bodies: PASS
+all outputs byte-identical to the no-flag run: True
+any run printed an include trace: False
