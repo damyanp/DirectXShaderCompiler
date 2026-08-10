@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T17:57:05+00:00
+# cmd: -T cs_6_0 -E main control-no-buffer-access.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: no-buffer-access (control-no-buffer-access.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main control-no-buffer-access.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

@@ -1,0 +1,23 @@
+# compiler: v1.9.2602.24
+# exe: <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe
+# ran: 2026-08-10T17:45:54+00:00
+# cmd: -T cs_6_5 -E computeRTAO repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_5 -E computeRTAO repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: Flags must match usage.
+note: Flags declared=33554432, actual=0
+Validation failed.
+
+
+

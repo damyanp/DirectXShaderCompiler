@@ -1,0 +1,197 @@
+# compiler: rel-1.6.2106-3954
+# exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+# ran: 2026-08-10T18:12:29+00:00
+# cmd: -T lib_6_3 -fcgl repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: fcgl (repro.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 -fcgl repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Buffer Definitions:
+;
+; cbuffer $Globals
+; {
+;
+;   [0 x i8] (type annotation not present)
+;
+; }
+;
+; cbuffer Config
+; {
+;
+;   struct Config
+;   {
+;
+;       column_major float3x3 GlobalMatrix;           ; Offset:    0
+;   
+;   } Config;                                         ; Offset:    0 Size:    44
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; $Globals                          cbuffer      NA          NA     CB0   cb4294967295     1
+; Config                            cbuffer      NA          NA     CB1cb4294967295,space4294967295     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%class.matrix.float.3.3 = type { [3 x <3 x float>] }
+%ConstantBuffer = type opaque
+%Config = type { %class.matrix.float.3.3 }
+%struct.Parameters = type { %class.matrix.float.3.3 }
+%struct.Payload = type { <3 x float> }
+%struct.Attributes = type { <3 x float> }
+%dx.types.Handle = type { i8* }
+%dx.types.ResourceProperties = type { i32, i32 }
+
+@"\01?GlobalMatrix@Config@@3V?$matrix@M$02$02@@B" = external global %class.matrix.float.3.3, align 4
+@"$Globals" = external constant %ConstantBuffer
+@Config = external constant %Config
+
+; Function Attrs: alwaysinline nounwind
+define internal <3 x float> @"\01?TransformColor@@YA?AV?$vector@M$02@@UParameters@@V1@@Z"(%struct.Parameters* noalias %Param, <3 x float> %Color) #0 {
+  %1 = alloca <3 x float>, align 4, !dx.temp !20
+  %NewColor = alloca <3 x float>, align 4
+  store <3 x float> %Color, <3 x float>* %1, align 4, !tbaa !34
+  %2 = load <3 x float>, <3 x float>* %1, align 4, !dbg !37, !tbaa !34 ; line:16 col:23
+  %3 = getelementptr inbounds %struct.Parameters, %struct.Parameters* %Param, i32 0, i32 0, !dbg !41 ; line:16 col:37
+  %4 = call <3 x float>* @"dx.hl.subscript.colMajor[].<3 x float>* (i32, %class.matrix.float.3.3*, i32, i32, i32)"(i32 1, %class.matrix.float.3.3* %3, i32 2, i32 5, i32 8), !dbg !42 ; line:16 col:31
+  %5 = getelementptr <3 x float>, <3 x float>* %4, i32 0, i32 0, !dbg !42 ; line:16 col:31
+  %6 = bitcast float* %5 to <1 x float>*, !dbg !42 ; line:16 col:31
+  %7 = load float, float* %5, !dbg !42 ; line:16 col:31
+  %8 = insertelement <1 x float> undef, float %7, i64 0, !dbg !42 ; line:16 col:31
+  %9 = shufflevector <1 x float> %8, <1 x float> undef, <3 x i32> zeroinitializer, !dbg !42 ; line:16 col:31
+  %10 = fmul <3 x float> %2, %9, !dbg !43 ; line:16 col:29
+  store <3 x float> %10, <3 x float>* %NewColor, align 4, !dbg !44, !tbaa !34 ; line:16 col:12
+  %11 = load <3 x float>, <3 x float>* %NewColor, align 4, !dbg !45, !tbaa !34 ; line:17 col:12
+  ret <3 x float> %11, !dbg !46 ; line:17 col:5
+}
+
+; Function Attrs: nounwind readnone
+declare <3 x float>* @"dx.hl.subscript.colMajor[].<3 x float>* (i32, %class.matrix.float.3.3*, i32, i32, i32)"(i32, %class.matrix.float.3.3*, i32, i32, i32) #1
+
+; Function Attrs: nounwind
+define void @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z"(%struct.Payload* noalias %Data, %struct.Attributes* %Attrib) #2 {
+  %1 = call %dx.types.Handle @"dx.hl.createhandle..%dx.types.Handle (i32, %Config*, i32)"(i32 0, %Config* @Config, i32 0)
+  %2 = call %dx.types.Handle @"dx.hl.annotatehandle..%dx.types.Handle (i32, %dx.types.Handle, %dx.types.ResourceProperties, %Config)"(i32 11, %dx.types.Handle %1, %dx.types.ResourceProperties { i32 13, i32 44 }, %Config undef)
+  %3 = call %Config* @"dx.hl.subscript.cb.%Config* (i32, %dx.types.Handle, i32)"(i32 6, %dx.types.Handle %2, i32 0)
+  %4 = getelementptr inbounds %Config, %Config* %3, i32 0, i32 0
+  %Param = alloca %struct.Parameters, align 4
+  %5 = getelementptr inbounds %struct.Parameters, %struct.Parameters* %Param, i32 0, i32 0, !dbg !47 ; line:27 col:11
+  %6 = call %class.matrix.float.3.3 @"dx.hl.matldst.colLoad.%class.matrix.float.3.3 (i32, %class.matrix.float.3.3*)"(i32 0, %class.matrix.float.3.3* %4), !dbg !49 ; line:27 col:20
+  %7 = call %class.matrix.float.3.3 @"dx.hl.cast.colMatToRowMat.%class.matrix.float.3.3 (i32, %class.matrix.float.3.3)"(i32 6, %class.matrix.float.3.3 %6), !dbg !49 ; line:27 col:20
+  %8 = call %class.matrix.float.3.3 @"dx.hl.matldst.colStore.%class.matrix.float.3.3 (i32, %class.matrix.float.3.3*, %class.matrix.float.3.3)"(i32 1, %class.matrix.float.3.3* %5, %class.matrix.float.3.3 %6), !dbg !50 ; line:27 col:18
+  %9 = getelementptr inbounds %struct.Attributes, %struct.Attributes* %Attrib, i32 0, i32 0, !dbg !51 ; line:28 col:59
+  %10 = load <3 x float>, <3 x float>* %9, align 4, !dbg !51, !tbaa !34 ; line:28 col:59
+  %11 = call <3 x float> @"\01?TransformColor@@YA?AV?$vector@M$02@@UParameters@@V1@@Z"(%struct.Parameters* %Param, <3 x float> %10), !dbg !52 ; line:28 col:30
+  %12 = getelementptr inbounds %struct.Payload, %struct.Payload* %Data, i32 0, i32 0, !dbg !53 ; line:28 col:10
+  %13 = load <3 x float>, <3 x float>* %12, align 4, !dbg !54, !tbaa !34 ; line:28 col:27
+  %14 = fadd <3 x float> %13, %11, !dbg !54 ; line:28 col:27
+  store <3 x float> %14, <3 x float>* %12, align 4, !dbg !54, !tbaa !34 ; line:28 col:27
+  ret void, !dbg !55 ; line:29 col:1
+}
+
+; Function Attrs: nounwind readonly
+declare %class.matrix.float.3.3 @"dx.hl.matldst.colLoad.%class.matrix.float.3.3 (i32, %class.matrix.float.3.3*)"(i32, %class.matrix.float.3.3*) #3
+
+; Function Attrs: nounwind readnone
+declare %class.matrix.float.3.3 @"dx.hl.cast.colMatToRowMat.%class.matrix.float.3.3 (i32, %class.matrix.float.3.3)"(i32, %class.matrix.float.3.3) #1
+
+declare %class.matrix.float.3.3 @"dx.hl.matldst.colStore.%class.matrix.float.3.3 (i32, %class.matrix.float.3.3*, %class.matrix.float.3.3)"(i32, %class.matrix.float.3.3*, %class.matrix.float.3.3)
+
+; Function Attrs: nounwind readnone
+declare %Config* @"dx.hl.subscript.cb.%Config* (i32, %dx.types.Handle, i32)"(i32, %dx.types.Handle, i32) #1
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @"dx.hl.createhandle..%dx.types.Handle (i32, %Config*, i32)"(i32, %Config*, i32) #1
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @"dx.hl.annotatehandle..%dx.types.Handle (i32, %dx.types.Handle, %dx.types.ResourceProperties, %Config)"(i32, %dx.types.Handle, %dx.types.ResourceProperties, %Config) #1
+
+attributes #0 = { alwaysinline nounwind "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-realign-stack" "stack-protector-buffer-size"="0" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind readnone }
+attributes #2 = { nounwind "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-realign-stack" "stack-protector-buffer-size"="0" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind readonly }
+
+!llvm.module.flags = !{!0}
+!pauseresume = !{!1}
+!llvm.ident = !{!2}
+!dx.version = !{!3}
+!dx.valver = !{!4}
+!dx.shaderModel = !{!5}
+!dx.typeAnnotations = !{!6, !16}
+!dx.entryPoints = !{!26}
+!dx.fnprops = !{!31}
+!dx.options = !{!32, !33}
+
+!0 = !{i32 2, !"Debug Info Version", i32 3}
+!1 = !{!"hlsl-hlemit", !"hlsl-hlensure"}
+!2 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!3 = !{i32 1, i32 3}
+!4 = !{i32 1, i32 6}
+!5 = !{!"lib", i32 6, i32 3}
+!6 = !{i32 0, %struct.Parameters undef, !7, %struct.Payload undef, !10, %struct.Attributes undef, !12, %Config undef, !14}
+!7 = !{i32 44, !8}
+!8 = !{i32 6, !"Matrix", i32 2, !9, i32 3, i32 0, i32 7, i32 9}
+!9 = !{i32 3, i32 3, i32 2}
+!10 = !{i32 12, !11}
+!11 = !{i32 6, !"AccumulatedColor", i32 3, i32 0, i32 7, i32 9}
+!12 = !{i32 12, !13}
+!13 = !{i32 6, !"Color", i32 3, i32 0, i32 7, i32 9}
+!14 = !{i32 44, !15}
+!15 = !{i32 6, !"GlobalMatrix", i32 2, !9, i32 3, i32 0, i32 7, i32 9}
+!16 = !{i32 1, <3 x float> (%struct.Parameters*, <3 x float>)* @"\01?TransformColor@@YA?AV?$vector@M$02@@UParameters@@V1@@Z", !17, void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", !23}
+!17 = !{!18, !21, !22}
+!18 = !{i32 1, !19, !20}
+!19 = !{i32 7, i32 9}
+!20 = !{}
+!21 = !{i32 2, !20, !20}
+!22 = !{i32 0, !19, !20}
+!23 = !{!24, !21, !25}
+!24 = !{i32 1, !20, !20}
+!25 = !{i32 0, !20, !20}
+!26 = !{null, !"", null, !27, null}
+!27 = !{null, null, !28, null}
+!28 = !{!29, !30}
+!29 = !{i32 0, %ConstantBuffer* @"$Globals", !"$Globals", i32 0, i32 -1, i32 1, i32 0, null}
+!30 = !{i32 1, %Config* @Config, !"Config", i32 -1, i32 -1, i32 1, i32 44, null}
+!31 = !{void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", i32 9, i32 12, i32 12}
+!32 = !{i32 144}
+!33 = !{i32 -1}
+!34 = !{!35, !35, i64 0}
+!35 = !{!"omnipotent char", !36, i64 0}
+!36 = !{!"Simple C/C++ TBAA"}
+!37 = !DILocation(line: 16, column: 23, scope: !38)
+!38 = !DISubprogram(name: "TransformColor", scope: !39, file: !39, line: 15, type: !40, isLocal: false, isDefinition: true, scopeLine: 15, flags: DIFlagPrototyped, isOptimized: false, function: <3 x float> (%struct.Parameters*, <3 x float>)* @"\01?TransformColor@@YA?AV?$vector@M$02@@UParameters@@V1@@Z")
+!39 = !DIFile(filename: "repro.hlsl", directory: "")
+!40 = !DISubroutineType(types: !20)
+!41 = !DILocation(line: 16, column: 37, scope: !38)
+!42 = !DILocation(line: 16, column: 31, scope: !38)
+!43 = !DILocation(line: 16, column: 29, scope: !38)
+!44 = !DILocation(line: 16, column: 12, scope: !38)
+!45 = !DILocation(line: 17, column: 12, scope: !38)
+!46 = !DILocation(line: 17, column: 5, scope: !38)
+!47 = !DILocation(line: 27, column: 11, scope: !48)
+!48 = !DISubprogram(name: "MaterialAHS", scope: !39, file: !39, line: 25, type: !40, isLocal: false, isDefinition: true, scopeLine: 25, flags: DIFlagPrototyped, isOptimized: false, function: void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z")
+!49 = !DILocation(line: 27, column: 20, scope: !48)
+!50 = !DILocation(line: 27, column: 18, scope: !48)
+!51 = !DILocation(line: 28, column: 59, scope: !48)
+!52 = !DILocation(line: 28, column: 30, scope: !48)
+!53 = !DILocation(line: 28, column: 10, scope: !48)
+!54 = !DILocation(line: 28, column: 27, scope: !48)
+!55 = !DILocation(line: 29, column: 1, scope: !48)
+
+
+--- stderr ---
+

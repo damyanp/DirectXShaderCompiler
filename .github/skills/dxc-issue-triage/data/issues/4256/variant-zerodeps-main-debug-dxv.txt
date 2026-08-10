@@ -1,0 +1,31 @@
+# compiler: main-debug-dxv
+# exe: <triage>/issues/4256/validate.cmd
+# ran: 2026-08-10T17:57:29+00:00
+# cmd: zerodeps.ll
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: zerodeps (?)
+# expect: match
+
+$ dxc zerodeps.ll
+[exe] <triage>/issues/4256/validate.cmd
+[exit] 0
+--- stdout ---
+viewid-4256 harness v1
+[validator] internal (dxcompiler.dll from the same build); DXC_DXIL_DLL_PATH=<unset>
+[module] zerodeps.ll (5983 bytes)
+[selftest] module-calls-viewid-op=yes
+[selftest] module-viewid-state=[8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+[selftest] module-viewid-state-declares-dependencies=no
+$ <repo>/build/Debug/bin/dxv.exe zerodeps.ll
+--- stdout ---
+Validation succeeded.
+--- stderr ---
+
+[exit] 0x00000000
+[result] VALIDATION-SUCCEEDED
+
+--- stderr ---
+

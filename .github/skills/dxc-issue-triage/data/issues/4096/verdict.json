@@ -1,0 +1,22 @@
+{
+  "batch": "batch-012",
+  "confidence": "high",
+  "created_at": "2021-11-22T15:43:37Z",
+  "godbolt_url": "https://godbolt.org/z/6Y38q1bn9",
+  "history": "always-repro'd across v1.6.2112..v1.9.2607 (16 releases, linear scan); 4 older releases predate HLSL 2021 and are invalid probes",
+  "labels": "hlsl-next",
+  "labels_add": "type-system, enhancement",
+  "labels_now": "hlsl-next",
+  "notes_path": "issues/4096/notes.md",
+  "number": 4096,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Reported symptom present on all 16 stable releases that can compile the input (v1.6.2112 2021-12-08 .. v1.9.2607) and on main; the 4 older releases answer 'Unknown HLSL version: 2021' and are invalid probes, confirmed per release with a minimal -HV 2021 presence control. Filed 2021-11-22, 16 days before v1.6.2112, so no stable release covers the reporter's own build. The operator body has never executed: with the operator and the flat conversion made to disagree, all 15 releases v1.6.2112..v1.9.2602.24 emit i32 111 (flat conversion), never 222. SHAPE CHANGE at v1.9.2607: PR #8206 / commit b13e386be (2026-04-14) added err_hlsl_unsupported_conversion_operator, so main now rejects the DECLARATION as well as the if - the only commit touching SemaDeclCXX.cpp in that 224-commit window. Not a fix; the construct fails earlier. Root cause named in the 2023-02-08 comment is unchanged: SemaOverload.cpp:1136 disables TryUserDefinedConversion for HLSL. Clang (hlsl_clang_trunk) DOES invoke operator bool() in an if condition - stores 222 - with controls ruling out the resource and the shader shape; for an explicit (bool)A cast Clang still flat-converts. Design position may already be on record: milestoned HLSL 202x, and llvm-beanz on hlsl-specs PR #37 (discussion_r1158553249, 2023-04-05, cross-referenced here 2023-04-06) said new operator overloads will be 202x features gated on the 202x overload-resolution rework (hlsl-specs #34). Where the work belongs is therefore a product/language decision, not a triage conclusion.",
+  "title": "`bool` cast operator doesn't implicitly trigger",
+  "triaged_at": "2026-08-10T20:43:26+00:00",
+  "triaged_by": "claude-sonnet-4.5 (GitHub Copilot CLI)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4096"
+}

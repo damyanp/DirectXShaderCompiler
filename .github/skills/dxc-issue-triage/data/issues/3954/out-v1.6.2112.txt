@@ -1,0 +1,19 @@
+# compiler: v1.6.2112
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+# ran: 2026-08-10T17:34:20+00:00
+# cmd: -T lib_6_3 repro.hlsl
+# exit: 2158624796
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T lib_6_3 repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+[exit] 2158624796
+--- stdout ---
+
+--- stderr ---
+Internal Compiler error: Unexpected matrix subscript use.
+UNREACHABLE executed at D:\agent\_work\2\s\lib\HLSL\HLMatrixSubscriptUseReplacer.cpp:91!
+
+

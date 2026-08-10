@@ -1,0 +1,6 @@
+# Reporter gave no command line. -T cs_6_0 -E main follows from the shader's
+# [numthreads] entry point. -HV 2021 is pinned because member `operator`
+# declarations are an HLSL 2021 feature: it is today's default (so it changes
+# nothing on main) but it makes every release in a sweep answer the same
+# question, and makes pre-2021 releases say so explicitly.
+-T cs_6_0 -E main -HV 2021 repro.hlsl

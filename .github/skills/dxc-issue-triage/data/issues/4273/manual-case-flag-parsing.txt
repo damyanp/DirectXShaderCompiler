@@ -1,0 +1,136 @@
+#4273 -- is -remove-unused-globals parsed and honoured?
+
+Produced by `python flagcheck.py`. Every case is the same dxr.exe over
+the same repro.hlsl, differing only in the token occupying the
+-remove-unused-globals slot. sha256 is over combined stdout+stderr.
+
+  gLooseUnused is an unused LOOSE global (it would land in $Globals).
+  Removing it is the documented job of -remove-unused-globals, so its
+  disappearance is the behavioural proof the flag was honoured -- exit
+  status and the absence of a diagnostic are both insufficient.
+  cbuffer cbB is the unused explicit block this issue is about.
+
+           case  exit  gLooseUnused  cbuffer cbB  sha256(first 16)
+--------------- ----- ------------- ------------  ----------------
+      real-dash     0       removed      present  986ab3c0fd5b4b33
+     real-slash     0       removed      present  986ab3c0fd5b4b33
+         absent     0          KEPT      present  a43262a4a56ae481
+ nonsense-slash     0          KEPT      present  a43262a4a56ae481
+  nonsense-dash     1           n/a          n/a  81795e9205ea9925
+     misspelled     1           n/a          n/a  d76bf27772c3fbe0
+
+WHAT EACH CASE IS FOR
+
+  real-dash       the reporter's spelling
+  real-slash      MSVC-style prefix of the same option
+  absent          baseline: the option removed entirely
+  nonsense-slash  SKILL.md's silent-ignore control, in the option's own slot
+  nonsense-dash   same nonsense with the '-' prefix
+  misspelled      the real option minus one character -- proves the exact spelling is what the parser recognises
+
+READINGS
+
+  [PASS] real-dash differs from absent
+         the option changes the output, so it is parsed and honoured -- not silently ignored
+  [PASS] real-dash and real-slash are byte-identical
+         both spellings of the real option reach the same code
+  [PASS] nonsense-slash is byte-identical to absent
+         /ZZZNONSENSE exits 0 and does nothing: a clean exit proves nothing about a '/'-prefixed flag, exactly as SKILL.md warns
+  [PASS] nonsense-dash is diagnosed
+         the '-' prefix IS validated by dxr's own option parse, so the silent-ignore hazard is specific to '/'
+  [PASS] misspelled is diagnosed
+         the parser recognises the exact spelling, so real-dash cannot have been an accidental near-match
+  [PASS] cbuffer cbB survives in every case that ran
+         the retained block is not a function of the flag at all
+
+
+VERBATIM
+
+=== real-dash ===
+$ <repo>/build/Debug/bin/dxr.exe -E vsMain -remove-unused-globals -remove-unused-functions -extract-entry-uniforms repro.hlsl
+[exit] 0
+[sha256] 986ab3c0fd5b4b338cb9e43a735ce0053930c95c0538a778a9cd0c0b64035759
+
+cbuffer cbA {
+  const float4 gA;
+}
+;
+cbuffer cbB {
+  const float4 gB;
+}
+;
+const float4 gLooseUsed;
+float4 vsMain(float4 pos : POSITION) : SV_Position {
+  return pos * gA + gLooseUsed;
+}
+
+=== real-slash ===
+$ <repo>/build/Debug/bin/dxr.exe -E vsMain /remove-unused-globals -remove-unused-functions -extract-entry-uniforms repro.hlsl
+[exit] 0
+[sha256] 986ab3c0fd5b4b338cb9e43a735ce0053930c95c0538a778a9cd0c0b64035759
+
+cbuffer cbA {
+  const float4 gA;
+}
+;
+cbuffer cbB {
+  const float4 gB;
+}
+;
+const float4 gLooseUsed;
+float4 vsMain(float4 pos : POSITION) : SV_Position {
+  return pos * gA + gLooseUsed;
+}
+
+=== absent ===
+$ <repo>/build/Debug/bin/dxr.exe -E vsMain -remove-unused-functions -extract-entry-uniforms repro.hlsl
+[exit] 0
+[sha256] a43262a4a56ae481cc8c622f18ca95629ec3b69bb2c12d2f7ebdbc10aa793073
+
+cbuffer cbA {
+  const float4 gA;
+}
+;
+cbuffer cbB {
+  const float4 gB;
+}
+;
+const float4 gLooseUnused;
+const float4 gLooseUsed;
+float4 vsMain(float4 pos : POSITION) : SV_Position {
+  return pos * gA + gLooseUsed;
+}
+
+=== nonsense-slash ===
+$ <repo>/build/Debug/bin/dxr.exe -E vsMain /ZZZNONSENSE -remove-unused-functions -extract-entry-uniforms repro.hlsl
+[exit] 0
+[sha256] a43262a4a56ae481cc8c622f18ca95629ec3b69bb2c12d2f7ebdbc10aa793073
+
+cbuffer cbA {
+  const float4 gA;
+}
+;
+cbuffer cbB {
+  const float4 gB;
+}
+;
+const float4 gLooseUnused;
+const float4 gLooseUsed;
+float4 vsMain(float4 pos : POSITION) : SV_Position {
+  return pos * gA + gLooseUsed;
+}
+
+=== nonsense-dash ===
+$ <repo>/build/Debug/bin/dxr.exe -E vsMain -ZZZNONSENSE -remove-unused-functions -extract-entry-uniforms repro.hlsl
+[exit] 1
+[sha256] 81795e9205ea9925d4868e4ccde78ca66a31e13c55e9dafa9c8ef0a101ccf801
+
+dxc failed : Unknown argument: '-ZZZNONSENSE'
+
+=== misspelled ===
+$ <repo>/build/Debug/bin/dxr.exe -E vsMain -remove-unused-global -remove-unused-functions -extract-entry-uniforms repro.hlsl
+[exit] 1
+[sha256] d76bf27772c3fbe0590f05f0bc4907dc2180ac69b91e9d389f26554f26c75e4b
+
+dxc failed : Unknown argument: '-remove-unused-global'
+

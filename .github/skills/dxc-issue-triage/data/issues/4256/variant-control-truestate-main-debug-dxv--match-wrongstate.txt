@@ -1,0 +1,31 @@
+# compiler: main-debug-dxv
+# exe: <triage>/issues/4256/validate.cmd
+# ran: 2026-08-10T17:58:25+00:00
+# cmd: full.ll
+# exit: 0
+# timed_out: 0
+# match: match-wrongstate.json
+# verdict: no-repro
+# variant: control-truestate (?)
+# expect: no-match
+
+$ dxc full.ll
+[exe] <triage>/issues/4256/validate.cmd
+[exit] 0
+--- stdout ---
+viewid-4256 harness v1
+[validator] internal (dxcompiler.dll from the same build); DXC_DXIL_DLL_PATH=<unset>
+[module] full.ll (5989 bytes)
+[selftest] module-calls-viewid-op=yes
+[selftest] module-viewid-state=[8, 8, 15, 1, 2, 4, 8, 16, 32, 64, 128]
+[selftest] module-viewid-state-declares-dependencies=yes
+$ <repo>/build/Debug/bin/dxv.exe full.ll
+--- stdout ---
+Validation succeeded.
+--- stderr ---
+
+[exit] 0x00000000
+[result] VALIDATION-SUCCEEDED
+
+--- stderr ---
+

@@ -1,0 +1,83 @@
+# Compiler Explorer panes for #4096, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E main -HV 2021
+# exit:     5
+
+<source>:27:7: error: value of type 'Foo' is not contextually convertible to 'bool'
+  if (A)
+      ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main -HV 2021
+# exit:     5
+
+<source>:19:3: error: conversion operator overloading is not allowed
+  operator bool() {
+  ^
+<source>:27:7: error: value of type 'Foo' is not contextually convertible to 'bool'
+  if (A)
+      ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+;
+; ModuleID = '/app/example.hlsl'
+source_filename = "/app/example.hlsl"
+target datalayout = "e-m:e-ve-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxilv1.0-unknown-shadermodel6.0-compute"
+
+; Function Attrs: noinline nounwind memory(none)
+define void @main() local_unnamed_addr #0 {
+  ret void
+}
+
+attributes #0 = { noinline nounwind memory(none) }
+
+!llvm.dbg.cu = !{!0}
+!dx.valver = !{!2}
+!dx.source.contents = !{!3}
+!dx.source.defines = !{!4}
+!dx.source.mainFileName = !{!5}
+!dx.source.args = !{!6}
+!llvm.ident = !{!7}
+!dx.shaderModel = !{!8}
+!dx.version = !{!9}
+!dx.entryPoints = !{!10}
+!llvm.module.flags = !{!13, !14, !15, !16}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_HLSL, file: !1, producer: "clang version 24.0.0git (https://github.com/llvm/llvm-project.git 3f6b3a3385561c0f5a76a8e4048cb5420966e1bb)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{i32 1, i32 8}
+!3 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: the shader declares a struct with a user-defined cast to bool and then\0A// uses a value of that struct type directly as an `if` condition. Read each pane's diagnostics\0A// rather than its output, and note that no pane produces DXIL for this input.\0A//\0A// DXC 1.6.2112 (the oldest DXC on Compiler Explorer, and the oldest release that can compile\0A// this at all) accepts the operator declaration and rejects only the `if` condition: the\0A// operator is not considered for the implicit conversion, which is what this issue reports.\0A//\0A// DXC trunk reports that same error plus a second one, on the operator declaration itself --\0A// current DXC refuses the declaration outright. The requested feature is no less absent; the\0A// construct now fails earlier.\0A//\0A// The Clang pane is the successor HLSL front end. Compare whether it accepts the same source.\0A//==========================================================================//\0A\0Astruct Foo {\0A  int x;\0A  operator bool() {\0A    return x < 5;\0A  }\0A};\0A\0A[numthreads(1, 1, 1)]\0Avoid main(uint tidx : SV_DispatchThreadId) {\0A  Foo A = {1};\0A  if (A)\0A    A.x += 2;\0A}\0A"}
+!4 = !{}
+!5 = !{!"example.hlsl"}
+!6 = !{!"--driver-mode=dxc", !"-g", !"-Qembed_debug", !"-Fc", !"/app/output.s", !"-fcolor-diagnostics", !"-gen-reproducer=off", !"-T", !"cs_6_0", !"-hlsl-entry", !"main", !"/app/example.hlsl", !"-S", !"-O3"}
+!7 = !{!"clang version 24.0.0git (https://github.com/llvm/llvm-project.git 3f6b3a3385561c0f5a76a8e4048cb5420966e1bb)"}
+!8 = !{!"cs", i32 6, i32 0}
+!9 = !{i32 1, i32 0}
+!10 = !{ptr @main, !"main", null, null, !11}
+!11 = !{i32 4, !12}
+!12 = !{i32 1, i32 1, i32 1}
+!13 = !{i32 2, !"Dwarf Version", i32 4}
+!14 = !{i32 2, !"Debug Info Version", i32 3}
+!15 = !{i32 2, !"frame-pointer", i32 2}
+!16 = !{i32 2, !"debug-info-assignment-tracking", i1 true}

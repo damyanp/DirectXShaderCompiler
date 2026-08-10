@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
-"""Reject leaked checkout or user-profile paths in committable triage text."""
+"""Reject leaked checkout or user-profile paths in committable triage text.
 
-from collections import defaultdict
-from pathlib import Path
+Run from anywhere:
+
+    python scripts/check_paths.py
+    python scripts/check_paths.py --issue 3902
+    python scripts/check_paths.py --path data/issues/3902
+"""
+
+import argparse
 import re
 import sys
+from collections import defaultdict
+from pathlib import Path
 
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
@@ -55,18 +63,89 @@ def validate_matcher():
         raise RuntimeError("machine-path regex matched a negative control")
 
 
-def committable_text_files():
+def _within(path, root):
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def resolve_scope(issue=None, path=None):
+    if issue is not None and path is not None:
+        raise ValueError("--issue and --path are mutually exclusive")
+    if issue is not None:
+        scope = SKILL_DIR / "data" / "issues" / str(issue)
+    elif path is not None:
+        scope = Path(path)
+        if not scope.is_absolute():
+            scope = SKILL_DIR / scope
+    else:
+        scope = SKILL_DIR
+    scope = scope.resolve()
+    if not _within(scope, SKILL_DIR.resolve()):
+        raise ValueError(f"scope escapes the triage skill: {scope}")
+    if not scope.exists():
+        raise ValueError(f"scope does not exist: {scope}")
+    return scope
+
+
+def _utf16_view(data):
+    """Decode UTF-16 text before the binary sniff sees its expected NULs."""
+    if data.startswith((b"\xff\xfe", b"\xfe\xff")):
+        encoding = "utf-16"
+    else:
+        sample = data[:8192]
+        pairs = len(sample) // 2
+        if pairs < 4:
+            return None
+        even_nuls = sample[0:2 * pairs:2].count(0) / pairs
+        odd_nuls = sample[1:2 * pairs:2].count(0) / pairs
+        if odd_nuls >= 0.30 and even_nuls <= 0.05:
+            encoding = "utf-16-le"
+        elif even_nuls >= 0.30 and odd_nuls <= 0.05:
+            encoding = "utf-16-be"
+        else:
+            return None
+    try:
+        return data.decode(encoding).encode("utf-8")
+    except UnicodeDecodeError:
+        return None
+
+
+def _looks_binary(data):
+    """Distinguish genuine binary data from text containing an isolated NUL."""
+    sample = data[:8192]
+    if not sample:
+        return False
+    controls = sum(
+        byte < 32 and byte not in (9, 10, 12, 13) for byte in sample)
+    return controls / len(sample) > 0.10
+
+
+def text_view(data):
+    if b"\0" not in data:
+        return data
+    decoded = _utf16_view(data)
+    if decoded is not None:
+        return decoded
+    if _looks_binary(data):
+        return None
+    return data
+
+
+def committable_text_files(scope):
     """Yield text files, excluding local/generated directory classes by path."""
-    for path in sorted(SKILL_DIR.rglob("*")):
-        if not path.is_file():
+    paths = [scope] if scope.is_file() else sorted(scope.rglob("*"))
+    for file_path in paths:
+        if not file_path.is_file():
             continue
-        relative = path.relative_to(SKILL_DIR)
+        relative = file_path.relative_to(SKILL_DIR)
         if any(part.lower() in EXCLUDED_DIRS for part in relative.parts):
             continue
-        data = path.read_bytes()
-        if b"\0" in data:
-            continue
-        yield relative.as_posix(), data
+        data = text_view(file_path.read_bytes())
+        if data is not None:
+            yield relative.as_posix(), data
 
 
 def find_hits(data):
@@ -77,11 +156,13 @@ def find_hits(data):
         yield line, column, match.group().decode("ascii")
 
 
-def main():
+def scan(issue=None, path=None):
+    """Return (failures, file_count, allowed_hits, allowlisted_files)."""
     validate_matcher()
+    scope = resolve_scope(issue, path)
     hits = defaultdict(list)
     file_count = 0
-    for relative, data in committable_text_files():
+    for relative, data in committable_text_files(scope):
         file_count += 1
         hits[relative].extend(find_hits(data))
 
@@ -90,16 +171,38 @@ def main():
         if relative not in ALLOWLIST:
             for line, column, value in matches:
                 failures.append(
-                    f"{relative}:{line}:{column}: unexpected machine path {value!r}"
-                )
+                    f"{relative}:{line}:{column}: unexpected machine path "
+                    f"{value!r}")
 
-    for relative, (expected, reason) in ALLOWLIST.items():
+    relevant_allowlist = {
+        relative: detail for relative, detail in ALLOWLIST.items()
+        if _within((SKILL_DIR / relative).resolve(), scope)
+    }
+    for relative, (expected, reason) in relevant_allowlist.items():
         actual = len(hits.get(relative, ()))
         if actual != expected:
             failures.append(
                 f"{relative}: allowlist expected {expected} match(es), found "
-                f"{actual} ({reason})"
-            )
+                f"{actual} ({reason})")
+
+    return (failures, file_count,
+            sum(len(hits.get(relative, ()))
+                for relative in relevant_allowlist),
+            len(relevant_allowlist))
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--issue", type=int)
+    group.add_argument("--path")
+    args = parser.parse_args(argv)
+    try:
+        failures, file_count, allowed_count, allowlisted_files = scan(
+            issue=args.issue, path=args.path)
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return 2
 
     if failures:
         print("machine-path gate failed:", file=sys.stderr)
@@ -107,12 +210,10 @@ def main():
             print(f"  {failure}", file=sys.stderr)
         return 1
 
-    allowed_count = sum(expected for expected, _ in ALLOWLIST.values())
     print(
         f"path check passed: {file_count} committable text files; "
-        f"{allowed_count} allowlisted matches in {len(ALLOWLIST)} files; "
-        "no unexpected machine paths"
-    )
+        f"{allowed_count} allowlisted matches in {allowlisted_files} files; "
+        "no unexpected machine paths")
     return 0
 
 

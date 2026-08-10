@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "D3D12_SHADER_BUFFER_DESC: Name: \\$Globals"
+    },
+    {
+      "kind": "regex",
+      "value": "D3D12_SHADER_VARIABLE_DESC: Name: ProbeCoordToWorldPos\\n(?:[^\\n]*\\n){0,6}?[^\\n]*uFlags:[^\\n]*D3D_SVF_USED"
+    },
+    {
+      "kind": "regex",
+      "value": "D3D12_SHADER_VARIABLE_DESC: Name: SkyLightColor\\n(?:[^\\n]*\\n){0,6}?[^\\n]*uFlags:[^\\n]*D3D_SVF_USED"
+    }
+  ],
+  "note": "The symptom is a PRESENCE (D3D_SVF_USED on a global the shader never reads), so the third clause is the finding and the first two exist to stop it being satisfied or falsified for free. Clause 1 proves the compile produced a container whose reflection actually names the $Globals buffer -- without it a failed compile or a reader that printed nothing would score as clean, which is the fix-inventing direction. Clause 2 is the INSTRUMENT SELF-TEST demanded by SKILL.md's 'check its self-test on every release, not only on main': ProbeCoordToWorldPos is genuinely read by the shader (ProbeCoordToWorldPosCoord indexes it), and its correct D3D_SVF_USED is printed by the same dumper, in the same dump, on the same run. So a release whose dxa/D3DReflectionDumper worded the flag differently, or whose reflection broke, fails clause 2 and cannot manufacture a clean SkyLightColor. This is the trap SKILL.md records for #3535 (reflection metadata relocating between output sections) and #3872 (a disassembler printing a different token in 2019). Note the reader is deliberately held FIXED at the ground-truth dxa.exe across the whole release sweep (see refl4206.py), so clause 2 flipping would be a container change, not a tool change. CONTROL: control-noneg.hlsl is the same shader with the sole '- 1' removed from the index expression; it must score no-match, and it does, with SkyLightColor at uFlags: 0 while clauses 1 and 2 still hold -- so the predicate discriminates on exactly the one edit the reporter blames. Line-bounded gaps ({0,6}) rather than [\\s\\S]* keep a clause from reaching into the next variable's uFlags; the next D3D12_SHADER_VARIABLE_DESC is 13 lines away."
+}

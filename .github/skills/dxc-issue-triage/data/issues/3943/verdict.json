@@ -1,0 +1,23 @@
+{
+  "batch": "batch-011",
+  "confidence": "high",
+  "created_at": "2021-09-10T10:18:27Z",
+  "expected_symptom": "A header with #pragma once is entered twice when reached by two different spellings of its path, producing a redefinition error",
+  "godbolt_skip": "Measured infeasible, not assumed (manual-case-ce-infeasible.txt, dxc_trunk + dxc_1_6_2112). The repro needs two files; a CE pane has one source, and the as-filed repro answers 'inc/common.h' file not found on both. The single-file fold -- a pane that includes itself under two spellings -- is not a restatement: its known-good CONTROL with MATCHED spellings fails identically, and dxc itself says why (warning: #pragma once in main file). CE also cannot resolve its own pane by name ('<source>' file not found), so no fold runs at all.",
+  "history": "always-repro'd",
+  "labels": "bug",
+  "labels_add": "usability",
+  "labels_now": "bug",
+  "notes_path": "issues/3943/notes.md",
+  "number": 3943,
+  "repro_quality": "partial",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (1.9.0.5433, 13730886e) and on all 20 stable releases v1.4.1907..v1.9.2607. #pragma once identity is a wcscmp of the requested path string, not file identity: -I vs source-relative, .., and case (on case-insensitive NTFS) all alias, while two spellings that normalise to one string dedupe. dxcfilesystem.cpp sets the Windows file index to the handle value, so every distinct spelling gets its own FileEntry.",
+  "title": "#pragma once cannot support path aliases",
+  "triaged_at": "2026-08-10T20:43:26+00:00",
+  "triaged_by": "claude-opus-4.5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3943"
+}

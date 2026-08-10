@@ -1,0 +1,62 @@
+[
+  {
+    "case": "real-dash",
+    "why": "the reporter's spelling",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E vsMain -remove-unused-globals -remove-unused-functions -extract-entry-uniforms repro.hlsl",
+    "exit": 0,
+    "sha256": "986ab3c0fd5b4b338cb9e43a735ce0053930c95c0538a778a9cd0c0b64035759",
+    "loose_unused_removed": true,
+    "cbB_present": true,
+    "output": "cbuffer cbA {\n  const float4 gA;\n}\n;\ncbuffer cbB {\n  const float4 gB;\n}\n;\nconst float4 gLooseUsed;\nfloat4 vsMain(float4 pos : POSITION) : SV_Position {\n  return pos * gA + gLooseUsed;\n}\n\n\n\n"
+  },
+  {
+    "case": "real-slash",
+    "why": "MSVC-style prefix of the same option",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E vsMain /remove-unused-globals -remove-unused-functions -extract-entry-uniforms repro.hlsl",
+    "exit": 0,
+    "sha256": "986ab3c0fd5b4b338cb9e43a735ce0053930c95c0538a778a9cd0c0b64035759",
+    "loose_unused_removed": true,
+    "cbB_present": true,
+    "output": "cbuffer cbA {\n  const float4 gA;\n}\n;\ncbuffer cbB {\n  const float4 gB;\n}\n;\nconst float4 gLooseUsed;\nfloat4 vsMain(float4 pos : POSITION) : SV_Position {\n  return pos * gA + gLooseUsed;\n}\n\n\n\n"
+  },
+  {
+    "case": "absent",
+    "why": "baseline: the option removed entirely",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E vsMain -remove-unused-functions -extract-entry-uniforms repro.hlsl",
+    "exit": 0,
+    "sha256": "a43262a4a56ae481cc8c622f18ca95629ec3b69bb2c12d2f7ebdbc10aa793073",
+    "loose_unused_removed": false,
+    "cbB_present": true,
+    "output": "cbuffer cbA {\n  const float4 gA;\n}\n;\ncbuffer cbB {\n  const float4 gB;\n}\n;\nconst float4 gLooseUnused;\nconst float4 gLooseUsed;\nfloat4 vsMain(float4 pos : POSITION) : SV_Position {\n  return pos * gA + gLooseUsed;\n}\n\n\n\n"
+  },
+  {
+    "case": "nonsense-slash",
+    "why": "SKILL.md's silent-ignore control, in the option's own slot",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E vsMain /ZZZNONSENSE -remove-unused-functions -extract-entry-uniforms repro.hlsl",
+    "exit": 0,
+    "sha256": "a43262a4a56ae481cc8c622f18ca95629ec3b69bb2c12d2f7ebdbc10aa793073",
+    "loose_unused_removed": false,
+    "cbB_present": true,
+    "output": "cbuffer cbA {\n  const float4 gA;\n}\n;\ncbuffer cbB {\n  const float4 gB;\n}\n;\nconst float4 gLooseUnused;\nconst float4 gLooseUsed;\nfloat4 vsMain(float4 pos : POSITION) : SV_Position {\n  return pos * gA + gLooseUsed;\n}\n\n\n\n"
+  },
+  {
+    "case": "nonsense-dash",
+    "why": "same nonsense with the '-' prefix",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E vsMain -ZZZNONSENSE -remove-unused-functions -extract-entry-uniforms repro.hlsl",
+    "exit": 1,
+    "sha256": "81795e9205ea9925d4868e4ccde78ca66a31e13c55e9dafa9c8ef0a101ccf801",
+    "loose_unused_removed": true,
+    "cbB_present": false,
+    "output": "dxc failed : Unknown argument: '-ZZZNONSENSE'\n"
+  },
+  {
+    "case": "misspelled",
+    "why": "the real option minus one character -- proves the exact spelling is what the parser recognises",
+    "cmd": "<repo>/build/Debug/bin/dxr.exe -E vsMain -remove-unused-global -remove-unused-functions -extract-entry-uniforms repro.hlsl",
+    "exit": 1,
+    "sha256": "d76bf27772c3fbe0590f05f0bc4907dc2180ac69b91e9d389f26554f26c75e4b",
+    "loose_unused_removed": true,
+    "cbB_present": false,
+    "output": "dxc failed : Unknown argument: '-remove-unused-global'\n"
+  }
+]

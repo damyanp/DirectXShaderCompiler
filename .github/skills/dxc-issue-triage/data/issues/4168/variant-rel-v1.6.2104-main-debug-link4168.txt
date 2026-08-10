@@ -1,0 +1,28 @@
+# compiler: main-debug-link4168
+# exe: <triage>/issues/4168/run-link4168.cmd
+# ran: 2026-08-10T18:15:28+00:00
+# cmd: --release v1.6.2104 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "Unknown argument", so this build did not reach the code under test
+# variant: rel-v1.6.2104 (repro.hlsl)
+# expect: invalid-probe
+
+$ dxc --release v1.6.2104 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo
+[exe] <triage>/issues/4168/run-link4168.cmd
+[exit] 1
+--- stdout ---
+[link4168] producers (dxc, dxl) from release v1.6.2104: <skill>/.cache/compilers/releases/v1.6.2104/bin/x64
+$ <skill>/.cache/compilers/releases/v1.6.2104/bin/x64/dxc.exe -T lib_6_x -Fo m4168-lib.dxo repro.hlsl
+[link4168] dxc exit 0
+$ <skill>/.cache/compilers/releases/v1.6.2104/bin/x64/dxc.exe -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo -link   # release ships no dxl.exe; using dxc.exe -link
+[link4168] dxl exit 1
+$ <repo>/build/Debug/bin/dxa.exe -dumpreflection m4168-linked.dxo   # reader held fixed at the local build (no dxa.exe in releases)
+The system cannot find the file specified. m4168-linked.dxo
+[link4168] dxa exit 1
+
+--- stderr ---
+dxc failed : Unknown argument: '-link'
+

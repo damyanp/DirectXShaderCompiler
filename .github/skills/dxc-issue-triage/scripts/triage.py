@@ -193,6 +193,44 @@ def issue_dir(n):
     return os.path.join(ISSUES, f"{n:04d}")
 
 
+def _prefix_pattern(base):
+    """Match one local root however it is spelled inside captured output."""
+    parts = [p for p in re.split(r"[\\/]+", os.path.abspath(base)) if p]
+    if not parts:
+        return None
+    return re.compile(r"[\\/]+".join(re.escape(p) for p in parts),
+                      re.IGNORECASE)
+
+
+def redact_paths(text):
+    """Tokenise local directory prefixes appearing *inside* captured output.
+
+    Same rationale as `display_exe`, one level deeper. A Debug build bakes
+    `__FILE__` into `llvm_unreachable` and `DXASSERT` messages, so a crash
+    capture reproduces the triaging machine's checkout layout verbatim -- and
+    those captures are committed. The informative part is the path *within* the
+    tree (which file asserted), so keep that and tokenise the prefix.
+
+    Both separators and repeated separators are matched, so a JSON-escaped
+    spelling is caught as well as a raw one. Applied before scoring as well as
+    before writing, so a predicate matches exactly what a reader sees in the
+    file; no predicate may key on a machine path, which is what makes that
+    safe.
+
+    This is normalisation, not redaction of evidence: nothing that carries
+    information about the compiler's behaviour is removed. Hand-editing a
+    capture after the fact is a different act entirely, and is falsification.
+    """
+    for base, token in ((CACHE_ROOT, "<cache>"), (ROOT, "<triage>"),
+                        (REPO_ROOT, "<repo>")):
+        if not base:
+            continue
+        pattern = _prefix_pattern(base)
+        if pattern is not None:
+            text = pattern.sub(token, text)
+    return text
+
+
 def display_exe(path):
     """Machine-independent spelling of a compiler path, for captured output.
 
@@ -464,7 +502,7 @@ def spelling_reprobe_evidence(issue, match_file, candidate, baseline):
 
 
 def _predicate_quotes(issue, match_file, marker):
-    """True if the issue's OWN predicate spells out the diagnostic `marker`.
+    """True if the issue's declared diagnostic surface spells out `marker`.
 
     The feature-absence markers in `classify` are a proxy for "this release
     rejected the input before reaching the code under test". That proxy breaks
@@ -484,14 +522,19 @@ def _predicate_quotes(issue, match_file, marker):
       discarded and `bisect` would have reported "no release could run this
       repro".
 
-    The suppression is deliberately the narrowest thing that fixes both: the
-    demotion stands unless a *positive* clause of the issue's own predicate
-    contains the matched marker text verbatim. That requires a human to have
-    written the diagnostic into `match.json` as the symptom, which is exactly
-    the case the proxy cannot handle -- and nothing else. Inverted clauses do
-    not count: "the symptom is that X is absent" does not make X's presence a
-    measurement. No predicate is evaluated as a regex against the marker, so a
-    loose pattern cannot widen this.
+    The suppression is deliberately narrow: the demotion stands unless a
+    *positive* clause contains the matched marker text verbatim. Usually that
+    clause is in the active predicate. An issue that records one defect through
+    several predicates may opt a secondary predicate into the same diagnostic
+    surface with `"quote_from": ["match.json"]`; without that explicit link,
+    sibling predicates remain isolated. This is needed for a diagnostic that
+    later becomes an ICE: the ICE predicate must not call the earlier, valid
+    diagnostic an invalid probe merely because the quotation lives in the
+    diagnostic predicate.
+
+    Inverted clauses do not count: "the symptom is that X is absent" does not
+    make X's presence a measurement. No predicate is evaluated as a regex
+    against the marker, so a loose pattern cannot widen this.
 
     Keeping it narrow matters. The converse rule -- treat any marker on a
     matching probe as a bad probe -- was rejected in batch 004 because #1627's
@@ -500,12 +543,6 @@ def _predicate_quotes(issue, match_file, marker):
     prevent (#3873, #3038), which has produced wrong verdicts twice.
     """
     if not marker:
-        return False
-    path = os.path.join(issue_dir(issue), match_file)
-    try:
-        with open(path) as f:
-            m = json.load(f)
-    except (OSError, ValueError):
         return False
     needle = marker.lower()
 
@@ -519,7 +556,31 @@ def _predicate_quotes(issue, match_file, marker):
             return needle in str(node.get("value", "")).lower()
         return False
 
-    return walk(m)
+    def load(name, seen):
+        if name in seen:
+            return False
+        if os.path.basename(name) != name or not name.endswith(".json"):
+            sys.exit(f"{match_file}: quote_from entries must be predicate "
+                     f"filenames in the issue directory, got {name!r}")
+        seen.add(name)
+        path = os.path.join(issue_dir(issue), name)
+        try:
+            with open(path) as f:
+                predicate = json.load(f)
+        except (OSError, ValueError):
+            return False
+        if walk(predicate):
+            return True
+        refs = predicate.get("quote_from", [])
+        if isinstance(refs, str):
+            refs = [refs]
+        if not isinstance(refs, list) or not all(
+                isinstance(ref, str) for ref in refs):
+            sys.exit(f"{path}: quote_from must be a list of predicate "
+                     f"filenames")
+        return any(load(ref, seen) for ref in refs)
+
+    return load(match_file, set())
 
 
 def _eval_match(m, text, rc, timed_out, path):
@@ -1387,6 +1448,7 @@ def _run_command_list(exe, d, cmds):
             rc, out, err, to = p.returncode, p.stdout, p.stderr, False
         except subprocess.TimeoutExpired as e:
             rc, out, err, to = None, e.stdout or "", e.stderr or "", True
+        out, err = redact_paths(out), redact_paths(err)
         timed_out = timed_out or to
         if rc not in (0, None) and worst_rc == 0:
             worst_rc = rc
@@ -1398,7 +1460,8 @@ def _run_command_list(exe, d, cmds):
 
 
 def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
-            shader=None, label=None, args=None, expect=None, force=False):
+            shader=None, label=None, args=None, expect=None, force=False,
+            hypothesis=False):
     """Run an issue's repro and classify the result.
 
     `repeat` runs the whole command list several times and reports the symptom
@@ -1410,12 +1473,15 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
     with probability ~2e-15, which is what turns "we saw no crash" into
     evidence rather than an absence of it.
     """
+    if hypothesis and not expect:
+        sys.exit("--hypothesis requires --expect: the expectation is the "
+                 "prediction being tested")
     if repeat > 1:
         attempts, seen = [], []
         for i in range(repeat):
             r = execute(issue, compiler, match_file, record=False, repeat=1,
                         shader=shader, label=label, args=args, expect=expect,
-                        force=True)
+                        force=True, hypothesis=hypothesis)
             attempts.append(r)
             seen.append(r["verdict"])
             if r["verdict"] == "repro":
@@ -1633,6 +1699,9 @@ def execute(issue, compiler, match_file="match.json", record=True, repeat=1,
                 + (f"# invalid-probe-reason: {reason}\n" if reason else "")
                 + (f"# variant: {label} ({subject})\n" if label else "")
                 + (f"# expect: {expect}\n" if expect else "")
+                + (f"# expectation-kind: hypothesis\n"
+                   f"# outcome: {expectation_outcome(expect, verdict)}\n"
+                   if hypothesis else "")
                 + f"\n{text}")
 
     if record and not label:
@@ -1675,6 +1744,31 @@ def expectation_violated(expect, verdict):
     return (verdict == "repro") != (expect == "match")
 
 
+def expectation_outcome(expect, verdict):
+    """Classify a recorded prediction without turning it into an assertion."""
+    if expect not in ("match", "no-match", "invalid-probe"):
+        return None
+    return "refuted" if expectation_violated(expect, verdict) else "supported"
+
+
+def captured_expectation_issue(meta, verdict):
+    """Return a stale-hypothesis or failed-control problem, if any."""
+    expect = meta.get("expect")
+    if meta.get("expectation-kind") == "hypothesis":
+        wanted = expectation_outcome(expect, verdict)
+        if wanted is None:
+            return ("hypothesis",
+                    "hypothesis capture has no valid expectation")
+        if meta.get("outcome") != wanted:
+            return ("hypothesis",
+                    f"hypothesis outcome says {meta.get('outcome') or 'nothing'}"
+                    f", re-score says {wanted}")
+        return None
+    if expectation_violated(expect, verdict):
+        return ("control", f"expected {expect}, scored {verdict}")
+    return None
+
+
 def ground_truth_compiler(issue):
     """Which non-release compiler this issue's existing captures were taken with.
 
@@ -1715,16 +1809,23 @@ def cmd_run(a):
     if (a.shader or a.args) and not a.label:
         sys.exit("--shader/--args need --label, so the output is filed as a "
                  "variant rather than overwriting the repro's probe")
+    if getattr(a, "hypothesis", False) and not a.label:
+        sys.exit("--hypothesis needs a labelled --shader/--args variant, so "
+                 "the tested prediction cannot overwrite primary evidence")
     r = execute(a.issue, a.compiler, a.match, repeat=a.repeat,
                 shader=a.shader, label=a.label, args=a.args, expect=a.expect,
-                force=getattr(a, "force", False))
+                force=getattr(a, "force", False),
+                hypothesis=getattr(a, "hypothesis", False))
     extra = ""
     if r.get("attempts", 1) > 1:
         extra = f" [{r['hits']}/{r['attempts']} runs showed it]"
     print(f"{r['compiler']}: exit={r['exit']} timed_out={r['timed_out']}"
           f" -> {r['verdict']}{extra}")
     print(f"output: {r['output']}")
-    if expectation_violated(a.expect, r["verdict"]):
+    if getattr(a, "hypothesis", False):
+        print(f"hypothesis {expectation_outcome(a.expect, r['verdict'])}: "
+              f"expected {a.expect}, scored {r['verdict']}")
+    elif expectation_violated(a.expect, r["verdict"]):
         print(f"WARNING: control expected {a.expect} but scored {r['verdict']}."
               f" Either the predicate does not discriminate, or the control is"
               f" not what you think it is.")
@@ -2605,6 +2706,12 @@ def audit_issue(d, number, rec, collated=True):
             if os.path.isfile(os.path.join(d, mf)) and not meta.get("expect"):
                 gaps.append(f"{f} has no `# expect:` -- re-run it with "
                             f"--expect match|no-match so reindex re-checks it")
+            elif meta.get("expect"):
+                problem = captured_expectation_issue(
+                    meta, meta.get("verdict"))
+                if problem:
+                    kind, detail = problem
+                    gaps.append(f"{f} has a failed {kind}: {detail}")
 
     if not rec:
         return gaps
@@ -2656,11 +2763,23 @@ def cmd_audit(a):
         if rec and not rec.get("reviewed_by") and not a.collated:
             print(f"#{number}: pending collation -- no reviewed_by yet (step 10 "
                   f"is a batch step; do not fill it in yourself)")
+    path_failures = audit_path_hygiene(a.issue)
+    for failure in path_failures:
+        prefix = f"#{a.issue}: " if a.issue else ""
+        print(f"{prefix}path hygiene: {failure}")
+    total += len(path_failures)
     if not a.issue:
         total += audit_overview()
     if not total:
         print(f"no missing evidence in {len(numbers)} issue(s)")
     return 1 if total else 0
+
+
+def audit_path_hygiene(issue=None):
+    """Run the canonical path gate over one issue or the whole skill tree."""
+    import check_paths
+    failures, _, _, _ = check_paths.scan(issue=issue)
+    return failures
 
 
 def audit_overview():
@@ -2740,6 +2859,9 @@ def cmd_expect(a):
     meta, text = read_out(path)
     if "exit" not in meta:
         sys.exit(f"{a.capture} has no recorded exit status; it is not a capture")
+    if meta.get("expectation-kind") == "hypothesis":
+        sys.exit("refusing to rewrite a tested hypothesis after seeing its "
+                 "outcome; re-run a newly labelled hypothesis instead")
 
     mf = meta.get("match", "match.json")
     v = classify_capture(a.issue, meta, text, mf)
@@ -2850,9 +2972,19 @@ def cmd_reindex(a):
                 continue
             v, why = classify_capture(
                 number, meta, text, mf, explain=True)
-            if meta.get("expect") and expectation_violated(meta["expect"], v):
-                changed.append(f"#{number} {var}: control declared "
-                               f"{meta['expect']} but now scores {v}")
+            expectation_problem = captured_expectation_issue(meta, v)
+            if expectation_problem:
+                kind, detail = expectation_problem
+                if kind == "hypothesis" and a.accept:
+                    outcome = expectation_outcome(meta.get("expect"), v)
+                    restamp(vpath_v, "outcome", outcome)
+                    accepted.append(
+                        f"#{number} {var}: hypothesis outcome -> {outcome}")
+                elif kind == "hypothesis":
+                    changed.append(f"#{number} {var}: {detail}")
+                else:
+                    changed.append(f"#{number} {var}: control declared "
+                                   f"{meta.get('expect')} but now scores {v}")
             if a.verify and meta.get("verdict") and meta["verdict"] != v:
                 if a.accept:
                     restamp(vpath_v, "verdict", v)
@@ -3078,6 +3210,10 @@ def main():
                         "header and re-checked on every reindex. "
                         "`invalid-probe` is for a control that is expected to "
                         "be rejected before it reaches the code under test")
+    s.add_argument(
+        "--hypothesis", action="store_true",
+        help="record --expect as a prediction whose supported/refuted outcome "
+             "is evidence, rather than as a control assertion")
     s.add_argument("--force", action="store_true",
                    help="overwrite a capture that was scored with a different "
                         "predicate; prefer --label, which keeps both")

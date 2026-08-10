@@ -1,0 +1,33 @@
+# compiler: main-debug-dxv
+# exe: <triage>/issues/4256/validate.cmd
+# ran: 2026-08-10T17:57:30+00:00
+# cmd: badsig.ll
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-badsig (?)
+# expect: no-match
+
+$ dxc badsig.ll
+[exe] <triage>/issues/4256/validate.cmd
+[exit] 1
+--- stdout ---
+viewid-4256 harness v1
+[validator] internal (dxcompiler.dll from the same build); DXC_DXIL_DLL_PATH=<unset>
+[module] badsig.ll (5989 bytes)
+[selftest] module-calls-viewid-op=yes
+[selftest] module-viewid-state=[8, 8, 15, 1, 2, 4, 8, 16, 32, 64, 128]
+[selftest] module-viewid-state-declares-dependencies=yes
+$ <repo>/build/Debug/bin/dxv.exe badsig.ll
+--- stdout ---
+Function: main: error: Constant values must be in-range for operation.
+note: at 'call void @dx.op.storeOutput.f32(i32 5, i32 7, i32 0, i8 3, float %4)' in block '#0' of function 'main'.
+Validation failed.
+--- stderr ---
+
+[exit] 0x00000001
+[result] VALIDATION-FAILED
+
+--- stderr ---
+

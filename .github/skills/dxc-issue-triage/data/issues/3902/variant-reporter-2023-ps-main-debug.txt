@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T17:42:46+00:00
+# cmd: -T ps_6_6 -E main reporter-2023-ps.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: reporter-2023-ps (reporter-2023-ps.hlsl)
+# expect: match
+
+$ dxc -T ps_6_6 -E main reporter-2023-ps.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: Flags must match usage.
+note: Flags declared=33554432, actual=0
+Validation failed.
+
+
+

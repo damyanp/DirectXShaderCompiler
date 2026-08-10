@@ -1,0 +1,33 @@
+$ python triage.py sql "SELECT tag, build_date, prerelease, cached_path FROM releases ORDER BY build_date IS NULL, build_date"
+
+tag                build        pre  dxc.exe          dxl.exe          dxa.exe          dxcompiler.dll  
+--------------------------------------------------------------------------------------------------------
+v1.4.1907          2019-07-15   0    True             False            False            True            
+v1.5.2003          2020-03-25   1    True             False            False            True            
+v1.5.2010          2020-10-22   0    True             False            False            True            
+v1.6.2104          2021-04-20   0    True             False            False            True            
+v1.6.2106          2021-07-01   0    True             False            False            True            
+v1.6.2112          2021-12-08   0    True             False            False            True            
+v1.7.2207          2022-07-18   0    True             False            False            True            
+v1.7.2212          2022-12-16   0    True             False            False            True            
+v1.7.2212.1        2023-03-01   0    True             False            False            True            
+v1.8.2306-preview  2023-06-21   1    (not cached locally)
+v1.7.2308          2023-08-14   0    True             False            False            True            
+v1.8.2403          2024-03-07   0    True             False            False            True            
+v1.8.2403.1        2024-03-22   0    True             False            False            True            
+v1.8.2403.2        2024-03-29   0    True             False            False            True            
+v1.8.2405          2024-05-24   0    True             False            False            True            
+v1.8.2405-mesh-nodes-preview 2024-07-17   1    (not cached locally)
+v1.8.2407          2024-07-31   0    True             False            False            True            
+v1.8.2502          2025-02-20   0    True             False            False            True            
+v1.8.2505          2025-05-24   0    True             False            False            True            
+v1.8.2505.1        2025-07-14   0    True             False            False            True            
+v1.9.2602          2026-02-20   0    True             False            False            True            
+v1.10.2605.2       2026-04-22   1    (not cached locally)
+v1.10.2605.24      2026-05-22   1    (not cached locally)
+v1.9.2602.24       2026-05-27   0    True             False            False            True            
+v1.9.2607          2026-07-29   0    True             False            False            True            
+v1.2.0-alpha                    1    (not cached locally)
+
+releases able to run the whole dxc->dxl->dxa chain: 0  []
+detector self-test on the local Debug build (<repo>/build/Debug/bin): pass -- all four found

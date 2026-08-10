@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "D3D12_SHADER_BUFFER_DESC: Name: \\$Globals"
+    },
+    {
+      "kind": "regex",
+      "value": "D3D12_SHADER_VARIABLE_DESC: Name: ProbeCoordToWorldPos\\n(?:[^\\n]*\\n){0,6}?[^\\n]*uFlags:[^\\n]*D3D_SVF_USED"
+    },
+    {
+      "kind": "regex",
+      "value": "D3D12_SHADER_VARIABLE_DESC: Name: WorldPosToProbeCoord\\n(?:[^\\n]*\\n){0,6}?[^\\n]*uFlags: 0"
+    }
+  ],
+  "note": "The SECOND face of the same mis-marking, scored separately because a partial fix could move one without the other. WorldPosToProbeCoord IS read by the shader -- WorldPosToProbeCoordInternal indexes it twice -- yet reflection reports it with no D3D_SVF_USED, because its only access carries the folded offset 0xFFFFFFF0 that MarkCBUse redirects onto the last field. Clause 3 matches the literal 'uFlags: 0' rather than asserting the absence of D3D_SVF_USED, so SKILL.md's absence-predicate trap does not apply: a failed compile or an empty dump cannot satisfy it. Clauses 1 and 2 are the same anti-vacuity anchor and instrument self-test as match.json, and clause 2 additionally proves in the same dump that this reader does print D3D_SVF_USED when the compiler sets it -- so 'uFlags: 0' here means the bit is genuinely absent, not that the dumper stopped emitting flags. CONTROL: control-noneg.hlsl (same shader, '- 1' removed) must score no-match under this predicate too, because there WorldPosToProbeCoord is correctly marked used; that control therefore doubles as the proof that clause 3 is falsifiable."
+}

@@ -1,0 +1,299 @@
+# compiler: main-debug-link4168
+# exe: <triage>/issues/4168/run-link4168.cmd
+# ran: 2026-08-10T17:54:29+00:00
+# cmd: dxc -T lib_6_x -Fo libonly4168.dxo repro.hlsl ; dxa -dumpreflection libonly4168.dxo
+# exit: 0
+# timed_out: 0
+# match: match-cbvars.json
+# verdict: no-repro
+# variant: libonly (repro.hlsl)
+# expect: no-match
+
+$ dxc dxc -T lib_6_x -Fo libonly4168.dxo repro.hlsl ; dxa -dumpreflection libonly4168.dxo
+[exe] <triage>/issues/4168/run-link4168.cmd
+[exit] 0
+--- stdout ---
+$ <repo>/build/Debug/bin/dxc.exe -T lib_6_x -Fo libonly4168.dxo repro.hlsl
+[link4168] dxc exit 0
+$ <repo>/build/Debug/bin/dxa.exe -dumpreflection libonly4168.dxo
+DxilRuntimeData (size = 376 bytes):
+  StringBuffer (size = 72 bytes)
+  IndexTable (size = 16 bytes)
+  RawBytes (size = 0 bytes)
+  RecordTable (stride = 32 bytes) ResourceTable[1] = {
+    <0:RuntimeDataResourceInfo> = {
+      Class: CBuffer
+      Kind: CBuffer
+      ID: 0
+      Space: 4294967295
+      LowerBound: 4294967295
+      UpperBound: 4294967295
+      Name: "CB0"
+      Flags: 0 (None)
+    }
+  }
+  RecordTable (stride = 52 bytes) FunctionTable[2] = {
+    <0:RuntimeDataFunctionInfo2> = {
+      Name: "\01?xform@@YA?AV?$vector@M$03@@V1@@Z"
+      UnmangledName: "xform"
+      Resources: <0:RecordArrayRef<RuntimeDataResourceInfo>[1]>  = {
+        [0]: <0:RuntimeDataResourceInfo> = {
+          Class: CBuffer
+          Kind: CBuffer
+          ID: 0
+          Space: 4294967295
+          LowerBound: 4294967295
+          UpperBound: 4294967295
+          Name: "CB0"
+          Flags: 0 (None)
+        }
+      }
+      FunctionDependencies: <string[0]> = {}
+      ShaderKind: Library
+      PayloadSizeInBytes: 0
+      AttributeSizeInBytes: 0
+      FeatureInfo1: 0
+      FeatureInfo2: 0
+      ShaderStageFlag: (Pixel | Vertex | Geometry | Hull | Domain | Compute | Library | RayGeneration | Intersection | AnyHit | ClosestHit | Miss | Callable | Mesh | Amplification | Node)
+      MinShaderTarget: 0x60060
+      MinimumExpectedWaveLaneCount: 0
+      MaximumExpectedWaveLaneCount: 0
+      ShaderFlags: 0 (None)
+    }
+    <1:RuntimeDataFunctionInfo2> = {
+      Name: "main"
+      UnmangledName: "main"
+      Resources: <0:RecordArrayRef<RuntimeDataResourceInfo>[1]>  = {
+        [0]: <0:RuntimeDataResourceInfo> = {
+          Class: CBuffer
+          Kind: CBuffer
+          ID: 0
+          Space: 4294967295
+          LowerBound: 4294967295
+          UpperBound: 4294967295
+          Name: "CB0"
+          Flags: 0 (None)
+        }
+      }
+      FunctionDependencies: <string[0]> = {}
+      ShaderKind: Pixel
+      PayloadSizeInBytes: 0
+      AttributeSizeInBytes: 0
+      FeatureInfo1: 0
+      FeatureInfo2: 0
+      ShaderStageFlag: (Pixel)
+      MinShaderTarget: 0x60
+      MinimumExpectedWaveLaneCount: 0
+      MaximumExpectedWaveLaneCount: 0
+      ShaderFlags: 0 (None)
+      PS: <0:PSInfo> = {
+        SigInputElements: <0:RecordArrayRef<SignatureElement>[1]>  = {
+          [0]: <0:SignatureElement> = {
+            SemanticName: "TEXCOORD"
+            SemanticIndices: <0:array[1]> = { 0 }
+            SemanticKind: Arbitrary
+            ComponentType: F32
+            InterpolationMode: Linear
+            StartRow: 0
+            ColsAndStream: 3
+            UsageAndDynIndexMasks: 0
+          }
+        }
+        SigOutputElements: <2:RecordArrayRef<SignatureElement>[1]>  = {
+          [0]: <1:SignatureElement> = {
+            SemanticName: "SV_Target"
+            SemanticIndices: <0:array[1]> = { 0 }
+            SemanticKind: Target
+            ComponentType: F32
+            InterpolationMode: Undefined
+            StartRow: 0
+            ColsAndStream: 3
+            UsageAndDynIndexMasks: 0
+          }
+        }
+      }
+    }
+  }
+  RecordTable (stride = 16 bytes) SignatureElementTable[2] = {
+    <0:SignatureElement> = {
+      SemanticName: "TEXCOORD"
+      SemanticIndices: <0:array[1]> = { 0 }
+      SemanticKind: Arbitrary
+      ComponentType: F32
+      InterpolationMode: Linear
+      StartRow: 0
+      ColsAndStream: 3
+      UsageAndDynIndexMasks: 0
+    }
+    <1:SignatureElement> = {
+      SemanticName: "SV_Target"
+      SemanticIndices: <0:array[1]> = { 0 }
+      SemanticKind: Target
+      ComponentType: F32
+      InterpolationMode: Undefined
+      StartRow: 0
+      ColsAndStream: 3
+      UsageAndDynIndexMasks: 0
+    }
+  }
+  RecordTable (stride = 8 bytes) PSInfoTable[1] = {
+    <0:PSInfo> = {
+      SigInputElements: <0:RecordArrayRef<SignatureElement>[1]>  = {
+        [0]: <0:SignatureElement> = {
+          SemanticName: "TEXCOORD"
+          SemanticIndices: <0:array[1]> = { 0 }
+          SemanticKind: Arbitrary
+          ComponentType: F32
+          InterpolationMode: Linear
+          StartRow: 0
+          ColsAndStream: 3
+          UsageAndDynIndexMasks: 0
+        }
+      }
+      SigOutputElements: <2:RecordArrayRef<SignatureElement>[1]>  = {
+        [0]: <1:SignatureElement> = {
+          SemanticName: "SV_Target"
+          SemanticIndices: <0:array[1]> = { 0 }
+          SemanticKind: Target
+          ComponentType: F32
+          InterpolationMode: Undefined
+          StartRow: 0
+          ColsAndStream: 3
+          UsageAndDynIndexMasks: 0
+        }
+      }
+    }
+  }
+ID3D12LibraryReflection:
+  D3D12_LIBRARY_DESC:
+    Creator: <nullptr>
+    Flags: 0
+    FunctionCount: 2
+  ID3D12FunctionReflection:
+    D3D12_FUNCTION_DESC: Name: \01?xform@@YA?AV?$vector@M$03@@V1@@Z
+      Shader Version: Library 6.15
+      Creator: <nullptr>
+      Flags: 0
+      RequiredFeatureFlags: 0
+      ConstantBuffers: 1
+      BoundResources: 1
+      FunctionParameterCount: 0
+      HasReturn: FALSE
+    Constant Buffers:
+      ID3D12ShaderReflectionConstantBuffer:
+        D3D12_SHADER_BUFFER_DESC: Name: CB0
+          Type: D3D_CT_CBUFFER
+          Size: 80
+          uFlags: 0
+          Num Variables: 2
+        {
+          ID3D12ShaderReflectionVariable:
+            D3D12_SHADER_VARIABLE_DESC: Name: m
+              Size: 64
+              StartOffset: 0
+              uFlags: (D3D_SVF_USED)
+              DefaultValue: <nullptr>
+            ID3D12ShaderReflectionType:
+              D3D12_SHADER_TYPE_DESC: Name: float4x4
+                Class: D3D_SVC_MATRIX_ROWS
+                Type: D3D_SVT_FLOAT
+                Elements: 0
+                Rows: 4
+                Columns: 4
+                Members: 0
+                Offset: 0
+            CBuffer: CB0
+          ID3D12ShaderReflectionVariable:
+            D3D12_SHADER_VARIABLE_DESC: Name: f
+              Size: 16
+              StartOffset: 64
+              uFlags: (D3D_SVF_USED)
+              DefaultValue: <nullptr>
+            ID3D12ShaderReflectionType:
+              D3D12_SHADER_TYPE_DESC: Name: float4
+                Class: D3D_SVC_VECTOR
+                Type: D3D_SVT_FLOAT
+                Elements: 0
+                Rows: 1
+                Columns: 4
+                Members: 0
+                Offset: 0
+            CBuffer: CB0
+        }
+    Bound Resources:
+      D3D12_SHADER_INPUT_BIND_DESC: Name: CB0
+        Type: D3D_SIT_CBUFFER
+        uID: 0
+        BindCount: 1
+        BindPoint: 4294967295
+        Space: 4294967295
+        ReturnType: <unknown: 0>
+        Dimension: D3D_SRV_DIMENSION_UNKNOWN
+        NumSamples (or stride): 0
+        uFlags: (D3D_SIF_USERPACKED)
+  ID3D12FunctionReflection:
+    D3D12_FUNCTION_DESC: Name: main
+      Shader Version: Pixel 6.15
+      Creator: <nullptr>
+      Flags: 0
+      RequiredFeatureFlags: 0
+      ConstantBuffers: 1
+      BoundResources: 1
+      FunctionParameterCount: 0
+      HasReturn: FALSE
+    Constant Buffers:
+      ID3D12ShaderReflectionConstantBuffer:
+        D3D12_SHADER_BUFFER_DESC: Name: CB0
+          Type: D3D_CT_CBUFFER
+          Size: 80
+          uFlags: 0
+          Num Variables: 2
+        {
+          ID3D12ShaderReflectionVariable:
+            D3D12_SHADER_VARIABLE_DESC: Name: m
+              Size: 64
+              StartOffset: 0
+              uFlags: (D3D_SVF_USED)
+              DefaultValue: <nullptr>
+            ID3D12ShaderReflectionType:
+              D3D12_SHADER_TYPE_DESC: Name: float4x4
+                Class: D3D_SVC_MATRIX_ROWS
+                Type: D3D_SVT_FLOAT
+                Elements: 0
+                Rows: 4
+                Columns: 4
+                Members: 0
+                Offset: 0
+            CBuffer: CB0
+          ID3D12ShaderReflectionVariable:
+            D3D12_SHADER_VARIABLE_DESC: Name: f
+              Size: 16
+              StartOffset: 64
+              uFlags: (D3D_SVF_USED)
+              DefaultValue: <nullptr>
+            ID3D12ShaderReflectionType:
+              D3D12_SHADER_TYPE_DESC: Name: float4
+                Class: D3D_SVC_VECTOR
+                Type: D3D_SVT_FLOAT
+                Elements: 0
+                Rows: 1
+                Columns: 4
+                Members: 0
+                Offset: 0
+            CBuffer: CB0
+        }
+    Bound Resources:
+      D3D12_SHADER_INPUT_BIND_DESC: Name: CB0
+        Type: D3D_SIT_CBUFFER
+        uID: 0
+        BindCount: 1
+        BindPoint: 4294967295
+        Space: 4294967295
+        ReturnType: <unknown: 0>
+        Dimension: D3D_SRV_DIMENSION_UNKNOWN
+        NumSamples (or stride): 0
+        uFlags: (D3D_SIF_USERPACKED)
+[link4168] dxa exit 0
+
+--- stderr ---
+

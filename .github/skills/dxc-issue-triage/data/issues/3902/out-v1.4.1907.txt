@@ -1,0 +1,27 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-10T17:45:50+00:00
+# cmd: -T cs_6_5 -E computeRTAO repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "use of undeclared identifier", so this build did not reach the code under test
+
+$ dxc -T cs_6_5 -E computeRTAO repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:8:3: error: use of undeclared identifier 'RayQuery'
+  RayQuery<RAY_FLAG_CULL_NON_OPAQUE |
+  ^
+repro.hlsl:9:14: error: use of undeclared identifier 'RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES'
+             RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES |
+             ^
+repro.hlsl:11:42: error: use of undeclared identifier 'rq'
+                         RAY_FLAG_CULL_BACK_FACING_TRIANGLES> rq;
+                                                              ^
+
+

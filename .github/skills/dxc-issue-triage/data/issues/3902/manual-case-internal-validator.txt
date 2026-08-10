@@ -1,0 +1,57 @@
+Which validator emits #3902's error: the external dxil.dll, or main's own?
+
+A. dxc.exe as registered (<repo>/build/Debug/bin) -- dxil.dll IS present beside it
+   dxil.dll FileVersion: 1.9.0.5393 (damyanp/fix-resource-struct-zero-init, dc2088b20-dirty)
+
+# repro.hlsl
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_5 -E computeRTAO repro.hlsl
+[exit] 2147500037 (0x80004005)
+--- stderr ---
+error: validation errors
+
+error: Flags must match usage.
+note: Flags declared=33554432, actual=0
+Validation failed.
+
+# control-used.hlsl
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_5 -E computeRTAO control-used.hlsl
+[exit] 0 (0x00000000)
+<compiled cleanly; disassembly elided>
+
+# control-hello.hlsl
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_5 -E computeRTAO control-hello.hlsl
+[exit] 0 (0x00000000)
+<compiled cleanly; disassembly elided>
+
+# repro.hlsl (valver 1.7)
+$ <repo>/build/Debug/bin/dxc.exe -T cs_6_5 -E computeRTAO -validator-version 1.7 repro.hlsl
+[exit] 0 (0x00000000)
+<compiled cleanly; disassembly elided>
+
+B. same dxc.exe + dxcompiler.dll copied to a directory with NO dxil.dll,
+   which forces the internal validator built from main
+
+# repro.hlsl
+$ <repo>/.github/skills/dxc-issue-triage/data/issues/3902/scratch-no-dxil/dxc.exe -T cs_6_5 -E computeRTAO repro.hlsl
+[exit] 2147500037 (0x80004005)
+--- stderr ---
+error: validation errors
+
+error: Flags must match usage.
+note: Flags declared=33554432, actual=0
+Validation failed.
+
+# control-used.hlsl
+$ <repo>/.github/skills/dxc-issue-triage/data/issues/3902/scratch-no-dxil/dxc.exe -T cs_6_5 -E computeRTAO control-used.hlsl
+[exit] 0 (0x00000000)
+<compiled cleanly; disassembly elided>
+
+# control-hello.hlsl
+$ <repo>/.github/skills/dxc-issue-triage/data/issues/3902/scratch-no-dxil/dxc.exe -T cs_6_5 -E computeRTAO control-hello.hlsl
+[exit] 0 (0x00000000)
+<compiled cleanly; disassembly elided>
+
+# repro.hlsl (valver 1.7)
+$ <repo>/.github/skills/dxc-issue-triage/data/issues/3902/scratch-no-dxil/dxc.exe -T cs_6_5 -E computeRTAO -validator-version 1.7 repro.hlsl
+[exit] 0 (0x00000000)
+<compiled cleanly; disassembly elided>

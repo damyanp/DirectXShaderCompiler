@@ -1,0 +1,9 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains", "value": "module-calls-viewid-op=yes" },
+    { "kind": "contains", "value": "module-viewid-state-declares-dependencies=no" },
+    { "kind": "contains", "value": "[result] VALIDATION-SUCCEEDED" }
+  ],
+  "note": "#4256 asks that DXIL validation recompute the ViewID state instead of trusting whatever the producer serialized. The symptom is therefore an ACCEPTANCE, not a diagnostic: the validator says nothing. An absence predicate is satisfied for free by a run that measured nothing (SKILL.md), so all three clauses are required and two of them are anti-vacuity anchors printed by validate.py from the module it is about to hand to dxv. Clause 1: the module really does call dx.op.viewID -- without it the shader does not use ViewID and its empty state would be correct. Clause 2: the module's serialized ViewID state declares no dependency of any kind, which is false for this shader (DXC computes [8, 8, 15, 1, 2, 4, 8, 16, 32, 64, 128] -- see variant-control-dxc-output). Clause 3: the validator accepted it anyway. Controls: control-dxc-output (unmodified module) must NOT match, because clause 2 fails -- that is what proves clause 2 discriminates; control-badsig and control-sm60 must NOT match, because clause 3 fails -- that is what proves the harness really validates and really reports failure. A `dxv` validation failure exits 1 here (dxv's own convention) and a DXIL validation failure through dxc exits E_FAIL 0x80004005; neither is an internal failure."
+}

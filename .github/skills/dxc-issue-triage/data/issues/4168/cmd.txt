@@ -1,0 +1,14 @@
+# The registered "compiler" for this issue is run-link4168.cmd, not dxc.exe.
+# The reported symptom is D3D12_SHADER_BUFFER_DESC::Variables on a *linked*
+# shader, so reaching it needs three executables: dxc to build the library, dxl
+# to link it into a shader, and dxa -dumpreflection to walk
+# ID3D12ShaderReflection. The harness dispatches the leading token to that tool
+# and echoes the command it runs, so this file holds the whole sequence and a
+# reader can run any line by hand with the tool directory on PATH.
+#
+# Profiles are the reporter's own, from the 2022-01-23 comment: "compile
+# modules in lib_6_x profile, and link to ps_6_0". No other flags -- the issue
+# reports none.
+dxc -T lib_6_x -Fo lib4168.dxo repro.hlsl
+dxl -T ps_6_0 -E main -Fo linked4168.dxo lib4168.dxo
+dxa -dumpreflection linked4168.dxo

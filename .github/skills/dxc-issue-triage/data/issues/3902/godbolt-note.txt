@@ -1,0 +1,11 @@
+Both plain panes fail. Read the compiler-output pane, not the DXIL: the compile stops at DXIL
+validation, so there is no disassembly to inspect. The two lines that matter are the validation
+error and the note under it, which reports the module's declared feature-flag word beside the
+value the validator recomputed from the final DXIL - the recomputed value is zero.
+
+The third pane is the same source with -DUSE_RAYQUERY, which un-guards the TraceRayInline /
+Proceed / CommittedStatus calls so the RayQuery object is actually used. It compiles cleanly and
+emits DXIL. Nothing else differs between the panes.
+
+Compiler Explorer runs Linux Release builds and appends -Zi -Qembed_debug; the same three
+results were measured locally on a Debug build of main, with and without those flags.

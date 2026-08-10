@@ -1,0 +1,112 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T17:46:40+00:00
+# cmd: -T lib_6_3 control-dup-swizzle2.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: dup-swizzle2 (control-dup-swizzle2.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 control-dup-swizzle2.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; shader hash: 8bb3e3d5f03bb619e49341b23c78d2c8
+;
+; Buffer Definitions:
+;
+; cbuffer Config
+; {
+;
+;   struct hostlayout.Config
+;   {
+;
+;       column_major float3x3 GlobalMatrix;           ; Offset:    0
+;   
+;   } Config;                                         ; Offset:    0 Size:    44
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; Config                            cbuffer      NA          NA     CB0cb4294967295,space4294967295     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%hostlayout.Config = type { [3 x <3 x float>] }
+%struct.Payload = type { <3 x float> }
+%struct.Attributes = type { <3 x float> }
+%dx.types.Handle = type { i8* }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+
+@Config_legacy = external global %hostlayout.Config
+
+; Function Attrs: nounwind
+define void @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z"(%struct.Payload* noalias nocapture %Data, %struct.Attributes* nocapture readonly %Attrib) #0 {
+  %1 = load %hostlayout.Config, %hostlayout.Config* @Config_legacy
+  %2 = call %dx.types.Handle @dx.op.createHandleForLib.hostlayout.Config(i32 160, %hostlayout.Config %1)  ; CreateHandleForLib(Resource)
+  %3 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %2, i32 0)  ; CBufferLoadLegacy(handle,regIndex)
+  %4 = extractvalue %dx.types.CBufRet.f32 %3, 2
+  %5 = getelementptr inbounds %struct.Attributes, %struct.Attributes* %Attrib, i32 0, i32 0
+  %6 = load <3 x float>, <3 x float>* %5, align 4
+  %7 = extractelement <3 x float> %6, i32 0
+  %8 = extractelement <3 x float> %6, i32 1
+  %9 = fmul fast float %7, %4
+  %10 = fmul fast float %8, %4
+  %11 = getelementptr inbounds %struct.Payload, %struct.Payload* %Data, i32 0, i32 0
+  %12 = load <3 x float>, <3 x float>* %11, align 4
+  %13 = extractelement <3 x float> %12, i32 0
+  %14 = extractelement <3 x float> %12, i32 1
+  %15 = fadd fast float %13, %9
+  %16 = fadd fast float %14, %10
+  %17 = getelementptr inbounds %struct.Payload, %struct.Payload* %Data, i32 0, i32 0, i32 0
+  store float %15, float* %17, align 4
+  %18 = getelementptr inbounds %struct.Payload, %struct.Payload* %Data, i32 0, i32 0, i32 1
+  store float %16, float* %18, align 4
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.hostlayout.Config(i32, %hostlayout.Config) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!7}
+!dx.entryPoints = !{!13, !14}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 10}
+!3 = !{!"lib", i32 6, i32 3}
+!4 = !{null, null, !5, null}
+!5 = !{!6}
+!6 = !{i32 0, %hostlayout.Config* @Config_legacy, !"Config", i32 -1, i32 -1, i32 1, i32 44, null}
+!7 = !{i32 1, void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", !8}
+!8 = !{!9, !11, !12}
+!9 = !{i32 1, !10, !10}
+!10 = !{}
+!11 = !{i32 2, !10, !10}
+!12 = !{i32 0, !10, !10}
+!13 = !{null, !"", null, !4, null}
+!14 = !{void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", !"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", null, null, !15}
+!15 = !{i32 8, i32 9, i32 6, i32 12, i32 7, i32 12, i32 5, !16}
+!16 = !{i32 0}
+
+
+--- stderr ---
+

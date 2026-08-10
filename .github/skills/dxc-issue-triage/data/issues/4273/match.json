@@ -1,0 +1,22 @@
+{
+  "kind": "all_of",
+  "note": "Symptom of #4273: an explicit `cbuffer` block referenced only by a discarded entry point survives `-remove-unused-globals`. Clause 1 is the symptom. Clauses 2-4 are the anchors the skill requires, because 3 and 4 are absence clauses and would otherwise be satisfied for free by a rewrite that failed or never ran: clause 2 proves real rewritten HLSL was produced (a failed rewrite emits no `vsMain` definition), clause 3 proves the removal machinery ran at all (the unused entry point IS removed), and clause 4 is the in-predicate self-test that `-remove-unused-globals` was actually honoured -- an unused LOOSE global (one that would land in $Globals) must be gone from the very same output. Without clause 4 a build that silently ignored the flag would score identically to one that implements the documented carve-out. Controls: variant-loose-only-* (no explicit cbuffer in the source -> clause 1 must fail), variant-no-remove-globals-flag-* and variant-nonsense-flag-* (flag absent / unparsed -> clause 4 must fail).",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "cbuffer\\s+cbB\\s*\\{"
+    },
+    {
+      "kind": "regex",
+      "value": "float4\\s+vsMain\\s*\\("
+    },
+    {
+      "kind": "not_regex",
+      "value": "psMain"
+    },
+    {
+      "kind": "not_regex",
+      "value": "gLooseUnused"
+    }
+  ]
+}

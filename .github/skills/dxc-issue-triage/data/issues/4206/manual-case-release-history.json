@@ -1,0 +1,2522 @@
+[
+  {
+    "tag": "main-debug",
+    "date": null,
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "main-debug",
+    "date": null,
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "main-debug",
+    "date": null,
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "main-debug",
+    "date": null,
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.4.1907",
+    "date": "2019-07-15",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.4.1907",
+    "date": "2019-07-15",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.4.1907",
+    "date": "2019-07-15",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.4.1907",
+    "date": "2019-07-15",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.5.2010",
+    "date": "2020-10-22",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.5.2010",
+    "date": "2020-10-22",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.5.2010",
+    "date": "2020-10-22",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.5.2010",
+    "date": "2020-10-22",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2104",
+    "date": "2021-04-20",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2104",
+    "date": "2021-04-20",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2104",
+    "date": "2021-04-20",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2104",
+    "date": "2021-04-20",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2106",
+    "date": "2021-07-01",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2106",
+    "date": "2021-07-01",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2106",
+    "date": "2021-07-01",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2106",
+    "date": "2021-07-01",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2112",
+    "date": "2021-12-08",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2112",
+    "date": "2021-12-08",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2112",
+    "date": "2021-12-08",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.6.2112",
+    "date": "2021-12-08",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2207",
+    "date": "2022-07-18",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2207",
+    "date": "2022-07-18",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2207",
+    "date": "2022-07-18",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2207",
+    "date": "2022-07-18",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2212",
+    "date": "2022-12-16",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2212",
+    "date": "2022-12-16",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2212",
+    "date": "2022-12-16",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2212",
+    "date": "2022-12-16",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2212.1",
+    "date": "2023-03-01",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2212.1",
+    "date": "2023-03-01",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2212.1",
+    "date": "2023-03-01",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2212.1",
+    "date": "2023-03-01",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2308",
+    "date": "2023-08-14",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2308",
+    "date": "2023-08-14",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2308",
+    "date": "2023-08-14",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.7.2308",
+    "date": "2023-08-14",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403",
+    "date": "2024-03-07",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403",
+    "date": "2024-03-07",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403",
+    "date": "2024-03-07",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403",
+    "date": "2024-03-07",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403.1",
+    "date": "2024-03-22",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403.1",
+    "date": "2024-03-22",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403.1",
+    "date": "2024-03-22",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403.1",
+    "date": "2024-03-22",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403.2",
+    "date": "2024-03-29",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403.2",
+    "date": "2024-03-29",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403.2",
+    "date": "2024-03-29",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2403.2",
+    "date": "2024-03-29",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2405",
+    "date": "2024-05-24",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2405",
+    "date": "2024-05-24",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2405",
+    "date": "2024-05-24",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2405",
+    "date": "2024-05-24",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2407",
+    "date": "2024-07-31",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2407",
+    "date": "2024-07-31",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2407",
+    "date": "2024-07-31",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2407",
+    "date": "2024-07-31",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2502",
+    "date": "2025-02-20",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2502",
+    "date": "2025-02-20",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2502",
+    "date": "2025-02-20",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2502",
+    "date": "2025-02-20",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2505",
+    "date": "2025-05-24",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2505",
+    "date": "2025-05-24",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2505",
+    "date": "2025-05-24",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2505",
+    "date": "2025-05-24",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2505.1",
+    "date": "2025-07-14",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2505.1",
+    "date": "2025-07-14",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2505.1",
+    "date": "2025-07-14",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.8.2505.1",
+    "date": "2025-07-14",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2602",
+    "date": "2026-02-20",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2602",
+    "date": "2026-02-20",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2602",
+    "date": "2026-02-20",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2602",
+    "date": "2026-02-20",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2602.24",
+    "date": "2026-05-27",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2602.24",
+    "date": "2026-05-27",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2602.24",
+    "date": "2026-05-27",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2602.24",
+    "date": "2026-05-27",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2607",
+    "date": "2026-07-29",
+    "column": "A-fixed-reader",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2607",
+    "date": "2026-07-29",
+    "column": "A-fixed-reader",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2607",
+    "date": "2026-07-29",
+    "column": "B-matched-pair",
+    "subject": "repro",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "0",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "(D3D_SVF_USED)"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "1"
+        ],
+        "verdict": "repro"
+      }
+    }
+  },
+  {
+    "tag": "v1.9.2607",
+    "date": "2026-07-29",
+    "column": "B-matched-pair",
+    "subject": "control-noneg",
+    "exit": 0,
+    "uflags": {
+      "WorldPosToProbeCoord": "(D3D_SVF_USED)",
+      "ProbeCoordToWorldPos": "(D3D_SVF_USED)",
+      "SkyLightColor": "0"
+    },
+    "scores": {
+      "match.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      },
+      "match-falsenegative.json": {
+        "clauses": [
+          "1",
+          "1",
+          "0"
+        ],
+        "verdict": "no-repro"
+      }
+    }
+  }
+]

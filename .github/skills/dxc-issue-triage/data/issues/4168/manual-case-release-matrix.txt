@@ -1,0 +1,196 @@
+stable releases in the sequence: 20
+prereleases skipped by policy:   ['v1.5.2003', 'v1.8.2306-preview', 'v1.8.2405-mesh-nodes-preview', 'v1.10.2605.2', 'v1.10.2605.24', 'v1.2.0-alpha']
+stable but not cached locally:   []
+
+===== v1.4.1907  (2019-07-15) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.4.1907 --args "--release v1.4.1907 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect invalid-probe
+main-debug-link4168: exit=1 timed_out=False -> invalid-probe
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.4.1907-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.4.1907 --args "--release v1.4.1907 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.4.1907-main-debug-link4168.txt
+
+===== v1.5.2010  (2020-10-22) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.5.2010 --args "--release v1.5.2010 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect invalid-probe
+main-debug-link4168: exit=1 timed_out=False -> invalid-probe
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.5.2010-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.5.2010 --args "--release v1.5.2010 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.5.2010-main-debug-link4168.txt
+
+===== v1.6.2104  (2021-04-20) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.6.2104 --args "--release v1.6.2104 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect invalid-probe
+main-debug-link4168: exit=1 timed_out=False -> invalid-probe
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.6.2104-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.6.2104 --args "--release v1.6.2104 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.6.2104-main-debug-link4168.txt
+
+===== v1.6.2106  (2021-07-01) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.6.2106 --args "--release v1.6.2106 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect match
+main-debug-link4168: exit=0 timed_out=False -> repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.6.2106-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.6.2106 --args "--release v1.6.2106 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.6.2106-main-debug-link4168.txt
+
+===== v1.6.2112  (2021-12-08) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.6.2112 --args "--release v1.6.2112 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect match
+main-debug-link4168: exit=0 timed_out=False -> repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.6.2112-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.6.2112 --args "--release v1.6.2112 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.6.2112-main-debug-link4168.txt
+
+===== v1.7.2207  (2022-07-18) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.7.2207 --args "--release v1.7.2207 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect match
+main-debug-link4168: exit=0 timed_out=False -> repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.7.2207-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.7.2207 --args "--release v1.7.2207 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.7.2207-main-debug-link4168.txt
+
+===== v1.7.2212  (2022-12-16) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.7.2212 --args "--release v1.7.2212 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect match
+main-debug-link4168: exit=0 timed_out=False -> repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.7.2212-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.7.2212 --args "--release v1.7.2212 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.7.2212-main-debug-link4168.txt
+
+===== v1.7.2212.1  (2023-03-01) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.7.2212.1 --args "--release v1.7.2212.1 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect match
+main-debug-link4168: exit=0 timed_out=False -> repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.7.2212.1-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.7.2212.1 --args "--release v1.7.2212.1 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.7.2212.1-main-debug-link4168.txt
+
+===== v1.7.2308  (2023-08-14) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.7.2308 --args "--release v1.7.2308 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.7.2308-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.7.2308 --args "--release v1.7.2308 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.7.2308-main-debug-link4168.txt
+
+===== v1.8.2403  (2024-03-07) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.8.2403 --args "--release v1.8.2403 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.8.2403-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.8.2403 --args "--release v1.8.2403 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.8.2403-main-debug-link4168.txt
+
+===== v1.8.2403.1  (2024-03-22) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.8.2403.1 --args "--release v1.8.2403.1 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.8.2403.1-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.8.2403.1 --args "--release v1.8.2403.1 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.8.2403.1-main-debug-link4168.txt
+
+===== v1.8.2403.2  (2024-03-29) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.8.2403.2 --args "--release v1.8.2403.2 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.8.2403.2-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.8.2403.2 --args "--release v1.8.2403.2 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.8.2403.2-main-debug-link4168.txt
+
+===== v1.8.2405  (2024-05-24) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.8.2405 --args "--release v1.8.2405 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.8.2405-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.8.2405 --args "--release v1.8.2405 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.8.2405-main-debug-link4168.txt
+
+===== v1.8.2407  (2024-07-31) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.8.2407 --args "--release v1.8.2407 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.8.2407-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.8.2407 --args "--release v1.8.2407 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.8.2407-main-debug-link4168.txt
+
+===== v1.8.2502  (2025-02-20) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.8.2502 --args "--release v1.8.2502 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.8.2502-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.8.2502 --args "--release v1.8.2502 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.8.2502-main-debug-link4168.txt
+
+===== v1.8.2505  (2025-05-24) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.8.2505 --args "--release v1.8.2505 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.8.2505-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.8.2505 --args "--release v1.8.2505 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.8.2505-main-debug-link4168.txt
+
+===== v1.8.2505.1  (2025-07-14) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.8.2505.1 --args "--release v1.8.2505.1 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.8.2505.1-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.8.2505.1 --args "--release v1.8.2505.1 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.8.2505.1-main-debug-link4168.txt
+
+===== v1.9.2602  (2026-02-20) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.9.2602 --args "--release v1.9.2602 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.9.2602-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.9.2602 --args "--release v1.9.2602 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.9.2602-main-debug-link4168.txt
+
+===== v1.9.2602.24  (2026-05-27) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.9.2602.24 --args "--release v1.9.2602.24 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.9.2602.24-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.9.2602.24 --args "--release v1.9.2602.24 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.9.2602.24-main-debug-link4168.txt
+
+===== v1.9.2607  (2026-07-29) ==============================
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label rel-v1.9.2607 --args "--release v1.9.2607 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-rel-v1.9.2607-main-debug-link4168.txt
+$ python triage.py run --issue 4168 --compiler main-debug-link4168 --label relctl-v1.9.2607 --args "--release v1.9.2607 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo" --expect no-match
+main-debug-link4168: exit=0 timed_out=False -> no-repro
+output: <repo>\.github\skills\dxc-issue-triage\data\issues\4168\variant-relctl-v1.9.2607-main-debug-link4168.txt
+
+
+==============================================================================
+SUMMARY -- repro arm is lib_6_x -> ps_6_0 -> reflect;
+           control arm is the same release compiling straight to ps_6_0.
+==============================================================================
+release          built        repro arm      Num Variables    control arm    Num Variables
+------------------------------------------------------------------------------------------
+v1.4.1907        2019-07-15   invalid-probe  none printed     no-repro       2
+v1.5.2010        2020-10-22   invalid-probe  none printed     no-repro       2
+v1.6.2104        2021-04-20   invalid-probe  none printed     no-repro       2
+v1.6.2106        2021-07-01   repro          0                no-repro       2
+v1.6.2112        2021-12-08   repro          0                no-repro       2
+v1.7.2207        2022-07-18   repro          0                no-repro       2
+v1.7.2212        2022-12-16   repro          0                no-repro       2
+v1.7.2212.1      2023-03-01   repro          0                no-repro       2
+v1.7.2308        2023-08-14   no-repro       2                no-repro       2
+v1.8.2403        2024-03-07   no-repro       2                no-repro       2
+v1.8.2403.1      2024-03-22   no-repro       2                no-repro       2
+v1.8.2403.2      2024-03-29   no-repro       2                no-repro       2
+v1.8.2405        2024-05-24   no-repro       2                no-repro       2
+v1.8.2407        2024-07-31   no-repro       2                no-repro       2
+v1.8.2502        2025-02-20   no-repro       2                no-repro       2
+v1.8.2505        2025-05-24   no-repro       2                no-repro       2
+v1.8.2505.1      2025-07-14   no-repro       2                no-repro       2
+v1.9.2602        2026-02-20   no-repro       2                no-repro       2
+v1.9.2602.24     2026-05-27   no-repro       2                no-repro       2
+v1.9.2607        2026-07-29   no-repro       2                no-repro       2
+
+reproduces in 5 stable release(s): ['v1.6.2106', 'v1.6.2112', 'v1.7.2207', 'v1.7.2212', 'v1.7.2212.1']
+clean in       12 stable release(s): ['v1.7.2308', 'v1.8.2403', 'v1.8.2403.1', 'v1.8.2403.2', 'v1.8.2405', 'v1.8.2407', 'v1.8.2502', 'v1.8.2505', 'v1.8.2505.1', 'v1.9.2602', 'v1.9.2602.24', 'v1.9.2607']
+releases whose control arm did NOT behave: none
+repro-arm rows that moved since the pinned history: none

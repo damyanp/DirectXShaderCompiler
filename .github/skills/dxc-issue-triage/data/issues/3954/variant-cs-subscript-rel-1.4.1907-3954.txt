@@ -1,0 +1,18 @@
+# compiler: rel-1.4.1907-3954
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-10T17:42:02+00:00
+# cmd: -T cs_6_0 -E main control-cs-subscript.hlsl
+# exit: 3221225477
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: cs-subscript (control-cs-subscript.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main control-cs-subscript.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 3221225477
+--- stdout ---
+
+--- stderr ---
+

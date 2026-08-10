@@ -1,0 +1,14 @@
+{
+  "kind": "any_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "is not contextually convertible to 'bool'"
+    },
+    {
+      "kind": "contains",
+      "value": "conversion operator overloading is not allowed"
+    }
+  ],
+  "note": "The symptom is that a user-defined `operator bool()` is not implicitly applied, so the symptom IS a diagnostic; on Windows every ordinary diagnosed error exits E_FAIL (0x80004005), so nonzero_exit would match a correct rejection just as readily and is deliberately not used. ONE defect, TWO signatures across time. Clause 1 is the form the issue reports: the declaration is accepted, and `if (A)` is then rejected because the operator is never considered for the contextual conversion -- measured identically on v1.6.2112 (2021-12-08) through main. Clause 2 is the form that appeared at v1.9.2607 (PR #8206, commit b13e386be, merged 2026-04-14): the DECLARATION is now refused, so the operator cannot trigger at all; a build emitting it has not implemented the feature either. Both clauses are POSITIVE strings that only a build which parsed the input can emit, so this is not an absence predicate and cannot be satisfied for free by a run that failed early -- releases predating HLSL 2021 answer 'Unknown HLSL version: 2021', score no-match, and are correctly demoted to invalid-probe. KNOWN LIMIT, recorded rather than hidden: a hypothetical build that silently substituted HLSL's flat conversion for the operator (the shape #6081 describes for C-style casts) would satisfy neither clause and would score no-match on this repro, because `Foo A = {1}` makes `x < 5` and a flat `bool(x)` conversion agree and the shader has no observable. No probed build behaves that way, and case-cstyle-cast.hlsl exists precisely to measure that form separately -- see notes.md. CONTROLS, both captured: variant-control-no-operator-main-debug.txt (the same shader with the operator removed and `if (A.x < 5)` written out) and variant-control-method-call-main-debug.txt (the operator replaced by an ordinary `bool asBool()` member and `if (A.asBool())`), each expect no-match; the second is the load-bearing one, since it proves member functions, the struct and the `if` all work and that only the implicit conversion fails."
+}

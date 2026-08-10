@@ -1,0 +1,14 @@
+What to look for: neither DXC pane finishes. Compiler Explorer answers
+"Killed - processing time exceeded" instead of a diagnostic, on both the oldest
+DXC it carries and on trunk. That is the reported hang, in a Release build.
+
+  DXC 1.6.2112   killed, no output
+  DXC trunk      killed, no output
+  Clang trunk    compiles the same source
+
+The shader stores nothing, so a compiler that gets through it is expected to emit
+an empty entry point. The empty body is not the bug; not terminating is.
+
+CE ships Release builds only. A Debug build of DXC does not hang here -- it stops
+on an assert in SROA within seconds, and continuing past that assert reaches a
+second assert whose message names the loop. Neither is visible on this page.

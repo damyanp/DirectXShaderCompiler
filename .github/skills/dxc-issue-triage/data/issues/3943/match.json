@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "define void @main\\(\\)"
+    },
+    {
+      "kind": "regex",
+      "value": "redefinition of 'CommonValue'"
+    }
+  ],
+  "note": "Two required clauses, scored over the combined output of both cmd.txt invocations.  CLAUSE 1 is the instrument self-test: cmd.txt line 1 compiles control-once.hlsli, which includes inc/common.h twice by the IDENTICAL spelling, so `#pragma once` must suppress the second inclusion and DXIL must be emitted.  It is required rather than assumed because the symptom is a compile error, and an ordinary diagnosed error is not a feature-absence marker: a release that could not resolve inc/common.h at all would emit no redefinition either, score a confident no-repro and manufacture a fix boundary.  With clause 1 present, a probe that scores no-repro has demonstrably compiled the header, resolved -I, and honoured `#pragma once` in the same run.  A probe where clause 1 FAILS is unmeasurable under this predicate, not clean -- the capture holds both invocations, so which one it is can be read off the file.  CLAUSE 2 is the symptom: cmd.txt line 2 compiles repro.hlsl, which includes the same file once by each of two spellings; if it is entered twice, CommonValue() is defined twice and Sema rejects it.  Both clauses are positive, so this is not an absence predicate and no clause can be satisfied by a compile that failed early.  Controls: control-single (one include), control-guard (same two spellings, #ifndef-guarded header) and control-separator (same two spellings, matched path separators) must all score no-match; alias-dotdot and alias-case are the issue's other two aliasing shapes and are scored separately as labelled variants.  Anchored on the symbol name rather than on the diagnostic's file paths, because those are printed with different separators on the two arms and are not portable."
+}

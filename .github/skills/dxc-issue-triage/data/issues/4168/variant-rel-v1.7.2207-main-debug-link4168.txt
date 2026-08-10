@@ -1,0 +1,87 @@
+# compiler: main-debug-link4168
+# exe: <triage>/issues/4168/run-link4168.cmd
+# ran: 2026-08-10T18:15:35+00:00
+# cmd: --release v1.7.2207 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: rel-v1.7.2207 (repro.hlsl)
+# expect: match
+
+$ dxc --release v1.7.2207 dxc -T lib_6_x -Fo m4168-lib.dxo repro.hlsl ; dxl -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo ; dxa -dumpreflection m4168-linked.dxo
+[exe] <triage>/issues/4168/run-link4168.cmd
+[exit] 0
+--- stdout ---
+[link4168] producers (dxc, dxl) from release v1.7.2207: <skill>/.cache/compilers/releases/v1.7.2207/bin/x64
+$ <skill>/.cache/compilers/releases/v1.7.2207/bin/x64/dxc.exe -T lib_6_x -Fo m4168-lib.dxo repro.hlsl
+[link4168] dxc exit 0
+$ <skill>/.cache/compilers/releases/v1.7.2207/bin/x64/dxc.exe -T ps_6_0 -E main -Fo m4168-linked.dxo m4168-lib.dxo -link   # release ships no dxl.exe; using dxc.exe -link
+[link4168] dxl exit 0
+$ <repo>/build/Debug/bin/dxa.exe -dumpreflection m4168-linked.dxo   # reader held fixed at the local build (no dxa.exe in releases)
+ID3D12ShaderReflection:
+  D3D12_SHADER_DESC:
+    Shader Version: Pixel 6.0
+    Creator: clang version 3.7 (tags/RELEASE_370/final)
+    Flags: 0
+    ConstantBuffers: 1
+    BoundResources: 1
+    InputParameters: 1
+    OutputParameters: 1
+    InstructionCount: 0
+    TempArrayCount: 0
+    DynamicFlowControlCount: 0
+    ArrayInstructionCount: 0
+    TextureNormalInstructions: 0
+    TextureLoadInstructions: 0
+    TextureCompInstructions: 0
+    TextureBiasInstructions: 0
+    TextureGradientInstructions: 0
+    FloatInstructionCount: 0
+    IntInstructionCount: 0
+    UintInstructionCount: 0
+    CutInstructionCount: 0
+    EmitInstructionCount: 0
+    cBarrierInstructions: 0
+    cInterlockedInstructions: 0
+    cTextureStoreInstructions: 0
+  InputParameter Elements: 1
+    D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: TEXCOORD SemanticIndex: 0
+      Register: 0
+      SystemValueType: D3D_NAME_UNDEFINED
+      ComponentType: D3D_REGISTER_COMPONENT_FLOAT32
+      Mask: xyzw (15)
+      ReadWriteMask: xyzw (15) (AlwaysReads/NeverWrites)
+      Stream: 0
+      MinPrecision: D3D_MIN_PRECISION_DEFAULT
+  OutputParameter Elements: 1
+    D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: SV_TARGET SemanticIndex: 0
+      Register: 0
+      SystemValueType: D3D_NAME_TARGET
+      ComponentType: D3D_REGISTER_COMPONENT_FLOAT32
+      Mask: xyzw (15)
+      ReadWriteMask: ---- (0) (AlwaysReads/NeverWrites)
+      Stream: 0
+      MinPrecision: D3D_MIN_PRECISION_DEFAULT
+  Constant Buffers:
+    ID3D12ShaderReflectionConstantBuffer:
+      D3D12_SHADER_BUFFER_DESC: Name: CB0
+        Type: D3D_CT_CBUFFER
+        Size: 80
+        uFlags: 0
+        Num Variables: 0
+  Bound Resources:
+    D3D12_SHADER_INPUT_BIND_DESC: Name: CB0
+      Type: D3D_SIT_CBUFFER
+      uID: 0
+      BindCount: 1
+      BindPoint: 0
+      Space: 0
+      ReturnType: <unknown: 0>
+      Dimension: D3D_SRV_DIMENSION_UNKNOWN
+      NumSamples (or stride): 0
+      uFlags: (D3D_SIF_USERPACKED)
+[link4168] dxa exit 0
+
+--- stderr ---
+

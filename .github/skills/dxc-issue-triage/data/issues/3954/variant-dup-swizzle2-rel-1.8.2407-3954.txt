@@ -1,0 +1,23 @@
+# compiler: rel-1.8.2407-3954
+# exe: <cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe
+# ran: 2026-08-10T17:46:38+00:00
+# cmd: -T lib_6_3 control-dup-swizzle2.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: dup-swizzle2 (control-dup-swizzle2.hlsl)
+# expect: match
+
+$ dxc -T lib_6_3 control-dup-swizzle2.hlsl
+[exe] <cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: Unexpected matrix subscript use.
+UNREACHABLE executed at C:\__w\1\s\DXC\lib\HLSL\HLMatrixSubscriptUseReplacer.cpp:93!
+
+
+
+

@@ -1,0 +1,119 @@
+# compiler: main-debug-link4168
+# exe: <triage>/issues/4168/run-link4168.cmd
+# ran: 2026-08-10T18:15:55+00:00
+# cmd: --release v1.8.2502 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: relctl-v1.8.2502 (repro.hlsl)
+# expect: no-match
+
+$ dxc --release v1.8.2502 dxc -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl ; dxa -dumpreflection m4168-direct.dxo
+[exe] <triage>/issues/4168/run-link4168.cmd
+[exit] 0
+--- stdout ---
+[link4168] producers (dxc, dxl) from release v1.8.2502: <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64
+$ <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe -T ps_6_0 -E main -Fo m4168-direct.dxo repro.hlsl
+[link4168] dxc exit 0
+$ <repo>/build/Debug/bin/dxa.exe -dumpreflection m4168-direct.dxo   # reader held fixed at the local build (no dxa.exe in releases)
+ID3D12ShaderReflection:
+  D3D12_SHADER_DESC:
+    Shader Version: Pixel 6.0
+    Creator: dxcoob 1.8.2502.8 (b4711839e)
+    Flags: 0
+    ConstantBuffers: 1
+    BoundResources: 1
+    InputParameters: 1
+    OutputParameters: 1
+    InstructionCount: 55
+    TempArrayCount: 0
+    DynamicFlowControlCount: 0
+    ArrayInstructionCount: 0
+    TextureNormalInstructions: 0
+    TextureLoadInstructions: 0
+    TextureCompInstructions: 0
+    TextureBiasInstructions: 0
+    TextureGradientInstructions: 0
+    FloatInstructionCount: 8
+    IntInstructionCount: 0
+    UintInstructionCount: 0
+    CutInstructionCount: 0
+    EmitInstructionCount: 0
+    cBarrierInstructions: 0
+    cInterlockedInstructions: 0
+    cTextureStoreInstructions: 0
+  InputParameter Elements: 1
+    D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: TEXCOORD SemanticIndex: 0
+      Register: 0
+      SystemValueType: D3D_NAME_UNDEFINED
+      ComponentType: D3D_REGISTER_COMPONENT_FLOAT32
+      Mask: xyzw (15)
+      ReadWriteMask: xyzw (15) (AlwaysReads/NeverWrites)
+      Stream: 0
+      MinPrecision: D3D_MIN_PRECISION_DEFAULT
+  OutputParameter Elements: 1
+    D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: SV_TARGET SemanticIndex: 0
+      Register: 0
+      SystemValueType: D3D_NAME_TARGET
+      ComponentType: D3D_REGISTER_COMPONENT_FLOAT32
+      Mask: xyzw (15)
+      ReadWriteMask: ---- (0) (AlwaysReads/NeverWrites)
+      Stream: 0
+      MinPrecision: D3D_MIN_PRECISION_DEFAULT
+  Constant Buffers:
+    ID3D12ShaderReflectionConstantBuffer:
+      D3D12_SHADER_BUFFER_DESC: Name: CB0
+        Type: D3D_CT_CBUFFER
+        Size: 80
+        uFlags: 0
+        Num Variables: 2
+      {
+        ID3D12ShaderReflectionVariable:
+          D3D12_SHADER_VARIABLE_DESC: Name: m
+            Size: 64
+            StartOffset: 0
+            uFlags: (D3D_SVF_USED)
+            DefaultValue: <nullptr>
+          ID3D12ShaderReflectionType:
+            D3D12_SHADER_TYPE_DESC: Name: float4x4
+              Class: D3D_SVC_MATRIX_ROWS
+              Type: D3D_SVT_FLOAT
+              Elements: 0
+              Rows: 4
+              Columns: 4
+              Members: 0
+              Offset: 0
+          CBuffer: CB0
+        ID3D12ShaderReflectionVariable:
+          D3D12_SHADER_VARIABLE_DESC: Name: f
+            Size: 16
+            StartOffset: 64
+            uFlags: (D3D_SVF_USED)
+            DefaultValue: <nullptr>
+          ID3D12ShaderReflectionType:
+            D3D12_SHADER_TYPE_DESC: Name: float4
+              Class: D3D_SVC_VECTOR
+              Type: D3D_SVT_FLOAT
+              Elements: 0
+              Rows: 1
+              Columns: 4
+              Members: 0
+              Offset: 0
+          CBuffer: CB0
+      }
+  Bound Resources:
+    D3D12_SHADER_INPUT_BIND_DESC: Name: CB0
+      Type: D3D_SIT_CBUFFER
+      uID: 0
+      BindCount: 1
+      BindPoint: 0
+      Space: 0
+      ReturnType: <unknown: 0>
+      Dimension: D3D_SRV_DIMENSION_UNKNOWN
+      NumSamples (or stride): 0
+      uFlags: (D3D_SIF_USERPACKED)
+[link4168] dxa exit 0
+
+--- stderr ---
+

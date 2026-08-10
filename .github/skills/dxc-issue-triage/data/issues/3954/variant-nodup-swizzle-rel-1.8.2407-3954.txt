@@ -1,0 +1,119 @@
+# compiler: rel-1.8.2407-3954
+# exe: <cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe
+# ran: 2026-08-10T17:46:38+00:00
+# cmd: -T lib_6_3 control-nodup-swizzle.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: nodup-swizzle (control-nodup-swizzle.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 control-nodup-swizzle.hlsl
+[exe] <cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+; shader hash: 8465b432bf9b465025a72e01f49b8377
+;
+; Buffer Definitions:
+;
+; cbuffer Config
+; {
+;
+;   struct hostlayout.Config
+;   {
+;
+;       column_major float3x3 GlobalMatrix;           ; Offset:    0
+;   
+;   } Config;                                         ; Offset:    0 Size:    44
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; Config                            cbuffer      NA          NA     CB0cb4294967295,space4294967295     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%hostlayout.Config = type { [3 x <3 x float>] }
+%struct.Payload = type { <3 x float> }
+%struct.Attributes = type { <3 x float> }
+%dx.types.Handle = type { i8* }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+
+@Config_legacy = external global %hostlayout.Config
+
+; Function Attrs: nounwind
+define void @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z"(%struct.Payload* noalias nocapture %Data, %struct.Attributes* nocapture readonly %Attrib) #0 {
+  %1 = load %hostlayout.Config, %hostlayout.Config* @Config_legacy
+  %2 = call %dx.types.Handle @dx.op.createHandleForLib.hostlayout.Config(i32 160, %hostlayout.Config %1)  ; CreateHandleForLib(Resource)
+  %3 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %2, i32 0)  ; CBufferLoadLegacy(handle,regIndex)
+  %4 = extractvalue %dx.types.CBufRet.f32 %3, 2
+  %5 = getelementptr inbounds %struct.Attributes, %struct.Attributes* %Attrib, i32 0, i32 0
+  %6 = load <3 x float>, <3 x float>* %5, align 4, !tbaa !17
+  %7 = extractelement <3 x float> %6, i32 0
+  %8 = extractelement <3 x float> %6, i32 1
+  %9 = extractelement <3 x float> %6, i32 2
+  %10 = fmul fast float %7, %4
+  %11 = fmul fast float %8, %4
+  %12 = fmul fast float %9, %4
+  %13 = getelementptr inbounds %struct.Payload, %struct.Payload* %Data, i32 0, i32 0
+  %14 = load <3 x float>, <3 x float>* %13, align 4, !tbaa !17
+  %15 = extractelement <3 x float> %14, i32 0
+  %16 = fadd fast float %15, %10
+  %17 = extractelement <3 x float> %14, i32 1
+  %18 = fadd fast float %17, %11
+  %19 = extractelement <3 x float> %14, i32 2
+  %20 = fadd fast float %19, %12
+  %21 = insertelement <3 x float> undef, float %16, i32 0
+  %22 = insertelement <3 x float> %21, float %18, i32 1
+  %23 = insertelement <3 x float> %22, float %20, i32 2
+  store <3 x float> %23, <3 x float>* %13, align 4, !tbaa !17
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.hostlayout.Config(i32, %hostlayout.Config) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!7}
+!dx.entryPoints = !{!13, !14}
+
+!0 = !{!"dxcoob 1.8.2407.7 (416fab6b5)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 8}
+!3 = !{!"lib", i32 6, i32 3}
+!4 = !{null, null, !5, null}
+!5 = !{!6}
+!6 = !{i32 0, %hostlayout.Config* @Config_legacy, !"Config", i32 -1, i32 -1, i32 1, i32 44, null}
+!7 = !{i32 1, void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", !8}
+!8 = !{!9, !11, !12}
+!9 = !{i32 1, !10, !10}
+!10 = !{}
+!11 = !{i32 2, !10, !10}
+!12 = !{i32 0, !10, !10}
+!13 = !{null, !"", null, !4, null}
+!14 = !{void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", !"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", null, null, !15}
+!15 = !{i32 8, i32 9, i32 6, i32 12, i32 7, i32 12, i32 5, !16}
+!16 = !{i32 0}
+!17 = !{!18, !18, i64 0}
+!18 = !{!"omnipotent char", !19, i64 0}
+!19 = !{!"Simple C/C++ TBAA"}
+
+
+--- stderr ---
+

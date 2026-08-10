@@ -1,0 +1,20 @@
+# compiler: main-debug-rw
+# exe: <repo>/build/Debug/bin/dxr.exe
+# ran: 2026-08-10T17:43:40+00:00
+# cmd: -E vsMain -ZZZNONSENSE -remove-unused-functions -extract-entry-uniforms repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "Unknown argument", so this build did not reach the code under test
+# variant: nonsense-dash-flag (repro.hlsl)
+# expect: invalid-probe
+
+$ dxc -E vsMain -ZZZNONSENSE -remove-unused-functions -extract-entry-uniforms repro.hlsl
+[exe] <repo>/build/Debug/bin/dxr.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-ZZZNONSENSE'
+

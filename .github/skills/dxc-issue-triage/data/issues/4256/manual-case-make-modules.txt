@@ -1,0 +1,24 @@
+$ <repo>/build/Debug/bin/dxc.exe --version
+dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+[exit] 0
+$ <repo>/build/Debug/bin/dxc.exe -T vs_6_1 -E main repro.hlsl -Fc full.ll
+[exit] 0
+[wrote] full.ll (5989 bytes)
+[selftest] dxc emitted the expected ViewID state [8, 8, 15, 1, 2, 4, 8, 16, 32, 64, 128]
+[selftest] module declares validator version 1.10
+[wrote] nostate.ll (5965 bytes)
+[wrote] zerodeps.ll (5983 bytes)
+[wrote] wrongdeps.ll (5990 bytes)
+[wrote] badsig.ll (5989 bytes)
+[wrote] sm60.ll (5989 bytes)
+$ <repo>/build/Debug/bin/dxc.exe -T vs_6_1 -E main repro.hlsl -Fc val18-full.ll -validator-version 1.8
+[exit] 0
+[wrote] val18-full.ll (5988 bytes)
+[selftest] dxc emitted the expected ViewID state [8, 8, 15, 1, 2, 4, 8, 16, 32, 64, 128]
+[selftest] module declares validator version 1.8
+[wrote] val18-nostate.ll (5964 bytes)
+[wrote] val18-zerodeps.ll (5982 bytes)
+[wrote] val18-wrongdeps.ll (5989 bytes)
+[wrote] val18-badsig.ll (5988 bytes)
+[wrote] val18-sm60.ll (5988 bytes)
+[done] both module sets generated

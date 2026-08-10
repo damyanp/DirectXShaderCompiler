@@ -1,0 +1,145 @@
+# Compiler Explorer panes for #3906, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E main
+# exit:     143  CRASH
+
+Killed - processing time exceeded
+Program terminated with signal: SIGKILL
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main
+# exit:     143  CRASH
+
+Killed - processing time exceeded
+Program terminated with signal: SIGKILL
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+;
+; ModuleID = '/app/example.hlsl'
+source_filename = "/app/example.hlsl"
+target datalayout = "e-m:e-ve-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxilv1.0-unknown-shadermodel6.0-compute"
+
+; Function Attrs: noinline nounwind memory(none)
+define void @main() local_unnamed_addr #0 {
+  ret void
+}
+
+attributes #0 = { noinline nounwind memory(none) }
+
+!llvm.dbg.cu = !{!0}
+!dx.valver = !{!71}
+!dx.source.contents = !{!72}
+!dx.source.defines = !{!73}
+!dx.source.mainFileName = !{!74}
+!dx.source.args = !{!75}
+!llvm.ident = !{!76}
+!dx.shaderModel = !{!77}
+!dx.version = !{!78}
+!dx.entryPoints = !{!79}
+!llvm.module.flags = !{!82, !83, !84, !85}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_HLSL, file: !1, producer: "clang version 24.0.0git (https://github.com/llvm/llvm-project.git 3f6b3a3385561c0f5a76a8e4048cb5420966e1bb)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, retainedTypes: !2, splitDebugInlining: false, nameTableKind: None)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{!3}
+!3 = distinct !DICompositeType(tag: DW_TAG_class_type, name: "ByteAddressBuffer", scope: !4, size: 32, flags: DIFlagTypePassByValue | DIFlagNonTrivial, elements: !5)
+!4 = !DINamespace(name: "hlsl", scope: null)
+!5 = !{!6, !10, !14, !19, !23, !31, !32, !36, !41, !47, !50, !56, !59, !65, !68}
+!6 = !DIDerivedType(tag: DW_TAG_member, name: "__handle", scope: !3, file: !7, line: 21, baseType: !8, size: 32)
+!7 = !DIFile(filename: "example.hlsl", directory: "/app")
+!8 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !9, size: 32)
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "__hlsl_resource_t", file: !1, flags: DIFlagFwdDecl)
+!10 = !DISubprogram(name: "ByteAddressBuffer", linkageName: "_ZN4hlsl17ByteAddressBufferC4Ev", scope: !3, file: !7, type: !11, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!11 = !DISubroutineType(types: !12)
+!12 = !{null, !13}
+!13 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !3, size: 32, flags: DIFlagArtificial | DIFlagObjectPointer)
+!14 = !DISubprogram(name: "ByteAddressBuffer", linkageName: "_ZN4hlsl17ByteAddressBufferC4ERKS0_", scope: !3, file: !7, type: !15, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!15 = !DISubroutineType(types: !16)
+!16 = !{null, !13, !17}
+!17 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !18, size: 32)
+!18 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !3)
+!19 = !DISubprogram(name: "operator=", linkageName: "_ZN4hlsl17ByteAddressBufferaSERKS0_", scope: !3, file: !7, type: !20, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!20 = !DISubroutineType(types: !21)
+!21 = !{!22, !13, !17}
+!22 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !3, size: 32)
+!23 = !DISubprogram(name: "__createFromBinding", linkageName: "_ZN4hlsl17ByteAddressBuffer19__createFromBindingEjjijPKc", scope: !3, file: !7, type: !24, flags: DIFlagPublic | DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!24 = !DISubroutineType(types: !25)
+!25 = !{!3, !26, !26, !27, !26, !28}
+!26 = !DIBasicType(name: "unsigned int", size: 32, encoding: DW_ATE_unsigned)
+!27 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
+!28 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !29, size: 32)
+!29 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !30)
+!30 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_signed_char)
+!31 = !DISubprogram(name: "__createFromImplicitBinding", linkageName: "_ZN4hlsl17ByteAddressBuffer27__createFromImplicitBindingEjjijPKc", scope: !3, file: !7, type: !24, flags: DIFlagPublic | DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!32 = !DISubprogram(name: "Load", linkageName: "_ZNK4hlsl17ByteAddressBuffer4LoadEj", scope: !3, file: !7, type: !33, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!33 = !DISubroutineType(types: !34)
+!34 = !{!26, !35, !26}
+!35 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !18, size: 32, flags: DIFlagArtificial | DIFlagObjectPointer)
+!36 = !DISubprogram(name: "Load", linkageName: "_ZNK4hlsl17ByteAddressBuffer4LoadEjRj", scope: !3, file: !7, type: !37, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!37 = !DISubroutineType(types: !38)
+!38 = !{!26, !35, !26, !39}
+!39 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !40)
+!40 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !26, size: 32)
+!41 = !DISubprogram(name: "Load2", linkageName: "_ZNK4hlsl17ByteAddressBuffer5Load2Ej", scope: !3, file: !7, type: !42, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!42 = !DISubroutineType(types: !43)
+!43 = !{!44, !35, !26}
+!44 = !DICompositeType(tag: DW_TAG_array_type, baseType: !26, size: 64, flags: DIFlagVector, elements: !45)
+!45 = !{!46}
+!46 = !DISubrange(count: 2)
+!47 = !DISubprogram(name: "Load2", linkageName: "_ZNK4hlsl17ByteAddressBuffer5Load2EjRj", scope: !3, file: !7, type: !48, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!48 = !DISubroutineType(types: !49)
+!49 = !{!44, !35, !26, !39}
+!50 = !DISubprogram(name: "Load3", linkageName: "_ZNK4hlsl17ByteAddressBuffer5Load3Ej", scope: !3, file: !7, type: !51, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!51 = !DISubroutineType(types: !52)
+!52 = !{!53, !35, !26}
+!53 = !DICompositeType(tag: DW_TAG_array_type, baseType: !26, size: 96, flags: DIFlagVector, elements: !54)
+!54 = !{!55}
+!55 = !DISubrange(count: 3)
+!56 = !DISubprogram(name: "Load3", linkageName: "_ZNK4hlsl17ByteAddressBuffer5Load3EjRj", scope: !3, file: !7, type: !57, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!57 = !DISubroutineType(types: !58)
+!58 = !{!53, !35, !26, !39}
+!59 = !DISubprogram(name: "Load4", linkageName: "_ZNK4hlsl17ByteAddressBuffer5Load4Ej", scope: !3, file: !7, type: !60, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!60 = !DISubroutineType(types: !61)
+!61 = !{!62, !35, !26}
+!62 = !DICompositeType(tag: DW_TAG_array_type, baseType: !26, size: 128, flags: DIFlagVector, elements: !63)
+!63 = !{!64}
+!64 = !DISubrange(count: 4)
+!65 = !DISubprogram(name: "Load4", linkageName: "_ZNK4hlsl17ByteAddressBuffer5Load4EjRj", scope: !3, file: !7, type: !66, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!66 = !DISubroutineType(types: !67)
+!67 = !{!62, !35, !26, !39}
+!68 = !DISubprogram(name: "GetDimensions", linkageName: "_ZN4hlsl17ByteAddressBuffer13GetDimensionsERj", scope: !3, file: !7, type: !69, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!69 = !DISubroutineType(types: !70)
+!70 = !{null, !13, !39}
+!71 = !{i32 1, i32 8}
+!72 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: neither DXC pane finishes. Compiler Explorer answers\0A// \22Killed - processing time exceeded\22 instead of a diagnostic, on both the oldest\0A// DXC it carries and on trunk. That is the reported hang, in a Release build.\0A//\0A//   DXC 1.6.2112   killed, no output\0A//   DXC trunk      killed, no output\0A//   Clang trunk    compiles the same source\0A//\0A// The shader stores nothing, so a compiler that gets through it is expected to emit\0A// an empty entry point. The empty body is not the bug; not terminating is.\0A//\0A// CE ships Release builds only. A Debug build of DXC does not hang here -- it stops\0A// on an assert in SROA within seconds, and continuing past that assert reaches a\0A// second assert whose message names the loop. Neither is visible on this page.\0A//==========================================================================//\0A\0Astruct RenderResourceHandle {\0A    uint handle;\0A\0A    uint readIndex() { return this.handle; }\0A};\0A\0AByteAddressBuffer g_byteAddressBuffer[] : register(t0, space3);\0A\0Astruct Test{\0A    RenderResourceHandle h;\0A\0A    float3 infLoop()[2] {\0A        ByteAddressBuffer b = g_byteAddressBuffer[this.h.readIndex()];\0A        float3 v[2] = {\0A            0.xxx,0.xxx,\0A        };\0A        return v;\0A    }\0A};\0A\0A[numthreads(8, 8, 1)] void main(uint2 dispatchIdx\0A                                : SV_DispatchThreadID, uint3 pxInTile\0A                                : SV_GroupThreadID) {\0A\0A    RenderResourceHandle resourceHandle;\0A    resourceHandle.handle = 0;\0A\0A     Test t;\0A     t.h = resourceHandle;\0A     float3 w[2] = t.infLoop();\0A}\0A"}
+!73 = !{}
+!74 = !{!"example.hlsl"}
+!75 = !{!"--driver-mode=dxc", !"-g", !"-Qembed_debug", !"-Fc", !"/app/output.s", !"-fcolor-diagnostics", !"-gen-reproducer=off", !"-T", !"cs_6_0", !"-hlsl-entry", !"main", !"/app/example.hlsl", !"-S", !"-O3"}
+!76 = !{!"clang version 24.0.0git (https://github.com/llvm/llvm-project.git 3f6b3a3385561c0f5a76a8e4048cb5420966e1bb)"}
+!77 = !{!"cs", i32 6, i32 0}
+!78 = !{i32 1, i32 0}
+!79 = !{ptr @main, !"main", null, null, !80}
+!80 = !{i32 4, !81}
+!81 = !{i32 8, i32 8, i32 1}
+!82 = !{i32 2, !"Dwarf Version", i32 4}
+!83 = !{i32 2, !"Debug Info Version", i32 3}
+!84 = !{i32 2, !"frame-pointer", i32 2}
+!85 = !{i32 2, !"debug-info-assignment-tracking", i1 true}

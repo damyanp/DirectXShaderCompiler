@@ -1,0 +1,77 @@
+#4273 -- what does the retained `cbuffer cbB` cost downstream?
+
+Produced by `python downstream.py`. rewritten.hlsl in this directory
+is step 1's stdout verbatim -- the rewriter's own output, not an
+edited copy.
+
+SCOPE: the DXC/SM6 path only. DX11 shaders are built by FXC for
+SM5.x, a different compiler, which is NOT tested here.
+
+STEPS
+
+  rewrite    exit 0   <repo>/build/Debug/bin/dxr.exe -E vsMain -remove-unused-globals -remove-unused-functions -extract-entry-uniforms repro.hlsl
+  compile    exit 0   <repo>/build/Debug/bin/dxc.exe -T vs_6_0 -E vsMain rewritten.hlsl -Fc rewritten.dxil.txt
+  container  exit 0   <repo>/build/Debug/bin/dxc.exe -T vs_6_0 -E vsMain rewritten.hlsl -Qstrip_debug -Fo <cache>/rw4273/rewritten.dxo
+  reflect    exit 0   <repo>/build/Debug/bin/dxa.exe -dumpreflection <cache>/rw4273/rewritten.dxo
+
+REWRITER OUTPUT (rewritten.hlsl) -- `cbuffer cbB` is present:
+
+  cbuffer cbA {
+    const float4 gA;
+  }
+  ;
+  cbuffer cbB {
+    const float4 gB;
+  }
+  ;
+  const float4 gLooseUsed;
+  float4 vsMain(float4 pos : POSITION) : SV_Position {
+    return pos * gA + gLooseUsed;
+  }
+
+
+DXIL RESOURCE BINDINGS of the compiled result:
+
+  $Globals     cbuffer
+  cbA          cbuffer
+
+  cbuffer rows found: $Globals, cbA
+
+
+D3D12 REFLECTION of the compiled result:
+
+  ConstantBuffers: 2
+  D3D12_SHADER_BUFFER_DESC names: $Globals, cbA
+
+
+VERBATIM -- the DXIL listing's resource block and the
+reflection dump's constant-buffer section.
+
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; $Globals                          cbuffer      NA          NA     CB0            cb0     1
+; cbA                               cbuffer      NA          NA     CB1            cb1     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 4, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0 }
+;   output 1 depends on inputs: { 1 }
+;   output 2 depends on inputs: { 2 }
+;   output 3 depends on inputs: { 3 }
+;
+
+    ConstantBuffers: 2
+    BoundResources: 2
+      D3D12_SHADER_BUFFER_DESC: Name: $Globals
+          D3D12_SHADER_VARIABLE_DESC: Name: gLooseUsed
+      D3D12_SHADER_BUFFER_DESC: Name: cbA
+          D3D12_SHADER_VARIABLE_DESC: Name: gA
+    D3D12_SHADER_INPUT_BIND_DESC: Name: $Globals
+    D3D12_SHADER_INPUT_BIND_DESC: Name: cbA
+

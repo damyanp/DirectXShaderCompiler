@@ -1,0 +1,237 @@
+# SUPERSEDED -- kept as evidence, not as the published link.
+#
+# This is the FIRST Compiler Explorer publish for #3954 (https://godbolt.org/z/oPznhWEbx).
+# It was replaced by https://godbolt.org/z/PT7Yqj1r6, captured in
+# manual-case-godbolt-verify.txt, for two reasons visible below:
+#
+#   1. The banner claimed the 1.6.2112 pane shows "two lines of stderr naming an
+#      UNREACHABLE". It does not -- CE's Linux Release build reports only
+#      "Program terminated with signal: SIGSEGV" with no message text at all.
+#   2. The banner contained the literal token UNREACHABLE, which dxc then compiled
+#      into the *clean* trunk pane's !dx.source.contents (see line ~173 below), so
+#      searching that pane for the token would have hit. This is the #3927 trap.
+#
+# See method-notes.md, item 6. The live link is in notes.md and comment.md.
+# ---------------------------------------------------------------------------
+# Compiler Explorer panes for #3954, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T lib_6_3
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T lib_6_3
+# exit:     0
+
+; shader debug name: 19462a29a37a5bf1aa0f25ddd1d0f65c.pdb
+; shader hash: 19462a29a37a5bf1aa0f25ddd1d0f65c
+;
+; Buffer Definitions:
+;
+; cbuffer Config
+; {
+;
+;   struct hostlayout.Config
+;   {
+;
+;       column_major float3x3 GlobalMatrix;           ; Offset:    0
+;   
+;   } Config;                                         ; Offset:    0 Size:    44
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; Config                            cbuffer      NA          NA     CB0cb4294967295,space4294967295     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%hostlayout.Config = type { [3 x <3 x float>] }
+%struct.Payload = type { <3 x float> }
+%struct.Attributes = type { <3 x float> }
+%dx.types.Handle = type { i8* }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+
+@Config_legacy = external global %hostlayout.Config
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+; Function Attrs: nounwind
+define void @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z"(%struct.Payload* noalias nocapture %Data, %struct.Attributes* nocapture readonly %Attrib) #1 {
+  %1 = load %hostlayout.Config, %hostlayout.Config* @Config_legacy
+  %2 = call %dx.types.Handle @dx.op.createHandleForLib.hostlayout.Config(i32 160, %hostlayout.Config %1)  ; CreateHandleForLib(Resource)
+  call void @llvm.dbg.declare(metadata %struct.Attributes* %Attrib, metadata !79, metadata !80), !dbg !81 ; var:"Attrib" !DIExpression() func:"MaterialAHS"
+  call void @llvm.dbg.declare(metadata %struct.Payload* %Data, metadata !82, metadata !80), !dbg !83 ; var:"Data" !DIExpression() func:"MaterialAHS"
+  %3 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %2, i32 0), !dbg !84 ; line:43 col:20  ; CBufferLoadLegacy(handle,regIndex)
+  %4 = extractvalue %dx.types.CBufRet.f32 %3, 2, !dbg !84 ; line:43 col:20
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !85, metadata !86), !dbg !87 ; var:"Param" !DIExpression(DW_OP_bit_piece, 64, 32) func:"MaterialAHS"
+  %5 = getelementptr inbounds %struct.Attributes, %struct.Attributes* %Attrib, i32 0, i32 0, !dbg !88 ; line:44 col:59
+  %6 = load <3 x float>, <3 x float>* %5, align 4, !dbg !88, !tbaa !89 ; line:44 col:59
+  %.i0 = extractelement <3 x float> %6, i32 0, !dbg !92 ; line:31 col:54
+  %.i1 = extractelement <3 x float> %6, i32 1, !dbg !92 ; line:31 col:54
+  %.i2 = extractelement <3 x float> %6, i32 2, !dbg !92 ; line:31 col:54
+  call void @llvm.dbg.value(metadata <3 x float> %6, i64 0, metadata !94, metadata !80), !dbg !92 ; var:"Color" !DIExpression() func:"TransformColor"
+  %.i02 = fmul fast float %.i0, %4, !dbg !95 ; line:32 col:29
+  %.i13 = fmul fast float %.i1, %4, !dbg !95 ; line:32 col:29
+  %.i24 = fmul fast float %.i2, %4, !dbg !95 ; line:32 col:29
+  call void @llvm.dbg.value(metadata float %.i02, i64 0, metadata !96, metadata !97), !dbg !98 ; var:"NewColor" !DIExpression(DW_OP_bit_piece, 0, 32) func:"TransformColor"
+  call void @llvm.dbg.value(metadata float %.i13, i64 0, metadata !96, metadata !99), !dbg !98 ; var:"NewColor" !DIExpression(DW_OP_bit_piece, 32, 32) func:"TransformColor"
+  call void @llvm.dbg.value(metadata float %.i24, i64 0, metadata !96, metadata !86), !dbg !98 ; var:"NewColor" !DIExpression(DW_OP_bit_piece, 64, 32) func:"TransformColor"
+  %7 = getelementptr inbounds %struct.Payload, %struct.Payload* %Data, i32 0, i32 0, !dbg !100 ; line:44 col:10
+  %8 = load <3 x float>, <3 x float>* %7, align 4, !dbg !101, !tbaa !89 ; line:44 col:27
+  %.i05 = extractelement <3 x float> %8, i32 0, !dbg !101 ; line:44 col:27
+  %.i06 = fadd fast float %.i05, %.i02, !dbg !101 ; line:44 col:27
+  %.i17 = extractelement <3 x float> %8, i32 1, !dbg !101 ; line:44 col:27
+  %.i18 = fadd fast float %.i17, %.i13, !dbg !101 ; line:44 col:27
+  %.i29 = extractelement <3 x float> %8, i32 2, !dbg !101 ; line:44 col:27
+  %.i210 = fadd fast float %.i29, %.i24, !dbg !101 ; line:44 col:27
+  %.upto0 = insertelement <3 x float> undef, float %.i06, i32 0, !dbg !101 ; line:44 col:27
+  %.upto1 = insertelement <3 x float> %.upto0, float %.i18, i32 1, !dbg !101 ; line:44 col:27
+  %9 = insertelement <3 x float> %.upto1, float %.i210, i32 2, !dbg !101 ; line:44 col:27
+  store <3 x float> %9, <3 x float>* %7, align 4, !dbg !101, !tbaa !89 ; line:44 col:27
+  ret void, !dbg !102 ; line:45 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.hostlayout.Config(i32, %hostlayout.Config) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!50, !51}
+!llvm.ident = !{!52}
+!dx.source.contents = !{!53}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!54}
+!dx.source.args = !{!55}
+!dx.version = !{!56}
+!dx.valver = !{!57}
+!dx.shaderModel = !{!58}
+!dx.resources = !{!59}
+!dx.typeAnnotations = !{!62, !70}
+!dx.entryPoints = !{!75, !76}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !47)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4, !37}
+!4 = !DISubprogram(name: "TransformColor", linkageName: "\01?TransformColor@@YA?AV?$vector@M$02@@UParameters@@V1@@Z", scope: !1, file: !1, line: 31, type: !5, isLocal: false, isDefinition: true, scopeLine: 31, flags: DIFlagPrototyped, isOptimized: false)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !18, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, size: 96, align: 32, elements: !9, templateParams: !14)
+!9 = !{!10, !12, !13}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !{!15, !16}
+!15 = !DITemplateTypeParameter(name: "element", type: !11)
+!16 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !19)
+!19 = !DICompositeType(tag: DW_TAG_structure_type, name: "Parameters", file: !1, line: 19, size: 288, align: 32, elements: !20)
+!20 = !{!21}
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "Matrix", scope: !19, file: !1, line: 20, baseType: !22, size: 288, align: 32)
+!22 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3x3", file: !1, baseType: !23)
+!23 = !DICompositeType(tag: DW_TAG_class_type, name: "matrix<float, 3, 3>", file: !1, size: 288, align: 32, elements: !24, templateParams: !34)
+!24 = !{!25, !26, !27, !28, !29, !30, !31, !32, !33}
+!25 = !DIDerivedType(tag: DW_TAG_member, name: "_11", scope: !23, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!26 = !DIDerivedType(tag: DW_TAG_member, name: "_12", scope: !23, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!27 = !DIDerivedType(tag: DW_TAG_member, name: "_13", scope: !23, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!28 = !DIDerivedType(tag: DW_TAG_member, name: "_21", scope: !23, file: !1, baseType: !11, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!29 = !DIDerivedType(tag: DW_TAG_member, name: "_22", scope: !23, file: !1, baseType: !11, size: 32, align: 32, offset: 128, flags: DIFlagPublic)
+!30 = !DIDerivedType(tag: DW_TAG_member, name: "_23", scope: !23, file: !1, baseType: !11, size: 32, align: 32, offset: 160, flags: DIFlagPublic)
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "_31", scope: !23, file: !1, baseType: !11, size: 32, align: 32, offset: 192, flags: DIFlagPublic)
+!32 = !DIDerivedType(tag: DW_TAG_member, name: "_32", scope: !23, file: !1, baseType: !11, size: 32, align: 32, offset: 224, flags: DIFlagPublic)
+!33 = !DIDerivedType(tag: DW_TAG_member, name: "_33", scope: !23, file: !1, baseType: !11, size: 32, align: 32, offset: 256, flags: DIFlagPublic)
+!34 = !{!15, !35, !36}
+!35 = !DITemplateValueParameter(name: "row_count", type: !17, value: i32 3)
+!36 = !DITemplateValueParameter(name: "col_count", type: !17, value: i32 3)
+!37 = !DISubprogram(name: "MaterialAHS", linkageName: "\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", scope: !1, file: !1, line: 41, type: !38, isLocal: false, isDefinition: true, scopeLine: 41, flags: DIFlagPrototyped, isOptimized: false, function: void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z")
+!38 = !DISubroutineType(types: !39)
+!39 = !{null, !40, !44}
+!40 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !41)
+!41 = !DICompositeType(tag: DW_TAG_structure_type, name: "Payload", file: !1, line: 27, size: 96, align: 32, elements: !42)
+!42 = !{!43}
+!43 = !DIDerivedType(tag: DW_TAG_member, name: "AccumulatedColor", scope: !41, file: !1, line: 28, baseType: !7, size: 96, align: 32)
+!44 = !DICompositeType(tag: DW_TAG_structure_type, name: "Attributes", file: !1, line: 23, size: 96, align: 32, elements: !45)
+!45 = !{!46}
+!46 = !DIDerivedType(tag: DW_TAG_member, name: "Color", scope: !44, file: !1, line: 24, baseType: !7, size: 96, align: 32)
+!47 = !{!48}
+!48 = !DIGlobalVariable(name: "GlobalMatrix", linkageName: "\01?GlobalMatrix@Config@@3V?$matrix@M$02$02@@B", scope: !0, file: !1, line: 37, type: !49, isLocal: false, isDefinition: true)
+!49 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !22)
+!50 = !{i32 2, !"Dwarf Version", i32 4}
+!51 = !{i32 2, !"Debug Info Version", i32 3}
+!52 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!53 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// #3954. Compare the two DXC panes, not the source.\0A//\0A// dxc 1.6.2112 aborts before emitting anything: its pane has no DXIL and an abnormal exit\0A// status, with two lines of stderr naming an UNREACHABLE in the matrix-subscript lowering\0A// pass. That is the reported failure, and 1.6.2112 is one of only two releases whose output\0A// matches the issue's quoted text and source line number exactly.\0A//\0A// dxc trunk compiles the same source and emits DXIL. Look for the entry point's single\0A// cbufferLoadLegacy followed by three fmul instructions against one extracted component --\0A// that is the correct lowering of the expression the older pane could not lower at all.\0A//\0A// CE runs Linux release builds, so the abort arrives as a signal rather than the Windows\0A// HRESULT that local probes record; the class of failure is the same.\0A//==========================================================================//\0A\0A// Verbatim from https://github.com/microsoft/DirectXShaderCompiler/issues/3954 body.\0A// Do not reflow or edit comments: assert/diagnostic output quotes line numbers.\0Astruct Parameters {\0A    float3x3 Matrix;\0A};\0A\0Astruct Attributes {\0A    float3 Color;\0A};\0A\0Astruct Payload {\0A    float3 AccumulatedColor;\0A};\0A\0Afloat3 TransformColor(inout Parameters Param, float3 Color) {\0A    float3 NewColor = Color * Param.Matrix[2].r.xxx; // INTERNAL ERROR\0A    return NewColor;\0A}\0A\0Acbuffer Config {\0A    float3x3 GlobalMatrix;\0A}\0A\0A[shader(\22anyhit\22)]\0Avoid MaterialAHS(inout Payload Data, in Attributes Attrib) {\0A    Parameters Param;\0A    Param.Matrix = GlobalMatrix;\0A    Data.AccumulatedColor += TransformColor(Param, Attrib.Color);\0A}\0A"}
+!54 = !{!"/app/example.hlsl"}
+!55 = !{!"-E", !"lib.no::entry", !"-T", !"lib_6_3", !"-Zi", !"-Qembed_debug"}
+!56 = !{i32 1, i32 3}
+!57 = !{i32 1, i32 10}
+!58 = !{!"lib", i32 6, i32 3}
+!59 = !{null, null, !60, null}
+!60 = !{!61}
+!61 = !{i32 0, %hostlayout.Config* @Config_legacy, !"Config", i32 -1, i32 -1, i32 1, i32 44, null}
+!62 = !{i32 0, %struct.Payload undef, !63, %struct.Attributes undef, !65, %hostlayout.Config undef, !67}
+!63 = !{i32 12, !64}
+!64 = !{i32 6, !"AccumulatedColor", i32 3, i32 0, i32 7, i32 9}
+!65 = !{i32 12, !66}
+!66 = !{i32 6, !"Color", i32 3, i32 0, i32 7, i32 9}
+!67 = !{i32 44, !68}
+!68 = !{i32 6, !"GlobalMatrix", i32 2, !69, i32 3, i32 0, i32 7, i32 9}
+!69 = !{i32 3, i32 3, i32 2}
+!70 = !{i32 1, void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", !71}
+!71 = !{!72, !73, !74}
+!72 = !{i32 1, !2, !2}
+!73 = !{i32 2, !2, !2}
+!74 = !{i32 0, !2, !2}
+!75 = !{null, !"", null, !59, null}
+!76 = !{void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", !"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", null, null, !77}
+!77 = !{i32 8, i32 9, i32 6, i32 12, i32 7, i32 12, i32 5, !78}
+!78 = !{i32 0}
+!79 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "Attrib", arg: 2, scope: !37, file: !1, line: 41, type: !44)
+!80 = !DIExpression()
+!81 = !DILocation(line: 41, column: 52, scope: !37)
+!82 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "Data", arg: 1, scope: !37, file: !1, line: 41, type: !41)
+!83 = !DILocation(line: 41, column: 32, scope: !37)
+!84 = !DILocation(line: 43, column: 20, scope: !37)
+!85 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "Param", scope: !37, file: !1, line: 42, type: !19)
+!86 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!87 = !DILocation(line: 42, column: 16, scope: !37)
+!88 = !DILocation(line: 44, column: 59, scope: !37)
+!89 = !{!90, !90, i64 0}
+!90 = !{!"omnipotent char", !91, i64 0}
+!91 = !{!"Simple C/C++ TBAA"}
+!92 = !DILocation(line: 31, column: 54, scope: !4, inlinedAt: !93)
+!93 = distinct !DILocation(line: 44, column: 30, scope: !37)
+!94 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "Color", arg: 2, scope: !4, file: !1, line: 31, type: !7)
+!95 = !DILocation(line: 32, column: 29, scope: !4, inlinedAt: !93)
+!96 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "NewColor", scope: !4, file: !1, line: 32, type: !7)
+!97 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!98 = !DILocation(line: 32, column: 12, scope: !4, inlinedAt: !93)
+!99 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!100 = !DILocation(line: 44, column: 10, scope: !37)
+!101 = !DILocation(line: 44, column: 27, scope: !37)
+!102 = !DILocation(line: 45, column: 1, scope: !37)

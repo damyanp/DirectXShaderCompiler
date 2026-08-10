@@ -1,0 +1,18 @@
+# compiler: v1.8.2505
+# exe: <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+# ran: 2026-08-10T17:50:25+00:00
+# cmd: -T ps_6_6 -E PSMain repro.hlsl
+# exit: 2158624797
+# timed_out: 0
+# match: match-fails.json
+# verdict: repro
+
+$ dxc -T ps_6_6 -E PSMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+[exit] 2158624797
+--- stdout ---
+
+--- stderr ---
+Internal Compiler error: llvm::cast<X>() argument of incompatible type!
+
+

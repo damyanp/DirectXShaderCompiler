@@ -14,8 +14,10 @@ import os
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import check_paths  # noqa: E402
 import triage  # noqa: E402
 
 FAILURES = []
@@ -149,10 +151,11 @@ def fake_runs(verdicts):
     calls = {"n": 0}
 
     def stub(issue, compiler, match_file="match.json", record=True, repeat=1,
-             shader=None, label=None, args=None, expect=None, force=False):
+             shader=None, label=None, args=None, expect=None, force=False,
+             hypothesis=False):
         if repeat > 1:
             return _real_execute(issue, compiler, match_file, record, repeat,
-                                 shader, label, args, expect, force)
+                                 shader, label, args, expect, force, hypothesis)
         v = seq[min(calls["n"], len(seq) - 1)]
         calls["n"] += 1
         return {"compiler": compiler, "exit": 0 if v == "no-repro" else 1,
@@ -330,6 +333,55 @@ for desc, expect, verdict, want in [
 ]:
     check(desc, triage.expectation_violated(expect, verdict), want)
 
+check("a contradicted prediction is recorded as refuted",
+      triage.expectation_outcome("no-match", "repro"), "refuted")
+check("a confirmed prediction is recorded as supported",
+      triage.expectation_outcome("match", "repro"), "supported")
+check("a correctly recorded refutation is not a failed control",
+      triage.captured_expectation_issue(
+          {"expect": "no-match", "expectation-kind": "hypothesis",
+           "outcome": "refuted"}, "repro"),
+      None)
+check("ordinary controls still fail on the same mismatch",
+      triage.captured_expectation_issue({"expect": "no-match"}, "repro"),
+      ("control", "expected no-match, scored repro"))
+check("stale hypothesis outcome metadata is detected",
+      triage.captured_expectation_issue(
+          {"expect": "no-match", "expectation-kind": "hypothesis",
+           "outcome": "supported"}, "repro"),
+      ("hypothesis",
+       "hypothesis outcome says supported, re-score says refuted"))
+
+# The runner must persist the distinction, not merely print different prose.
+_hyp_dir = _tf.mkdtemp()
+with open(_os.path.join(_hyp_dir, "cmd.txt"), "w") as fh:
+    fh.write("-T ps_6_0 -E main repro.hlsl\n")
+with open(_os.path.join(_hyp_dir, "repro.hlsl"), "w") as fh:
+    fh.write("float4 main() : SV_Target { return 0; }\n")
+with open(_os.path.join(_hyp_dir, "match.json"), "w") as fh:
+    _json.dump({"kind": "contains", "value": "OBSERVED"}, fh)
+_old_issue_dir = triage.issue_dir
+_old_resolve = triage.resolve_compiler
+_old_probe = triage._run_probe_command_list
+triage.issue_dir = lambda n: _hyp_dir
+triage.resolve_compiler = lambda compiler: "stub-dxc"
+triage._run_probe_command_list = lambda *args, **kwargs: {
+    "rc": 0, "timed_out": False, "text": "OBSERVED\n",
+    "observations": ((0, False, "OBSERVED\n", ""),)}
+try:
+    _hyp = triage.execute(
+        1, "stub", record=False, label="prediction",
+        args="-T ps_6_0 -E main repro.hlsl", expect="no-match",
+        hypothesis=True)
+    _hyp_meta, _ = triage.read_out(_hyp["output"])
+    check("run --hypothesis stamps its kind and refuted outcome",
+          (_hyp_meta.get("expectation-kind"), _hyp_meta.get("outcome")),
+          ("hypothesis", "refuted"))
+finally:
+    triage.issue_dir = _old_issue_dir
+    triage.resolve_compiler = _old_resolve
+    triage._run_probe_command_list = _old_probe
+
 # --- a probe is identified by its predicate, not just by its compiler ------
 # Two predicates over the same release are two measurements. Deriving the
 # filename from the compiler alone made the second overwrite the first;
@@ -430,6 +482,25 @@ _write_pred({"kind": "contains", "value": "use of undeclared identifier",
              "invert": True})
 check("an inverted clause naming the marker does not suppress the demotion",
       triage.classify(1877, _UNDECLARED, 0x80004005, False), "invalid-probe")
+
+# A later symptom predicate can explicitly share the issue's diagnostic
+# quotation. Without the declaration it remains isolated: the opt-in fixes the
+# diagnostic->ICE history without changing existing predicate semantics.
+_write_pred({"kind": "contains",
+             "value": "no matching function for call to 'clamp'"})
+with open(_os.path.join(_tmp, "match-crash.json"), "w") as fh:
+    _json.dump({"kind": "internal_failure",
+                "quote_from": ["match.json"]}, fh)
+check("an explicitly linked sibling predicate inherits the diagnostic quote",
+      triage.classify(1877, _GOOD_DIAG, 0x80004005, False,
+                      "match-crash.json"),
+      "no-repro")
+with open(_os.path.join(_tmp, "match-crash.json"), "w") as fh:
+    _json.dump({"kind": "internal_failure"}, fh)
+check("an unlinked sibling predicate remains isolated",
+      triage.classify(1877, _GOOD_DIAG, 0x80004005, False,
+                      "match-crash.json"),
+      "invalid-probe")
 
 # The fake-regression bug the markers exist to prevent must stay prevented. It
 # has produced wrong verdicts twice; a more permissive classifier reintroduces
@@ -972,6 +1043,38 @@ with tempfile.TemporaryDirectory() as _t:
           _overview_state(os.path.join(_t, "c"), overview_age=+10), 0)
     check("no verdicts means nothing to be stale against",
           _overview_state(os.path.join(_t, "d"), with_verdict=False), 0)
+
+print("scoped path hygiene -- text encodings and binary bytes")
+with tempfile.TemporaryDirectory() as _t:
+    _old_skill_dir = check_paths.SKILL_DIR
+    check_paths.SKILL_DIR = Path(_t)
+    _one = Path(_t) / "data" / "issues" / "1"
+    _two = Path(_t) / "data" / "issues" / "2"
+    _one.mkdir(parents=True)
+    _two.mkdir(parents=True)
+    _slash = "\\"
+    (_one / "utf16.log").write_bytes(
+        ("compiler: C:" + _slash + "prj" + _slash
+         + "private" + _slash + "dxc.exe\n").encode("utf-16-le"))
+    (_one / "artifact.bin").write_bytes(
+        b"captured compiler output " * 4 + b"C:" + b"\\" + b"prj"
+        + b"\\" + b"private" + b"\\" + b"shader.pdb\x00")
+    (_two / "outside.txt").write_text(
+        "C:" + _slash + "Users" + _slash + "outside" + _slash
+        + "checkout\n", encoding="utf-8")
+    try:
+        _path_failures = triage.audit_path_hygiene(1)
+        check("scoped audit catches UTF-16 path text",
+              any("utf16.log" in f for f in _path_failures), True)
+        check("scoped audit catches paths in NUL-bearing text-like data",
+              any("artifact.bin" in f for f in _path_failures), True)
+        (_one / "utf16.log").write_bytes(
+            "compiler: <cache>/dxc.exe\n".encode("utf-16-le"))
+        (_one / "artifact.bin").write_bytes(b"\x00\x01PDB\x00\x02")
+        check("scoped audit ignores another issue and accepts clean binary data",
+              triage.audit_path_hygiene(1), [])
+    finally:
+        check_paths.SKILL_DIR = _old_skill_dir
 
 print("committable path gate")
 _path_check = subprocess.run(

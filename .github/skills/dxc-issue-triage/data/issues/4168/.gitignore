@@ -1,0 +1,11 @@
+# DXIL containers written by the probe chain and by measure.py: the library, the linked
+# shader, and the directly-compiled controls. All derived -- `python .../triage.py run
+# --issue 4168` and `python measure.py` recreate them, and the readable result (what
+# `dxa -dumpreflection` said about each) is what is committed, in out-*.txt and variant-*.txt.
+# A committed .dxo would also be a stale copy waiting to be mistaken for evidence.
+*.dxo
+
+# check-dxl-equivalence.py builds its four containers here and recreates the directory itself,
+# so nothing depends on git storing it. The sha256 comparison it draws from them is committed
+# in manual-case-dxl-equivalence.txt.
+scratch-dxl-equiv/

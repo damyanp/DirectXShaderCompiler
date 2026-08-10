@@ -1,0 +1,249 @@
+# Compiler Explorer panes for #3902, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_5 -E computeRTAO
+# exit:     5
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+error: validation errors
+error: Flags must match usage.
+note: Flags declared=33554432, actual=0
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_5 -E computeRTAO
+# exit:     5
+
+error: validation errors
+error: Flags must match usage.
+note: Flags declared=33554432, actual=0
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_5 -E computeRTAO -DUSE_RAYQUERY
+# exit:     0
+
+;
+; Note: shader requires additional functionality:
+;       Raytracing tier 1.1 features
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 707f9429053e3bfbce2b94c3f0004eb3.pdb
+; shader hash: 707f9429053e3bfbce2b94c3f0004eb3
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,8,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: computeRTAO
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; rtas                              texture     i32         ras      T0             t0     1
+; outBuf                                UAV     f32         buf      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%struct.RaytracingAccelerationStructure = type { i32 }
+%"class.RWBuffer<float>" = type { float }
+
+define void @computeRTAO() {
+  %outBuf_UAV_buf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !59 ; line:42 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %rtas_texture_ras = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !59 ; line:42 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadId.i32(i32 93, i32 0), !dbg !60 ; line:33 col:49  ; ThreadId(component)
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !61, metadata !62), !dbg !63 ; var:"dispatchThreadId" !DIExpression(DW_OP_bit_piece, 0, 32) func:"computeRTAO"
+  %AllocateRayQuery = call i32 @dx.op.allocateRayQuery(i32 178, i32 660), !dbg !60 ; line:33 col:49  ; AllocateRayQuery(constRayFlags)
+  call void @llvm.dbg.value(metadata i32 %AllocateRayQuery, i64 0, metadata !64, metadata !75), !dbg !60 ; var:"rq" !DIExpression() func:"computeRTAO"
+  call void @llvm.dbg.value(metadata <3 x float> zeroinitializer, i64 0, metadata !76, metadata !83), !dbg !84 ; var:"ray" !DIExpression(DW_OP_bit_piece, 0, 96) func:"computeRTAO"
+  call void @llvm.dbg.value(metadata <3 x float> <float 0.000000e+00, float 1.000000e+00, float 0.000000e+00>, i64 0, metadata !76, metadata !85), !dbg !84 ; var:"ray" !DIExpression(DW_OP_bit_piece, 128, 96) func:"computeRTAO"
+  call void @llvm.dbg.value(metadata float 0x3F847AE140000000, i64 0, metadata !76, metadata !86), !dbg !84 ; var:"ray" !DIExpression(DW_OP_bit_piece, 96, 32) func:"computeRTAO"
+  call void @llvm.dbg.value(metadata float 1.000000e+06, i64 0, metadata !76, metadata !87), !dbg !84 ; var:"ray" !DIExpression(DW_OP_bit_piece, 224, 32) func:"computeRTAO"
+  call void @dx.op.rayQuery_TraceRayInline(i32 179, i32 %AllocateRayQuery, %dx.types.Handle %rtas_texture_ras, i32 0, i32 255, float 0.000000e+00, float 0.000000e+00, float 0.000000e+00, float 0x3F847AE140000000, float 0.000000e+00, float 1.000000e+00, float 0.000000e+00, float 1.000000e+06), !dbg !59 ; line:42 col:3  ; RayQuery_TraceRayInline(rayQueryHandle,accelerationStructure,rayFlags,instanceInclusionMask,origin_X,origin_Y,origin_Z,tMin,direction_X,direction_Y,direction_Z,tMax)
+  %2 = call i1 @dx.op.rayQuery_Proceed.i1(i32 180, i32 %AllocateRayQuery), !dbg !88 ; line:43 col:3  ; RayQuery_Proceed(rayQueryHandle)
+  %3 = call i32 @dx.op.rayQuery_StateScalar.i32(i32 184, i32 %AllocateRayQuery), !dbg !89 ; line:45 col:32  ; RayQuery_CommittedStatus(rayQueryHandle)
+  %4 = icmp eq i32 %3, 1, !dbg !90 ; line:45 col:53
+  %5 = select i1 %4, float 1.000000e+00, float 0.000000e+00, !dbg !89 ; line:45 col:32
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %outBuf_UAV_buf, i32 %1, i32 undef, float %5, float %5, float %5, float %5, i8 15), !dbg !91 ; line:45 col:30  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void, !dbg !92 ; line:47 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #1
+
+; Function Attrs: nounwind
+declare i32 @dx.op.allocateRayQuery(i32, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.rayQuery_TraceRayInline(i32, i32, %dx.types.Handle, i32, i32, float, float, float, float, float, float, float, float) #1
+
+; Function Attrs: nounwind readonly
+declare i32 @dx.op.rayQuery_StateScalar.i32(i32, i32) #2
+
+; Function Attrs: nounwind
+declare i1 @dx.op.rayQuery_Proceed.i1(i32, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!36, !37}
+!llvm.ident = !{!38}
+!dx.source.contents = !{!39}
+!dx.source.defines = !{!40}
+!dx.source.mainFileName = !{!41}
+!dx.source.args = !{!42}
+!dx.version = !{!43}
+!dx.valver = !{!44}
+!dx.shaderModel = !{!45}
+!dx.resources = !{!46}
+!dx.typeAnnotations = !{!53}
+!dx.entryPoints = !{!56}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !15, globals: !28)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, line: 37, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, line: 36, size: 96, align: 32, elements: !6, templateParams: !11)
+!6 = !{!7, !9, !10}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 36, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 36, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, line: 36, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !{!12, !13}
+!12 = !DITemplateTypeParameter(name: "element", type: !8)
+!13 = !DITemplateValueParameter(name: "element_count", type: !14, value: i32 3)
+!14 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!15 = !{!16}
+!16 = !DISubprogram(name: "computeRTAO", scope: !1, file: !1, line: 28, type: !17, isLocal: false, isDefinition: true, scopeLine: 29, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @computeRTAO)
+!17 = !DISubroutineType(types: !18)
+!18 = !{null, !19}
+!19 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, baseType: !20)
+!20 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, size: 96, align: 32, elements: !21, templateParams: !26)
+!21 = !{!22, !24, !25}
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !20, file: !1, baseType: !23, size: 32, align: 32, flags: DIFlagPublic)
+!23 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!24 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !20, file: !1, baseType: !23, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!25 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !20, file: !1, baseType: !23, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!26 = !{!27, !13}
+!27 = !DITemplateTypeParameter(name: "element", type: !23)
+!28 = !{!29, !31, !33}
+!29 = !DIGlobalVariable(name: "COMMITTED_TRIANGLE_HIT", scope: !0, file: !1, line: 45, type: !30, isLocal: true, isDefinition: true, variable: i32 1)
+!30 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !23)
+!31 = !DIGlobalVariable(name: "rtas", linkageName: "\01?rtas@@3URaytracingAccelerationStructure@@A", scope: !0, file: !1, line: 24, type: !32, isLocal: false, isDefinition: true)
+!32 = !DICompositeType(tag: DW_TAG_structure_type, name: "RaytracingAccelerationStructure", file: !1, line: 24, size: 32, align: 32, elements: !2)
+!33 = !DIGlobalVariable(name: "outBuf", linkageName: "\01?outBuf@@3V?$RWBuffer@M@@A", scope: !0, file: !1, line: 25, type: !34, isLocal: false, isDefinition: true)
+!34 = !DICompositeType(tag: DW_TAG_class_type, name: "RWBuffer<float>", file: !1, line: 25, size: 32, align: 32, elements: !2, templateParams: !35)
+!35 = !{!12}
+!36 = !{i32 2, !"Dwarf Version", i32 4}
+!37 = !{i32 2, !"Debug Info Version", i32 3}
+!38 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!39 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Both plain panes fail. Read the compiler-output pane, not the DXIL: the compile stops at DXIL\0A// validation, so there is no disassembly to inspect. The two lines that matter are the validation\0A// error and the note under it, which reports the module's declared feature-flag word beside the\0A// value the validator recomputed from the final DXIL - the recomputed value is zero.\0A//\0A// The third pane is the same source with -DUSE_RAYQUERY, which un-guards the TraceRayInline /\0A// Proceed / CommittedStatus calls so the RayQuery object is actually used. It compiles cleanly and\0A// emits DXIL. Nothing else differs between the panes.\0A//\0A// Compiler Explorer runs Linux Release builds and appends -Zi -Qembed_debug; the same three\0A// results were measured locally on a Debug build of main, with and without those flags.\0A//==========================================================================//\0A\0A// Compiler Explorer restating of #3902. Compiler Explorer is single-source, so the repro and\0A// the control that distinguishes it live in one file behind a preprocessor guard, and the\0A// panes differ only by -DUSE_RAYQUERY. Verified locally in both arms before publishing:\0A// see variant-ce-plain-main-debug.txt and variant-ce-used-main-debug.txt.\0A//\0A// Without the define the entry point is repro.hlsl's shape: a RayQuery object is declared and\0A// never used.\0A// With the define the same object is traced with and its result is stored.\0A\0ARaytracingAccelerationStructure rtas : register(t0);\0ARWBuffer<float> outBuf : register(u0);\0A\0A[numthreads(8, 8, 1)]\0Avoid computeRTAO(uint3 dispatchThreadId : SV_DispatchThreadID)\0A{\0A  RayQuery<RAY_FLAG_CULL_NON_OPAQUE |\0A           RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES |\0A           RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH |\0A           RAY_FLAG_CULL_BACK_FACING_TRIANGLES> rq;\0A\0A#ifdef USE_RAYQUERY\0A  RayDesc ray;\0A  ray.Origin = float3(0, 0, 0);\0A  ray.Direction = float3(0, 1, 0);\0A  ray.TMin = 0.01;\0A  ray.TMax = 1000000;\0A\0A  rq.TraceRayInline(rtas, 0, 0xFF, ray);\0A  rq.Proceed();\0A\0A  outBuf[dispatchThreadId.x] = rq.CommittedStatus() == COMMITTED_TRIANGLE_HIT ? 1.0 : 0.0;\0A#endif\0A}\0A"}
+!40 = !{!"USE_RAYQUERY=1", !"USE_RAYQUERY=1"}
+!41 = !{!"/app/example.hlsl"}
+!42 = !{!"-E", !"computeRTAO", !"-T", !"cs_6_5", !"-Zi", !"-Qembed_debug", !"-D", !"USE_RAYQUERY", !"-D", !"USE_RAYQUERY"}
+!43 = !{i32 1, i32 5}
+!44 = !{i32 1, i32 10}
+!45 = !{!"cs", i32 6, i32 5}
+!46 = !{!47, !50, null, null}
+!47 = !{!48}
+!48 = !{i32 0, %struct.RaytracingAccelerationStructure* undef, !"rtas", i32 0, i32 0, i32 1, i32 16, i32 0, !49}
+!49 = !{i32 0, i32 4}
+!50 = !{!51}
+!51 = !{i32 0, %"class.RWBuffer<float>"* undef, !"outBuf", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !52}
+!52 = !{i32 0, i32 9}
+!53 = !{i32 1, void ()* @computeRTAO, !54}
+!54 = !{!55}
+!55 = !{i32 0, !2, !2}
+!56 = !{void ()* @computeRTAO, !"computeRTAO", null, !46, !57}
+!57 = !{i32 0, i64 33554432, i32 4, !58}
+!58 = !{i32 8, i32 8, i32 1}
+!59 = !DILocation(line: 42, column: 3, scope: !16)
+!60 = !DILocation(line: 33, column: 49, scope: !16)
+!61 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "dispatchThreadId", arg: 1, scope: !16, file: !1, line: 28, type: !19)
+!62 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!63 = !DILocation(line: 28, column: 24, scope: !16)
+!64 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "rq", scope: !16, file: !1, line: 33, type: !65)
+!65 = !DICompositeType(tag: DW_TAG_class_type, name: "RayQuery<660, 0>", file: !1, line: 33, size: 32, align: 32, elements: !66, templateParams: !72)
+!66 = !{!67, !68}
+!67 = !DIDerivedType(tag: DW_TAG_member, name: "h", scope: !65, file: !1, line: 33, baseType: !23, size: 32, align: 32)
+!68 = !DISubprogram(name: "RayQuery", scope: !65, file: !1, line: 33, type: !69, isLocal: false, isDefinition: false, scopeLine: 33, flags: DIFlagPublic | DIFlagPrototyped, isOptimized: false)
+!69 = !DISubroutineType(types: !70)
+!70 = !{null, !71}
+!71 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !65, flags: DIFlagArtificial | DIFlagObjectPointer)
+!72 = !{!73, !74}
+!73 = !DITemplateValueParameter(name: "constRayFlags", type: !23, value: i32 660)
+!74 = !DITemplateValueParameter(name: "RayQueryFlags", type: !23, value: i32 0)
+!75 = !DIExpression()
+!76 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "ray", scope: !16, file: !1, line: 36, type: !77)
+!77 = !DICompositeType(tag: DW_TAG_structure_type, name: "RayDesc", file: !1, line: 36, size: 256, align: 32, elements: !78)
+!78 = !{!79, !80, !81, !82}
+!79 = !DIDerivedType(tag: DW_TAG_member, name: "Origin", scope: !77, file: !1, line: 36, baseType: !5, size: 96, align: 32)
+!80 = !DIDerivedType(tag: DW_TAG_member, name: "TMin", scope: !77, file: !1, line: 36, baseType: !8, size: 32, align: 32, offset: 96)
+!81 = !DIDerivedType(tag: DW_TAG_member, name: "Direction", scope: !77, file: !1, line: 36, baseType: !5, size: 96, align: 32, offset: 128)
+!82 = !DIDerivedType(tag: DW_TAG_member, name: "TMax", scope: !77, file: !1, line: 36, baseType: !8, size: 32, align: 32, offset: 224)
+!83 = !DIExpression(DW_OP_bit_piece, 0, 96)
+!84 = !DILocation(line: 36, column: 11, scope: !16)
+!85 = !DIExpression(DW_OP_bit_piece, 128, 96)
+!86 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!87 = !DIExpression(DW_OP_bit_piece, 224, 32)
+!88 = !DILocation(line: 43, column: 3, scope: !16)
+!89 = !DILocation(line: 45, column: 32, scope: !16)
+!90 = !DILocation(line: 45, column: 53, scope: !16)
+!91 = !DILocation(line: 45, column: 30, scope: !16)
+!92 = !DILocation(line: 47, column: 1, scope: !16)

@@ -1,0 +1,8 @@
+{
+  "kind": "any_of",
+  "value": [
+    { "kind": "contains", "value": "error: no member named 'Load' in 'StructuredBuffer<float>'" },
+    { "kind": "internal_failure" }
+  ],
+  "note": "THIRD predicate: the composite question 'has any build that can express this input ever compiled it?', which neither single-signature predicate can answer because each one's history is dominated by invalid probes. One defect, two observable signatures -- the filed diagnostic (v1.6.2112) and the internal failure that replaced it (v1.7.2207 onward) -- composed with any_of exactly as the skill prescribes for a defect whose manifestation changes across builds. Not a hollow duplicate: match.json dates the filed symptom, match-crash.json dates the ICE, and only this one supports a population claim over every SM 6.6-capable release. It also sidesteps a real classifier false positive: under match-crash.json alone, v1.6.2112 scores no-repro and is then demoted to invalid-probe because its diagnostic contains the feature-absence marker 'no member named' -- the #3055 trap firing on the SECOND predicate of a two-predicate issue -- which silently deletes the release that proves the ICE is a regression. Here the positive contains clause quotes that marker verbatim, so classify() suppresses the demotion and v1.6.2112 is scored on its merits. Builds predating Shader Model 6.6 still demote correctly: they answer 'Unknown HLSL version: 2021' / 'invalid profile ps_6_6', neither of which any positive clause quotes. Controls: control-local.hlsl and control-heap.hlsl must score no-match, and do on every probed release (see manual-case-release-matrix.txt)."
+}

@@ -1,0 +1,23 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-10T17:48:26+00:00
+# cmd: -T cs_6_0 -E main -HV 2021 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E main -HV 2021 repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:3:3: error: conversion operator overloading is not allowed
+  operator bool() {
+  ^
+repro.hlsl:11:7: error: value of type 'Foo' is not contextually convertible to 'bool'
+  if (A)
+      ^
+
+

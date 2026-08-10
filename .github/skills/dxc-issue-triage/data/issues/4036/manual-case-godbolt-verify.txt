@@ -1,0 +1,36 @@
+# Compiler Explorer panes for #4036, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_6 -E PSMain
+# exit:     5
+
+<source>:42:79: error: no member named 'Load' in 'StructuredBuffer<float>'
+        return ((StructuredBuffer<float>)ResourceDescriptorHeap[int(input.color.x)]).Load(0);
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_6 -E PSMain
+# exit:     29  CRASH
+
+Internal Compiler error: cast<X>() argument of incompatible type!
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T ps_6_6 -E PSMain
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:42:35: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'ResourceDescriptorHeap'[0m
+   42 |         [0;34mreturn[0m ((StructuredBuffer<[0;34mfloat[0m>)ResourceDescriptorHeap[[0;34mint[0m(input.color.x)]).Load([0;32m0[0m);[0m
+      | [0;1;32m                                         ^~~~~~~~~~~~~~~~~~~~~~
+[0m1 error generated.
+<Compilation failed>

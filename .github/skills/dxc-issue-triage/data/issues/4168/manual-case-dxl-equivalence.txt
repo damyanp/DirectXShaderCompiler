@@ -1,0 +1,17 @@
+ground truth: <repo>/build/Debug/bin
+
+$ <repo>/build/Debug/bin/dxc.exe -T lib_6_x -Fo lib.dxo repro.hlsl
+[exit] 0
+$ <repo>/build/Debug/bin/dxl.exe -T ps_6_0 -E main -Fo via-dxl.dxo lib.dxo
+[exit] 0
+$ <repo>/build/Debug/bin/dxc.exe -T ps_6_0 -E main -Fo via-dxc-link.dxo lib.dxo -link
+[exit] 0
+$ <repo>/build/Debug/bin/dxc.exe -T ps_6_0 -E main -Fo direct.dxo repro.hlsl
+[exit] 0
+
+sha256 via-dxl.dxo       75ae12bf8192c8c2fe55a02f70db83946dfb11999f4eb55b156d5fe5fbc5226b
+sha256 via-dxc-link.dxo  75ae12bf8192c8c2fe55a02f70db83946dfb11999f4eb55b156d5fe5fbc5226b
+sha256 direct.dxo        65e1c462c7bf7bda111d9767d4572150f9049bcea42cd129b7701e616cf07c9c   (self-test arm)
+
+dxl.exe == dxc.exe -link : EQUAL
+self-test (a different input must hash differently): pass

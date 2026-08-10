@@ -1,0 +1,27 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T19:42:38+00:00
+# cmd: -T cs_6_5 -E computeRTAO -Od repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: od (repro.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: refuted
+
+$ dxc -T cs_6_5 -E computeRTAO -Od repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: Flags must match usage.
+note: Flags declared=33554432, actual=0
+Validation failed.
+
+
+

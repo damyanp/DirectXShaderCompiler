@@ -1,0 +1,29 @@
+# compiler: main-debug-rw
+# exe: <repo>/build/Debug/bin/dxr.exe
+# ran: 2026-08-10T17:42:53+00:00
+# cmd: -E vsMain -remove-unused-globals -remove-unused-functions -extract-entry-uniforms control-loose-only.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: loose-only (control-loose-only.hlsl)
+# expect: no-match
+
+$ dxc -E vsMain -remove-unused-globals -remove-unused-functions -extract-entry-uniforms control-loose-only.hlsl
+[exe] <repo>/build/Debug/bin/dxr.exe
+[exit] 0
+--- stdout ---
+cbuffer cbA {
+  const float4 gA;
+}
+;
+const float4 gLooseUsed;
+float4 vsMain(float4 pos : POSITION) : SV_Position {
+  return pos * gA + gLooseUsed;
+}
+
+
+
+
+--- stderr ---
+

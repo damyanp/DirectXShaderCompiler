@@ -1,0 +1,1 @@
+dxc_1_6_2112:-T cs_6_5 -E computeRTAO,dxc_trunk:-T cs_6_5 -E computeRTAO,dxc_trunk:-T cs_6_5 -E computeRTAO -DUSE_RAYQUERY

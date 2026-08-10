@@ -1,0 +1,5 @@
+float4 main() : SV_TARGET0 {
+    RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES> q;
+
+    return 1.f;    
+}

@@ -1,0 +1,128 @@
+# Can Compiler Explorer host #3943's repro?  Measured, not assumed.
+# probe: POST https://godbolt.org/api/compiler/<id>/compile   lang=hlsl
+# args:  -T ps_6_0 -E main -I inc
+
+=== as-filed multi-file repro (repro.hlsl verbatim) -- dxc_trunk ===
+--- source ---
+  // #3943 -- one header, reached by two different spellings of its path.
+  //
+  //   "inc/common.h"  resolves relative to this file's own directory
+  //   "common.h"      resolves through the -I inc search path
+  //
+  // Both name the same physical file. `#pragma once` in that file should suppress
+  // the second inclusion. The issue reports that it does not, so CommonValue()
+  // gets defined twice.
+  #include "inc/common.h"
+  #include "common.h"
+  
+  float4 main() : SV_Target { return CommonValue(); }
+--- exit: 5 ---
+  <source>:9:10: fatal error: 'inc/common.h' file not found
+  #include "inc/common.h"
+           ^
+  
+  <Compilation failed>
+
+=== as-filed multi-file repro (repro.hlsl verbatim) -- dxc_1_6_2112 ===
+--- source ---
+  // #3943 -- one header, reached by two different spellings of its path.
+  //
+  //   "inc/common.h"  resolves relative to this file's own directory
+  //   "common.h"      resolves through the -I inc search path
+  //
+  // Both name the same physical file. `#pragma once` in that file should suppress
+  // the second inclusion. The issue reports that it does not, so CommonValue()
+  // gets defined twice.
+  #include "inc/common.h"
+  #include "common.h"
+  
+  float4 main() : SV_Target { return CommonValue(); }
+--- exit: 5 ---
+  <source>:9:10: fatal error: 'inc/common.h' file not found
+  #include "inc/common.h"
+           ^
+  
+  <Compilation failed>
+
+=== single-file FOLD, two spellings -- dxc_trunk ===
+--- source ---
+  // FOLD, mismatched spellings: the pane's own source includes itself
+  // twice under two spellings. This is the transformation under test.
+  #pragma once
+  #include "<source>"
+  #include "./<source>"
+  float CommonValue() { return 1.0f; }
+  float4 main() : SV_Target { return CommonValue(); }
+--- exit: 5 ---
+  <source>:3:9: warning: #pragma once in main file
+  #pragma once
+          ^
+  <source>:4:10: fatal error: '<source>' file not found
+  #include "<source>"
+           ^
+  
+  <Compilation failed>
+
+=== single-file FOLD, two spellings -- dxc_1_6_2112 ===
+--- source ---
+  // FOLD, mismatched spellings: the pane's own source includes itself
+  // twice under two spellings. This is the transformation under test.
+  #pragma once
+  #include "<source>"
+  #include "./<source>"
+  float CommonValue() { return 1.0f; }
+  float4 main() : SV_Target { return CommonValue(); }
+--- exit: 5 ---
+  <source>:3:9: warning: #pragma once in main file
+  #pragma once
+          ^
+  <source>:4:10: fatal error: '<source>' file not found
+  #include "<source>"
+           ^
+  
+  <Compilation failed>
+
+=== single-file FOLD CONTROL, matched spellings -- dxc_trunk ===
+--- source ---
+  // CONTROL for the fold: identical construction, but both spellings
+  // MATCH. If `#pragma once` worked in the main file this must compile,
+  // and the fold above would be a fair restatement of #3943. If this
+  // fails too, the fold is measuring a different rule and must not be
+  // published as a repro.
+  #pragma once
+  #include "<source>"
+  #include "<source>"
+  float CommonValue() { return 1.0f; }
+  float4 main() : SV_Target { return CommonValue(); }
+--- exit: 5 ---
+  <source>:6:9: warning: #pragma once in main file
+  #pragma once
+          ^
+  <source>:7:10: fatal error: '<source>' file not found
+  #include "<source>"
+           ^
+  
+  <Compilation failed>
+
+=== single-file FOLD CONTROL, matched spellings -- dxc_1_6_2112 ===
+--- source ---
+  // CONTROL for the fold: identical construction, but both spellings
+  // MATCH. If `#pragma once` worked in the main file this must compile,
+  // and the fold above would be a fair restatement of #3943. If this
+  // fails too, the fold is measuring a different rule and must not be
+  // published as a repro.
+  #pragma once
+  #include "<source>"
+  #include "<source>"
+  float CommonValue() { return 1.0f; }
+  float4 main() : SV_Target { return CommonValue(); }
+--- exit: 5 ---
+  <source>:6:9: warning: #pragma once in main file
+  #pragma once
+          ^
+  <source>:7:10: fatal error: '<source>' file not found
+  #include "<source>"
+           ^
+  
+  <Compilation failed>
+

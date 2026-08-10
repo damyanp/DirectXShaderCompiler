@@ -1,0 +1,31 @@
+# compiler: main-debug-dxv
+# exe: <triage>/issues/4256/validate.cmd
+# ran: 2026-08-10T18:05:39+00:00
+# cmd: val18-nostate.ll
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: val18-equivalence (?)
+# expect: match
+
+$ dxc val18-nostate.ll
+[exe] <triage>/issues/4256/validate.cmd
+[exit] 0
+--- stdout ---
+viewid-4256 harness v1
+[validator] internal (dxcompiler.dll from the same build); DXC_DXIL_DLL_PATH=<unset>
+[module] val18-nostate.ll (5964 bytes)
+[selftest] module-calls-viewid-op=yes
+[selftest] module-viewid-state=<absent>
+[selftest] module-viewid-state-declares-dependencies=no
+$ <repo>/build/Debug/bin/dxv.exe val18-nostate.ll
+--- stdout ---
+Validation succeeded.
+--- stderr ---
+
+[exit] 0x00000000
+[result] VALIDATION-SUCCEEDED
+
+--- stderr ---
+

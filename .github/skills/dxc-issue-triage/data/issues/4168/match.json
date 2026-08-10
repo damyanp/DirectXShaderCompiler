@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "note": "#4168: after linking a lib_6_x library into a ps_6_0 shader, the linked shader's cbuffer reflects with D3D12_SHADER_BUFFER_DESC::Variables == 0. `dxa -dumpreflection` prints that field verbatim as `Num Variables:` (lib/DxilContainer/D3DReflectionDumper.cpp:115) and enumerates ID3D12ShaderReflectionVariable records only `if (Desc.Variables)` (same file, 280-288), so the reported number and the missing variable records are both visible in one dump. The symptom is an ABSENCE, so SKILL.md's absence rules apply and the two positive clauses are not decoration: without them a failed compile, a failed link, a dumper that printed nothing, or a shader that never declared a cbuffer would all score as a textbook reproduction. Clause 1 proves the chain produced a linked PIXEL shader container and the dumper read it (a library dump prints `Shader Version: Library`, and a broken chain prints no reflection at all). Clause 2 is the anti-vacuity anchor: CB0 must actually be present in the reflection, at its correct 80-byte size -- note that the size survives even when the members do not, so this clause cannot be satisfied for free by the symptom itself. Clause 3 is the symptom. Controls: variant-direct (same source straight to ps_6_0, no library, no link) must NOT match, which is what proves the predicate discriminates rather than firing on every reflection dump; variant-repro-at-v1.6.2112 (the release current when the issue was filed) MUST match, which is what proves the predicate is not simply dead.",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "Shader Version: Pixel 6.0"
+    },
+    {
+      "kind": "regex",
+      "value": "D3D12_SHADER_BUFFER_DESC: Name: CB0\\s*\\n\\s*Type: D3D_CT_CBUFFER\\s*\\n\\s*Size: 80"
+    },
+    {
+      "kind": "contains",
+      "value": "Num Variables: 0"
+    }
+  ]
+}

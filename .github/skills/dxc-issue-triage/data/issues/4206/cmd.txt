@@ -1,0 +1,15 @@
+# The "compiler" here is run-refl4206.cmd, not dxc.exe.
+#
+# The report is about a value ID3D12ShaderReflection returns
+# (D3D12_SHADER_VARIABLE_DESC::uFlags), and dxc.exe never calls that
+# interface: a dxc invocation alone cannot express the symptom. The harness
+# compiles this source with the DXC under test and then reads the resulting
+# container back through DXC's own D3DReflectionDumper via
+# `dxa -dumpreflection`, which reaches uFlags through pVar->GetDesc().
+#
+# cs_6_0 is the oldest compute profile DXIL has, per SKILL.md's "target the
+# repro at the oldest profile and flag set that still shows the symptom".
+# ResampleCS and [numthreads(64,1,1)] are the reporter's own; he gave no
+# command line, so the profile is the only inferred part. No other flags: the
+# issue names no configuration.
+-T cs_6_0 -E ResampleCS repro.hlsl

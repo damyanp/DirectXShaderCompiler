@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "conversion operator overloading is not allowed",
+  "note": "Second predicate, bisected separately from match.json so the two histories sit side by side. This one dates the SHAPE CHANGE rather than the defect: DXC began refusing the `operator bool()` declaration outright with err_hlsl_unsupported_conversion_operator. Added by PR #8206 (commit b13e386be, merged 2026-04-14), which is an ancestor of the ground-truth commit 13730886e and is contained in tags v1.9.2607, v1.10.2605.2 and v1.10.2605.24. A build that emits this has NOT implemented implicit conversion operators -- it has stopped accepting the declaration -- so a `repro` under this predicate must not be read as a fix. Positive string, no absence clause."
+}

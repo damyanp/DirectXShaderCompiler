@@ -1,0 +1,22 @@
+{
+  "batch": "batch-014",
+  "confidence": "high",
+  "created_at": "2022-01-25T10:04:06Z",
+  "godbolt_skip": "Not reproducible on Compiler Explorer: the symptom lives in the container reflection (D3D_SVF_USED via ID3D12ShaderReflection / the STAT part), and CE's DXC panes show -Fc disassembly of the DXIL part only, which does not carry kDxilFieldAnnotationCBUsedTag. Verified locally: -Fc output for this shader has no cbuffer field annotations at all (scratch check), and dxa -extractpart=STAT yields a DxilProgramHeader that plain dxa cannot disassemble. Reading it needs dxa -dumpreflection, which CE does not run.",
+  "history": "Two faces, two histories, measured over all 20 stable releases v1.4.1907..v1.9.2607 (manual-case-release-history.txt: two subjects x two reader columns -- fixed ground-truth reader, and each release paired with its OWN dxcompiler.dll; the columns agree on every row). match-falsenegative.json (WorldPosToProbeCoord, genuinely read, reported NOT used): always-repro'd, all 20 releases including v1.4.1907. match.json (SkyLightColor, never read, reported USED -- the reported symptom): no-repro on v1.4.1907 (2019-07-15), repro on v1.5.2010 (2020-10-22) and all 18 releases since, plus main. So the reported face regressed inside a ~15-month window. NOT the batch-013 metadata-relocation artefact: on v1.4.1907 the dump lists all three variables, the instrument self-test clause holds, and control-noneg scores fully correct there. NO commit is named: git merge-base --is-ancestor 4234a9ae5 v1.4.1907 SUCCEEDS and the tag tree already contains MarkCBUse, yet the shipped binary behaves as though it does not -- the v1.4.1907 tag tip is dated 2019-08-30, after the July 1907 release, so the tag is not a proxy for the shipped artifact. Compiling on main with -validator-version 1.4 does NOT restore the old answer (variant-valver14, run with --expect no-match, came back repro), so the transition is not merely the validator-version gate at DxilContainerReflection.cpp:2313. triage.py bisect deliberately NOT run: it substitutes each release dxc.exe for the registered harness, which would stop all reflection output and report a confident never-repro'd-in-releases.",
+  "labels": "reflection",
+  "labels_add": "bug, correctness",
+  "labels_now": "reflection",
+  "notes_path": "notes.md",
+  "number": 4206,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (1.9.0.5433, 13730886e), and worse than reported. dxa -dumpreflection on the container gives the reported false positive AND an unreported false negative: SkyLightColor (never read) is reported (D3D_SVF_USED), while WorldPosToProbeCoord (read twice, and the array the bad index belongs to) is reported uFlags 0; ProbeCoordToWorldPos is correct and serves as the per-run instrument self-test. Removing the single \"- 1\" from the index makes all three flags correct (U,U,0) with the $Globals layout unchanged, so the negative index is the trigger, exactly as reported. Root cause confirmed by source reading and matches the reporter: GetCBOffset (DxilCondenseResources.cpp:2566) folds add i32 %ProbeIndex, -1 to unsigned 0xFFFFFFFF, the caller shifts to 0xFFFFFFF0, and MarkCBUse (:2605) does upper_bound(offset) -> end() then it-- , landing on the LAST field; the same fold is why the intended field at offset 0 is never marked. One mis-folded offset, two wrong answers in opposite directions -- a fix must address both. Symptom is invisible to dxc.exe (which never calls ID3D12ShaderReflection) and to -Fc disassembly (the used bit is kDxilFieldAnnotationCBUsedTag in the STAT reflection module), so it was measured through a harness-as-compiler that compiles with dxc and reads back with dxa -dumpreflection.",
+  "title": "Incorrect 'D3D_SVF_USED' flag with fields in $Globals_cbuffer",
+  "triaged_at": "2026-08-10T20:43:27+00:00",
+  "triaged_by": "GitHub Copilot CLI (claude-opus-4.6)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4206"
+}

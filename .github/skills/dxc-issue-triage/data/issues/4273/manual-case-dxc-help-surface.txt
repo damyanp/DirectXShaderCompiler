@@ -1,0 +1,27 @@
+#4273 -- the rewriter option surface as dxc.exe advertises it vs accepts it.
+
+Reproduce:  <repo>/build/Debug/bin/dxc.exe --help
+
+dxc.exe --help PRINTS a Rewriter Options section:
+
+  Rewriter Options:
+    -decl-global-cb         Collect all global constants outside cbuffer declarations into cbuffer GlobalCB { ... }. Still experimental, not all dependency scenarios handled.
+    -extract-entry-uniforms Move uniform parameters from entry point to global scope
+    -global-extern-by-default
+                            Set extern on non-static globals
+    -keep-user-macro        Write out user defines after rewritten HLSL
+    -line-directive         Add line directive
+    -remove-unused-functions
+                            Remove unused functions and types
+    -remove-unused-globals  Remove unused static globals and functions
+    -skip-fn-body           Translate function definitions to declarations
+    -skip-static            Remove static functions and globals when used with -skip-fn-body
+    -unchanged              Rewrite HLSL, without changes.
+
+...but dxc.exe REJECTS those same options -- see
+variant-dxc-rejects-rewriter-flag-main-debug.txt and
+variant-dxc-rejects-rewrite-mode-main-debug.txt. The options carry
+RewriteOption in HLSLOptions.td and are only in the accepted mask for
+the rewriter entry points (dxr.exe / IDxcRewriter2::RewriteWithOptions),
+while --help prints the whole table.
+

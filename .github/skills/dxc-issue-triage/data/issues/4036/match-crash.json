@@ -1,0 +1,7 @@
+{
+  "kind": "internal_failure",
+  "quote_from": [
+    "match.json"
+  ],
+  "note": "SECOND predicate: what the compiler does *today*, which is not what was filed. main (13730886e, Debug) no longer emits the diagnostic in match.json -- it fails internally with exit 0x80AA001D (DXC_E_LLVM_CAST_ERROR) and 'Internal Compiler error: llvm::cast<X>() argument of incompatible type!'. The two histories have to be bisected separately or the change of shape collapses into a misleading single verdict ('the diagnostic was fixed'). internal_failure rather than a text or exit-code match because the same defect is documented to surface differently across builds: a Debug assert (0x80000003 / 0xE0000001), an access violation (0xC0000005) or, as here, an hlsl::Exception carrying the cast HRESULT -- and #8737 records that the driver can report that same cast failure as plain E_FAIL, which only the text marker distinguishes. Anti-vacuity: a build that predates Shader Model 6.6 answers 'use of undeclared identifier ResourceDescriptorHeap' with a clean E_FAIL, which is not an internal failure and is separately demoted to invalid-probe by the feature-absence marker, so it cannot satisfy this predicate. Control: variant-control-local (the workaround) and variant-control-heap both exit 0, so this predicate does not fire on every compile of this feature."
+}

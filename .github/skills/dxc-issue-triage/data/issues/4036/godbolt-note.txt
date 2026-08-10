@@ -1,0 +1,31 @@
+What to look for
+
+This shader is not expected to compile. The question is *how* it fails, and
+the two DXC panes fail differently -- that difference is the finding.
+
+DXC 1.6.2112 (the older pane): a normal compile error, with a file, a line
+and a column, naming the member that could not be found on the buffer type.
+Whether that diagnostic is *right* is the original complaint; what matters
+here is that it is an ordinary diagnostic.
+
+DXC trunk (the newer pane): no diagnostic at all. Instead an internal
+compiler error -- a message about a bad cast inside the compiler itself, and
+a non-zero, non-standard exit status. There is no file, line or column,
+because the front end never got the chance to complain: the compiler failed
+inside code generation.
+
+So read the panes for the *shape* of the failure, not for whether they are
+red:
+
+  - old pane: has a source location, has a diagnostic, exit status is the
+    compiler's ordinary failure code
+  - new pane: has neither, and reports an internal error
+
+If a Clang pane is present, it is there to answer a different question --
+whether the successor front end supports this spelling at all -- and an
+unrelated "undeclared identifier" style error from it means only that the
+feature is not implemented there yet, not that this issue is fixed.
+
+The supported spelling (assign the subscript to a local variable, then call
+the method on that local) compiles cleanly in every DXC that has the
+feature; that control is in the triage directory, not in this link.

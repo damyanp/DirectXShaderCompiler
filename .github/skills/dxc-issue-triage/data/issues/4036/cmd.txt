@@ -1,0 +1,23 @@
+# -T ps_6_6 -E PSMain repro.hlsl
+#
+# Differs from cmd-as-filed.txt, which carries `-HV 2021`. The issue's original
+# title was "[hlsl 2021] Odd compiliation error", so HLSL 2021 is the reporter's
+# configuration and cmd-as-filed.txt preserves it. It is dropped here because it
+# is inert for this defect and it shortened the measurable history for a reason
+# unrelated to the issue:
+#
+#   * v1.6.2104 (2021-04-20) and v1.6.2106 (2021-07-01) reject the flag outright
+#     -- "dxc failed : Unknown HLSL version: 2021", exit 1 -- so they scored as
+#     unprobeable. Without it, both compile the repro and emit the exact filed
+#     diagnostic, and both compile control-heap.hlsl clean, so both DO have
+#     ResourceDescriptorHeap. That is two releases of history, and they predate
+#     the 2021-10-25 report.
+#   * On every release that accepts `-HV 2021` (v1.6.2112 onward) the flag makes
+#     no difference: identical exit status and byte-identical output with and
+#     without, checked per release by release-matrix.py, whose IDENTITY line
+#     reports the comparison for each build.
+#
+# v1.4.1907 and v1.5.2010 remain genuine invalid probes: they answer
+# "error: invalid profile ps_6_6" for both the repro and the feature-presence
+# control, with or without the flag.
+-T ps_6_6 -E PSMain repro.hlsl

@@ -1,0 +1,14 @@
+#3954. Compare the two DXC panes, not the source.
+
+dxc 1.6.2112 does not compile this at all: its pane has no DXIL and an abnormal exit
+status. CE runs Linux release builds, which report it as a terminating signal with no
+diagnostic text. On Windows the same release version prints two lines naming the failing
+lowering pass and its source line; the class of failure is the same, and the wording is
+not portable between the two.
+
+dxc trunk compiles the same source and emits DXIL. Look for the entry point's single
+CBufferLoadLegacy, one extractvalue, and three fmul instructions against that one
+component -- the correct lowering of an expression the older pane could not lower.
+
+Nothing in this banner should be searched for in the panes below: CE compiles it as part
+of the source, so DXC embeds it verbatim in the trunk pane debug metadata.

@@ -1,0 +1,39 @@
+{
+  "steps": {
+    "rewrite": {
+      "cmd": "<repo>/build/Debug/bin/dxr.exe -E vsMain -remove-unused-globals -remove-unused-functions -extract-entry-uniforms repro.hlsl",
+      "exit": 0,
+      "output": "cbuffer cbA {\n  const float4 gA;\n}\n;\ncbuffer cbB {\n  const float4 gB;\n}\n;\nconst float4 gLooseUsed;\nfloat4 vsMain(float4 pos : POSITION) : SV_Position {\n  return pos * gA + gLooseUsed;\n}\n\n\n\n"
+    },
+    "compile": {
+      "cmd": "<repo>/build/Debug/bin/dxc.exe -T vs_6_0 -E vsMain rewritten.hlsl -Fc rewritten.dxil.txt",
+      "exit": 0,
+      "output": ""
+    },
+    "container": {
+      "cmd": "<repo>/build/Debug/bin/dxc.exe -T vs_6_0 -E vsMain rewritten.hlsl -Qstrip_debug -Fo <cache>/rw4273/rewritten.dxo",
+      "exit": 0,
+      "output": ""
+    },
+    "reflect": {
+      "cmd": "<repo>/build/Debug/bin/dxa.exe -dumpreflection <cache>/rw4273/rewritten.dxo",
+      "exit": 0,
+      "output": "ID3D12ShaderReflection:\n  D3D12_SHADER_DESC:\n    Shader Version: Vertex 6.0\n    Creator: dxc(private) 1.9.0.5433 (triage, ab5400907)\n    Flags: 0\n    ConstantBuffers: 2\n    BoundResources: 2\n    InputParameters: 1\n    OutputParameters: 1\n    InstructionCount: 29\n    TempArrayCount: 0\n    DynamicFlowControlCount: 0\n    ArrayInstructionCount: 0\n    TextureNormalInstructions: 0\n    TextureLoadInstructions: 0\n    TextureCompInstructions: 0\n    TextureBiasInstructions: 0\n    TextureGradientInstructions: 0\n    FloatInstructionCount: 8\n    IntInstructionCount: 0\n    UintInstructionCount: 0\n    CutInstructionCount: 0\n    EmitInstructionCount: 0\n    cBarrierInstructions: 0\n    cInterlockedInstructions: 0\n    cTextureStoreInstructions: 0\n  InputParameter Elements: 1\n    D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: POSITION SemanticIndex: 0\n      Register: 0\n      SystemValueType: D3D_NAME_UNDEFINED\n      ComponentType: D3D_REGISTER_COMPONENT_FLOAT32\n      Mask: xyzw (15)\n      ReadWriteMask: xyzw (15) (AlwaysReads/NeverWrites)\n      Stream: 0\n      MinPrecision: D3D_MIN_PRECISION_DEFAULT\n  OutputParameter Elements: 1\n    D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: SV_POSITION SemanticIndex: 0\n      Register: 0\n      SystemValueType: D3D_NAME_POSITION\n      ComponentType: D3D_REGISTER_COMPONENT_FLOAT32\n      Mask: xyzw (15)\n      ReadWriteMask: ---- (0) (AlwaysReads/NeverWrites)\n      Stream: 0\n      MinPrecision: D3D_MIN_PRECISION_DEFAULT\n  Constant Buffers:\n    ID3D12ShaderReflectionConstantBuffer:\n      D3D12_SHADER_BUFFER_DESC: Name: $Globals\n        Type: D3D_CT_CBUFFER\n        Size: 16\n        uFlags: 0\n        Num Variables: 1\n      {\n        ID3D12ShaderReflectionVariable:\n          D3D12_SHADER_VARIABLE_DESC: Name: gLooseUsed\n            Size: 16\n            StartOffset: 0\n            uFlags: (D3D_SVF_USED)\n            DefaultValue: <nullptr>\n          ID3D12ShaderReflectionType:\n            D3D12_SHADER_TYPE_DESC: Name: float4\n              Class: D3D_SVC_VECTOR\n              Type: D3D_SVT_FLOAT\n              Elements: 0\n              Rows: 1\n              Columns: 4\n              Members: 0\n              Offset: 0\n          CBuffer: $Globals\n      }\n    ID3D12ShaderReflectionConstantBuffer:\n      D3D12_SHADER_BUFFER_DESC: Name: cbA\n        Type: D3D_CT_CBUFFER\n        Size: 16\n        uFlags: 0\n        Num Variables: 1\n      {\n        ID3D12ShaderReflectionVariable:\n          D3D12_SHADER_VARIABLE_DESC: Name: gA\n            Size: 16\n            StartOffset: 0\n            uFlags: (D3D_SVF_USED)\n            DefaultValue: <nullptr>\n          ID3D12ShaderReflectionType:\n            D3D12_SHADER_TYPE_DESC: Name: float4\n              Class: D3D_SVC_VECTOR\n              Type: D3D_SVT_FLOAT\n              Elements: 0\n              Rows: 1\n              Columns: 4\n              Members: 0\n              Offset: 0\n          CBuffer: cbA\n      }\n  Bound Resources:\n    D3D12_SHADER_INPUT_BIND_DESC: Name: $Globals\n      Type: D3D_SIT_CBUFFER\n      uID: 0\n      BindCount: 1\n      BindPoint: 0\n      Space: 0\n      ReturnType: <unknown: 0>\n      Dimension: D3D_SRV_DIMENSION_UNKNOWN\n      NumSamples (or stride): 0\n      uFlags: (D3D_SIF_USERPACKED)\n    D3D12_SHADER_INPUT_BIND_DESC: Name: cbA\n      Type: D3D_SIT_CBUFFER\n      uID: 1\n      BindCount: 1\n      BindPoint: 1\n      Space: 0\n      ReturnType: <unknown: 0>\n      Dimension: D3D_SRV_DIMENSION_UNKNOWN\n      NumSamples (or stride): 0\n      uFlags: (D3D_SIF_USERPACKED)\n"
+    }
+  },
+  "bindings": [
+    [
+      "$Globals",
+      "cbuffer"
+    ],
+    [
+      "cbA",
+      "cbuffer"
+    ]
+  ],
+  "reflection_cb_names": [
+    "$Globals",
+    "cbA"
+  ],
+  "reflection_cb_count": "2"
+}

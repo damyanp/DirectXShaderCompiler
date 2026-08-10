@@ -1,0 +1,16 @@
+# Line 1 is the instrument SELF-TEST, not the repro: the same header included
+# twice by the identical spelling must compile and emit DXIL. match.json
+# requires that DXIL as a clause, so every probe -- ground truth, every release,
+# every labelled variant -- carries proof that the header was reachable, that
+# -I worked, and that `#pragma once` works at all on that build. Without it a
+# release that simply cannot find inc/common.h emits no redefinition either and
+# scores as a clean run, manufacturing a fix boundary.
+#
+# control-once.hlsli is spelled .hlsli on purpose: `triage.py run --shader`
+# retargets only argv tokens ending in .hlsl, so this line stays fixed while a
+# variant swaps the line below. Renaming it to .hlsl would make every variant
+# silently overwrite its own self-test.
+#
+# Line 2 is the repro: the same header, two spellings of its path.
+-T ps_6_0 -E main -I inc control-once.hlsli
+-T ps_6_0 -E main -I inc repro.hlsl

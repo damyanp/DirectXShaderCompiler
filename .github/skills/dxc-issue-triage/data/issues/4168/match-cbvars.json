@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "note": "#4168 detector only, for controls whose shader KIND differs from the repro's. SKILL.md: 'Score controls against the instrument, not an unrelated anchor' -- a library-only dump legitimately prints `Shader Version: Library` and would fail match.json's first clause without saying anything about whether the cbuffer's variables were found. This predicate keeps the anti-vacuity anchor (CB0 present at its correct size) and the symptom, and drops the shader-kind clause. Used by variant-libonly, which asks whether the annotation is already gone in the lib_6_x library before any linking happens.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "D3D12_SHADER_BUFFER_DESC: Name: CB0\\s*\\n\\s*Type: D3D_CT_CBUFFER\\s*\\n\\s*Size: 80"
+    },
+    {
+      "kind": "contains",
+      "value": "Num Variables: 0"
+    }
+  ]
+}

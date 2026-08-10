@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T17:58:32+00:00
+# cmd: -T cs_6_0 -E main -HV 2021 case-if-discriminating.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: case-if-discriminating (case-if-discriminating.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main -HV 2021 case-if-discriminating.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case-if-discriminating.hlsl:12:3: error: conversion operator overloading is not allowed
+  operator bool() {
+  ^
+case-if-discriminating.hlsl:22:7: error: value of type 'Foo' is not contextually convertible to 'bool'
+  if (A)
+      ^
+
+

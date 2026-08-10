@@ -1,0 +1,9 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains", "value": "module-calls-viewid-op=yes" },
+    { "kind": "contains", "value": "module-viewid-state=[8, 8, 240, 128, 64, 32, 16, 8, 4, 2, 1]" },
+    { "kind": "contains", "value": "[result] VALIDATION-SUCCEEDED" }
+  ],
+  "note": "The stronger half of #4256's first sentence. match.json shows that an ABSENT or all-zero ViewID state is accepted; this shows that a PRESENT, non-zero, demonstrably FALSE one is accepted too, which is what 'not validated against the rest of the contents of the module' means. Clause 2 pins the exact doctored array wrongdeps.ll carries: it claims outputs {4,5,6,7} depend on ViewID and that input i contributes to output 7-i. DXC's own answer for the same shader is [8, 8, 15, 1, 2, 4, 8, 16, 32, 64, 128] -- outputs {0,1,2,3} depend on ViewID and input i contributes to output i -- captured in variant-control-dxc-output. Clause 1 is the anti-vacuity anchor (the module really uses ViewID) and clause 3 records the acceptance. Control: control-truestate runs the unmodified module against this same predicate and must NOT match, which is what proves clause 2 reads the array rather than matching anything."
+}

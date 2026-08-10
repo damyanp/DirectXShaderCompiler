@@ -1,0 +1,13 @@
+What to look for: the shader declares a struct with a user-defined cast to bool and then
+uses a value of that struct type directly as an `if` condition. Read each pane's diagnostics
+rather than its output, and note that no pane produces DXIL for this input.
+
+DXC 1.6.2112 (the oldest DXC on Compiler Explorer, and the oldest release that can compile
+this at all) accepts the operator declaration and rejects only the `if` condition: the
+operator is not considered for the implicit conversion, which is what this issue reports.
+
+DXC trunk reports that same error plus a second one, on the operator declaration itself --
+current DXC refuses the declaration outright. The requested feature is no less absent; the
+construct now fails earlier.
+
+The Clang pane is the successor HLSL front end. Compare whether it accepts the same source.

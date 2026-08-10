@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T18:00:02+00:00
+# cmd: -T cs_6_0 -E main reduce-nested-struct-member.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: reduce-nested-struct (reduce-nested-struct-member.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main reduce-nested-struct-member.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

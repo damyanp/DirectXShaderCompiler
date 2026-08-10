@@ -1,0 +1,262 @@
+
+================ v1.4.1907 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.5.2003 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.5.2010 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.6.2104 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.6.2106 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.7.2207 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.7.2212 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.7.2212.1 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.8.2403 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.8.2403.1 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.8.2403.2 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.8.2405 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.8.2407 ================
+[skip] no dxv.exe in this release archive -- the validator cannot be driven over a .ll module here
+
+================ v1.8.2505 ================
+$ <triage>/.cache/compilers/releases/v1.8.2505/bin/x64/dxc.exe --version
+dxcompiler.dll: 1.9 - 1.8.2505.28 (9efbb6c32); dxil.dll: 1.9(1.8.2505.28)
+[exit] 0x00000000
+[dxil.dll beside dxv] yes
+[DXC_DXIL_DLL_PATH] <unset>
+
+---- val18-full.ll: CONTROL, must validate: unmodified DXC output
+$ <triage>/.cache/compilers/releases/v1.8.2505/bin/x64/dxv.exe val18-full.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-badsig.ll: CONTROL, must fail: storeOutput with an out-of-range sig id
+$ <triage>/.cache/compilers/releases/v1.8.2505/bin/x64/dxv.exe val18-badsig.ll
+Function: main: error: Constant values must be in-range for operation.
+note: at 'call void @dx.op.storeOutput.f32(i32 5, i32 7, i32 0, i8 3, float %4)' in block '#0' of function 'main'.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-sm60.ll: CONTROL, must fail: ViewID op under shader model 6.0
+$ <triage>/.cache/compilers/releases/v1.8.2505/bin/x64/dxv.exe val18-sm60.ll
+error: Shader model requires Dxil Version 1.0.
+Function: main: error: Opcode ViewID not valid in shader model vs_6_0.
+note: at '%9 = call i32 @dx.op.viewID.i32(i32 138)' in block '#0' of function 'main'.
+Function: main: error: Entry function performs some operation that is incompatible with the shader stage or other entry properties.  See other errors for details.
+Function: main: error: Function uses features incompatible with the shader model.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-nostate.ll: SUBJECT: dx.viewIdState deleted
+$ <triage>/.cache/compilers/releases/v1.8.2505/bin/x64/dxv.exe val18-nostate.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-zerodeps.ll: SUBJECT: state kept, every dependency bit cleared
+$ <triage>/.cache/compilers/releases/v1.8.2505/bin/x64/dxv.exe val18-zerodeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-wrongdeps.ll: SUBJECT: state kept, dependency bits replaced with a lie
+$ <triage>/.cache/compilers/releases/v1.8.2505/bin/x64/dxv.exe val18-wrongdeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+================ v1.9.2602 ================
+$ <triage>/.cache/compilers/releases/v1.9.2602/bin/x64/dxc.exe --version
+dxcompiler.dll: 1.9(5184-21d28f72)(1.9.2602.17) - 1.9.2602.17 (21d28f727)
+[exit] 0x00000000
+[dxil.dll beside dxv] yes
+[DXC_DXIL_DLL_PATH] <unset>
+
+---- val18-full.ll: CONTROL, must validate: unmodified DXC output
+$ <triage>/.cache/compilers/releases/v1.9.2602/bin/x64/dxv.exe val18-full.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-badsig.ll: CONTROL, must fail: storeOutput with an out-of-range sig id
+$ <triage>/.cache/compilers/releases/v1.9.2602/bin/x64/dxv.exe val18-badsig.ll
+Function: main: error: Constant values must be in-range for operation.
+note: at 'call void @dx.op.storeOutput.f32(i32 5, i32 7, i32 0, i8 3, float %4)' in block '#0' of function 'main'.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-sm60.ll: CONTROL, must fail: ViewID op under shader model 6.0
+$ <triage>/.cache/compilers/releases/v1.9.2602/bin/x64/dxv.exe val18-sm60.ll
+error: Shader model requires Dxil Version 1.0.
+Function: main: error: Opcode ViewID not valid in shader model vs_6_0.
+note: at '%9 = call i32 @dx.op.viewID.i32(i32 138)' in block '#0' of function 'main'.
+Function: main: error: Entry function performs some operation that is incompatible with the shader stage or other entry properties.  See other errors for details.
+Function: main: error: Function uses features incompatible with the shader model.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-nostate.ll: SUBJECT: dx.viewIdState deleted
+$ <triage>/.cache/compilers/releases/v1.9.2602/bin/x64/dxv.exe val18-nostate.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-zerodeps.ll: SUBJECT: state kept, every dependency bit cleared
+$ <triage>/.cache/compilers/releases/v1.9.2602/bin/x64/dxv.exe val18-zerodeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-wrongdeps.ll: SUBJECT: state kept, dependency bits replaced with a lie
+$ <triage>/.cache/compilers/releases/v1.9.2602/bin/x64/dxv.exe val18-wrongdeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+================ v1.9.2602.24 ================
+$ <triage>/.cache/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe --version
+dxcompiler.dll: 1.9(5191-d355aa83)(1.9.2602.24) - 1.9.2602.24 (d355aa836)
+[exit] 0x00000000
+[dxil.dll beside dxv] yes
+[DXC_DXIL_DLL_PATH] <unset>
+
+---- val18-full.ll: CONTROL, must validate: unmodified DXC output
+$ <triage>/.cache/compilers/releases/v1.9.2602.24/bin/x64/dxv.exe val18-full.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-badsig.ll: CONTROL, must fail: storeOutput with an out-of-range sig id
+$ <triage>/.cache/compilers/releases/v1.9.2602.24/bin/x64/dxv.exe val18-badsig.ll
+Function: main: error: Constant values must be in-range for operation.
+note: at 'call void @dx.op.storeOutput.f32(i32 5, i32 7, i32 0, i8 3, float %4)' in block '#0' of function 'main'.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-sm60.ll: CONTROL, must fail: ViewID op under shader model 6.0
+$ <triage>/.cache/compilers/releases/v1.9.2602.24/bin/x64/dxv.exe val18-sm60.ll
+error: Shader model requires Dxil Version 1.0.
+Function: main: error: Opcode ViewID not valid in shader model vs_6_0.
+note: at '%9 = call i32 @dx.op.viewID.i32(i32 138)' in block '#0' of function 'main'.
+Function: main: error: Entry function performs some operation that is incompatible with the shader stage or other entry properties.  See other errors for details.
+Function: main: error: Function uses features incompatible with the shader model.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-nostate.ll: SUBJECT: dx.viewIdState deleted
+$ <triage>/.cache/compilers/releases/v1.9.2602.24/bin/x64/dxv.exe val18-nostate.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-zerodeps.ll: SUBJECT: state kept, every dependency bit cleared
+$ <triage>/.cache/compilers/releases/v1.9.2602.24/bin/x64/dxv.exe val18-zerodeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-wrongdeps.ll: SUBJECT: state kept, dependency bits replaced with a lie
+$ <triage>/.cache/compilers/releases/v1.9.2602.24/bin/x64/dxv.exe val18-wrongdeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+================ v1.9.2607 ================
+$ <triage>/.cache/compilers/releases/v1.9.2607/bin/x64/dxc.exe --version
+dxcompiler.dll: 1.9(5402-0d3ee6b5)(1.9.0.5402) - 1.9.0.5402 (0d3ee6b55-dirty)
+[exit] 0x00000000
+[dxil.dll beside dxv] yes
+[DXC_DXIL_DLL_PATH] <unset>
+
+---- val18-full.ll: CONTROL, must validate: unmodified DXC output
+$ <triage>/.cache/compilers/releases/v1.9.2607/bin/x64/dxv.exe val18-full.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-badsig.ll: CONTROL, must fail: storeOutput with an out-of-range sig id
+$ <triage>/.cache/compilers/releases/v1.9.2607/bin/x64/dxv.exe val18-badsig.ll
+Function: main: error: Constant values must be in-range for operation.
+note: at 'call void @dx.op.storeOutput.f32(i32 5, i32 7, i32 0, i8 3, float %4)' in block '#0' of function 'main'.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-sm60.ll: CONTROL, must fail: ViewID op under shader model 6.0
+$ <triage>/.cache/compilers/releases/v1.9.2607/bin/x64/dxv.exe val18-sm60.ll
+error: Shader model requires Dxil Version 1.0.
+Function: main: error: Opcode ViewID not valid in shader model vs_6_0.
+note: at '%9 = call i32 @dx.op.viewID.i32(i32 138)' in block '#0' of function 'main'.
+Function: main: error: Entry function performs some operation that is incompatible with the shader stage or other entry properties.  See other errors for details.
+Function: main: error: Function uses features incompatible with the shader model.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-nostate.ll: SUBJECT: dx.viewIdState deleted
+$ <triage>/.cache/compilers/releases/v1.9.2607/bin/x64/dxv.exe val18-nostate.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-zerodeps.ll: SUBJECT: state kept, every dependency bit cleared
+$ <triage>/.cache/compilers/releases/v1.9.2607/bin/x64/dxv.exe val18-zerodeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-wrongdeps.ll: SUBJECT: state kept, dependency bits replaced with a lie
+$ <triage>/.cache/compilers/releases/v1.9.2607/bin/x64/dxv.exe val18-wrongdeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+================ ground truth (main @ 13730886e) ============
+# equivalence control: the same val18 set on the build the verdict
+# rests on. If these lines match the default-valver captures, the
+# `-validator-version 1.8` deviation did not change the answer.
+$ <repo>/build/Debug/bin/dxc.exe --version
+dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+[exit] 0x00000000
+[dxil.dll beside dxv] yes
+[DXC_DXIL_DLL_PATH] <unset>
+
+---- val18-full.ll: CONTROL, must validate: unmodified DXC output
+$ <repo>/build/Debug/bin/dxv.exe val18-full.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-badsig.ll: CONTROL, must fail: storeOutput with an out-of-range sig id
+$ <repo>/build/Debug/bin/dxv.exe val18-badsig.ll
+Function: main: error: Constant values must be in-range for operation.
+note: at 'call void @dx.op.storeOutput.f32(i32 5, i32 7, i32 0, i8 3, float %4)' in block '#0' of function 'main'.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-sm60.ll: CONTROL, must fail: ViewID op under shader model 6.0
+$ <repo>/build/Debug/bin/dxv.exe val18-sm60.ll
+error: Shader model requires Dxil Version 1.0.
+Function: main: error: Opcode ViewID not valid in shader model vs_6_0.
+note: at '%9 = call i32 @dx.op.viewID.i32(i32 138)' in block '#0' of function 'main'.
+Function: main: error: Entry function performs some operation that is incompatible with the shader stage or other entry properties.  See other errors for details.
+Function: main: error: Function uses features incompatible with the shader model.
+Validation failed.
+[exit] 0x00000001
+
+---- val18-nostate.ll: SUBJECT: dx.viewIdState deleted
+$ <repo>/build/Debug/bin/dxv.exe val18-nostate.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-zerodeps.ll: SUBJECT: state kept, every dependency bit cleared
+$ <repo>/build/Debug/bin/dxv.exe val18-zerodeps.ll
+Validation succeeded.
+[exit] 0x00000000
+
+---- val18-wrongdeps.ll: SUBJECT: state kept, dependency bits replaced with a lie
+$ <repo>/build/Debug/bin/dxv.exe val18-wrongdeps.ll
+Validation succeeded.
+[exit] 0x00000000

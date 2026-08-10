@@ -1,0 +1,130 @@
+# compiler: rel-1.4.1907-3954
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-10T17:41:35+00:00
+# cmd: -T lib_6_3 control-workaround.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: workaround (control-workaround.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 control-workaround.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Buffer Definitions:
+;
+; cbuffer Config
+; {
+;
+;   struct Config
+;   {
+;
+;       column_major float3x3 GlobalMatrix;           ; Offset:    0
+;   
+;   } Config;                                         ; Offset:    0 Size:    44
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; Config                            cbuffer      NA          NA     CB0cb4294967295,space4294967295     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%Config = type { %class.matrix.float.3.3 }
+%class.matrix.float.3.3 = type { [3 x <3 x float>] }
+%struct.Payload = type { <3 x float> }
+%struct.Attributes = type { <3 x float> }
+%dx.types.Handle = type { i8* }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+%struct.Parameters = type { %class.matrix.float.3.3 }
+
+@Config = external constant %Config
+
+; Function Attrs: nounwind
+define void @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z"(%struct.Payload* noalias nocapture %Data, %struct.Attributes* nocapture readonly %Attrib) #0 {
+  %1 = load %Config, %Config* @Config, align 4
+  %Config = call %dx.types.Handle @dx.op.createHandleForLib.Config(i32 160, %Config %1)  ; CreateHandleForLib(Resource)
+  %2 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %Config, i32 0)  ; CBufferLoadLegacy(handle,regIndex)
+  %3 = extractvalue %dx.types.CBufRet.f32 %2, 2
+  %4 = getelementptr inbounds %struct.Attributes, %struct.Attributes* %Attrib, i32 0, i32 0
+  %5 = load <3 x float>, <3 x float>* %4, align 4, !tbaa !27
+  %.i0 = extractelement <3 x float> %5, i32 0
+  %.i1 = extractelement <3 x float> %5, i32 1
+  %.i2 = extractelement <3 x float> %5, i32 2
+  %.i03 = fmul fast float %.i0, %3
+  %.i14 = fmul fast float %.i1, %3
+  %.i25 = fmul fast float %.i2, %3
+  %6 = getelementptr inbounds %struct.Payload, %struct.Payload* %Data, i32 0, i32 0
+  %7 = load <3 x float>, <3 x float>* %6, align 4, !tbaa !27
+  %.i06 = extractelement <3 x float> %7, i32 0
+  %.i07 = fadd fast float %.i06, %.i03
+  %.i18 = extractelement <3 x float> %7, i32 1
+  %.i19 = fadd fast float %.i18, %.i14
+  %.i210 = extractelement <3 x float> %7, i32 2
+  %.i211 = fadd fast float %.i210, %.i25
+  %.upto0 = insertelement <3 x float> undef, float %.i07, i32 0
+  %.upto1 = insertelement <3 x float> %.upto0, float %.i19, i32 1
+  %8 = insertelement <3 x float> %.upto1, float %.i211, i32 2
+  store <3 x float> %8, <3 x float>* %6, align 4, !tbaa !27
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.Config(i32, %Config) #1
+
+attributes #0 = { nounwind "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-realign-stack" "stack-protector-buffer-size"="0" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!7, !17}
+!dx.entryPoints = !{!23, !24}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 4}
+!3 = !{!"lib", i32 6, i32 3}
+!4 = !{null, null, !5, null}
+!5 = !{!6}
+!6 = !{i32 0, %Config* @Config, !"Config", i32 -1, i32 -1, i32 1, i32 44, null}
+!7 = !{i32 0, %struct.Parameters undef, !8, %struct.Payload undef, !11, %struct.Attributes undef, !13, %Config undef, !15}
+!8 = !{i32 44, !9}
+!9 = !{i32 6, !"Matrix", i32 2, !10, i32 3, i32 0, i32 7, i32 9}
+!10 = !{i32 3, i32 3, i32 2}
+!11 = !{i32 12, !12}
+!12 = !{i32 6, !"AccumulatedColor", i32 3, i32 0, i32 7, i32 9}
+!13 = !{i32 12, !14}
+!14 = !{i32 6, !"Color", i32 3, i32 0, i32 7, i32 9}
+!15 = !{i32 44, !16}
+!16 = !{i32 6, !"GlobalMatrix", i32 2, !10, i32 3, i32 0, i32 7, i32 9}
+!17 = !{i32 1, void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", !18}
+!18 = !{!19, !21, !22}
+!19 = !{i32 1, !20, !20}
+!20 = !{}
+!21 = !{i32 2, !20, !20}
+!22 = !{i32 0, !20, !20}
+!23 = !{null, !"", null, !4, null}
+!24 = !{void (%struct.Payload*, %struct.Attributes*)* @"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", !"\01?MaterialAHS@@YAXUPayload@@UAttributes@@@Z", null, null, !25}
+!25 = !{i32 8, i32 9, i32 6, i32 12, i32 7, i32 12, i32 5, !26}
+!26 = !{i32 0}
+!27 = !{!28, !28, i64 0}
+!28 = !{!"omnipotent char", !29, i64 0}
+!29 = !{!"Simple C/C++ TBAA"}
+
+
+--- stderr ---
+

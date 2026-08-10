@@ -1,0 +1,22 @@
+{
+  "batch": "batch-014",
+  "confidence": "high",
+  "created_at": "2022-02-17T09:34:03Z",
+  "expected_symptom": "Rewriting with -E vsMain -remove-unused-globals -remove-unused-functions -extract-entry-uniforms leaves cbuffer cbB { ... } in the output even though its only user, psMain, was removed.",
+  "godbolt_skip": "The reported surface is the rewriter (dxr.exe / IDxcRewriter2::RewriteWithOptions). Compiler Explorer's DXC compilers run dxc.exe, which rejects -remove-unused-globals and -rewrite outright (variant-dxc-rejects-rewriter-flag-main-debug.txt), so CE cannot run this repro at all.",
+  "history": "always-repro'd",
+  "labels": "enhancement,rewriter",
+  "labels_now": "enhancement,rewriter",
+  "notes_path": "issues/4273/notes.md",
+  "number": 4273,
+  "repro_quality": "prose-only",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "-remove-unused-globals never removes an explicit cbuffer block (nor an unused member inside one); only loose globals bound for $Globals are removal candidates. Reproduces on main 1.9.0.5433 (13730886e) via dxr.exe and on all 19 stable releases v1.5.2010..v1.9.2607 that can express the option; v1.4.1907 predates the rewriter option surface (invalid probe), so there is no regression. Structural in dxcrewriteunused.cpp, where HLSLBufferDecls go to a separate cbufferDecls list and are never added to unusedGlobals, and asserted by the lit test rewriter/remove-unused-globals.hlsl since 2020. tex3d answered the question in 2022 and converted the issue into an accepted feature request; it should stay open as an enhancement.",
+  "title": "How to remove unused cbuffer?",
+  "triaged_at": "2026-08-10T20:43:27+00:00",
+  "triaged_by": "GitHub Copilot CLI (claude-opus-4.6)",
+  "triaged_with_commit": "13730886e6a9019e4e0823746470f3ab75341d6b",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4273"
+}

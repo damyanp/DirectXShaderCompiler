@@ -1,0 +1,21 @@
+{
+  "batch": "batch-014",
+  "confidence": "high",
+  "created_at": "2022-01-03T07:16:50Z",
+  "fixed_in": "v1.7.2308",
+  "godbolt_skip": "Compiler Explorer compiles a single source file with one dxc invocation and shows generated code; it cannot run the second (dxl/-link) step, cannot run dxa -dumpreflection, and exposes no reflection data at all. The symptom is a field of D3D12_SHADER_BUFFER_DESC in the linked container, so no CE link can show it.",
+  "history": "fixed",
+  "labels": "bug,reflection,shader-linking",
+  "labels_now": "bug,reflection,shader-linking",
+  "number": 4168,
+  "repro_quality": "prose-only",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "does-not-repro",
+  "suggested_action": "close-fixed",
+  "summary": "Reflection of a lib_6_x library linked to ps_6_0 reported Num Variables: 0 for its cbuffer. Does not reproduce on main (13730886e): dxa -dumpreflection on the linked container shows Num Variables: 2 with both members. Release matrix over all 20 stable releases (harness held fixed, producer varied) shows the defect in v1.6.2106 through v1.7.2212.1 and clean from v1.7.2308 onward; the three older releases predate -link and are invalid probes. At v1.6.2112 the library alone reflects correctly and only the linked output loses the annotation, matching the reporter's analysis. Strong attribution to bf015d2e1 (#5197, 2023-05-10), which is in the 257-commit fix window and is the only commit in history adding the CopyTypeAnnotation call in DxilLinkJob::AddGlobals.",
+  "title": "Can't get cbuffer's variables from a linked shader",
+  "triaged_at": "2026-08-10T20:43:26+00:00",
+  "triaged_by": "claude-opus-4.6",
+  "triaged_with_commit": "13730886e6a9019e4e0823746470f3ab75341d6b",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4168"
+}

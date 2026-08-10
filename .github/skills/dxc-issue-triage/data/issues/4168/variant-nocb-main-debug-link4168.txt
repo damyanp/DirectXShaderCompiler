@@ -1,0 +1,84 @@
+# compiler: main-debug-link4168
+# exe: <triage>/issues/4168/run-link4168.cmd
+# ran: 2026-08-10T17:55:14+00:00
+# cmd: dxc -T lib_6_x -Fo lib4168.dxo control-nocb.hlsl ; dxl -T ps_6_0 -E main -Fo linked4168.dxo lib4168.dxo ; dxa -dumpreflection linked4168.dxo
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: nocb (control-nocb.hlsl)
+# expect: no-match
+
+$ dxc dxc -T lib_6_x -Fo lib4168.dxo control-nocb.hlsl
+[exe] <triage>/issues/4168/run-link4168.cmd
+[exit] 0
+--- stdout ---
+$ <repo>/build/Debug/bin/dxc.exe -T lib_6_x -Fo lib4168.dxo control-nocb.hlsl
+[link4168] dxc exit 0
+
+--- stderr ---
+
+
+$ dxc dxl -T ps_6_0 -E main -Fo linked4168.dxo lib4168.dxo
+[exe] <triage>/issues/4168/run-link4168.cmd
+[exit] 0
+--- stdout ---
+$ <repo>/build/Debug/bin/dxl.exe -T ps_6_0 -E main -Fo linked4168.dxo lib4168.dxo
+[link4168] dxl exit 0
+
+--- stderr ---
+
+
+$ dxc dxa -dumpreflection linked4168.dxo
+[exe] <triage>/issues/4168/run-link4168.cmd
+[exit] 0
+--- stdout ---
+$ <repo>/build/Debug/bin/dxa.exe -dumpreflection linked4168.dxo
+ID3D12ShaderReflection:
+  D3D12_SHADER_DESC:
+    Shader Version: Pixel 6.0
+    Creator: dxc(private) 1.9.0.5433 (triage, ab5400907)
+    Flags: 0
+    ConstantBuffers: 0
+    BoundResources: 0
+    InputParameters: 1
+    OutputParameters: 1
+    InstructionCount: 13
+    TempArrayCount: 0
+    DynamicFlowControlCount: 0
+    ArrayInstructionCount: 0
+    TextureNormalInstructions: 0
+    TextureLoadInstructions: 0
+    TextureCompInstructions: 0
+    TextureBiasInstructions: 0
+    TextureGradientInstructions: 0
+    FloatInstructionCount: 4
+    IntInstructionCount: 0
+    UintInstructionCount: 0
+    CutInstructionCount: 0
+    EmitInstructionCount: 0
+    cBarrierInstructions: 0
+    cInterlockedInstructions: 0
+    cTextureStoreInstructions: 0
+  InputParameter Elements: 1
+    D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: TEXCOORD SemanticIndex: 0
+      Register: 0
+      SystemValueType: D3D_NAME_UNDEFINED
+      ComponentType: D3D_REGISTER_COMPONENT_FLOAT32
+      Mask: xyzw (15)
+      ReadWriteMask: xyzw (15) (AlwaysReads/NeverWrites)
+      Stream: 0
+      MinPrecision: D3D_MIN_PRECISION_DEFAULT
+  OutputParameter Elements: 1
+    D3D12_SIGNATURE_PARAMETER_DESC: SemanticName: SV_TARGET SemanticIndex: 0
+      Register: 0
+      SystemValueType: D3D_NAME_TARGET
+      ComponentType: D3D_REGISTER_COMPONENT_FLOAT32
+      Mask: xyzw (15)
+      ReadWriteMask: ---- (0) (AlwaysReads/NeverWrites)
+      Stream: 0
+      MinPrecision: D3D_MIN_PRECISION_DEFAULT
+[link4168] dxa exit 0
+
+--- stderr ---
+

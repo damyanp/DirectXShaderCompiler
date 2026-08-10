@@ -1,0 +1,21 @@
+{
+  "batch": "batch-012",
+  "confidence": "high",
+  "created_at": "2021-08-13T12:59:16Z",
+  "godbolt_url": "https://godbolt.org/z/M7Ex1s9b3",
+  "history": "always repro'd across v1.4.1907..v1.9.2607 -- 20/20 catalogued stable releases, every one a 60s timeout, no invalid probes; the SROA bail-out responsible dates to 6ee4074a4, the repository's first commit (2016-12-28), so it predates every probeable release",
+  "labels": "bug,crash",
+  "labels_now": "bug,crash",
+  "notes_path": "issues/3906/notes.md",
+  "number": 3906,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol (independent draft review, step 10)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on everything measured. All 20 stable releases v1.4.1907..v1.9.2607 hang unboundedly on the shader as filed (v1.9.2607 still running after 600s, at cpu/elapsed = 1.00 throughout -- a spin, not a blocked wait); the Debug ground truth does not hang but asserts in ~1s with 0xE0000001. Same defect: SROA_Helper::RewriteBitCast bails at the !SrcTy->isStructTy() guard (ScalarReplAggregatesHLSL.cpp:2661-2663) without erasing the bitcast or nulling the use, so RewriteForScalarRepl's while (!V->use_empty()) loop at 2991 never advances; both that assert and the DXASSERT that names the loop (2994-2996, 'Infinite loop while SROA'ing value, use isn't getting eliminated.') are NDEBUG-only, so Release just spins. Reduced to a struct with a struct-typed data member whose member function returns an array -- no ByteAddressBuffer, no register binding. Only one of the report's three stated conditions (the array return) is load-bearing; the other two variants still hang. The reporter's struct-return workaround still works, and hlsl_clang_trunk compiles all of it cleanly.",
+  "title": "Compiler infinite loop issue",
+  "triaged_at": "2026-08-10T20:43:25+00:00",
+  "triaged_by": "claude-opus-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/3906"
+}
