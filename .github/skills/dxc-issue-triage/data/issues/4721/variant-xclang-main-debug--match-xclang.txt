@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:37:01+00:00
+# cmd: -T ps_6_0 -E main -HV 2021 -Xclang -fixit repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match-xclang.json
+# verdict: repro
+# variant: xclang (repro.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main -HV 2021 -Xclang -fixit repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-Xclang'
+

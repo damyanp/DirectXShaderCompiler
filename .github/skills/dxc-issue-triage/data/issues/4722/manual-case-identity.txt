@@ -1,0 +1,24 @@
+# issue 4722 -- byte-identity measurement
+# compiler: <repo>/build/Debug/bin/dxc.exe
+# version:  dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+
+$ dxc -T ps_6_0 -E main -HV 2021 -Fo identity-repro.dxo repro.hlsl
+$ dxc -T ps_6_0 -E main -HV 2021 -Fo identity-control-template-column-major.dxo control-template-column-major.hlsl
+$ dxc -T ps_6_0 -E main -HV 2021 -Fo identity-control-template-default.dxo control-template-default.hlsl
+$ dxc -T ps_6_0 -E main -HV 2021 -Fo identity-control-nontemplate-row-major.dxo control-nontemplate-row-major.hlsl
+$ dxc -T ps_6_0 -E main -HV 2021 -Fo identity-control-nontemplate-column-major.dxo control-nontemplate-column-major.hlsl
+$ dxc -T ps_6_0 -E main -HV 2021 -Fo identity-control-nontemplate-default.dxo control-nontemplate-default.hlsl
+
+case                    asked for     emitted       sha256 of the DXIL container
+----------------------  ------------  ------------  ----------------------------------------------------------------
+template row_major      row-major     column_major  82f4fbd792f5f09da73546a069b422e42b20fc29e1d80dd75b7e3c08b7eb640f
+template column_major   column-major  column_major  82f4fbd792f5f09da73546a069b422e42b20fc29e1d80dd75b7e3c08b7eb640f
+template (no request)   default       column_major  82f4fbd792f5f09da73546a069b422e42b20fc29e1d80dd75b7e3c08b7eb640f
+concrete row_major      row-major     row_major     eed9092e760ce694d8de778d14bc788f2819716f2744c68728c832c50ee0f102
+concrete column_major   column-major  column_major  8d92eb6ee9e0fae4757e85adecf7e8dd9c1452f6ddaa176608624a955855ffe7
+concrete (no request)   default       column_major  8d92eb6ee9e0fae4757e85adecf7e8dd9c1452f6ddaa176608624a955855ffe7
+
+SYMPTOM     template row_major == template column_major : IDENTICAL -- one of the two requests was ignored
+            template row_major == template default      : IDENTICAL -- the request had no effect at all
+CONTROL     concrete row_major == concrete column_major : different -- orientation does work outside templates
+CONTROL     concrete column_major == concrete default   : IDENTICAL -- the default here is column-major

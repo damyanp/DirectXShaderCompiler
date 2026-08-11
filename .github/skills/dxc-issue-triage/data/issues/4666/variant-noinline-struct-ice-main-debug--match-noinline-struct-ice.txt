@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:47:10+00:00
+# cmd: -T ps_6_0 -E main observation-noinline-struct-sampler-array.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match-noinline-struct-ice.json
+# verdict: repro
+# variant: noinline-struct-ice (observation-noinline-struct-sampler-array.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main observation-noinline-struct-sampler-array.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

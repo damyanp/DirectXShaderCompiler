@@ -1,0 +1,19 @@
+Five panes compile one file: three DXC and two Clang. Only the preprocessor
+define differs between the repro and control arms.
+
+Panes 1 and 3 are the declaration exactly as filed, on current DXC and on a 2021
+release. Look at the exit status rather than the text: DXC terminates abnormally
+instead of emitting a diagnostic, and on Compiler Explorer's Linux process a
+Windows status is truncated to its low byte, so the number will not match what a
+Windows build prints. Pane 2 adds -DCONTROL, which swaps in the supported
+spelling of the same 16-bit type and changes nothing else; it compiles and emits
+a shader, which is what shows the failure is about the declaration and not about
+the profile, the flags or the entry point.
+
+Panes 4 and 5 are the successor front end on the same two arms, syntax-only. It
+rejects the repro arm with a parse diagnostic and accepts the control arm, so the
+diagnostic is specific to this declaration rather than to the shader stage.
+
+Compiler Explorer runs Release builds, so no assert is visible here. A local
+assert-enabled build stops earlier, in the parser, on a null type; continuing
+past that assert reaches the same memory fault the Release panes show.

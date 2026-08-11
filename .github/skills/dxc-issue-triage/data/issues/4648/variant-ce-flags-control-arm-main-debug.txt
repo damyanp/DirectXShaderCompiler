@@ -1,0 +1,110 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:37:28+00:00
+# cmd: -T vs_6_2 -enable-16bit-types -Zi -Qembed_debug -DCONTROL godbolt-source.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: ce-flags-control-arm (godbolt-source.hlsl)
+# expect: no-match
+
+$ dxc -T vs_6_2 -enable-16bit-types -Zi -Qembed_debug -DCONTROL godbolt-source.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 203deb367f32b8272351742b2a2d0f1c.pdb
+; shader hash: 203deb367f32b8272351742b2a2d0f1c
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Vertex Shader
+; OutputPositionPresent=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @main() {
+entry:
+  ret void, !dbg !27 ; line:10 col:1
+}
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!12, !13}
+!llvm.ident = !{!14}
+!dx.source.contents = !{!15}
+!dx.source.defines = !{!16}
+!dx.source.mainFileName = !{!17}
+!dx.source.args = !{!18}
+!dx.version = !{!19}
+!dx.valver = !{!20}
+!dx.shaderModel = !{!21}
+!dx.typeAnnotations = !{!22}
+!dx.entryPoints = !{!25}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.5433 (triage, ab5400907)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !7)
+!1 = !DIFile(filename: "godbolt-source.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 9, type: !5, isLocal: false, isDefinition: true, scopeLine: 9, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{!8, !8}
+!8 = !DIGlobalVariable(name: "g", linkageName: "\01?g@@3GB", scope: !0, file: !1, line: 3, type: !9, isLocal: false, isDefinition: true)
+!9 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !10)
+!10 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint16_t", file: !1, line: 3, baseType: !11)
+!11 = !DIBasicType(name: "uint16_t", size: 16, align: 16, encoding: DW_ATE_unsigned)
+!12 = !{i32 2, !"Dwarf Version", i32 4}
+!13 = !{i32 2, !"Debug Info Version", i32 3}
+!14 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!15 = !{!"godbolt-source.hlsl", !"#ifdef CONTROL\0D\0A// Control arm: the supported spelling of the same type.\0D\0Auint16_t g;\0D\0A#else\0D\0A// Repro arm: the declaration from the issue body, verbatim.\0D\0Aunsigned int16_t g;\0D\0A#endif\0D\0A\0D\0Avoid main() {\0D\0A}\0D\0A"}
+!16 = !{!"CONTROL=1", !"CONTROL=1"}
+!17 = !{!"godbolt-source.hlsl"}
+!18 = !{!"-E", !"main", !"-T", !"vs_6_2", !"-enable-16bit-types", !"-Zi", !"-Qembed_debug", !"-D", !"CONTROL", !"-D", !"CONTROL"}
+!19 = !{i32 1, i32 2}
+!20 = !{i32 1, i32 10}
+!21 = !{!"vs", i32 6, i32 2}
+!22 = !{i32 1, void ()* @main, !23}
+!23 = !{!24}
+!24 = !{i32 1, !2, !2}
+!25 = !{void ()* @main, !"main", null, null, !26}
+!26 = !{i32 0, i64 8388608}
+!27 = !DILocation(line: 10, column: 1, scope: !4)
+
+
+--- stderr ---
+

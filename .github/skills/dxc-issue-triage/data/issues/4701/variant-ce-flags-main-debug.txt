@@ -1,0 +1,120 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:41:25+00:00
+# cmd: -T cs_6_0 -E main -Zi -Qembed_debug godbolt-source.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: ce-flags (godbolt-source.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main -Zi -Qembed_debug godbolt-source.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 3dc50f5df82abc9c06d75b8b4345f632.pdb
+; shader hash: 3dc50f5df82abc9c06d75b8b4345f632
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,8,1)
+; NumBytesGroupSharedMemory: 40
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+@"\01?a@@3PAMA" = external addrspace(3) global [10 x float], align 4
+
+define void @main() {
+entry:
+  store float 1.000000e+00, float addrspace(3)* getelementptr inbounds ([10 x float], [10 x float] addrspace(3)* @"\01?a@@3PAMA", i32 0, i32 0), align 4, !dbg !28, !tbaa !29 ; line:15 col:8
+  ret void, !dbg !33 ; line:16 col:1
+}
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!13, !14}
+!llvm.ident = !{!15}
+!dx.source.contents = !{!16}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!17}
+!dx.source.args = !{!18}
+!dx.version = !{!19}
+!dx.valver = !{!20}
+!dx.shaderModel = !{!21}
+!dx.typeAnnotations = !{!22}
+!dx.entryPoints = !{!25}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.5433 (triage, ab5400907)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !7)
+!1 = !DIFile(filename: "godbolt-source.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 14, type: !5, isLocal: false, isDefinition: true, scopeLine: 14, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{!8}
+!8 = !DIGlobalVariable(name: "a", linkageName: "\01?a@@3PAMA", scope: !0, file: !1, line: 10, type: !9, isLocal: false, isDefinition: true, variable: [10 x float] addrspace(3)* @"\01?a@@3PAMA")
+!9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 320, align: 32, elements: !11)
+!10 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!11 = !{!12}
+!12 = !DISubrange(count: 10)
+!13 = !{i32 2, !"Dwarf Version", i32 4}
+!14 = !{i32 2, !"Debug Info Version", i32 3}
+!15 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!16 = !{!"godbolt-source.hlsl", !"// Compiler Explorer source for issue 4701.\0D\0A// Identical to repro.hlsl, with the one variable under test behind a preprocessor guard so\0D\0A// that a second pane can compile the reference case from the same shared source. CE gives\0D\0A// every pane one source, so this is how a one-variable A/B is expressed there.\0D\0A// Verified locally to behave exactly like repro.hlsl (default) and control-static.hlsl\0D\0A// (-DUSE_STATIC); see variant-ce-source-default-* and variant-ce-source-static-*.\0D\0A#ifdef USE_STATIC\0D\0Astatic float a[10];\0D\0A#else\0D\0Agroupshared float a[10];\0D\0A#endif\0D\0A\0D\0A[numthreads(8,8,1)]\0D\0Avoid main() {\0D\0A  a[0] = 1;\0D\0A}\0D\0A"}
+!17 = !{!"godbolt-source.hlsl"}
+!18 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug"}
+!19 = !{i32 1, i32 0}
+!20 = !{i32 1, i32 10}
+!21 = !{!"cs", i32 6, i32 0}
+!22 = !{i32 1, void ()* @main, !23}
+!23 = !{!24}
+!24 = !{i32 1, !2, !2}
+!25 = !{void ()* @main, !"main", null, null, !26}
+!26 = !{i32 4, !27}
+!27 = !{i32 8, i32 8, i32 1}
+!28 = !DILocation(line: 15, column: 8, scope: !4)
+!29 = !{!30, !30, i64 0}
+!30 = !{!"float", !31, i64 0}
+!31 = !{!"omnipotent char", !32, i64 0}
+!32 = !{!"Simple C/C++ TBAA"}
+!33 = !DILocation(line: 16, column: 1, scope: !4)
+
+
+--- stderr ---
+

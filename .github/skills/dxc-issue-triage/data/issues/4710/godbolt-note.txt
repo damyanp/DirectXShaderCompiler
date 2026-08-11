@@ -1,0 +1,18 @@
+What to look for: both DXC panes stop with a diagnostic and emit no disassembly
+at all -- no shader body, no binding table, no signature rows. That is the bug
+report: this shader is rejected rather than compiled.
+
+The FXC panes are the contrast the issue is filed on. The 5.0 pane assembles the
+shader; the 5.1 pane does not. The reporter's own follow-up comment describes the
+same split, so treat this as corroboration of the report rather than as an
+isolated experiment -- the two FXC panes differ in compiler build as well as in
+target profile.
+
+Compiler Explorer's oldest DXC is 1.6.2112, which already postdates the change
+measured locally: v1.4.1907 compiles this shader and v1.5.2010 is the first
+release that rejects it. No pane here can show the era in which it worked; that
+contrast lives in the captured local output attached to the triage notes.
+
+The diagnostic's exact wording is deliberately not quoted in this banner, because
+Compiler Explorer compiles the banner into the module alongside the shader and a
+quoted message would plant its own search hit.

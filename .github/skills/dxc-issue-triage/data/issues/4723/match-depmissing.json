@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "dep4723-artifact depfile-MF dep-preprocess\\.d MISSING"
+    },
+    {
+      "kind": "contains",
+      "value": "dep4723-exit=0x00000000"
+    }
+  ],
+  "note": "The DETECTOR on its own: 'dxc was asked for a depfile at dep-preprocess.d, succeeded, and did not write it'. match.json's self-test clauses are deliberately absent, because SKILL.md requires a control to be scored against the instrument rather than against an unrelated anchor -- a single-invocation control cannot satisfy a clause about a different invocation, and would then score no-match for a reason that says nothing about the detector. Clause 2 is the anti-vacuity anchor: a run that failed cannot satisfy it, so 'MISSING' can only mean 'the tool ran, succeeded and produced nothing'. Scored variants: subject-mf-p is the identity control (expect match -- the detector must fire on the reported configuration when it is run alone); control-compile-mf is the single-variable negative control, the identical command with '-P -Fi repro.i' removed (expect no-match -- the file appears, so PRESENT is printed); control-p-only is -P with no -MF at all (expect no-match -- with nothing requested there is no artifact line, which proves MISSING is a report about an unfulfilled request rather than boilerplate)."
+}

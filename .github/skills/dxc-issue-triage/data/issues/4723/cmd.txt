@@ -1,0 +1,38 @@
+# The "compiler" here is run-dep4723.cmd, not dxc.exe.
+#
+# The issue is about flag handling and file output -- whether the -M / -MD /
+# -MF depfile flags do anything when -P is also given. The observable is the
+# set of files a run produced, which stdout cannot show, so each line below is
+# forwarded verbatim to dxc by the harness, which then reports which artifacts
+# appeared. See dep4723.py.
+#
+# The first six lines are three A/B pairs, one per depfile flag. Each pair
+# differs in exactly one thing: the second line adds `-P -Fi <name>.i`. The odd
+# lines are therefore self-tests as well as baselines -- if a build's -M family
+# were broken outright, or the harness could not see a file being written, the
+# odd lines fail and the predicate cannot manufacture a finding from the even
+# ones.
+#
+# ps_6_0 and `main` are the oldest profile/entry that can express the shader,
+# per SKILL.md's "target the repro at the oldest profile and flag set that
+# still shows the symptom". -T/-E are kept on the -P lines too, even though
+# preprocessing does not need them, so that each pair differs ONLY in -P.
+#
+# The reporter gave no command line (the body is two sentences of prose), so
+# every argument here is agent-constructed; the flags are the ones the issue
+# names: -M via #2063, plus -MD and -MF.
+#
+# The seventh line is the consequence, and it is why this is not purely a
+# feature request: it feeds the .i written by line 2 straight back into dxc.
+# If -P + -MF only failed to write a depfile, that compile would succeed. It
+# does not, so the pair (line 2, line 7) measures a real regression in the
+# preprocessed output rather than a missing feature. The .i it consumes is a
+# declared output of line 2 (-Fi), so it is rebuilt by every run and is not a
+# checked-in input.
+-T ps_6_0 -E main -MF dep-compile.d repro.hlsl
+-T ps_6_0 -E main -P -Fi repro.i -MF dep-preprocess.d repro.hlsl
+-T ps_6_0 -E main -MD repro.hlsl
+-T ps_6_0 -E main -P -Fi repro-md.i -MD repro.hlsl
+-T ps_6_0 -E main -M repro.hlsl
+-T ps_6_0 -E main -P -Fi repro-m.i -M repro.hlsl
+-T ps_6_0 -E main repro.i

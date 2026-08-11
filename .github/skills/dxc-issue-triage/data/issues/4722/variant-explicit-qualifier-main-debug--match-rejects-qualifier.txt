@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:40:04+00:00
+# cmd: -T ps_6_0 -E main -HV 2021 repro-explicit-qualifier.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-rejects-qualifier.json
+# verdict: repro
+# variant: explicit-qualifier (repro-explicit-qualifier.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main -HV 2021 repro-explicit-qualifier.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro-explicit-qualifier.hlsl:18:3: error: 'row_major' can only be used with a matrix type
+  row_major matrix<T, X, Y> RowMajor;
+  ^~~~~~~~~
+
+

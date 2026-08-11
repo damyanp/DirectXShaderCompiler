@@ -1,0 +1,20 @@
+# compiler: v1.7.2212.1
+# exe: <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe
+# ran: 2026-08-10T22:33:10+00:00
+# cmd: -T cs_6_0 -E main -HV 2021 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-decl-diagnostic.json
+# verdict: no-repro
+
+$ dxc -T cs_6_0 -E main -HV 2021 repro.hlsl
+[exe] <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:34:35: error: scalar, vector, or matrix expected
+    array<float, 3> result = arr1 + 2.0f;
+                                  ^
+
+

@@ -1,0 +1,18 @@
+# The reproduction llvm-beanz linked from the issue thread
+# (https://godbolt.org/z/39Khq117f) compiles the single-line source with:
+#
+#     -T lib_6_6
+#
+# cmd.txt lowers this to `-T ps_6_0 -E main` for one reason: the diagnostic is
+# identical under both profiles (verified -- see variant-lib66-main-debug.txt,
+# same message at the same source column), and ps_6_0 exists in every release
+# back to the v1.4.1907 bisection floor while lib_6_6 requires v1.6.2106 or
+# later. Using lib_6_6 would silently discard roughly a third of the release
+# history as `invalid-probe`, on a profile that is incidental to the bug.
+#
+# The reporter's own configuration is unknown -- the issue quotes line 175 of a
+# private `hlsl.hlsl` described as a ray-tracing shader, which is consistent
+# with a lib_6_x profile but is not stated. Nothing else was changed: no
+# workaround flags were inherited, and the source line is copied verbatim from
+# the linked session.
+-T lib_6_6 repro.hlsl

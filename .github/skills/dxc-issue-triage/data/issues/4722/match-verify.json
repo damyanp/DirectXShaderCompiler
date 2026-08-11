@@ -1,0 +1,10 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains", "value": "'error' diagnostics seen but not expected" },
+    { "kind": "regex", "value": "Line 19: 'row_major' can only be used with a matrix type" },
+    { "kind": "regex", "value": "Line 20: 'column_major' can only be used with a matrix type" },
+    { "kind": "not_contains", "value": "diagnostics expected but not seen" }
+  ],
+  "note": "Issue 4722, the author's own test case checked by dxc's own -verify mode. This is the least-interpreted measurement available: the expected-error directives are the author's, unedited, and -verify reports exactly the difference between them and what dxc does. Clauses 2 and 3 are the two declarations the test case marks as expected to COMPILE (issue-testcase.hlsl lines 19 and 20, the row_major/column_major matrix<T,X,Y> members) turning up as UNEXPECTED errors. Clause 4 is an absence clause and is anchored by clause 1: it asserts that none of the four expected-error directives went unseen, i.e. ask B of the issue -- the diagnostic on a dependent non-matrix member -- is in fact produced. Clause 1 also proves -verify actually ran and parsed the directives, so a compile that never started cannot satisfy this predicate. The line numbers are pinned to issue-testcase.hlsl and are invalidated by any edit to that file. CONTROL: control-verify-nontemplate.hlsl carries the same two expected-error directives on the concrete, non-template spelling and verifies cleanly, so it must NOT match. This predicate is ground-truth-only: -verify's output wording is a clang-diagnostics-engine detail and is not claimed to be portable across releases."
+}

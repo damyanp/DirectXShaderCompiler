@@ -1,0 +1,19 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T23:10:26+00:00
+# cmd: -T ps_6_0 -E main repro-spirv-struct.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match-noinline-struct-ice.json
+# verdict: repro
+# variant: struct-workaround-dxil (repro-spirv-struct.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main repro-spirv-struct.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

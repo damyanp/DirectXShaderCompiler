@@ -1,0 +1,26 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-10T22:48:35+00:00
+# cmd: -T ps_6_0 -E main -HV 2021 -fixit repro.hlsl ; -T ps_6_0 -E main -HV 2021 repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match-flag.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E main -HV 2021 -fixit repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-fixit'
+
+
+$ dxc -T ps_6_0 -E main -HV 2021 repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown HLSL version: 2021
+

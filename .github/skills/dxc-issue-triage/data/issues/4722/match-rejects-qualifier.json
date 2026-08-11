@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains", "value": "error: 'row_major' can only be used with a matrix type" },
+    { "kind": "regex", "value": "^\\s*row_major (matrix<T, X, Y>|T) " }
+  ],
+  "note": "Issue 4722, loud face. The issue's own test case declares `row_major matrix<T, X, Y> RowMajor;` inside a template and marks it as expected to compile; today it is rejected with the diagnostic the test reserves for non-matrix members. Clause 1 is that diagnostic, written verbatim so `classify` does not demote a matching probe as a feature-absence marker (the reported symptom IS a diagnostic here). Clause 2 is the anti-vacuity anchor: it matches the source line clang echoes under the caret, which proves the compiler actually read the declaration under test -- a release that rejects -HV 2021 outright prints no source echo and so cannot satisfy it. CONTROLS: control-explicit-qualifier-nontemplate.hlsl is the same declaration without the template and must NOT match; repro-dependent-matrix-arg.hlsl instantiates the dependent type as float4x4 -- a matrix -- and must MATCH, which shows the check is testing dependence rather than matrix-ness. NOTE: this predicate is NOT bisectable through cmd.txt, which drives repro.hlsl (the silent face). Its release history is in manual-case-release-history.txt, which drives every release over both faces."
+}

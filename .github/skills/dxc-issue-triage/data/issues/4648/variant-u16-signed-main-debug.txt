@@ -1,0 +1,24 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:21:40+00:00
+# cmd: -T vs_6_2 -enable-16bit-types case-u16-signed.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: u16-signed (case-u16-signed.hlsl)
+# expect: match
+# expectation-kind: hypothesis
+# outcome: refuted
+
+$ dxc -T vs_6_2 -enable-16bit-types case-u16-signed.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case-u16-signed.hlsl:1:1: error: 'signed' is a reserved keyword in HLSL
+signed int16_t g;
+^
+
+

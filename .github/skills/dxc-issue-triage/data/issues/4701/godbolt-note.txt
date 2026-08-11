@@ -1,0 +1,18 @@
+Issue 4701: the array declared at the top is written once and never read anywhere, so both
+the module-level allocation and the single write instruction inside main are dead and the
+issue asks for both to be removed. In the DXC panes they are both still present: one
+module-level line above `define void @main`, and one instruction in the body.
+
+The last DXC pane compiles the identical source with -DUSE_STATIC, which changes only that
+array's storage class from group-shared to file-scope static. Its `main` body is empty and
+the module-level line is gone -- so the compiler does perform this transform, just not for
+group-shared memory. That contrast is the report.
+
+The two clang panes repeat the same A/B against the HLSL front end in clang, for comparison.
+
+The FXC pane is for comparison only; it emits DXBC rather than DXIL, so read it for whether
+a thread-group-shared declaration appears at all, not for a matching instruction listing.
+
+Compiler Explorer adds -Zi -Qembed_debug to DXC panes, so the shader text itself is echoed
+into the module's embedded-source metadata. Ignore hits there; the evidence is the
+allocation line and the instruction in `main`.

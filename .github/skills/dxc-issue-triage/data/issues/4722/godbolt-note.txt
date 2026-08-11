@@ -1,0 +1,11 @@
+Issue 4722: a matrix layout request is dropped when the matrix type comes from a template.
+
+Look at the Buffer Definitions comment block near the top of the DXIL output, not at the
+source. One pragma at the top of the file asks for a single layout for everything below it,
+and the two struct members under it are the same 4x4 float matrix in the same cbuffer. Only
+the member declared outside a template gets the layout that was asked for; the one that comes
+through the template gets the compiler default instead. Nothing is diagnosed and the compile
+succeeds, so this block is the only place the difference is visible.
+
+The DXIL body agrees with the block: the two mul() calls consume different components of the
+loaded cbuffer rows, which is what a layout difference means at runtime.

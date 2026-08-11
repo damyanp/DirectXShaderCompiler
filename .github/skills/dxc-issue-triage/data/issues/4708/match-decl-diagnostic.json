@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "error: overloading non-member 'operator\\+' is not allowed",
+  "note": "SECOND PREDICATE, POLARITY INVERTED RELATIVE TO match.json -- read the bisect line with care. MATCH here means DXC does the GOOD thing: it diagnoses the namespace-scope `operator+` declaration itself, instead of accepting it and then failing at the use site with `scalar, vector, or matrix expected`. This dates fb1f3036b (\"Error when declaring global operator overloads\", PR #5796, 2023-09-28), whose message says HLSL 2021 \"can't resolve calls to global operator overloads and was never intended to support them, but it didn't error on them being declared\". A bisect over this predicate will print `regressed-in <tag>`; that word is the tool's, and the meaning is `diagnostic-added-in <tag>`. It does NOT track the issue's own symptom, which match.json tracks and which is unchanged across the whole measurable range. Control: control-member-operator.hlsl must NOT match (--expect no-match), because member operator overloading is allowed and a build that rejected it too would make this predicate meaningless."
+}

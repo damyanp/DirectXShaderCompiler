@@ -1,0 +1,54 @@
+# Compiler Explorer panes for #4721, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E main -HV 2021
+# exit:     5
+
+<source>:31:18: error: operands for short-circuiting logical binary operator must be scalar
+  bool4 mask = a && b;
+                 ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main -HV 2021
+# exit:     5
+
+<source>:31:18: error: operands for short-circuiting logical binary operator must be scalar, for non-scalar types use 'and'
+  bool4 mask = a && b;
+               ~~^~~~
+               and(a, b)
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main -HV 2021 -fixit
+# exit:     1
+
+dxc failed : Unknown argument: '-fixit'
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T ps_6_0 -E main -HV 2021 -Xclang -fixit
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[0;1;35mwarning: [0m[1msupport for HLSL language version hlsl2021 is incomplete, recommend using hlsl202x instead[0m
+[1m<source>:31:18: [0m[0;1;31merror: [0m[1minvalid operands to binary expression ('float4' (aka 'vector<float, 4>') and 'float4')[0m
+   31 |   bool4 mask = a && b;[0m
+      | [0;1;32m               ~ ^  ~
+[0m[1m<source>:31:18: [0m[0;1;36mnote: [0mFIX-IT detected an error it cannot fix[0m
+[1m<source>:31:16: [0m[0;1;36mnote: [0mdid you mean and?[0m
+   31 |   bool4 mask = a && b;[0m
+      | [0;1;32m               ^~~~~~
+[0m      | [0;32m               and(a, b)
+[0m[0;1;36mnote: [0mFIX-IT detected errors it could not fix; no output will be generated[0m
+1 error generated.
+<Compilation failed>

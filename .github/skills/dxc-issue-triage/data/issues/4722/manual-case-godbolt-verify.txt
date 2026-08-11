@@ -1,0 +1,679 @@
+# Compiler Explorer panes for #4722, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E main -HV 2021
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; V                        0   xyzw        0     NONE   float   xyzw
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader debug name: 1b2e514fda91b42e6a2c56f4d2c9abf0.pdb
+; shader hash: 1b2e514fda91b42e6a2c56f4d2c9abf0
+;
+; Pipeline Runtime Information: 
+;
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; V                        0                 linear       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+; cbuffer CB
+; {
+;
+;   struct hostlayout.CB
+;   {
+;
+;       struct hostlayout.struct.ThroughTemplate<float, 4, 4>
+;       {
+;
+;           column_major float4x4 M;                  ; Offset:    0
+;       
+;       } A;                                          ; Offset:    0
+;
+;       struct hostlayout.struct.Directly
+;       {
+;
+;           row_major float4x4 M;                     ; Offset:   64
+;       
+;       } B;                                          ; Offset:   64
+;
+;   
+;   } CB;                                             ; Offset:    0 Size:   128
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; CB                                cbuffer      NA          NA     CB0            cb0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 4, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0, 1, 2, 3 }
+;   output 1 depends on inputs: { 0, 1, 2, 3 }
+;   output 2 depends on inputs: { 0, 1, 2, 3 }
+;   output 3 depends on inputs: { 0, 1, 2, 3 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+%hostlayout.CB = type { %"hostlayout.struct.ThroughTemplate<float, 4, 4>", %hostlayout.struct.Directly }
+%"hostlayout.struct.ThroughTemplate<float, 4, 4>" = type { [4 x <4 x float>] }
+%hostlayout.struct.Directly = type { [4 x <4 x float>] }
+
+define void @main() {
+  %CB_cbuffer = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !88, metadata !89), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !88, metadata !91), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  %3 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !88, metadata !92), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 64, 32) func:"main"
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !88, metadata !93), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 96, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !88, metadata !89), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !88, metadata !91), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !88, metadata !92), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 64, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !88, metadata !93), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 96, 32) func:"main"
+  %5 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 0), !dbg !94 ; line:43 col:16  ; CBufferLoadLegacy(handle,regIndex)
+  %6 = extractvalue %dx.types.CBufRet.f32 %5, 0, !dbg !94 ; line:43 col:16
+  %7 = extractvalue %dx.types.CBufRet.f32 %5, 1, !dbg !94 ; line:43 col:16
+  %8 = extractvalue %dx.types.CBufRet.f32 %5, 2, !dbg !94 ; line:43 col:16
+  %9 = extractvalue %dx.types.CBufRet.f32 %5, 3, !dbg !94 ; line:43 col:16
+  %10 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 1), !dbg !94 ; line:43 col:16  ; CBufferLoadLegacy(handle,regIndex)
+  %11 = extractvalue %dx.types.CBufRet.f32 %10, 0, !dbg !94 ; line:43 col:16
+  %12 = extractvalue %dx.types.CBufRet.f32 %10, 1, !dbg !94 ; line:43 col:16
+  %13 = extractvalue %dx.types.CBufRet.f32 %10, 2, !dbg !94 ; line:43 col:16
+  %14 = extractvalue %dx.types.CBufRet.f32 %10, 3, !dbg !94 ; line:43 col:16
+  %15 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 2), !dbg !94 ; line:43 col:16  ; CBufferLoadLegacy(handle,regIndex)
+  %16 = extractvalue %dx.types.CBufRet.f32 %15, 0, !dbg !94 ; line:43 col:16
+  %17 = extractvalue %dx.types.CBufRet.f32 %15, 1, !dbg !94 ; line:43 col:16
+  %18 = extractvalue %dx.types.CBufRet.f32 %15, 2, !dbg !94 ; line:43 col:16
+  %19 = extractvalue %dx.types.CBufRet.f32 %15, 3, !dbg !94 ; line:43 col:16
+  %20 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 3), !dbg !94 ; line:43 col:16  ; CBufferLoadLegacy(handle,regIndex)
+  %21 = extractvalue %dx.types.CBufRet.f32 %20, 0, !dbg !94 ; line:43 col:16
+  %22 = extractvalue %dx.types.CBufRet.f32 %20, 1, !dbg !94 ; line:43 col:16
+  %23 = extractvalue %dx.types.CBufRet.f32 %20, 2, !dbg !94 ; line:43 col:16
+  %24 = extractvalue %dx.types.CBufRet.f32 %20, 3, !dbg !94 ; line:43 col:16
+  %25 = fmul fast float %6, %1, !dbg !95 ; line:43 col:10
+  %FMad23 = call float @dx.op.tertiary.f32(i32 46, float %11, float %2, float %25), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad22 = call float @dx.op.tertiary.f32(i32 46, float %16, float %3, float %FMad23), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad21 = call float @dx.op.tertiary.f32(i32 46, float %21, float %4, float %FMad22), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %26 = fmul fast float %7, %1, !dbg !95 ; line:43 col:10
+  %FMad20 = call float @dx.op.tertiary.f32(i32 46, float %12, float %2, float %26), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad19 = call float @dx.op.tertiary.f32(i32 46, float %17, float %3, float %FMad20), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad18 = call float @dx.op.tertiary.f32(i32 46, float %22, float %4, float %FMad19), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %27 = fmul fast float %8, %1, !dbg !95 ; line:43 col:10
+  %FMad17 = call float @dx.op.tertiary.f32(i32 46, float %13, float %2, float %27), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad16 = call float @dx.op.tertiary.f32(i32 46, float %18, float %3, float %FMad17), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad15 = call float @dx.op.tertiary.f32(i32 46, float %23, float %4, float %FMad16), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %28 = fmul fast float %9, %1, !dbg !95 ; line:43 col:10
+  %FMad14 = call float @dx.op.tertiary.f32(i32 46, float %14, float %2, float %28), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad13 = call float @dx.op.tertiary.f32(i32 46, float %19, float %3, float %FMad14), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad12 = call float @dx.op.tertiary.f32(i32 46, float %24, float %4, float %FMad13), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %29 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 4), !dbg !96 ; line:43 col:30  ; CBufferLoadLegacy(handle,regIndex)
+  %30 = extractvalue %dx.types.CBufRet.f32 %29, 0, !dbg !96 ; line:43 col:30
+  %31 = extractvalue %dx.types.CBufRet.f32 %29, 1, !dbg !96 ; line:43 col:30
+  %32 = extractvalue %dx.types.CBufRet.f32 %29, 2, !dbg !96 ; line:43 col:30
+  %33 = extractvalue %dx.types.CBufRet.f32 %29, 3, !dbg !96 ; line:43 col:30
+  %34 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 5), !dbg !96 ; line:43 col:30  ; CBufferLoadLegacy(handle,regIndex)
+  %35 = extractvalue %dx.types.CBufRet.f32 %34, 0, !dbg !96 ; line:43 col:30
+  %36 = extractvalue %dx.types.CBufRet.f32 %34, 1, !dbg !96 ; line:43 col:30
+  %37 = extractvalue %dx.types.CBufRet.f32 %34, 2, !dbg !96 ; line:43 col:30
+  %38 = extractvalue %dx.types.CBufRet.f32 %34, 3, !dbg !96 ; line:43 col:30
+  %39 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 6), !dbg !96 ; line:43 col:30  ; CBufferLoadLegacy(handle,regIndex)
+  %40 = extractvalue %dx.types.CBufRet.f32 %39, 0, !dbg !96 ; line:43 col:30
+  %41 = extractvalue %dx.types.CBufRet.f32 %39, 1, !dbg !96 ; line:43 col:30
+  %42 = extractvalue %dx.types.CBufRet.f32 %39, 2, !dbg !96 ; line:43 col:30
+  %43 = extractvalue %dx.types.CBufRet.f32 %39, 3, !dbg !96 ; line:43 col:30
+  %44 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 7), !dbg !96 ; line:43 col:30  ; CBufferLoadLegacy(handle,regIndex)
+  %45 = extractvalue %dx.types.CBufRet.f32 %44, 0, !dbg !96 ; line:43 col:30
+  %46 = extractvalue %dx.types.CBufRet.f32 %44, 1, !dbg !96 ; line:43 col:30
+  %47 = extractvalue %dx.types.CBufRet.f32 %44, 2, !dbg !96 ; line:43 col:30
+  %48 = extractvalue %dx.types.CBufRet.f32 %44, 3, !dbg !96 ; line:43 col:30
+  %49 = fmul fast float %30, %1, !dbg !97 ; line:43 col:24
+  %FMad11 = call float @dx.op.tertiary.f32(i32 46, float %31, float %2, float %49), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad10 = call float @dx.op.tertiary.f32(i32 46, float %32, float %3, float %FMad11), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad9 = call float @dx.op.tertiary.f32(i32 46, float %33, float %4, float %FMad10), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %50 = fmul fast float %35, %1, !dbg !97 ; line:43 col:24
+  %FMad8 = call float @dx.op.tertiary.f32(i32 46, float %36, float %2, float %50), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad7 = call float @dx.op.tertiary.f32(i32 46, float %37, float %3, float %FMad8), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad6 = call float @dx.op.tertiary.f32(i32 46, float %38, float %4, float %FMad7), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %51 = fmul fast float %40, %1, !dbg !97 ; line:43 col:24
+  %FMad5 = call float @dx.op.tertiary.f32(i32 46, float %41, float %2, float %51), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad4 = call float @dx.op.tertiary.f32(i32 46, float %42, float %3, float %FMad5), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad3 = call float @dx.op.tertiary.f32(i32 46, float %43, float %4, float %FMad4), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %52 = fmul fast float %45, %1, !dbg !97 ; line:43 col:24
+  %FMad2 = call float @dx.op.tertiary.f32(i32 46, float %46, float %2, float %52), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad1 = call float @dx.op.tertiary.f32(i32 46, float %47, float %3, float %FMad2), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad = call float @dx.op.tertiary.f32(i32 46, float %48, float %4, float %FMad1), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %.i0 = fadd fast float %FMad9, %FMad21, !dbg !98 ; line:43 col:22
+  %.i1 = fadd fast float %FMad6, %FMad18, !dbg !98 ; line:43 col:22
+  %.i2 = fadd fast float %FMad3, %FMad15, !dbg !98 ; line:43 col:22
+  %.i3 = fadd fast float %FMad, %FMad12, !dbg !98 ; line:43 col:22
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %.i0), !dbg !99 ; line:43 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %.i1), !dbg !99 ; line:43 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %.i2), !dbg !99 ; line:43 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %.i3), !dbg !99 ; line:43 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !99 ; line:43 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #2
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.tertiary.f32(i32, float, float, float) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!54, !55}
+!llvm.ident = !{!56}
+!dx.source.contents = !{!57}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!58}
+!dx.source.args = !{!59}
+!dx.version = !{!60}
+!dx.valver = !{!61}
+!dx.shaderModel = !{!62}
+!dx.resources = !{!63}
+!dx.typeAnnotations = !{!66, !76}
+!dx.viewIdState = !{!79}
+!dx.entryPoints = !{!80}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !19)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 42, type: !5, isLocal: false, isDefinition: true, scopeLine: 42, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, line: 39, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, line: 39, size: 128, align: 32, elements: !9, templateParams: !15)
+!9 = !{!10, !12, !13, !14}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, line: 39, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, line: 39, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, line: 39, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !8, file: !1, line: 39, baseType: !11, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!15 = !{!16, !17}
+!16 = !DITemplateTypeParameter(name: "element", type: !11)
+!17 = !DITemplateValueParameter(name: "element_count", type: !18, value: i32 4)
+!18 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!19 = !{!20, !49}
+!20 = !DIGlobalVariable(name: "A", linkageName: "\01?A@CB@@3U?$ThroughTemplate@M$03$03@@A", scope: !0, file: !1, line: 38, type: !21, isLocal: false, isDefinition: true)
+!21 = !DICompositeType(tag: DW_TAG_structure_type, name: "ThroughTemplate<float, 4, 4>", file: !1, line: 29, size: 512, align: 32, elements: !22, templateParams: !45)
+!22 = !{!23}
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "M", scope: !21, file: !1, line: 30, baseType: !24, size: 512, align: 32)
+!24 = !DICompositeType(tag: DW_TAG_class_type, name: "matrix<float, 4, 4>", file: !1, line: 38, size: 512, align: 32, elements: !25, templateParams: !42)
+!25 = !{!26, !27, !28, !29, !30, !31, !32, !33, !34, !35, !36, !37, !38, !39, !40, !41}
+!26 = !DIDerivedType(tag: DW_TAG_member, name: "_11", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!27 = !DIDerivedType(tag: DW_TAG_member, name: "_12", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!28 = !DIDerivedType(tag: DW_TAG_member, name: "_13", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!29 = !DIDerivedType(tag: DW_TAG_member, name: "_14", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!30 = !DIDerivedType(tag: DW_TAG_member, name: "_21", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 128, flags: DIFlagPublic)
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "_22", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 160, flags: DIFlagPublic)
+!32 = !DIDerivedType(tag: DW_TAG_member, name: "_23", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 192, flags: DIFlagPublic)
+!33 = !DIDerivedType(tag: DW_TAG_member, name: "_24", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 224, flags: DIFlagPublic)
+!34 = !DIDerivedType(tag: DW_TAG_member, name: "_31", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 256, flags: DIFlagPublic)
+!35 = !DIDerivedType(tag: DW_TAG_member, name: "_32", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 288, flags: DIFlagPublic)
+!36 = !DIDerivedType(tag: DW_TAG_member, name: "_33", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 320, flags: DIFlagPublic)
+!37 = !DIDerivedType(tag: DW_TAG_member, name: "_34", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 352, flags: DIFlagPublic)
+!38 = !DIDerivedType(tag: DW_TAG_member, name: "_41", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 384, flags: DIFlagPublic)
+!39 = !DIDerivedType(tag: DW_TAG_member, name: "_42", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 416, flags: DIFlagPublic)
+!40 = !DIDerivedType(tag: DW_TAG_member, name: "_43", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 448, flags: DIFlagPublic)
+!41 = !DIDerivedType(tag: DW_TAG_member, name: "_44", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 480, flags: DIFlagPublic)
+!42 = !{!16, !43, !44}
+!43 = !DITemplateValueParameter(name: "row_count", type: !18, value: i32 4)
+!44 = !DITemplateValueParameter(name: "col_count", type: !18, value: i32 4)
+!45 = !{!46, !47, !48}
+!46 = !DITemplateTypeParameter(name: "T", type: !11)
+!47 = !DITemplateValueParameter(name: "X", type: !18, value: i32 4)
+!48 = !DITemplateValueParameter(name: "Y", type: !18, value: i32 4)
+!49 = !DIGlobalVariable(name: "B", linkageName: "\01?B@CB@@3UDirectly@@B", scope: !0, file: !1, line: 39, type: !50, isLocal: false, isDefinition: true)
+!50 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !51)
+!51 = !DICompositeType(tag: DW_TAG_structure_type, name: "Directly", file: !1, line: 33, size: 512, align: 32, elements: !52)
+!52 = !{!53}
+!53 = !DIDerivedType(tag: DW_TAG_member, name: "M", scope: !51, file: !1, line: 34, baseType: !24, size: 512, align: 32)
+!54 = !{i32 2, !"Dwarf Version", i32 4}
+!55 = !{i32 2, !"Debug Info Version", i32 3}
+!56 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!57 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 4722: a matrix layout request is dropped when the matrix type comes from a template.\0A//\0A// Look at the Buffer Definitions comment block near the top of the DXIL output, not at the\0A// source. One pragma at the top of the file asks for a single layout for everything below it,\0A// and the two struct members under it are the same 4x4 float matrix in the same cbuffer. Only\0A// the member declared outside a template gets the layout that was asked for; the one that comes\0A// through the template gets the compiler default instead. Nothing is diagnosed and the compile\0A// succeeds, so this block is the only place the difference is visible.\0A//\0A// The DXIL body agrees with the block: the two mul() calls consume different components of the\0A// loaded cbuffer rows, which is what a layout difference means at runtime.\0A//==========================================================================//\0A\0A// Compiler Explorer presentation for issue 4722.\0A//\0A// Both members are declared under the ONE pragma at the top of this file, and\0A// they differ in exactly one way: the first goes through a template, the second\0A// does not. Everything else -- element type, dimensions, member name, the\0A// cbuffer they live in -- is the same.\0A//\0A// This file exists only to make the difference readable in one pane. The\0A// measured evidence is repro.hlsl and its controls, which vary one thing at a\0A// time; see manual-case-identity.txt.\0A\0A#pragma pack_matrix(row_major)\0A\0Atemplate<typename T, int X, int Y>\0Astruct ThroughTemplate {\0A  matrix<T, X, Y> M;\0A};\0A\0Astruct Directly {\0A  matrix<float, 4, 4> M;\0A};\0A\0Acbuffer CB {\0A  ThroughTemplate<float, 4, 4> A;\0A  Directly                     B;\0A};\0A\0Afloat4 main(float4 v : V) : SV_Target {\0A  return mul(A.M, v) + mul(B.M, v);\0A}\0A"}
+!58 = !{!"/app/example.hlsl"}
+!59 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug", !"-HV", !"2021"}
+!60 = !{i32 1, i32 0}
+!61 = !{i32 1, i32 6}
+!62 = !{!"ps", i32 6, i32 0}
+!63 = !{null, null, !64, null}
+!64 = !{!65}
+!65 = !{i32 0, %hostlayout.CB* undef, !"CB", i32 0, i32 0, i32 1, i32 128, null}
+!66 = !{i32 0, %"hostlayout.struct.ThroughTemplate<float, 4, 4>" undef, !67, %hostlayout.struct.Directly undef, !70, %hostlayout.CB undef, !73}
+!67 = !{i32 64, !68}
+!68 = !{i32 6, !"M", i32 2, !69, i32 3, i32 0, i32 7, i32 9}
+!69 = !{i32 4, i32 4, i32 2}
+!70 = !{i32 64, !71}
+!71 = !{i32 6, !"M", i32 2, !72, i32 3, i32 0, i32 7, i32 9}
+!72 = !{i32 4, i32 4, i32 1}
+!73 = !{i32 128, !74, !75}
+!74 = !{i32 6, !"A", i32 3, i32 0}
+!75 = !{i32 6, !"B", i32 3, i32 64}
+!76 = !{i32 1, void ()* @main, !77}
+!77 = !{!78}
+!78 = !{i32 0, !2, !2}
+!79 = !{[6 x i32] [i32 4, i32 4, i32 15, i32 15, i32 15, i32 15]}
+!80 = !{void ()* @main, !"main", !81, !63, null}
+!81 = !{!82, !86, null}
+!82 = !{!83}
+!83 = !{i32 0, !"V", i8 9, i8 0, !84, i8 2, i32 1, i8 4, i32 0, i8 0, !85}
+!84 = !{i32 0}
+!85 = !{i32 3, i32 15}
+!86 = !{!87}
+!87 = !{i32 0, !"SV_Target", i8 9, i8 16, !84, i8 0, i32 1, i8 4, i32 0, i8 0, !85}
+!88 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "v", arg: 1, scope: !4, file: !1, line: 42, type: !7)
+!89 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!90 = !DILocation(line: 42, column: 20, scope: !4)
+!91 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!92 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!93 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!94 = !DILocation(line: 43, column: 16, scope: !4)
+!95 = !DILocation(line: 43, column: 10, scope: !4)
+!96 = !DILocation(line: 43, column: 30, scope: !4)
+!97 = !DILocation(line: 43, column: 24, scope: !4)
+!98 = !DILocation(line: 43, column: 22, scope: !4)
+!99 = !DILocation(line: 43, column: 3, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main -HV 2021
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; V                        0   xyzw        0     NONE   float   xyzw
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader debug name: 48b011bb85c16abde901ee2e71f2377b.pdb
+; shader hash: 48b011bb85c16abde901ee2e71f2377b
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 1
+; SigOutputElements: 1
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 1
+; SigOutputVectors[0]: 1
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; V                        0                 linear       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+; cbuffer CB
+; {
+;
+;   struct hostlayout.CB
+;   {
+;
+;       struct hostlayout.struct.ThroughTemplate<float, 4, 4>
+;       {
+;
+;           column_major float4x4 M;                  ; Offset:    0
+;       
+;       } A;                                          ; Offset:    0
+;
+;       struct hostlayout.struct.Directly
+;       {
+;
+;           row_major float4x4 M;                     ; Offset:   64
+;       
+;       } B;                                          ; Offset:   64
+;
+;   
+;   } CB;                                             ; Offset:    0 Size:   128
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; CB                                cbuffer      NA          NA     CB0            cb0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 4, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0, 1, 2, 3 }
+;   output 1 depends on inputs: { 0, 1, 2, 3 }
+;   output 2 depends on inputs: { 0, 1, 2, 3 }
+;   output 3 depends on inputs: { 0, 1, 2, 3 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.CBufRet.f32 = type { float, float, float, float }
+%hostlayout.CB = type { %"hostlayout.struct.ThroughTemplate<float, 4, 4>", %hostlayout.struct.Directly }
+%"hostlayout.struct.ThroughTemplate<float, 4, 4>" = type { [4 x <4 x float>] }
+%hostlayout.struct.Directly = type { [4 x <4 x float>] }
+
+define void @main() {
+  %CB_cbuffer = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !88, metadata !89), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !88, metadata !91), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  %3 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !88, metadata !92), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 64, 32) func:"main"
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 undef)  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !88, metadata !89), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !88, metadata !91), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %3, i64 0, metadata !88, metadata !92), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 64, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %4, i64 0, metadata !88, metadata !93), !dbg !90 ; var:"v" !DIExpression(DW_OP_bit_piece, 96, 32) func:"main"
+  %5 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 0), !dbg !94 ; line:43 col:16  ; CBufferLoadLegacy(handle,regIndex)
+  %6 = extractvalue %dx.types.CBufRet.f32 %5, 0, !dbg !94 ; line:43 col:16
+  %7 = extractvalue %dx.types.CBufRet.f32 %5, 1, !dbg !94 ; line:43 col:16
+  %8 = extractvalue %dx.types.CBufRet.f32 %5, 2, !dbg !94 ; line:43 col:16
+  %9 = extractvalue %dx.types.CBufRet.f32 %5, 3, !dbg !94 ; line:43 col:16
+  %10 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 1), !dbg !94 ; line:43 col:16  ; CBufferLoadLegacy(handle,regIndex)
+  %11 = extractvalue %dx.types.CBufRet.f32 %10, 0, !dbg !94 ; line:43 col:16
+  %12 = extractvalue %dx.types.CBufRet.f32 %10, 1, !dbg !94 ; line:43 col:16
+  %13 = extractvalue %dx.types.CBufRet.f32 %10, 2, !dbg !94 ; line:43 col:16
+  %14 = extractvalue %dx.types.CBufRet.f32 %10, 3, !dbg !94 ; line:43 col:16
+  %15 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 2), !dbg !94 ; line:43 col:16  ; CBufferLoadLegacy(handle,regIndex)
+  %16 = extractvalue %dx.types.CBufRet.f32 %15, 0, !dbg !94 ; line:43 col:16
+  %17 = extractvalue %dx.types.CBufRet.f32 %15, 1, !dbg !94 ; line:43 col:16
+  %18 = extractvalue %dx.types.CBufRet.f32 %15, 2, !dbg !94 ; line:43 col:16
+  %19 = extractvalue %dx.types.CBufRet.f32 %15, 3, !dbg !94 ; line:43 col:16
+  %20 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 3), !dbg !94 ; line:43 col:16  ; CBufferLoadLegacy(handle,regIndex)
+  %21 = extractvalue %dx.types.CBufRet.f32 %20, 0, !dbg !94 ; line:43 col:16
+  %22 = extractvalue %dx.types.CBufRet.f32 %20, 1, !dbg !94 ; line:43 col:16
+  %23 = extractvalue %dx.types.CBufRet.f32 %20, 2, !dbg !94 ; line:43 col:16
+  %24 = extractvalue %dx.types.CBufRet.f32 %20, 3, !dbg !94 ; line:43 col:16
+  %25 = fmul fast float %6, %1, !dbg !95 ; line:43 col:10
+  %FMad23 = call float @dx.op.tertiary.f32(i32 46, float %11, float %2, float %25), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad22 = call float @dx.op.tertiary.f32(i32 46, float %16, float %3, float %FMad23), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad21 = call float @dx.op.tertiary.f32(i32 46, float %21, float %4, float %FMad22), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %26 = fmul fast float %7, %1, !dbg !95 ; line:43 col:10
+  %FMad20 = call float @dx.op.tertiary.f32(i32 46, float %12, float %2, float %26), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad19 = call float @dx.op.tertiary.f32(i32 46, float %17, float %3, float %FMad20), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad18 = call float @dx.op.tertiary.f32(i32 46, float %22, float %4, float %FMad19), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %27 = fmul fast float %8, %1, !dbg !95 ; line:43 col:10
+  %FMad17 = call float @dx.op.tertiary.f32(i32 46, float %13, float %2, float %27), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad16 = call float @dx.op.tertiary.f32(i32 46, float %18, float %3, float %FMad17), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad15 = call float @dx.op.tertiary.f32(i32 46, float %23, float %4, float %FMad16), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %28 = fmul fast float %9, %1, !dbg !95 ; line:43 col:10
+  %FMad14 = call float @dx.op.tertiary.f32(i32 46, float %14, float %2, float %28), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad13 = call float @dx.op.tertiary.f32(i32 46, float %19, float %3, float %FMad14), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %FMad12 = call float @dx.op.tertiary.f32(i32 46, float %24, float %4, float %FMad13), !dbg !95 ; line:43 col:10  ; FMad(a,b,c)
+  %29 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 4), !dbg !96 ; line:43 col:30  ; CBufferLoadLegacy(handle,regIndex)
+  %30 = extractvalue %dx.types.CBufRet.f32 %29, 0, !dbg !96 ; line:43 col:30
+  %31 = extractvalue %dx.types.CBufRet.f32 %29, 1, !dbg !96 ; line:43 col:30
+  %32 = extractvalue %dx.types.CBufRet.f32 %29, 2, !dbg !96 ; line:43 col:30
+  %33 = extractvalue %dx.types.CBufRet.f32 %29, 3, !dbg !96 ; line:43 col:30
+  %34 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 5), !dbg !96 ; line:43 col:30  ; CBufferLoadLegacy(handle,regIndex)
+  %35 = extractvalue %dx.types.CBufRet.f32 %34, 0, !dbg !96 ; line:43 col:30
+  %36 = extractvalue %dx.types.CBufRet.f32 %34, 1, !dbg !96 ; line:43 col:30
+  %37 = extractvalue %dx.types.CBufRet.f32 %34, 2, !dbg !96 ; line:43 col:30
+  %38 = extractvalue %dx.types.CBufRet.f32 %34, 3, !dbg !96 ; line:43 col:30
+  %39 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 6), !dbg !96 ; line:43 col:30  ; CBufferLoadLegacy(handle,regIndex)
+  %40 = extractvalue %dx.types.CBufRet.f32 %39, 0, !dbg !96 ; line:43 col:30
+  %41 = extractvalue %dx.types.CBufRet.f32 %39, 1, !dbg !96 ; line:43 col:30
+  %42 = extractvalue %dx.types.CBufRet.f32 %39, 2, !dbg !96 ; line:43 col:30
+  %43 = extractvalue %dx.types.CBufRet.f32 %39, 3, !dbg !96 ; line:43 col:30
+  %44 = call %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32 59, %dx.types.Handle %CB_cbuffer, i32 7), !dbg !96 ; line:43 col:30  ; CBufferLoadLegacy(handle,regIndex)
+  %45 = extractvalue %dx.types.CBufRet.f32 %44, 0, !dbg !96 ; line:43 col:30
+  %46 = extractvalue %dx.types.CBufRet.f32 %44, 1, !dbg !96 ; line:43 col:30
+  %47 = extractvalue %dx.types.CBufRet.f32 %44, 2, !dbg !96 ; line:43 col:30
+  %48 = extractvalue %dx.types.CBufRet.f32 %44, 3, !dbg !96 ; line:43 col:30
+  %49 = fmul fast float %30, %1, !dbg !97 ; line:43 col:24
+  %FMad11 = call float @dx.op.tertiary.f32(i32 46, float %31, float %2, float %49), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad10 = call float @dx.op.tertiary.f32(i32 46, float %32, float %3, float %FMad11), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad9 = call float @dx.op.tertiary.f32(i32 46, float %33, float %4, float %FMad10), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %50 = fmul fast float %35, %1, !dbg !97 ; line:43 col:24
+  %FMad8 = call float @dx.op.tertiary.f32(i32 46, float %36, float %2, float %50), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad7 = call float @dx.op.tertiary.f32(i32 46, float %37, float %3, float %FMad8), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad6 = call float @dx.op.tertiary.f32(i32 46, float %38, float %4, float %FMad7), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %51 = fmul fast float %40, %1, !dbg !97 ; line:43 col:24
+  %FMad5 = call float @dx.op.tertiary.f32(i32 46, float %41, float %2, float %51), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad4 = call float @dx.op.tertiary.f32(i32 46, float %42, float %3, float %FMad5), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad3 = call float @dx.op.tertiary.f32(i32 46, float %43, float %4, float %FMad4), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %52 = fmul fast float %45, %1, !dbg !97 ; line:43 col:24
+  %FMad2 = call float @dx.op.tertiary.f32(i32 46, float %46, float %2, float %52), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad1 = call float @dx.op.tertiary.f32(i32 46, float %47, float %3, float %FMad2), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %FMad = call float @dx.op.tertiary.f32(i32 46, float %48, float %4, float %FMad1), !dbg !97 ; line:43 col:24  ; FMad(a,b,c)
+  %.i0 = fadd fast float %FMad9, %FMad21, !dbg !98 ; line:43 col:22
+  %.i1 = fadd fast float %FMad6, %FMad18, !dbg !98 ; line:43 col:22
+  %.i2 = fadd fast float %FMad3, %FMad15, !dbg !98 ; line:43 col:22
+  %.i3 = fadd fast float %FMad, %FMad12, !dbg !98 ; line:43 col:22
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %.i0), !dbg !99 ; line:43 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %.i1), !dbg !99 ; line:43 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %.i2), !dbg !99 ; line:43 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %.i3), !dbg !99 ; line:43 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !99 ; line:43 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.f32 @dx.op.cbufferLoadLegacy.f32(i32, %dx.types.Handle, i32) #2
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.tertiary.f32(i32, float, float, float) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!54, !55}
+!llvm.ident = !{!56}
+!dx.source.contents = !{!57}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!58}
+!dx.source.args = !{!59}
+!dx.version = !{!60}
+!dx.valver = !{!61}
+!dx.shaderModel = !{!62}
+!dx.resources = !{!63}
+!dx.typeAnnotations = !{!66, !76}
+!dx.viewIdState = !{!79}
+!dx.entryPoints = !{!80}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !19)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 42, type: !5, isLocal: false, isDefinition: true, scopeLine: 42, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, line: 39, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, line: 39, size: 128, align: 32, elements: !9, templateParams: !15)
+!9 = !{!10, !12, !13, !14}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, line: 39, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, line: 39, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, line: 39, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !8, file: !1, line: 39, baseType: !11, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!15 = !{!16, !17}
+!16 = !DITemplateTypeParameter(name: "element", type: !11)
+!17 = !DITemplateValueParameter(name: "element_count", type: !18, value: i32 4)
+!18 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!19 = !{!20, !49}
+!20 = !DIGlobalVariable(name: "A", linkageName: "\01?A@CB@@3U?$ThroughTemplate@M$03$03@@A", scope: !0, file: !1, line: 38, type: !21, isLocal: false, isDefinition: true)
+!21 = !DICompositeType(tag: DW_TAG_structure_type, name: "ThroughTemplate<float, 4, 4>", file: !1, line: 29, size: 512, align: 32, elements: !22, templateParams: !45)
+!22 = !{!23}
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "M", scope: !21, file: !1, line: 30, baseType: !24, size: 512, align: 32)
+!24 = !DICompositeType(tag: DW_TAG_class_type, name: "matrix<float, 4, 4>", file: !1, line: 38, size: 512, align: 32, elements: !25, templateParams: !42)
+!25 = !{!26, !27, !28, !29, !30, !31, !32, !33, !34, !35, !36, !37, !38, !39, !40, !41}
+!26 = !DIDerivedType(tag: DW_TAG_member, name: "_11", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!27 = !DIDerivedType(tag: DW_TAG_member, name: "_12", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!28 = !DIDerivedType(tag: DW_TAG_member, name: "_13", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!29 = !DIDerivedType(tag: DW_TAG_member, name: "_14", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!30 = !DIDerivedType(tag: DW_TAG_member, name: "_21", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 128, flags: DIFlagPublic)
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "_22", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 160, flags: DIFlagPublic)
+!32 = !DIDerivedType(tag: DW_TAG_member, name: "_23", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 192, flags: DIFlagPublic)
+!33 = !DIDerivedType(tag: DW_TAG_member, name: "_24", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 224, flags: DIFlagPublic)
+!34 = !DIDerivedType(tag: DW_TAG_member, name: "_31", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 256, flags: DIFlagPublic)
+!35 = !DIDerivedType(tag: DW_TAG_member, name: "_32", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 288, flags: DIFlagPublic)
+!36 = !DIDerivedType(tag: DW_TAG_member, name: "_33", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 320, flags: DIFlagPublic)
+!37 = !DIDerivedType(tag: DW_TAG_member, name: "_34", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 352, flags: DIFlagPublic)
+!38 = !DIDerivedType(tag: DW_TAG_member, name: "_41", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 384, flags: DIFlagPublic)
+!39 = !DIDerivedType(tag: DW_TAG_member, name: "_42", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 416, flags: DIFlagPublic)
+!40 = !DIDerivedType(tag: DW_TAG_member, name: "_43", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 448, flags: DIFlagPublic)
+!41 = !DIDerivedType(tag: DW_TAG_member, name: "_44", scope: !24, file: !1, line: 38, baseType: !11, size: 32, align: 32, offset: 480, flags: DIFlagPublic)
+!42 = !{!16, !43, !44}
+!43 = !DITemplateValueParameter(name: "row_count", type: !18, value: i32 4)
+!44 = !DITemplateValueParameter(name: "col_count", type: !18, value: i32 4)
+!45 = !{!46, !47, !48}
+!46 = !DITemplateTypeParameter(name: "T", type: !11)
+!47 = !DITemplateValueParameter(name: "X", type: !18, value: i32 4)
+!48 = !DITemplateValueParameter(name: "Y", type: !18, value: i32 4)
+!49 = !DIGlobalVariable(name: "B", linkageName: "\01?B@CB@@3UDirectly@@B", scope: !0, file: !1, line: 39, type: !50, isLocal: false, isDefinition: true)
+!50 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !51)
+!51 = !DICompositeType(tag: DW_TAG_structure_type, name: "Directly", file: !1, line: 33, size: 512, align: 32, elements: !52)
+!52 = !{!53}
+!53 = !DIDerivedType(tag: DW_TAG_member, name: "M", scope: !51, file: !1, line: 34, baseType: !24, size: 512, align: 32)
+!54 = !{i32 2, !"Dwarf Version", i32 4}
+!55 = !{i32 2, !"Debug Info Version", i32 3}
+!56 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!57 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 4722: a matrix layout request is dropped when the matrix type comes from a template.\0A//\0A// Look at the Buffer Definitions comment block near the top of the DXIL output, not at the\0A// source. One pragma at the top of the file asks for a single layout for everything below it,\0A// and the two struct members under it are the same 4x4 float matrix in the same cbuffer. Only\0A// the member declared outside a template gets the layout that was asked for; the one that comes\0A// through the template gets the compiler default instead. Nothing is diagnosed and the compile\0A// succeeds, so this block is the only place the difference is visible.\0A//\0A// The DXIL body agrees with the block: the two mul() calls consume different components of the\0A// loaded cbuffer rows, which is what a layout difference means at runtime.\0A//==========================================================================//\0A\0A// Compiler Explorer presentation for issue 4722.\0A//\0A// Both members are declared under the ONE pragma at the top of this file, and\0A// they differ in exactly one way: the first goes through a template, the second\0A// does not. Everything else -- element type, dimensions, member name, the\0A// cbuffer they live in -- is the same.\0A//\0A// This file exists only to make the difference readable in one pane. The\0A// measured evidence is repro.hlsl and its controls, which vary one thing at a\0A// time; see manual-case-identity.txt.\0A\0A#pragma pack_matrix(row_major)\0A\0Atemplate<typename T, int X, int Y>\0Astruct ThroughTemplate {\0A  matrix<T, X, Y> M;\0A};\0A\0Astruct Directly {\0A  matrix<float, 4, 4> M;\0A};\0A\0Acbuffer CB {\0A  ThroughTemplate<float, 4, 4> A;\0A  Directly                     B;\0A};\0A\0Afloat4 main(float4 v : V) : SV_Target {\0A  return mul(A.M, v) + mul(B.M, v);\0A}\0A"}
+!58 = !{!"/app/example.hlsl"}
+!59 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug", !"-HV", !"2021"}
+!60 = !{i32 1, i32 0}
+!61 = !{i32 1, i32 10}
+!62 = !{!"ps", i32 6, i32 0}
+!63 = !{null, null, !64, null}
+!64 = !{!65}
+!65 = !{i32 0, %hostlayout.CB* undef, !"CB", i32 0, i32 0, i32 1, i32 128, null}
+!66 = !{i32 0, %"hostlayout.struct.ThroughTemplate<float, 4, 4>" undef, !67, %hostlayout.struct.Directly undef, !70, %hostlayout.CB undef, !73}
+!67 = !{i32 64, !68}
+!68 = !{i32 6, !"M", i32 2, !69, i32 3, i32 0, i32 7, i32 9}
+!69 = !{i32 4, i32 4, i32 2}
+!70 = !{i32 64, !71}
+!71 = !{i32 6, !"M", i32 2, !72, i32 3, i32 0, i32 7, i32 9}
+!72 = !{i32 4, i32 4, i32 1}
+!73 = !{i32 128, !74, !75}
+!74 = !{i32 6, !"A", i32 3, i32 0}
+!75 = !{i32 6, !"B", i32 3, i32 64}
+!76 = !{i32 1, void ()* @main, !77}
+!77 = !{!78}
+!78 = !{i32 0, !2, !2}
+!79 = !{[6 x i32] [i32 4, i32 4, i32 15, i32 15, i32 15, i32 15]}
+!80 = !{void ()* @main, !"main", !81, !63, null}
+!81 = !{!82, !86, null}
+!82 = !{!83}
+!83 = !{i32 0, !"V", i8 9, i8 0, !84, i8 2, i32 1, i8 4, i32 0, i8 0, !85}
+!84 = !{i32 0}
+!85 = !{i32 3, i32 15}
+!86 = !{!87}
+!87 = !{i32 0, !"SV_Target", i8 9, i8 16, !84, i8 0, i32 1, i8 4, i32 0, i8 0, !85}
+!88 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "v", arg: 1, scope: !4, file: !1, line: 42, type: !7)
+!89 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!90 = !DILocation(line: 42, column: 20, scope: !4)
+!91 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!92 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!93 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!94 = !DILocation(line: 43, column: 16, scope: !4)
+!95 = !DILocation(line: 43, column: 10, scope: !4)
+!96 = !DILocation(line: 43, column: 30, scope: !4)
+!97 = !DILocation(line: 43, column: 24, scope: !4)
+!98 = !DILocation(line: 43, column: 22, scope: !4)
+!99 = !DILocation(line: 43, column: 3, scope: !4)

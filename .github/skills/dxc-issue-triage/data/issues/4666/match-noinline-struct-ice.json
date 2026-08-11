@@ -1,0 +1,4 @@
+{
+  "note": "ADJACENT finding, not symptom A. Crash-shaped, so the predicate is an internal_failure observation rather than a text match -- the debug build asserts (0xE0000001, 'LLVM Assert') and release builds null-deref (0xC0000005), so no single message text is stable across compilers. CONTROL: observation-noinline-struct-sampler-scalar.hlsl, the same shader with a scalar SamplerState member, must score no-match -- it exits 0x80004005 with an ordinary 'phi/select disallowed on pointers to local resources' diagnostic. That control is what proves the predicate is discriminating a crash and not merely 'this shader failed'.",
+  "kind": "internal_failure"
+}

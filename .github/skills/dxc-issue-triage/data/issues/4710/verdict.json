@@ -1,0 +1,23 @@
+{
+  "batch": "batch-017",
+  "confidence": "high",
+  "created_at": "2022-10-06T22:08:06Z",
+  "expected_symptom": "The exact diagnostic 'error: Index for resource array inside cbuffer must be a literal expression' is emitted for a shader that indexes a resource array declared inside a cbuffer with an [unroll] loop induction variable -- i.e. the symptom IS a diagnostic that should not appear.",
+  "godbolt_url": "https://godbolt.org/z/EKh5E8Y4M",
+  "history": "regressed",
+  "labels": "fxc-disagrees",
+  "labels_add": "bug, diagnostic, check-in-clang",
+  "notes_path": "issues/4710/notes.md",
+  "number": 4710,
+  "regressed_in": "v1.5.2010",
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Reproduces on main and is a regression: v1.4.1907 compiles the reporter's shader and emits correct DXIL (handles t0/t5/t10/t15, cbuffer regIndex 0/9/18/27); v1.5.2010 is the first release to reject it and all 19 later releases do too. 20 stable releases scanned with 3 positive controls per binary (63 assertions, 0 failures) because the symptom is a diagnostic and the invalid-probe net cannot see it. The guard is HLModule::GetBindingForResourceInCB (lib/HLSL/HLModule.cpp:816, !hasAllConstantIndices), reached from DxilGenerationPass -- confirmed by a cdb stack -- and dxc -Odump shows -dxilgen at index 36 runs before -dxil-loop-unroll at 41, so [unroll] cannot make the index literal in time. Attributed to 94460c988 'Support register binding on resource in cbuffer (#2582)' (in v1.5.2010, not v1.4.1907; 434-commit window), which introduced per-element register binding and rewrote resource-in-cb4.hlsl from a passing binding table to a CHECK for this error. FXC ps_5_0 on CE produces the same bindings as old DXC, measuring the fxc-disagrees label for the first time; FXC ps_5_1 fails, as the reporter said. Whether the restriction is intended is a design question this triage does not settle.",
+  "title": "Incorrectly erroring with error: Index for resource array inside cbuffer must be a literal expression",
+  "triaged_at": "2026-08-10T23:52:58+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e6a9019e4e0823746470f3ab75341d6b",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4710"
+}

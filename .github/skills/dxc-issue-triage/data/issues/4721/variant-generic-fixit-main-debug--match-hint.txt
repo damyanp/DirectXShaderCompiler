@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:37:00+00:00
+# cmd: -T ps_6_0 -E main -HV 2021 control-generic-fixit.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-hint.json
+# verdict: no-repro
+# variant: generic-fixit (control-generic-fixit.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main -HV 2021 control-generic-fixit.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-generic-fixit.hlsl:12:17: error: expected ';' at end of declaration
+  float4 v = 1.0
+                ^
+                ;
+
+

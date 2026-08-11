@@ -1,0 +1,30 @@
+# compiler: v1.8.2502
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe
+# ran: 2026-08-10T22:48:40+00:00
+# cmd: -T ps_6_0 -E main -HV 2021 -fixit repro.hlsl ; -T ps_6_0 -E main -HV 2021 repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match-flag.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E main -HV 2021 -fixit repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-fixit'
+
+
+$ dxc -T ps_6_0 -E main -HV 2021 repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:12:18: error: operands for short-circuiting logical binary operator must be scalar, for non-scalar types use 'and'
+  bool4 mask = a && b;
+               ~~^~~~
+               and(a, b)
+
+

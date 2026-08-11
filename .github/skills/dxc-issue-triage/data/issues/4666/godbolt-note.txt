@@ -1,0 +1,15 @@
+Issue 4666 -- regression: a sampler array used as a function parameter is
+rejected by the front end.
+
+What to look for: compare the two compilers in the pane on the right.
+
+  dxc_1_6_2112  compiles this cleanly and emits DXIL  (exit 0)
+  dxc_trunk     stops at the parameter declaration on the line below with a
+                front-end error and emits nothing    (exit non-zero)
+
+Nothing about the shader changed between them, so the older compiler accepting
+it is the point: the newer diagnostic is the regression, not a newly enforced
+rule. The boundary is v1.7.2207; every stable release from there on rejects it.
+
+The equivalent declaration at global scope is accepted by BOTH compilers, which
+is what rules out "this construct was simply never supported".

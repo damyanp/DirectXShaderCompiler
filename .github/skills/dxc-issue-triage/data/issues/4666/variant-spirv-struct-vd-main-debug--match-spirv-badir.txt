@@ -1,0 +1,107 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:41:54+00:00
+# cmd: -T ps_6_0 -E main -spirv -Vd repro-spirv-struct.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-spirv-badir.json
+# verdict: repro
+# variant: spirv-struct-vd (repro-spirv-struct.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main -spirv -Vd repro-spirv-struct.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 52
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %in_var_TEXCOORD %out_var_SV_Target
+               OpExecutionMode %main OriginUpperLeft
+               OpSource HLSL 600
+               OpName %type_2d_image "type.2d.image"
+               OpName %g_Tex "g_Tex"
+               OpName %type_sampler "type.sampler"
+               OpName %g_S "g_S"
+               OpName %in_var_TEXCOORD "in.var.TEXCOORD"
+               OpName %out_var_SV_Target "out.var.SV_Target"
+               OpName %main "main"
+               OpName %Test "Test"
+               OpMemberName %Test 0 "Samplers"
+               OpName %Reflection "Reflection"
+               OpName %Res "Res"
+               OpName %uv "uv"
+               OpName %bb_entry "bb.entry"
+               OpName %type_sampled_image "type.sampled.image"
+               OpDecorate %in_var_TEXCOORD Location 0
+               OpDecorate %out_var_SV_Target Location 0
+               OpDecorate %g_Tex DescriptorSet 0
+               OpDecorate %g_Tex Binding 0
+               OpDecorate %g_S DescriptorSet 0
+               OpDecorate %g_S Binding 1
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_1 = OpConstant %int 1
+      %float = OpTypeFloat 32
+    %float_0 = OpConstant %float 0
+%type_2d_image = OpTypeImage %float 2D 2 0 0 1 Unknown
+%_ptr_UniformConstant_type_2d_image = OpTypePointer UniformConstant %type_2d_image
+       %uint = OpTypeInt 32 0
+     %uint_2 = OpConstant %uint 2
+%type_sampler = OpTypeSampler
+%_arr_type_sampler_uint_2 = OpTypeArray %type_sampler %uint_2
+%_ptr_UniformConstant__arr_type_sampler_uint_2 = OpTypePointer UniformConstant %_arr_type_sampler_uint_2
+    %v2float = OpTypeVector %float 2
+%_ptr_Input_v2float = OpTypePointer Input %v2float
+    %v4float = OpTypeVector %float 4
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %29 = OpTypeFunction %void
+%_ptr_Function_v2float = OpTypePointer Function %v2float
+       %Test = OpTypeStruct %_arr_type_sampler_uint_2
+%_ptr_Function_Test = OpTypePointer Function %Test
+%_ptr_UniformConstant_type_sampler = OpTypePointer UniformConstant %type_sampler
+%_ptr_Function_type_sampler = OpTypePointer Function %type_sampler
+         %34 = OpTypeFunction %v4float %_ptr_Function_Test %_ptr_Function_v2float
+%type_sampled_image = OpTypeSampledImage %type_2d_image
+      %g_Tex = OpVariable %_ptr_UniformConstant_type_2d_image UniformConstant
+        %g_S = OpVariable %_ptr_UniformConstant__arr_type_sampler_uint_2 UniformConstant
+%in_var_TEXCOORD = OpVariable %_ptr_Input_v2float Input
+%out_var_SV_Target = OpVariable %_ptr_Output_v4float Output
+       %main = OpFunction %void None %29
+         %35 = OpLabel
+         %36 = OpVariable %_ptr_Function_Test Function
+         %37 = OpVariable %_ptr_Function_v2float Function
+         %38 = OpLoad %v2float %in_var_TEXCOORD
+         %39 = OpAccessChain %_ptr_UniformConstant_type_sampler %g_S %int_0
+         %40 = OpLoad %type_sampler %39
+         %41 = OpAccessChain %_ptr_UniformConstant_type_sampler %g_S %int_1
+         %42 = OpLoad %type_sampler %41
+         %43 = OpCompositeConstruct %_arr_type_sampler_uint_2 %40 %42
+         %44 = OpCompositeConstruct %Test %43
+               OpStore %36 %44
+               OpStore %37 %38
+         %45 = OpFunctionCall %v4float %Reflection %36 %37
+               OpStore %out_var_SV_Target %45
+               OpReturn
+               OpFunctionEnd
+ %Reflection = OpFunction %v4float DontInline %34
+        %Res = OpFunctionParameter %_ptr_Function_Test
+         %uv = OpFunctionParameter %_ptr_Function_v2float
+   %bb_entry = OpLabel
+         %46 = OpLoad %type_2d_image %g_Tex
+         %47 = OpAccessChain %_ptr_Function_type_sampler %Res %int_0 %int_0
+         %48 = OpLoad %type_sampler %47
+         %49 = OpLoad %v2float %uv
+         %50 = OpSampledImage %type_sampled_image %46 %48
+         %51 = OpImageSampleExplicitLod %v4float %50 %49 Lod %float_0
+               OpReturnValue %51
+               OpFunctionEnd
+
+
+--- stderr ---
+

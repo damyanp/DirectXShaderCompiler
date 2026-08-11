@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:41:53+00:00
+# cmd: -T ps_6_0 -E main -spirv repro-spirv-struct.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-spirv-struct.json
+# verdict: repro
+# variant: spirv-struct (repro-spirv-struct.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main -spirv repro-spirv-struct.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+fatal error: generated SPIR-V is invalid: [VUID-StandaloneSpirv-None-04667] In Vulkan, OpTypeStruct must not contain an invalid opaque type.
+  %Test = OpTypeStruct %_arr_type_sampler_uint_2
+
+note: please file a bug report on https://github.com/Microsoft/DirectXShaderCompiler/issues with source code if possible
+
+

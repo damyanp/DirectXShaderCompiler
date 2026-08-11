@@ -1,0 +1,31 @@
+# compiler: main-debug-rw
+# exe: <repo>/build/Debug/bin/dxr.exe
+# ran: 2026-08-10T22:37:30+00:00
+# cmd: -E main -HV 2021 repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-rewrite.json
+# verdict: repro
+# variant: rewriter (repro.hlsl)
+# expect: match
+
+$ dxc -E main -HV 2021 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxr.exe
+[exit] 0
+--- stdout ---
+// Rewrite unchanged result:
+float4 main(float4 a : A, float4 b : B) : SV_Target {
+  bool4 mask;
+  return float4(mask);
+}
+
+
+
+
+--- stderr ---
+repro.hlsl:12:18: error: operands for short-circuiting logical binary operator must be scalar, for non-scalar types use 'and'
+  bool4 mask = a && b;
+               ~~^~~~
+               and(a, b)
+
+

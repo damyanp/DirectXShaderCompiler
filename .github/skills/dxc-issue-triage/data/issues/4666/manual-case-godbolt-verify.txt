@@ -1,0 +1,137 @@
+# Compiler Explorer panes for #4666, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E main
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader debug name: 7efd93578d970ff351afc3ab6a3d8b4a.pdb
+; shader hash: 7efd93578d970ff351afc3ab6a3d8b4a
+;
+; Pipeline Runtime Information: 
+;
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+;
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 0, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @main() {
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float 0.000000e+00), !dbg !38 ; line:34 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float 0.000000e+00), !dbg !38 ; line:34 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float 0.000000e+00), !dbg !38 ; line:34 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float 0.000000e+00), !dbg !38 ; line:34 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !38 ; line:34 col:5
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #0
+
+attributes #0 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!19, !20}
+!llvm.ident = !{!21}
+!dx.source.contents = !{!22}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!23}
+!dx.source.args = !{!24}
+!dx.version = !{!25}
+!dx.valver = !{!26}
+!dx.shaderModel = !{!27}
+!dx.typeAnnotations = !{!28}
+!dx.viewIdState = !{!31}
+!dx.entryPoints = !{!32}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 32, type: !5, isLocal: false, isDefinition: true, scopeLine: 33, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, size: 128, align: 32, elements: !9, templateParams: !15)
+!9 = !{!10, !12, !13, !14}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!15 = !{!16, !17}
+!16 = !DITemplateTypeParameter(name: "element", type: !11)
+!17 = !DITemplateValueParameter(name: "element_count", type: !18, value: i32 4)
+!18 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!19 = !{i32 2, !"Dwarf Version", i32 4}
+!20 = !{i32 2, !"Debug Info Version", i32 3}
+!21 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!22 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 4666 -- regression: a sampler array used as a function parameter is\0A// rejected by the front end.\0A//\0A// What to look for: compare the two compilers in the pane on the right.\0A//\0A//   dxc_1_6_2112  compiles this cleanly and emits DXIL  (exit 0)\0A//   dxc_trunk     stops at the parameter declaration on the line below with a\0A//                 front-end error and emits nothing    (exit non-zero)\0A//\0A// Nothing about the shader changed between them, so the older compiler accepting\0A// it is the point: the newer diagnostic is the regression, not a newly enforced\0A// rule. The boundary is v1.7.2207; every stable release from there on rejects it.\0A//\0A// The equivalent declaration at global scope is accepted by BOTH compilers, which\0A// is what rules out \22this construct was simply never supported\22.\0A//==========================================================================//\0A\0A// Issue 4666 -- a function parameter of sampler-array type is rejected as an\0A// incomplete type.\0A//\0A// The single-line form is the reproduction published in the issue thread by\0A// llvm-beanz (https://godbolt.org/z/39Khq117f). An entry point is added so the\0A// same source compiles under a non-library profile, which reaches further back\0A// through the release history than the lib_6_6 of the linked session.\0A//\0A// The paired positive control is control-struct-first.hlsl: byte-identical\0A// apart from an unreferenced `struct Resources { SamplerState Samplers[2]; };`\0A// ahead of this function, which the issue body says makes the error disappear.\0Avoid Reflection(Texture2D<float4> Textures[4], SamplerState Samplers[2]) {}\0A\0Afloat4 main() : SV_Target\0A{\0A    return 0;\0A}\0A"}
+!23 = !{!"/app/example.hlsl"}
+!24 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug"}
+!25 = !{i32 1, i32 0}
+!26 = !{i32 1, i32 6}
+!27 = !{!"ps", i32 6, i32 0}
+!28 = !{i32 1, void ()* @main, !29}
+!29 = !{!30}
+!30 = !{i32 0, !2, !2}
+!31 = !{[2 x i32] [i32 0, i32 4]}
+!32 = !{void ()* @main, !"main", !33, null, null}
+!33 = !{null, !34, null}
+!34 = !{!35}
+!35 = !{i32 0, !"SV_Target", i8 9, i8 16, !36, i8 0, i32 1, i8 4, i32 0, i8 0, !37}
+!36 = !{i32 0}
+!37 = !{i32 3, i32 15}
+!38 = !DILocation(line: 34, column: 5, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main
+# exit:     5
+
+<source>:30:61: error: variable has incomplete type 'SamplerState [2]'
+void Reflection(Texture2D<float4> Textures[4], SamplerState Samplers[2]) {}
+                                                            ^
+
+<Compilation failed>

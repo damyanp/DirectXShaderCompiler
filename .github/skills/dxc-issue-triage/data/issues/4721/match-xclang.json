@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "dxc failed : Unknown argument: '-Xclang'",
+  "note": "Whether the driver has a passthrough that could reach the cc1 -fixit option without any new driver work. A match means there is no such escape hatch: DXC rejects -Xclang itself, so the inherited clang option is unreachable from dxc.exe by any spelling. Control: `xclang-control`, which runs cmd.txt (no -Xclang anywhere) and must score no-match -- otherwise this predicate would be firing on the -fixit rejection instead. Clause quotes the `unknown argument` marker verbatim so classify() does not demote the probe."
+}

@@ -1,0 +1,23 @@
+{
+  "batch": "batch-017",
+  "confidence": "high",
+  "created_at": "2022-09-14T02:52:13Z",
+  "expected_symptom": "internal_failure",
+  "godbolt_url": "https://godbolt.org/z/ejc1rnGPq",
+  "history": "always-repro'd",
+  "labels": "bug,crash",
+  "labels_add": "incorrect-code, type-system",
+  "labels_now": "bug,crash",
+  "notes_path": "issues/4648/notes.md",
+  "number": 4648,
+  "repro_quality": "partial",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (13730886e) and on all 20 stable releases v1.4.1907..v1.9.2607; access violation reading 0x8, matching the reported message byte-for-byte from v1.6.2104 on (the two oldest releases crash with empty stderr, so a text predicate would falsely score them clean). ApplyTypeSpecSignToParsedType returns m_scalarTypes[newScalarType] (SemaHLSL.cpp:11233), which is null unless the source already named that type, since only six scalar slots are pre-populated and the rest are created lazily by LookupScalarTypeDef; naming uint16_t earlier makes the identical declaration compile. Wider than the title: also crashes as a local, parameter and struct member, and for any user typedef (typedef int MyInt; unsigned MyInt g;) with no 16-bit type or flags involved. Vector/matrix shorthands escape because they prime the scalar typedef, which is why the only in-tree test covers unsigned int64_t2 and not unsigned int64_t. Clang-HLSL already rejects the construct.",
+  "title": "unsigned int{16,32,64}_t at global scope causes Segfault (attempted to read from 0x8)",
+  "triaged_at": "2026-08-10T23:52:31+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e6a9019e4e0823746470f3ab75341d6b",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4648"
+}

@@ -1,0 +1,22 @@
+{
+  "batch": "batch-017",
+  "confidence": "high",
+  "created_at": "2022-10-12T17:54:09Z",
+  "expected_symptom": "-M/-MD/-MF produce no dependency file when -P is also given, with no diagnostic and exit 0; the preprocessed output itself should be unaffected.",
+  "godbolt_skip": "The observable is a set of FILES the driver writes (a .d depfile) and the contents of a -Fi preprocessed output; Compiler Explorer shows only the compiled result of a single translation unit, so it cannot display either. The repro is also multi-file by construction -- a dependency list is only meaningful with #include, and this one uses two nested headers -- and CE is single-file. A link would show a compile that is not the thing under test.",
+  "history": "always-repro'd",
+  "labels": "bug,high-impact",
+  "labels_add": "diagnostic",
+  "labels_now": "bug,high-impact",
+  "number": 4723,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces, and the mechanism is worse than the report suggests: under -P the -M family writes no depfile AND appends the dependency list to the preprocessed -Fi output, so the .i no longer compiles (E_FAIL, 'unknown type name'). Silent -- exit 0, no diagnostic, though dxc does warn for -Fo under -P. Two causes: DxcContext::Preprocess() never reaches ActOnBlob() where depfiles are written, and DxcCompilerObj::Compile writes the preprocessed text and the dependency rule to the same outStream. Identical on every release from v1.7.2207 (current when filed) to today. Not an enhancement: both flags work independently, only the combination is broken, and it corrupts a requested output.",
+  "title": "Support -M depfile generation flags during -P preprocess to file",
+  "triaged_at": "2026-08-10T23:52:59+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e6a9019e4e0823746470f3ab75341d6b",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4723"
+}

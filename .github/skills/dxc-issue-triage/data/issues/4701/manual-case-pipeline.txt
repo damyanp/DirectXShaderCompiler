@@ -1,0 +1,157 @@
+Issue 4701 -- optimisation level in use, and the pass pipeline that runs.
+Compiler: main-debug (the ground-truth build).
+
+==========================================================================
+1. Which optimisation level is the default?
+==========================================================================
+$ <repo>\build\Debug\bin\dxc.exe --help
+[exit] 0
+(lines mentioning an -O flag, verbatim)
+  -Od                     Disable optimizations
+  -O0                   Optimization Level 0
+  -O1                   Optimization Level 1
+  -O2                   Optimization Level 2
+  -O3                   Optimization Level 3 (Default)
+
+VERDICT: default optimisation level is stated by the compiler as: -O3                   Optimization Level 3 (Default)
+
+==========================================================================
+2. Which passes run for the reported command line?
+==========================================================================
+$ <repo>\build\Debug\bin\dxc.exe -T cs_6_0 -E main -Odump repro.hlsl
+[exit] 0
+--- full -Odump output ---
+# Per-function passes
+-opt-fn-passes
+-tti
+-verify
+-targetlibinfo
+-tbaa
+-scoped-noalias
+-basicaa
+-simplifycfg
+-lower-expect
+# Per-module passes
+-opt-mod-passes
+-tti
+-hlsl-hlensure
+-dxil-rewrite-output-arg-debug-info
+-hl-legalize-parameter
+-always-inline,InlineThreshold=2294967296,InsertLifetime=f
+-hlsl-dxil-cleanup-addrspacecast
+-hl-preprocess
+-hl-dfe
+-static-global-to-alloca
+-hl-expand-store-intrinsics
+-scalarrepl-param-hlsl
+-hlmatrixlower
+-dce
+-globaldce
+-static-global-to-alloca
+-dynamic-vector-to-array,ReplaceAllVectors=0
+-loop-rotate
+-dxil-cond-mem2reg,NoOpt=0
+-dxil-delete-redundant-debug-values
+-hlsl-cleanup-dxbreak
+-hlsl-dxil-convergent-mark
+-simplify-inst
+-simplifycfg
+-hlsl-dxil-promote-local-resources
+-hlsl-dxil-promote-static-resources
+-invalidate-undef-resource
+-dxilgen
+-hlsl-dxil-precise
+-simplify-inst
+-scalarizer
+-dxil-elim-vector
+-dxil-loop-unroll,MaxIterationAttempt=1024,OnlyWarnOnFail=0,StructurizeLoopExits=1
+-loop-unroll,StructurizeLoopExits=1
+-simplify-inst
+-simplifycfg
+-dce
+-dxil-fix-array-init
+-targetlibinfo
+-tbaa
+-scoped-noalias
+-basicaa
+-ipsccp
+-globalopt
+-deadargelim
+-instcombine,NoSink=0
+-simplifycfg
+-prune-eh
+-functionattrs
+-sroa
+-correlated-propagation
+-simplifycfg
+-instcombine,NoSink=0
+-simplifycfg
+-reassociate
+-loop-rotate
+-instcombine,NoSink=0
+-indvars
+-loop-deletion
+-loop-unroll,StructurizeLoopExits=0
+-mldst-motion
+-gvn
+-dxil-gvn-hoist
+-reassociate
+-gvn
+-dxil-gvn-eliminate-region
+-sccp
+-bdce
+-instcombine,NoSink=0
+-correlated-propagation
+-dse
+-hlsl-hca
+-adce
+-simplifycfg
+-instcombine,NoSink=0
+-barrier
+-float2int
+-loop-rotate
+-instcombine,NoSink=0
+-simplifycfg
+-dxil-loop-deletion,NoSink=0
+-loop-unroll,StructurizeLoopExits=1
+-instcombine,NoSink=0
+-alignment-from-assumptions
+-strip-dead-prototypes
+-elim-avail-extern
+-globaldce
+-constmerge
+-dxil-erase-dead-region
+-hlsl-dxil-convergent-clear
+-dce
+-multi-dim-one-dim
+-dxil-remove-dead-blocks
+-dce
+-globaldce
+-hlsl-dxil-resources-to-handle
+-hlsl-dxil-cleanup-dynamic-resource-handle
+-hlsl-dxil-lower-handle-for-lib
+-hlsl-translate-dxil-raw-buffer
+-dxil-legalize-sample-offset
+-hlsl-dxilfinalize
+-viewid-state
+-dxil-dfe
+-dxil-delete-redundant-debug-values
+-hlsl-passes-nopause
+-hlsl-validate-wave-sensitivity
+-hlsl-dxilemit
+--- end -Odump output ---
+
+Passes the write-up names, and whether -Odump actually lists them:
+  globalopt                  present
+  globaldce                  present
+  dse                        present
+  adce                       present
+  static-global-to-alloca    present
+  sroa                       present
+  scalarrepl                 present
+  hlsl-dxil-tgsm             ABSENT
+  simplifycfg                present
+
+Only the passes marked `present` may be named in the write-up as having had
+the opportunity to delete the dead group-shared array.
+ABSENT here means only 'not in this pipeline listing under this name'.

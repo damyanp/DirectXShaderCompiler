@@ -1,0 +1,85 @@
+# compiler: v1.9.2602
+# exe: <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+# ran: 2026-08-10T22:24:40+00:00
+# cmd: -T cs_6_0 -E main repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: 2737b30ce162b1cdce8b475f55ed9264
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,8,1)
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+@"\01?a@@3PAMA" = external addrspace(3) global [10 x float], align 4
+
+define void @main() {
+  store float 1.000000e+00, float addrspace(3)* getelementptr inbounds ([10 x float], [10 x float] addrspace(3)* @"\01?a@@3PAMA", i32 0, i32 0), align 4, !tbaa !7
+  ret void
+}
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.entryPoints = !{!4}
+
+!0 = !{!"dxcoob 1.9.2602.17 (21d28f727)"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 9}
+!3 = !{!"cs", i32 6, i32 0}
+!4 = !{void ()* @main, !"main", null, null, !5}
+!5 = !{i32 4, !6}
+!6 = !{i32 8, i32 8, i32 1}
+!7 = !{!8, !8, i64 0}
+!8 = !{!"float", !9, i64 0}
+!9 = !{!"omnipotent char", !10, i64 0}
+!10 = !{!"Simple C/C++ TBAA"}
+
+
+--- stderr ---
+

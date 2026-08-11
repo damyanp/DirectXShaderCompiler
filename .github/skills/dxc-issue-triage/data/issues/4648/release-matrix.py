@@ -1,0 +1,179 @@
+"""Per-release control matrix for issue 4648.
+
+`bisect` probes the repro on every release, but a probe only counts if that
+release could actually run the construct under test. `-enable-16bit-types` is
+gated on shader model >= 6.2, so an old release could in principle reject
+`repro.hlsl` for a reason that has nothing to do with the defect -- and a crash
+predicate would be unable to tell that apart from "did not reproduce".
+
+So this holds the *release* fixed and varies the *shader*, running on every
+catalogued stable release:
+
+  repro.hlsl            the defect            expect an internal failure
+  control-uint16.hlsl   feature presence      expect a clean compile: proves the
+                        + negative control    release supports 16-bit types under
+                                              this exact profile and flag set, and
+                                              that the predicate does not simply
+                                              fire on everything
+  control-hello.hlsl    toolchain sanity      expect a clean compile
+
+Releases are read from the catalogue's `cached_path` column, which is the
+reconciliation layer over the two physical release roots (`.cache/compilers/
+releases/` and `build/tools/clang/test/dxc_releases/`); walking either root
+alone would silently miss binaries held only in the other.
+
+The script asserts its own expectations and prints a loud `MATRIX-4648:
+CHECK-FAILED` marker when one is not met, so a broken reader cannot report
+"nothing here" and "nothing matched" through the same silent channel.
+
+Usage (from this directory):
+    python release-matrix.py > manual-case-release-control-matrix.txt
+"""
+import os
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "scripts"))
+import triage  # noqa: E402
+
+ARGS = ["-T", "vs_6_2", "-enable-16bit-types"]
+
+# (shader, what it is for, expected classification)
+CASES = [
+    ("repro.hlsl", "the defect", "internal-failure"),
+    ("control-uint16.hlsl", "feature presence + negative control", "clean"),
+    ("control-hello.hlsl", "toolchain sanity", "clean"),
+]
+
+# The findings that widen the report beyond its own title -- other scopes, other
+# type spellings, a plain user typedef -- were established on the ground-truth
+# Debug build. A claim about "DXC" rather than "this build" has to be measured on
+# a shipped binary too, so the full shape is re-run on two releases: the one that
+# was current when the issue was filed (2022-09) and the newest stable.
+SHAPE_RELEASES = ("v1.7.2207", "v1.9.2607")
+SHAPE_CASES = [
+    ("repro.hlsl", "unsigned int16_t, global scope (the issue body)",
+     "internal-failure"),
+    ("case-u32-global.hlsl", "unsigned int32_t, global scope", "internal-failure"),
+    ("case-u64-global.hlsl", "unsigned int64_t, global scope", "internal-failure"),
+    ("case-u16-local.hlsl", "unsigned int16_t, FUNCTION-LOCAL scope",
+     "internal-failure"),
+    ("case-u32-local.hlsl", "unsigned int32_t, FUNCTION-LOCAL scope",
+     "internal-failure"),
+    ("case-u16-static.hlsl", "static qualifier", "internal-failure"),
+    ("case-u16-extern.hlsl", "extern qualifier", "internal-failure"),
+    ("case-u16-param.hlsl", "function parameter", "internal-failure"),
+    ("case-u16-struct.hlsl", "struct member", "internal-failure"),
+    ("case-user-typedef.hlsl", "plain user typedef of int, no 16-bit type",
+     "internal-failure"),
+    ("case-primed-u16.hlsl", "naming uint16_t first", "clean"),
+    ("case-primed-typedef.hlsl", "naming uint first", "clean"),
+    ("case-u16x1-unsigned.hlsl", "matrix shorthand (reporter's fun fact)", "clean"),
+    ("case-u16-signed.hlsl", "signed instead of unsigned", "diagnosed-error"),
+    ("control-unsigned-int.hlsl", "unsigned on the builtin int keyword", "clean"),
+    ("control-u16x1.hlsl", "matrix shorthand, no unsigned", "clean"),
+    ("control-u64x2.hlsl", "vector shorthand, the in-tree tested spelling", "clean"),
+    ("control-uint16.hlsl", "supported spelling", "clean"),
+    ("control-hello.hlsl", "toolchain sanity", "clean"),
+]
+
+
+def stable_releases():
+    con = triage.con()
+    rows = con.execute(
+        "SELECT tag, build_date, cached_path FROM releases "
+        "WHERE bisectable=1 AND prerelease=0 AND cached_path IS NOT NULL"
+    ).fetchall()
+    return sorted(rows, key=lambda r: r["build_date"] or "")
+
+
+def run(exe, argv):
+    p = subprocess.run([exe] + argv, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace", cwd=HERE, timeout=300)
+    return p.returncode & 0xFFFFFFFF, triage.redact_paths(p.stdout + p.stderr)
+
+
+def classify(code, text):
+    if triage.is_internal_failure(text, code, False):
+        return "internal-failure"
+    if code == 0:
+        return "clean"
+    return "diagnosed-error"
+
+
+def main():
+    releases = stable_releases()
+    print("# issue 4648 -- per-release control matrix")
+    print("# generated by release-matrix.py, committed beside this file")
+    print("# args: %s" % subprocess.list2cmdline(ARGS))
+    print("# stable catalogued releases with a cached dxc: %d" % len(releases))
+    print("# classification uses triage.is_internal_failure(), the same function")
+    print("# match.json's `internal_failure` predicate uses.")
+    print()
+    print("=" * 72)
+    print("# phase 1: repro plus feature-presence and sanity controls, every release")
+    print("=" * 72)
+
+    failures = 0
+    checked = 0
+    for row in releases:
+        exe = row["cached_path"]
+        print("=" * 72)
+        print("# release %s (build %s)" % (row["tag"], row["build_date"]))
+        print("# exe: %s" % triage.display_exe(exe))
+        vcode, vtext = run(exe, ["--version"])
+        print("$ dxc --version")
+        print("  " + " | ".join(l.strip() for l in vtext.strip().splitlines()
+                                if l.strip()))
+        for shader, why, expected in CASES:
+            code, text = run(exe, ARGS + [shader])
+            got = classify(code, text)
+            checked += 1
+            print("$ " + subprocess.list2cmdline(["dxc"] + ARGS + [shader]))
+            print("  [%s] exit=0x%08X -> %s (expected %s)"
+                  % (why, code, got, expected))
+            first = [l for l in text.splitlines() if l.strip()]
+            print("  stderr/stdout first line: %s"
+                  % (first[0].strip() if first else "<empty>"))
+            if got != expected:
+                failures += 1
+                print("  MATRIX-4648: CHECK-FAILED %s on %s: expected %s, got %s"
+                      % (shader, row["tag"], expected, got))
+        print()
+
+    print("=" * 72)
+    print("# phase 2: the full case shape, on the release current when the issue")
+    print("# was filed and on the newest stable release")
+    print("=" * 72)
+    by_tag = {row["tag"]: row for row in releases}
+    for tag in SHAPE_RELEASES:
+        row = by_tag.get(tag)
+        if row is None:
+            failures += 1
+            print("MATRIX-4648: CHECK-FAILED release %s absent from the catalogue"
+                  % tag)
+            continue
+        print("# release %s (build %s)" % (row["tag"], row["build_date"]))
+        for shader, why, expected in SHAPE_CASES:
+            code, text = run(row["cached_path"], ARGS + [shader])
+            got = classify(code, text)
+            checked += 1
+            print("  %-28s %-46s exit=0x%08X -> %-16s (expected %s)"
+                  % (shader, why, code, got, expected))
+            if got != expected:
+                failures += 1
+                print("  MATRIX-4648: CHECK-FAILED %s on %s: expected %s, got %s"
+                      % (shader, row["tag"], expected, got))
+        print()
+
+    print("=" * 72)
+    print("MATRIX-4648: selftest=%s  cases-checked=%d  check-failures=%d"
+          % ("pass" if failures == 0 and checked else "FAIL", checked, failures))
+    if not checked:
+        print("MATRIX-4648: PARSE-WARNING: 0 releases enumerated -- the reader, "
+              "not the compiler, is what this measured")
+
+
+if __name__ == "__main__":
+    main()

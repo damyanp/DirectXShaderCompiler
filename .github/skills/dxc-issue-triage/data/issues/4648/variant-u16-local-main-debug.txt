@@ -1,0 +1,21 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:21:29+00:00
+# cmd: -T vs_6_2 -enable-16bit-types case-u16-local.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: u16-local (case-u16-local.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: refuted
+
+$ dxc -T vs_6_2 -enable-16bit-types case-u16-local.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

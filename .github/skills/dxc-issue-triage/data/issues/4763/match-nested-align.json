@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "^define void @PSMain\\(\\)" },
+    { "kind": "regex", "value": "^;\\s+uint next;\\s+; Offset:\\s+16\\s*$" }
+  ],
+  "note": "HYPOTHESIS predicate for variant-resource-in-nested-struct.hlsl, not a probe of issue 4763's symptom. It tests a claim made in a 2023 comment on the issue (https://github.com/microsoft/DirectXShaderCompiler/issues/4763#issuecomment-1650593899): that a resource placed inside a struct which is then used as a field leaves the NEXT field 16-byte aligned, even though the resource occupies 0 size. A match means the claim is supported -- 'next' was pushed to offset 16 rather than the offset 4 it would take with no intervening struct. Clause 1 is the anti-vacuity anchor: a shader that failed to compile emits no function body and must not score. The variant compiles the control shape (no inner struct) in the same run so the comparison is same-instrument."
+}

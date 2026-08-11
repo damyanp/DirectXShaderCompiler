@@ -1,0 +1,26 @@
+# compiler: main-debug-rw
+# exe: <repo>/build/Debug/bin/dxr.exe
+# ran: 2026-08-10T22:37:30+00:00
+# cmd: -E main -HV 2021 control-fixed.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-rewrite.json
+# verdict: no-repro
+# variant: rewriter-control (control-fixed.hlsl)
+# expect: no-match
+
+$ dxc -E main -HV 2021 control-fixed.hlsl
+[exe] <repo>/build/Debug/bin/dxr.exe
+[exit] 0
+--- stdout ---
+// Rewrite unchanged result:
+float4 main(float4 a : A, float4 b : B) : SV_Target {
+  bool4 mask = and(a, b);
+  return float4(mask);
+}
+
+
+
+
+--- stderr ---
+

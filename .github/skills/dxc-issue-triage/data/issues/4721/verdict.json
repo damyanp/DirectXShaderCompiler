@@ -1,0 +1,21 @@
+{
+  "batch": "batch-017",
+  "confidence": "high",
+  "created_at": "2022-10-12T14:57:31Z",
+  "godbolt_url": "https://godbolt.org/z/af7P4dYvc",
+  "history": "never-implemented",
+  "labels": "hlsl-next",
+  "labels_add": "enhancement, diagnostic, rewriter",
+  "labels_now": "hlsl-next",
+  "number": 4721,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Feature request, still open and still accurate, but narrower than the title: dxc already computes and prints clang fix-it hints and cannot apply them. All 20 stable releases v1.4.1907-v1.9.2607 reject -fixit, -fixit=, -fixit-recompile and -Xclang; /fixit only 'succeeds' because unrecognised /-flags are silently dropped (byte-identical object). The machinery is present and already linked into dxcompiler (FixItRewriter.cpp, ExecuteCompilerInvocation.cpp:53, CC1Options.td:396); the gap is HLSLOptions.td, which declares no fixit and no Xclang, so no driver path selects FixItAction. llvm-project's HLSL clang runs the same rewriter today via -Xclang -fixit ('FIX-IT applied suggested code changes'), with a control proving the flag causes it. Ask 3 is worse than unimplemented: dxr prints the hint, exits 0 and silently drops the diagnosed initializer.",
+  "title": "Support applying clang fix-its automatically",
+  "triaged_at": "2026-08-10T23:52:58+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e6a9019e4e0823746470f3ab75341d6b",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4721"
+}

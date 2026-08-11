@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    {"kind": "regex", "value": "error: operands for short-circuiting logical binary operator must be scalar, for non-scalar types use 'and'"},
+    {"kind": "regex", "value": "^ +and\\(a, b\\) *$"}
+  ],
+  "note": "POLARITY INVERTED with respect to match.json: a match here means the capability is PRESENT. It asks whether DXC computes and renders a clang FixItHint at all -- clause 1 anchors on the diagnostic actually firing (so a compile that never reached Sema cannot satisfy the predicate), clause 2 on the replacement source being printed under the caret. The replacement text appears nowhere in repro.hlsl, so clause 2 cannot be an echo of the input; note that this only holds while the repro is compiled without -Zi/-Qembed_debug, which would put the source into !dx.source.contents. Controls: `fixit-applied` (the corrected shader, which compiles clean) must score no-match, and `generic-fixit` (a missing-semicolon insertion hint, a fix-it for a different diagnostic) must also score no-match -- the second is what keeps the predicate from being read as `any fix-it anywhere`."
+}

@@ -1,0 +1,15 @@
+# Everything here is produced by a probe and rebuilt by the next one; nothing
+# in this list is an input. The repro deliberately writes its artifacts next to
+# the shader, because "which files did the run write?" IS the measurement (see
+# dep4723.py), so without this the directory fills with stale depfiles and
+# preprocessed output -- and a stale .d is indistinguishable from one the run
+# under test produced, which is precisely the trap this issue is about.
+*.d
+*.i
+*.dxo
+history-work/
+
+# Left by probing the pre-v1.7.2212 spelling of -P, which took the output
+# filename as a value: `-P -Fi x.i` on such a release writes to a file called
+# `-Fi`. measure-history.py cleans it up; this is belt and braces.
+-Fi

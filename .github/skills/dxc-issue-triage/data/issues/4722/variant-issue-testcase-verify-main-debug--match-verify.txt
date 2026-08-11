@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:44:46+00:00
+# cmd: -T ps_6_0 -E fn -HV 2021 -verify issue-testcase.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-verify.json
+# verdict: repro
+# variant: issue-testcase-verify (issue-testcase.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E fn -HV 2021 -verify issue-testcase.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: 'error' diagnostics seen but not expected: 
+  File issue-testcase.hlsl Line 19: 'row_major' can only be used with a matrix type
+  File issue-testcase.hlsl Line 20: 'column_major' can only be used with a matrix type
+
+

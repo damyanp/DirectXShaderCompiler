@@ -1,0 +1,28 @@
+# issue 4710 -- control for the Compiler Explorer Clang pane
+# generator: probe-clang-control.py (committed beside this file)
+# compiler: hlsl_clang_trunk   args: -T ps_6_0 -E psMain
+# Clang's HLSL support is incomplete, so a failure is only evidence
+# if a closely-related shader that should be unaffected still compiles.
+
+== A  repro (resources in cbuffer struct, dynamic index)   [subject] ==
+  exit=139   clang crash: True
+  crashing frame present: CGHLSLRuntime::emitBufferCopy
+    clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+    PLEASE submit a bug report to https://github.com/llvm/llvm-project/issues/ and include the crash backtrace and dumped files.
+    Stack dump:
+    0.	Program arguments: /opt/compiler-explorer/clang-trunk/bin/clang --driver-mode=dxc -Zi -Qembed_debug -Fc /app/output.s -fcolor-diagnostics -fno-crash-diagnostics -T ps_6_0 -E psMain <source>
+    1.	<eof> parser at end of file
+    2.	<source>:17:8: LLVM IR generation of declaration 'psMain'
+
+== B  same shape, no resources   [control, expected to compile] ==
+  exit=0   clang crash: False
+    clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+
+== C  trivial pixel shader   [control, expected to compile] ==
+  exit=0   clang crash: False
+    clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+
+== verdict on this pane ==
+  Control B compiled and A crashed: the crash tracks the resource member
+  specifically. Worth reporting to the Clang HLSL front end as a distinct
+  issue -- still not evidence about whether DXC's diagnostic is correct.

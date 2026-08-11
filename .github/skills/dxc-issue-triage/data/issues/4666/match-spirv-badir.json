@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "OpTypeStruct %_arr_type_sampler"
+    },
+    {
+      "kind": "regex",
+      "value": "OpEntryPoint Fragment %main"
+    }
+  ],
+  "note": "The DEFECT behind symptom B, measured directly instead of through the validator. Run with -spirv -Vd, so validation is skipped and the predicate reads what DXC actually emitted: a struct type whose member is an array of samplers, which Vulkan forbids. This exists because scoring symptom B by the validator's diagnostic alone mis-dates the defect. Measured: v1.6.2104 emits '%Test = OpTypeStruct %_arr_type_sampler_uint_2' and exits 0, because the SPIRV-Tools it bundles predates VUID-StandaloneSpirv-None-04667. Read through the validator that release looks like a working one and v1.6.2106 looks like a regression in DXC; read through this predicate it is visibly the same defect, and the v1.6.2106 boundary is a validator upgrade. The second clause is an anti-vacuity anchor: OpEntryPoint proves codegen ran to completion and produced a module, so a build with no SPIR-V backend (v1.4.1907: 'SPIR-V CodeGen not available') cannot satisfy this predicate by failing early. The corresponding self-test lives in measure-history.py, which requires control-spirv-noinline-plain.hlsl to emit '%Test = OpTypeStruct' on the same release -- v1.5.2010 does not honour [noinline], materialises no struct at all, and is therefore unmeasurable rather than clean."
+}

@@ -1,0 +1,1 @@
+dxc_1_6_2112,dxc_trunk,fxc_10_0_19041:/T ps_5_0 /E psMain,fxc_10_0_26100:/T ps_5_1 /E psMain,hlsl_clang_trunk

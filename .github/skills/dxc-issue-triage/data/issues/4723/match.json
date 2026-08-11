@@ -1,0 +1,37 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "dep4723-artifact depfile-MF dep-compile\\.d PRESENT bytes=\\d+"
+    },
+    {
+      "kind": "regex",
+      "value": "dep4723-content dep-compile\\.d \\| repro\\.hlsl: repro\\.hlsl[^\\n]*\\ndep4723-content dep-compile\\.d \\|\\s+inc/common\\.hlsli"
+    },
+    {
+      "kind": "regex",
+      "value": "dep4723-artifact depfile-MF dep-preprocess\\.d MISSING\\ndep4723-artifact preprocessed-P repro\\.i PRESENT bytes=\\d+"
+    },
+    {
+      "kind": "regex",
+      "value": "dep4723-artifact depfile-MD repro\\.d PRESENT bytes=\\d+"
+    },
+    {
+      "kind": "regex",
+      "value": "dep4723-artifact depfile-MD repro\\.d MISSING\\ndep4723-artifact preprocessed-P repro-md\\.i PRESENT bytes=\\d+"
+    },
+    {
+      "kind": "regex",
+      "value": "dep4723-artifact stdout-deps <stdout> PRESENT\\ndep4723-content <stdout> \\| repro\\.hlsl: repro\\.hlsl"
+    },
+    {
+      "kind": "regex",
+      "value": "dep4723-artifact stdout-deps <stdout> MISSING\\ndep4723-artifact preprocessed-P repro-m\\.i PRESENT bytes=\\d+"
+    }
+  ],
+  "quote_from": [
+    "match-contamination.json"
+  ],
+  "note": "The symptom is an ABSENCE (no depfile when -P is on the command line), and SKILL.md's rule for that is to make the instrument prove a PRESENCE in the same run. Every clause here is a positive text match on a line the harness emits only after it has run, parsed the command line and looked at the filesystem, so nothing can be satisfied by a compile that never started -- a bare not_contains would have been. Clauses 1, 4 and 6 are the self-tests, one per flag: -MF, -MD and -M each demonstrably work in the SAME build, on the SAME shader, seconds earlier, which is what makes the even-numbered findings mean 'inert under -P' rather than 'this build has no depfile support' or 'the harness cannot see files'. Clause 2 additionally proves the produced artifact is a real dependency list (a make rule naming the source and its header) and not an empty file the self-test would otherwise accept. Clauses 3, 5 and 7 are the findings, each ANCHORED on the adjacent line showing that the very same invocation did write its preprocessed output: without that anchor a dxc that failed outright would report MISSING and score as a reproduction, which is the fix-inventing direction. Clause 5 is stronger than it looks -- repro.d must be reported PRESENT by one invocation and MISSING by another in one capture, which is only satisfiable if the pair really differs; the harness deletes each expected artifact before running (dep4723-cleared), so a stale file cannot fake either half. CONTROLS live in match-depmissing.json, which isolates the detector so a control is scored against the instrument rather than against the self-tests: control-compile-mf (same command minus '-P -Fi repro.i') must score no-match because the depfile IS written, and control-p-only (-P with no -MF at all) must score no-match because the MISSING line is emitted only for a flag that was actually requested.   Exit status is deliberately absent from every clause: dxc exits 0 for all six of these invocations, and /ZZZNONSENSE exits 0 too (manual-case-flag-parse-proof.txt), so exit status carries no information here. The seventh command line, which feeds the preprocessed output back to dxc, belongs to the SECOND finding and is scored by match-contamination.json; the quote_from link above declares that predicate's verbatim diagnostic as this issue's diagnostic surface, so classify() does not read the `unknown type name` in this capture as a release that could not run the input."
+}

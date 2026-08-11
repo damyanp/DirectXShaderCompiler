@@ -1,0 +1,268 @@
+# Compiler Explorer panes for #4708, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E main -HV 2021
+# exit:     5
+
+<source>:66:35: error: scalar, vector, or matrix expected
+    array<float, 3> result = arr1 + 2.0f;
+                                  ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main -HV 2021
+# exit:     5
+
+<source>:47:12: error: overloading non-member 'operator+' is not allowed
+array<T,N> operator+ (array<T,N> lhs, T rhs) {
+           ^
+<source>:53:12: error: overloading non-member 'operator+' is not allowed
+array<T,N> operator+ (T lhs, array<T,N> rhs) {
+           ^
+<source>:66:35: error: scalar, vector, or matrix expected
+    array<float, 3> result = arr1 + 2.0f;
+                                  ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+; Out                                   UAV  struct         r/w      U0             u0         1
+;
+; ModuleID = '/app/example.hlsl'
+source_filename = "/app/example.hlsl"
+target datalayout = "e-m:e-ve-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxilv1.0-unknown-shadermodel6.0-compute"
+
+%"RWStructuredBuffer<float>" = type { float }
+%dx.types.Handle = type { ptr }
+
+@Out = external constant %"RWStructuredBuffer<float>"
+
+; Function Attrs: convergent noinline nounwind memory(write, inaccessiblemem: none, target_mem: none)
+define void @main() local_unnamed_addr #0 {
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !79, metadata !DIExpression()), !dbg !88
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !79, metadata !DIExpression()), !dbg !88
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !82, metadata !DIExpression()), !dbg !88
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !82, metadata !DIExpression()), !dbg !88
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 1, i64 0, metadata !83, metadata !DIExpression()), !dbg !88
+  tail call void @llvm.dbg.value(metadata i32 1, metadata !83, metadata !DIExpression()), !dbg !88
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !84, metadata !DIExpression()), !dbg !88
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !84, metadata !DIExpression()), !dbg !88
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata ptr @.str, i64 0, metadata !85, metadata !DIExpression()), !dbg !88
+  tail call void @llvm.dbg.value(metadata ptr @.str, metadata !85, metadata !DIExpression()), !dbg !88
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !86, metadata !DIExpression()), !dbg !88
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !86, metadata !DIExpression()), !dbg !88
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !88
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata float 2.000000e+00, i64 0, metadata !96, metadata !DIExpression(DW_OP_LLVM_fragment, 0, 32)), !dbg !127
+  tail call void @llvm.dbg.value(metadata float 2.000000e+00, metadata !96, metadata !DIExpression(DW_OP_LLVM_fragment, 0, 32)), !dbg !127
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata float 2.000000e+00, i64 0, metadata !96, metadata !DIExpression(DW_OP_LLVM_fragment, 32, 32)), !dbg !127
+  tail call void @llvm.dbg.value(metadata float 2.000000e+00, metadata !96, metadata !DIExpression(DW_OP_LLVM_fragment, 32, 32)), !dbg !127
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata float 2.000000e+00, i64 0, metadata !96, metadata !DIExpression(DW_OP_LLVM_fragment, 64, 32)), !dbg !127
+  tail call void @llvm.dbg.value(metadata float 2.000000e+00, metadata !96, metadata !DIExpression(DW_OP_LLVM_fragment, 64, 32)), !dbg !127
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata float 4.000000e+00, i64 0, metadata !109, metadata !DIExpression(DW_OP_LLVM_fragment, 0, 32)), !dbg !127
+  tail call void @llvm.dbg.value(metadata float 4.000000e+00, metadata !109, metadata !DIExpression(DW_OP_LLVM_fragment, 0, 32)), !dbg !127
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata float poison, i64 0, metadata !109, metadata !DIExpression(DW_OP_LLVM_fragment, 32, 32)), !dbg !127
+  tail call void @llvm.dbg.value(metadata float poison, metadata !109, metadata !DIExpression(DW_OP_LLVM_fragment, 32, 32)), !dbg !127
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata float poison, i64 0, metadata !109, metadata !DIExpression(DW_OP_LLVM_fragment, 64, 32)), !dbg !127
+  tail call void @llvm.dbg.value(metadata float poison, metadata !109, metadata !DIExpression(DW_OP_LLVM_fragment, 64, 32)), !dbg !127
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 0)
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %2, i64 0, metadata !128, metadata !DIExpression()), !dbg !132
+  tail call void @llvm.dbg.value(metadata i32 %2, metadata !128, metadata !DIExpression()), !dbg !132
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %1, i32 %2, i32 0, float 4.000000e+00, float undef, float undef, float undef, i8 1), !dbg !134
+  ret void
+}
+
+; Function Attrs: nounwind memory(none)
+declare i32 @dx.op.threadId.i32(i32, i32) #1
+
+; Function Attrs: nounwind memory(read)
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #3
+
+; Function Attrs: nounwind memory(none)
+declare void @llvm.dbg.value(metadata, metadata, metadata) #1
+
+attributes #0 = { convergent noinline nounwind memory(write, inaccessiblemem: none, target_mem: none) }
+attributes #1 = { nounwind memory(none) }
+attributes #2 = { nounwind memory(read) }
+attributes #3 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!dx.valver = !{!60}
+!dx.source.contents = !{!61}
+!dx.source.defines = !{!62}
+!dx.source.mainFileName = !{!63}
+!dx.source.args = !{!64}
+!llvm.ident = !{!65}
+!dx.shaderModel = !{!66}
+!dx.version = !{!67}
+!dx.resources = !{!68}
+!dx.entryPoints = !{!72}
+!llvm.module.flags = !{!75, !76, !77, !78}
+
+; DXIL: !0: additional data: !135
+!0 = distinct !DICompileUnit(language: DW_LANG_HLSL, file: !1, producer: "clang version 24.0.0git (https://github.com/llvm/llvm-project.git 3f6b3a3385561c0f5a76a8e4048cb5420966e1bb)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, retainedTypes: !2, globals: !57, splitDebugInlining: false, nameTableKind: None)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{!3, !5, !7}
+!3 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !4, size: 32)
+!4 = !DICompositeType(tag: DW_TAG_structure_type, name: "__hlsl_resource_t", file: !1, flags: DIFlagFwdDecl)
+!5 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !6, size: 32)
+!6 = !DIBasicType(name: "float", size: 32, encoding: DW_ATE_float)
+!7 = distinct !DICompositeType(tag: DW_TAG_class_type, name: "RWStructuredBuffer<float>", scope: !8, size: 64, flags: DIFlagTypePassByReference | DIFlagNonTrivial, elements: !9, templateParams: !55)
+!8 = !DINamespace(name: "hlsl", scope: null)
+!9 = !{!10, !12, !13, !17, !22, !26, !34, !35, !40, !43, !48, !51, !52}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "__handle", scope: !7, file: !11, line: 68, baseType: !3, size: 32)
+!11 = !DIFile(filename: "example.hlsl", directory: "/app")
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "__counter_handle", scope: !7, file: !11, line: 68, baseType: !3, size: 32, offset: 32)
+!13 = !DISubprogram(name: "RWStructuredBuffer", linkageName: "_ZN4hlsl18RWStructuredBufferIfEC4Ev", scope: !7, file: !11, type: !14, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!14 = !DISubroutineType(types: !15)
+!15 = !{null, !16}
+!16 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !7, size: 32, flags: DIFlagArtificial | DIFlagObjectPointer)
+!17 = !DISubprogram(name: "RWStructuredBuffer", linkageName: "_ZN4hlsl18RWStructuredBufferIfEC4ERKS1_", scope: !7, file: !11, type: !18, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!18 = !DISubroutineType(types: !19)
+!19 = !{null, !16, !20}
+!20 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !21, size: 32)
+!21 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !7)
+!22 = !DISubprogram(name: "operator=", linkageName: "_ZN4hlsl18RWStructuredBufferIfEaSERKS1_", scope: !7, file: !11, type: !23, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!23 = !DISubroutineType(types: !24)
+!24 = !{!25, !16, !20}
+!25 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !7, size: 32)
+!26 = !DISubprogram(name: "__createFromBindingWithImplicitCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIfE38__createFromBindingWithImplicitCounterEjjijPKcj", scope: !7, file: !11, type: !27, flags: DIFlagPublic | DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!27 = !DISubroutineType(types: !28)
+!28 = !{!7, !29, !29, !30, !29, !31, !29}
+!29 = !DIBasicType(name: "unsigned int", size: 32, encoding: DW_ATE_unsigned)
+!30 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
+!31 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !32, size: 32)
+!32 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !33)
+!33 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_signed_char)
+!34 = !DISubprogram(name: "__createFromImplicitBindingWithImplicitCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIfE46__createFromImplicitBindingWithImplicitCounterEjjijPKcj", scope: !7, file: !11, type: !27, flags: DIFlagPublic | DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!35 = !DISubprogram(name: "operator[]", linkageName: "_ZNK4hlsl18RWStructuredBufferIfEixEj", scope: !7, file: !11, type: !36, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!36 = !DISubroutineType(types: !37)
+!37 = !{!38, !39, !29}
+!38 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !6, size: 32)
+!39 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !21, size: 32, flags: DIFlagArtificial | DIFlagObjectPointer)
+!40 = !DISubprogram(name: "Load", linkageName: "_ZNK4hlsl18RWStructuredBufferIfE4LoadEj", scope: !7, file: !11, type: !41, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!41 = !DISubroutineType(types: !42)
+!42 = !{!6, !39, !29}
+!43 = !DISubprogram(name: "Load", linkageName: "_ZNK4hlsl18RWStructuredBufferIfE4LoadEjRj", scope: !7, file: !11, type: !44, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!44 = !DISubroutineType(types: !45)
+!45 = !{!6, !39, !29, !46}
+!46 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !47)
+!47 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !29, size: 32)
+!48 = !DISubprogram(name: "IncrementCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIfE16IncrementCounterEv", scope: !7, file: !11, type: !49, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!49 = !DISubroutineType(types: !50)
+!50 = !{!29, !16}
+!51 = !DISubprogram(name: "DecrementCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIfE16DecrementCounterEv", scope: !7, file: !11, type: !49, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!52 = !DISubprogram(name: "GetDimensions", linkageName: "_ZN4hlsl18RWStructuredBufferIfE13GetDimensionsERjS2_", scope: !7, file: !11, type: !53, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!53 = !DISubroutineType(types: !54)
+!54 = !{null, !16, !46, !46}
+!55 = !{!56}
+!56 = !DITemplateTypeParameter(name: "element_type", type: !6)
+!57 = !{!58}
+; DXIL: !58: to be replaced by: !59
+!58 = !DIGlobalVariableExpression(var: !59, expr: !DIExpression())
+!59 = distinct !DIGlobalVariable(name: "Out", linkageName: "_ZL3Out", scope: !0, file: !11, line: 59, type: !7, isLocal: true, isDefinition: true)
+!60 = !{i32 1, i32 8}
+!61 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for\0A//\0A// This is issue 4708's shader: a class template with two NON-member (namespace scope)\0A// operator+ templates, used as `arr1 + 2.0f`. The result is stored to a UAV so that a\0A// compiler which accepts the program shows its work; in the reporter's original the result\0A// was unused and an accepting compiler would emit an empty entry point, which reads as\0A// \22nothing happened\22.\0A//\0A// Compare the panes:\0A//\0A// - Both DXC panes fail. The older one rejects only the USE of the operator; the trunk one\0A//   additionally rejects each DECLARATION, a diagnostic added in 2023. Same outcome, better\0A//   wording.\0A// - The Clang HLSL pane succeeds and emits a resource binding for the UAV plus a single\0A//   buffer store. Read the float constant in that store: it is the sum the free operator\0A//   computes, folded at compile time. So the operator was found, called and evaluated -- the\0A//   pane is not merely silent.\0A//\0A// Compiler Explorer builds DXC in Release and appends debug-info flags to its DXC panes;\0A// neither affects this comparison, which is a front-end accept/reject question. dxc_trunk is\0A// a rolling build, so treat its exact wording as current rather than pinned.\0A//==========================================================================//\0A\0A// Issue 4708, observable variant. This is repro.hlsl with the result actually STORED,\0A// so the free operator's effect is visible in generated code instead of being dead.\0A//\0A// Needed because in the reporter's original shader `result` is unused, so a compiler\0A// that accepts the program emits an empty main() -- which reads as \22nothing happened\22\0A// rather than as \22the free operator resolved\22. Here the sum reaches a UAV, so a pane\0A// that compiles shows the arithmetic.\0A//\0A// Everything about the construct under test is unchanged: the two namespace-scope\0A// operator+ templates, and the use site `arr1 + 2.0f`.\0Atemplate<typename T, uint32_t N>\0Aclass array\0A{\0A    T mArr[N];\0A    void set(const T value) {\0A        [unroll] for(uint i = 0 ; i < N; i++) { mArr[i] = value; }\0A    }\0A    float operator[](const uint32_t pos)\0A    { return mArr[pos]; }\0A};\0A\0Atemplate<typename T, uint32_t N>\0Aarray<T,N> operator+ (array<T,N> lhs, T rhs) {\0A    array<T,N> arr;\0A    [unroll] for(uint i = 0 ; i < N; i++) { arr.mArr[i] = lhs.mArr[i] + rhs; }\0A    return arr;\0A}\0Atemplate<typename T, uint32_t N>\0Aarray<T,N> operator+ (T lhs, array<T,N> rhs) {\0A    array<T,N> arr;\0A    [unroll] for(uint i = 0 ; i < N; i++) { arr.mArr[i] = lhs + rhs.mArr[i]; }\0A    return arr;\0A}\0A\0ARWStructuredBuffer<float> Out : register(u0);\0A\0A[numthreads(1, 1, 1)]\0Avoid main( uint3 DTid : SV_DispatchThreadID )\0A{\0A    array<float, 3> arr1;\0A    arr1.set(2.0);\0A    array<float, 3> result = arr1 + 2.0f;\0A    Out[DTid.x] = result[0];\0A}\0A"}
+!62 = !{}
+!63 = !{!"example.hlsl"}
+!64 = !{!"--driver-mode=dxc", !"-g", !"-Qembed_debug", !"-Fc", !"/app/output.s", !"-fcolor-diagnostics", !"-gen-reproducer=off", !"-T", !"cs_6_0", !"-hlsl-entry", !"main", !"/app/example.hlsl", !"-S", !"-O3"}
+!65 = !{!"clang version 24.0.0git (https://github.com/llvm/llvm-project.git 3f6b3a3385561c0f5a76a8e4048cb5420966e1bb)"}
+!66 = !{!"cs", i32 6, i32 0}
+!67 = !{i32 1, i32 0}
+!68 = !{null, !69, null, null}
+!69 = !{!70}
+!70 = !{i32 0, ptr @Out, !"Out", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !71}
+!71 = !{i32 1, i32 4}
+!72 = !{ptr @main, !"main", null, !68, !73}
+!73 = !{i32 0, i64 16, i32 4, !74}
+!74 = !{i32 1, i32 1, i32 1}
+!75 = !{i32 2, !"Dwarf Version", i32 4}
+!76 = !{i32 2, !"Debug Info Version", i32 3}
+!77 = !{i32 2, !"frame-pointer", i32 2}
+!78 = !{i32 2, !"debug-info-assignment-tracking", i1 true}
+!79 = !DILocalVariable(name: "registerNo", arg: 1, scope: !80, file: !11, type: !29)
+; DXIL: !80: to be replaced by: !136
+!80 = distinct !DISubprogram(name: "__createFromBindingWithImplicitCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIfE38__createFromBindingWithImplicitCounterEjjijPKcj", scope: !7, file: !11, line: 68, type: !27, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !26, retainedNodes: !81)
+!81 = !{!79, !82, !83, !84, !85, !86, !87}
+!82 = !DILocalVariable(name: "spaceNo", arg: 2, scope: !80, file: !11, type: !29)
+!83 = !DILocalVariable(name: "range", arg: 3, scope: !80, file: !11, type: !30)
+!84 = !DILocalVariable(name: "index", arg: 4, scope: !80, file: !11, type: !29)
+!85 = !DILocalVariable(name: "name", arg: 5, scope: !80, file: !11, type: !31)
+!86 = !DILocalVariable(name: "counterOrderId", arg: 6, scope: !80, file: !11, type: !29)
+!87 = !DILocalVariable(name: "tmp", scope: !80, file: !11, type: !7)
+!88 = !DILocation(line: 0, scope: !80, inlinedAt: !89)
+!89 = distinct !DILocation(line: 0, scope: !90, inlinedAt: !93)
+; DXIL: !90: to be replaced by: !137
+!90 = distinct !DISubprogram(name: "__cxx_global_var_init", scope: !11, file: !11, type: !91, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!91 = !DISubroutineType(types: !92)
+!92 = !{null}
+!93 = distinct !DILocation(line: 0, scope: !94)
+; DXIL: !94: to be replaced by: !138
+!94 = distinct !DISubprogram(linkageName: "_GLOBAL__sub_I_example.hlsl", scope: !11, file: !11, type: !95, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!95 = !DISubroutineType(types: !62)
+!96 = !DILocalVariable(name: "arr1", scope: !97, file: !11, line: 64, type: !110)
+; DXIL: !97: to be replaced by: !139
+!97 = distinct !DISubprogram(name: "main", linkageName: "_Z4mainDv3_j", scope: !11, file: !11, line: 62, type: !98, scopeLine: 63, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !107)
+!98 = !DISubroutineType(types: !99)
+!99 = !{null, !100}
+!100 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", scope: !8, file: !101, line: 70, baseType: !102)
+!101 = !DIFile(filename: "/cefs/f8/f8b118a0883540b862d99540_clang-trunk-20260810/lib/clang/24/include/hlsl/hlsl_basic_types.h", directory: "")
+!102 = !DIDerivedType(tag: DW_TAG_typedef, name: "vector<unsigned int, 3>", scope: !8, file: !11, baseType: !103)
+!103 = !DICompositeType(tag: DW_TAG_array_type, baseType: !104, size: 96, flags: DIFlagVector, elements: !105)
+!104 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", scope: !8, file: !101, line: 35, baseType: !29)
+!105 = !{!106}
+!106 = !DISubrange(count: 3)
+!107 = !{!108, !96, !109}
+!108 = !DILocalVariable(name: "DTid", arg: 1, scope: !97, file: !11, line: 62, type: !100)
+!109 = !DILocalVariable(name: "result", scope: !97, file: !11, line: 66, type: !110)
+!110 = distinct !DICompositeType(tag: DW_TAG_class_type, name: "array<float, 3U>", file: !11, line: 36, size: 96, flags: DIFlagTypePassByReference | DIFlagNonTrivial, elements: !111, templateParams: !124)
+!111 = !{!112, !114, !119}
+!112 = !DIDerivedType(tag: DW_TAG_member, name: "mArr", scope: !110, file: !11, line: 38, baseType: !113, size: 96, flags: DIFlagPublic)
+!113 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 96, elements: !105)
+!114 = !DISubprogram(name: "set", linkageName: "_ZN5arrayIfLj3EE3setEf", scope: !110, file: !11, line: 39, type: !115, scopeLine: 39, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!115 = !DISubroutineType(types: !116)
+!116 = !{null, !117, !118}
+!117 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !110, size: 32, flags: DIFlagArtificial | DIFlagObjectPointer)
+!118 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !6)
+!119 = !DISubprogram(name: "operator[]", linkageName: "_ZN5arrayIfLj3EEixEj", scope: !110, file: !11, line: 42, type: !120, scopeLine: 42, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!120 = !DISubroutineType(types: !121)
+!121 = !{!6, !117, !122}
+!122 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !123)
+!123 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint32_t", scope: !8, file: !101, line: 36, baseType: !29)
+!124 = !{!125, !126}
+!125 = !DITemplateTypeParameter(name: "T", type: !6)
+!126 = !DITemplateValueParameter(name: "N", type: !29, value: i32 3)
+!127 = !DILocation(line: 0, scope: !97)
+!128 = !DILocalVariable(name: "Index", arg: 2, scope: !129, file: !11, type: !29)
+; DXIL: !129: to be replaced by: !140
+!129 = distinct !DISubprogram(name: "operator[]", linkageName: "_ZNK4hlsl18RWStructuredBufferIfEixEj", scope: !7, file: !11, line: 51, type: !36, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !35, retainedNodes: !130)
+!130 = !{!131, !128}
+!131 = !DILocalVariable(name: "this", arg: 1, scope: !129, type: !20, flags: DIFlagArtificial | DIFlagObjectPointer)
+!132 = !DILocation(line: 0, scope: !129, inlinedAt: !133)
+!133 = distinct !DILocation(line: 67, column: 5, scope: !97)
+!134 = !DILocation(line: 67, column: 17, scope: !97)
+!135 = !{!80, !90, !94, !97, !129}
+!136 = !DISubprogram(name: "__createFromBindingWithImplicitCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIfE38__createFromBindingWithImplicitCounterEjjijPKcj", scope: !7, file: !11, line: 68, type: !27, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !26, retainedNodes: !81)
+!137 = !DISubprogram(name: "__cxx_global_var_init", scope: !11, file: !11, type: !91, flags: DIFlagArtificial, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!138 = !DISubprogram(linkageName: "_GLOBAL__sub_I_example.hlsl", scope: !11, file: !11, type: !95, flags: DIFlagArtificial, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!139 = !DISubprogram(name: "main", linkageName: "_Z4mainDv3_j", scope: !11, file: !11, line: 62, type: !98, scopeLine: 63, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !107)
+!140 = !DISubprogram(name: "operator[]", linkageName: "_ZNK4hlsl18RWStructuredBufferIfEixEj", scope: !7, file: !11, line: 51, type: !36, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !35, retainedNodes: !130)

@@ -1,0 +1,25 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "dep4723-artifact preprocessed-P repro\\.i PRESENT bytes=\\d+"
+    },
+    {
+      "kind": "regex",
+      "value": "dep4723-tail repro\\.i \\| repro\\.hlsl: repro\\.hlsl \\\\\\ndep4723-tail repro\\.i \\|\\s+inc/common\\.hlsli \\\\\\ndep4723-tail repro\\.i \\|\\s+inc/nested\\.hlsli"
+    },
+    {
+      "kind": "regex",
+      "value": "\\$ dxc -T ps_6_0 -E main repro\\.i\\n(?:.*\\n)*?repro\\.hlsl:\\d+:\\d+: error: unknown type name 'repro'"
+    },
+    {
+      "kind": "regex",
+      "value": "error: cannot use dot operator on a type\\n(?:.*\\n)*?dep4723-exit=0x80004005\\ndep4723-status=diagnosed"
+    }
+  ],
+  "quote_from": [
+    "match.json"
+  ],
+  "note": "The SECOND defect, kept in its own predicate because it is not what the issue reports. #4723 asks for depfile output under -P; match.json measures that it is absent. This one measures what happens INSTEAD, which is worse than absence: the dependency list is written into the preprocessed output. Clause 1 is the anchor and the self-test -- repro.i exists and is non-empty, so the file being examined is one this run produced. Clause 2 is the finding: the last three non-blank lines of the PREPROCESSED output are a make rule naming the shader and both of its headers, byte-identical to what -MF writes to a real depfile in the compile-mode line above it. The tail is the load-bearing part; the head of a preprocessed file is always #line directives, which is why a head-only harness (the first version of dep4723.py) saw nothing and the size delta -- 354 bytes with -MF, 291 without -- is what exposed it. Clauses 3 and 4 close the loop by consuming the artifact: dxc is handed its own preprocessed output back and rejects it, at the exact text of the injected make rule (`repro.hlsl:9:1`, i.e. past the end of the real shader), with 0x80004005 = E_FAIL, an ordinary diagnosed error and NOT a crash -- hence the explicit dep4723-status=diagnosed, which the harness derives in Python because a .cmd wrapper cannot carry an HRESULT out intact. CONTROL: control-p-only, the same -P -Fi invocation with the -MF flag removed, scored against this predicate with --expect no-match; it produces a clean 291-byte .i whose tail is shader text, which is what proves the depfile flag is the cause and not -P itself. The clang diagnostic is quoted verbatim in clause 3, which is deliberate: `unknown type name` is one of classify()'s feature-absence markers, and quoting it in a positive clause is the documented way (see _predicate_quotes) to declare that this diagnostic IS the measurement rather than evidence that the release could not run the input. match.json carries a quote_from link back here for the same reason, since its capture contains the same text."
+}

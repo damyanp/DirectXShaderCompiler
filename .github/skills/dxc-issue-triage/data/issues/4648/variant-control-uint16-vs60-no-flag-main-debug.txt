@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:42:47+00:00
+# cmd: -T vs_6_0 control-uint16.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "unknown type name", so this build did not reach the code under test
+# variant: control-uint16-vs60-no-flag (control-uint16.hlsl)
+# expect: invalid-probe
+
+$ dxc -T vs_6_0 control-uint16.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-uint16.hlsl:1:1: error: unknown type name 'uint16_t'
+uint16_t g;
+^
+
+

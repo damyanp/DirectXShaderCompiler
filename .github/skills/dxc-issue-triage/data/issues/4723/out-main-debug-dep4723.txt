@@ -1,0 +1,189 @@
+# compiler: main-debug-dep4723
+# exe: <triage>/issues/4723/run-dep4723.cmd
+# ran: 2026-08-10T23:10:10+00:00
+# cmd: -T ps_6_0 -E main -MF dep-compile.d repro.hlsl ; -T ps_6_0 -E main -P -Fi repro.i -MF dep-preprocess.d repro.hlsl ; -T ps_6_0 -E main -MD repro.hlsl ; -T ps_6_0 -E main -P -Fi repro-md.i -MD repro.hlsl ; -T ps_6_0 -E main -M repro.hlsl ; -T ps_6_0 -E main -P -Fi repro-m.i -M repro.hlsl ; -T ps_6_0 -E main repro.i
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E main -MF dep-compile.d repro.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-requested depfile-MF dep-compile.d
+$ dxc -T ps_6_0 -E main -MF dep-compile.d repro.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created dep-compile.d bytes=63
+dep4723-artifact depfile-MF dep-compile.d PRESENT bytes=63
+dep4723-content dep-compile.d | repro.hlsl: repro.hlsl \
+dep4723-content dep-compile.d |  inc/common.hlsli \
+dep4723-content dep-compile.d |  inc/nested.hlsli
+dep4723-tail dep-compile.d | repro.hlsl: repro.hlsl \
+dep4723-tail dep-compile.d |  inc/common.hlsli \
+dep4723-tail dep-compile.d |  inc/nested.hlsli
+dep4723-selftest artifacts-inspected=1
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main -P -Fi repro.i -MF dep-preprocess.d repro.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-requested depfile-MF dep-preprocess.d
+dep4723-requested preprocessed-P repro.i
+$ dxc -T ps_6_0 -E main -P -Fi repro.i -MF dep-preprocess.d repro.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created repro.i bytes=354
+dep4723-artifact depfile-MF dep-preprocess.d MISSING
+dep4723-artifact preprocessed-P repro.i PRESENT bytes=354
+dep4723-content repro.i | #line 1 "repro.hlsl"
+dep4723-content repro.i | 
+dep4723-content repro.i | 
+dep4723-content repro.i | 
+dep4723-content repro.i | #line 1 "./inc/common.hlsli"
+dep4723-content repro.i | 
+dep4723-content repro.i | #line 1 "./inc/nested.hlsli"
+dep4723-content repro.i | 
+dep4723-tail repro.i | repro.hlsl: repro.hlsl \
+dep4723-tail repro.i |  inc/common.hlsli \
+dep4723-tail repro.i |  inc/nested.hlsli
+dep4723-selftest artifacts-inspected=2
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main -MD repro.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-requested depfile-MD repro.d
+$ dxc -T ps_6_0 -E main -MD repro.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created repro.d bytes=63
+dep4723-artifact depfile-MD repro.d PRESENT bytes=63
+dep4723-content repro.d | repro.hlsl: repro.hlsl \
+dep4723-content repro.d |  inc/common.hlsli \
+dep4723-content repro.d |  inc/nested.hlsli
+dep4723-tail repro.d | repro.hlsl: repro.hlsl \
+dep4723-tail repro.d |  inc/common.hlsli \
+dep4723-tail repro.d |  inc/nested.hlsli
+dep4723-selftest artifacts-inspected=1
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main -P -Fi repro-md.i -MD repro.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-cleared repro.d
+dep4723-requested depfile-MD repro.d
+dep4723-requested preprocessed-P repro-md.i
+$ dxc -T ps_6_0 -E main -P -Fi repro-md.i -MD repro.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created repro-md.i bytes=354
+dep4723-artifact depfile-MD repro.d MISSING
+dep4723-artifact preprocessed-P repro-md.i PRESENT bytes=354
+dep4723-content repro-md.i | #line 1 "repro.hlsl"
+dep4723-content repro-md.i | 
+dep4723-content repro-md.i | 
+dep4723-content repro-md.i | 
+dep4723-content repro-md.i | #line 1 "./inc/common.hlsli"
+dep4723-content repro-md.i | 
+dep4723-content repro-md.i | #line 1 "./inc/nested.hlsli"
+dep4723-content repro-md.i | 
+dep4723-tail repro-md.i | repro.hlsl: repro.hlsl \
+dep4723-tail repro-md.i |  inc/common.hlsli \
+dep4723-tail repro-md.i |  inc/nested.hlsli
+dep4723-selftest artifacts-inspected=2
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main -M repro.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-requested stdout-deps <stdout>
+$ dxc -T ps_6_0 -E main -M repro.hlsl
+--- dxc output ---
+repro.hlsl: repro.hlsl \
+ inc/common.hlsli \
+ inc/nested.hlsli
+
+--- end dxc output ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-artifact stdout-deps <stdout> PRESENT
+dep4723-content <stdout> | repro.hlsl: repro.hlsl \
+dep4723-selftest artifacts-inspected=1
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main -P -Fi repro-m.i -M repro.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-requested stdout-deps <stdout>
+dep4723-requested preprocessed-P repro-m.i
+$ dxc -T ps_6_0 -E main -P -Fi repro-m.i -M repro.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created repro-m.i bytes=354
+dep4723-artifact stdout-deps <stdout> MISSING
+dep4723-artifact preprocessed-P repro-m.i PRESENT bytes=354
+dep4723-content repro-m.i | #line 1 "repro.hlsl"
+dep4723-content repro-m.i | 
+dep4723-content repro-m.i | 
+dep4723-content repro-m.i | 
+dep4723-content repro-m.i | #line 1 "./inc/common.hlsli"
+dep4723-content repro-m.i | 
+dep4723-content repro-m.i | #line 1 "./inc/nested.hlsli"
+dep4723-content repro-m.i | 
+dep4723-tail repro-m.i | repro.hlsl: repro.hlsl \
+dep4723-tail repro-m.i |  inc/common.hlsli \
+dep4723-tail repro-m.i |  inc/nested.hlsli
+dep4723-selftest artifacts-inspected=2
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main repro.i
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 1
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+$ dxc -T ps_6_0 -E main repro.i
+--- dxc output ---
+repro.hlsl:9:1: error: unknown type name 'repro'
+repro.hlsl: repro.hlsl \
+^
+repro.hlsl:9:6: error: cannot use dot operator on a type
+repro.hlsl: repro.hlsl \
+     ^
+
+--- end dxc output ---
+dep4723-exit=0x80004005
+dep4723-status=diagnosed
+dep4723-selftest artifacts-inspected=0
+
+--- stderr ---
+

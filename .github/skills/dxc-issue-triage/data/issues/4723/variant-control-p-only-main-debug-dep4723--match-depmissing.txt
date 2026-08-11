@@ -1,0 +1,39 @@
+# compiler: main-debug-dep4723
+# exe: <triage>/issues/4723/run-dep4723.cmd
+# ran: 2026-08-10T23:01:55+00:00
+# cmd: -T ps_6_0 -E main -P -Fi repro.i repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-depmissing.json
+# verdict: no-repro
+# variant: control-p-only (repro.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main -P -Fi repro.i repro.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-cleared repro.i
+dep4723-requested preprocessed-P repro.i
+$ dxc -T ps_6_0 -E main -P -Fi repro.i repro.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created repro.i bytes=291
+dep4723-artifact preprocessed-P repro.i PRESENT bytes=291
+dep4723-content repro.i | #line 1 "repro.hlsl"
+dep4723-content repro.i | 
+dep4723-content repro.i | 
+dep4723-content repro.i | 
+dep4723-content repro.i | #line 1 "./inc/common.hlsli"
+dep4723-content repro.i | 
+dep4723-content repro.i | #line 1 "./inc/nested.hlsli"
+dep4723-content repro.i | 
+dep4723-tail repro.i | float4 main(float4 pos : SV_Position) : SV_Target {
+dep4723-tail repro.i |   return Tint(pos);
+dep4723-tail repro.i | }
+dep4723-selftest artifacts-inspected=1
+
+--- stderr ---
+

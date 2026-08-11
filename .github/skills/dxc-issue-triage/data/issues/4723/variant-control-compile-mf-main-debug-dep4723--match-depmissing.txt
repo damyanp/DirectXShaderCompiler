@@ -1,0 +1,34 @@
+# compiler: main-debug-dep4723
+# exe: <triage>/issues/4723/run-dep4723.cmd
+# ran: 2026-08-10T23:01:54+00:00
+# cmd: -T ps_6_0 -E main -MF dep-preprocess.d repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-depmissing.json
+# verdict: no-repro
+# variant: control-compile-mf (repro.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main -MF dep-preprocess.d repro.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-cleared dep-preprocess.d
+dep4723-requested depfile-MF dep-preprocess.d
+$ dxc -T ps_6_0 -E main -MF dep-preprocess.d repro.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created dep-preprocess.d bytes=63
+dep4723-artifact depfile-MF dep-preprocess.d PRESENT bytes=63
+dep4723-content dep-preprocess.d | repro.hlsl: repro.hlsl \
+dep4723-content dep-preprocess.d |  inc/common.hlsli \
+dep4723-content dep-preprocess.d |  inc/nested.hlsli
+dep4723-tail dep-preprocess.d | repro.hlsl: repro.hlsl \
+dep4723-tail dep-preprocess.d |  inc/common.hlsli \
+dep4723-tail dep-preprocess.d |  inc/nested.hlsli
+dep4723-selftest artifacts-inspected=1
+
+--- stderr ---
+

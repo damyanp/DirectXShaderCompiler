@@ -1,0 +1,130 @@
+# Compiler Explorer panes for #4648, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T vs_6_2 -enable-16bit-types
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T vs_6_2 -enable-16bit-types -DCONTROL
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: e1f0c3224b7d10e93a69d4b72b4b963c.pdb
+; shader hash: e1f0c3224b7d10e93a69d4b72b4b963c
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Vertex Shader
+; OutputPositionPresent=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @main() {
+  ret void, !dbg !27 ; line:29 col:1
+}
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!12, !13}
+!llvm.ident = !{!14}
+!dx.source.contents = !{!15}
+!dx.source.defines = !{!16}
+!dx.source.mainFileName = !{!17}
+!dx.source.args = !{!18}
+!dx.version = !{!19}
+!dx.valver = !{!20}
+!dx.shaderModel = !{!21}
+!dx.typeAnnotations = !{!22}
+!dx.entryPoints = !{!25}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !7)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 28, type: !5, isLocal: false, isDefinition: true, scopeLine: 28, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{!8, !8}
+!8 = !DIGlobalVariable(name: "g", linkageName: "\01?g@@3GB", scope: !0, file: !1, line: 22, type: !9, isLocal: false, isDefinition: true)
+!9 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !10)
+!10 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint16_t", file: !1, line: 22, baseType: !11)
+!11 = !DIBasicType(name: "uint16_t", size: 16, align: 16, encoding: DW_ATE_unsigned)
+!12 = !{i32 2, !"Dwarf Version", i32 4}
+!13 = !{i32 2, !"Debug Info Version", i32 3}
+!14 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!15 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Three DXC panes and one Clang pane compile the same file; only the preprocessor\0A// define differs between the first two.\0A//\0A// The first pane is the declaration exactly as filed. Look at the pane's exit\0A// status rather than its text: DXC terminates abnormally instead of emitting a\0A// diagnostic, and on Compiler Explorer's Linux process the Windows status is\0A// truncated to its low byte, so the number will not match the one a Windows build\0A// prints. The second pane adds -DCONTROL, which swaps in the supported spelling of\0A// the same 16-bit type and nothing else; it compiles and emits a shader, which is\0A// what shows the first pane's failure is about the declaration and not about the\0A// profile, the flags or the entry point. The third pane is a 2021 release, showing\0A// this is not new.\0A//\0A// Compiler Explorer runs Release builds, so no assert is visible here. A local\0A// assert-enabled build stops earlier, in the parser, on a null type; continuing\0A// past that assert reaches the same memory fault the Release panes show.\0A//==========================================================================//\0A\0A#ifdef CONTROL\0A// Control arm: the supported spelling of the same type.\0Auint16_t g;\0A#else\0A// Repro arm: the declaration from the issue body, verbatim.\0Aunsigned int16_t g;\0A#endif\0A\0Avoid main() {\0A}\0A"}
+!16 = !{!"CONTROL=1", !"CONTROL=1"}
+!17 = !{!"/app/example.hlsl"}
+!18 = !{!"-E", !"main", !"-T", !"vs_6_2", !"-Zi", !"-Qembed_debug", !"-enable-16bit-types", !"-D", !"CONTROL", !"-D", !"CONTROL"}
+!19 = !{i32 1, i32 2}
+!20 = !{i32 1, i32 10}
+!21 = !{!"vs", i32 6, i32 2}
+!22 = !{i32 1, void ()* @main, !23}
+!23 = !{!24}
+!24 = !{i32 1, !2, !2}
+!25 = !{void ()* @main, !"main", null, null, !26}
+!26 = !{i32 0, i64 8388608}
+!27 = !DILocation(line: 29, column: 1, scope: !4)
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T vs_6_2 -enable-16bit-types
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T vs_6_2 -enable-16bit-types -fsyntax-only
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:25:17: [0m[0;1;31merror: [0m[1mexpected ';' after top level declarator[0m
+   25 | [0;34munsigned[0m int16_t g;[0m
+      | [0;1;32m                ^
+[0m      | [0;32m                ;
+[0m1 error generated.
+<Compilation failed>

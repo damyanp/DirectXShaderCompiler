@@ -1,0 +1,1 @@
+dxc_trunk:-T vs_6_2 -enable-16bit-types,dxc_trunk:-T vs_6_2 -enable-16bit-types -DCONTROL,dxc_1_6_2112:-T vs_6_2 -enable-16bit-types,hlsl_clang_trunk:-T vs_6_2 -enable-16bit-types -fsyntax-only,hlsl_clang_trunk:-T vs_6_2 -enable-16bit-types -fsyntax-only -DCONTROL

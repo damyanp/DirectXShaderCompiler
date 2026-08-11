@@ -1,0 +1,16 @@
+# The configuration used by collaborator llvm-beanz in
+# https://github.com/microsoft/DirectXShaderCompiler/issues/4648#issuecomment-1814799986
+# (read back from https://godbolt.org/api/shortlinkinfo/M4TfanMfr on 2026-08-10):
+#
+#   compiler: dxc_trunk   options: -T vs_6_6 -enable-16bit-types
+#   source:   unsigned int16_t g;\n\nvoid main() {\n}
+#
+# repro.hlsl is that source byte-for-byte. The issue body itself names no profile,
+# no entry point and no command line at all -- only the single declaration.
+#
+# cmd.txt lowers vs_6_6 to vs_6_2 for release-history reach: 16-bit types are gated on
+# shader model >= 6.2, and vs_6_6 exists only from v1.6.2106 onwards, which would make
+# every earlier release an invalid probe for a reason unrelated to the defect.
+# variant-repro-at-vs66-*.txt is the equivalence control showing the two profiles fail
+# identically on ground truth.
+-T vs_6_6 -enable-16bit-types repro.hlsl

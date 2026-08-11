@@ -1,0 +1,10 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "!dx\\.entryPoints\\s*=" },
+    { "kind": "nonzero_exit", "invert": true },
+    { "kind": "regex", "value": "^@[^\\n=]*=[^\\n=]*global \\[10 x float\\]" },
+    { "kind": "regex", "value": "^\\s*store " }
+  ],
+  "note": "ADDRESS-SPACE-AGNOSTIC TWIN of match.json, used only for the paired release history in release-matrix.py / manual-case-release-matrix.txt.\n\nWhy it exists: a one-sided history probe on a missed-optimisation issue cannot distinguish 'the reported case got worse' from 'the comparison case got better'. The reported case (groupshared) and the reference case (the same source with `static`) therefore have to be measured on the SAME releases with the SAME instrument. match.json cannot do that, because its clauses name address space 3 and so can never fire on the static arm for a reason that has nothing to do with optimisation quality.\n\nThis predicate says: 'a module-level [10 x float] global survived AND some store instruction survived', in a module that really was emitted (clauses 1 and 2, as in match.json). It fires on a dead [10 x float] array left behind in any address space, which is exactly the property both arms are being scored for.\n\nre.MULTILINE is in force, so '^@' anchors on real global-variable lines; the disassembly's header is comment lines beginning with ';' and cannot match. '^\\s*store ' matches an LLVM store instruction and not dx.op.bufferStore, which is a call.\n\nControls, captured as variant-*--deadarray.txt: control-static.hlsl and control-local.hlsl expect no-match (the compiler removes both), control-gs-live.hlsl expects match (a live groupshared array must survive), control-hello.hlsl expects no-match (no array at all, and its UAV write is a call rather than a store instruction, so this also proves clause 4 is not satisfied by any successful compile)."
+}

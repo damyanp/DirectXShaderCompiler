@@ -1,0 +1,9 @@
+{
+  "kind": "all_of",
+  "value": [
+    {"kind": "regex", "value": "dxc failed : Unknown argument: '-fixit'"},
+    {"kind": "regex", "value": "error: operands for short-circuiting logical binary operator must be scalar, for non-scalar types use 'and'"},
+    {"kind": "regex", "value": "^ +and\\(a, b\\) *$"}
+  ],
+  "note": "Issue 4721 asks for a way to APPLY clang fix-its. The symptom of an unimplemented feature request is not a misbehaviour, so this predicate states the gap as an observable pair: the driver rejects the requested flag (clause 1), while the compiler is at the same time computing and printing the exact corrected source it will not apply (clauses 2 and 3). Every clause is positive, so no clause can be satisfied for free by a compile that never ran -- and clause 3 in particular cannot be produced by anything but a rendered FixItHint, because the input spells `a && b` and never contains the replacement text. Clause 1 quotes the `unknown argument` feature-absence marker verbatim, which is required: this issue's symptom IS that diagnostic, so classify() must not demote the probe (see _predicate_quotes). Controls: `fixit-applied` (the repro with the hint applied by hand) must score no-match, proving clauses 2-3 are not satisfied by any successful compile; `no-fixit-flag` (the identical command with -fixit removed) must score no-match, proving clause 1 is load-bearing rather than decorative. NOTE the /-flag trap: DXC silently ignores unrecognised /-prefixed options, so /fixit exits cleanly and proves nothing -- see variant-slash-fixit and manual-case-flag-spellings.txt, where /fixit, /ZZZNONSENSE and no flag at all produce byte-identical objects."
+}

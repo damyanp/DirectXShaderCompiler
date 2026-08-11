@@ -1,0 +1,16 @@
+Issue 4721 -- "Support applying clang fix-its automatically".
+
+What to look at is the DIAGNOSTIC in each pane, not the DXIL.
+
+  pane 1  dxc 1.6.2112   the last shipped release that diagnoses this
+                         WITHOUT a suggested replacement: caret only.
+  pane 2  dxc trunk      the same compile today. Under the caret, dxc now
+                         prints the exact corrected source it wants. That
+                         string is a clang FixItHint, computed by Sema.
+  pane 3  dxc trunk      the same compile plus the flag this issue asks for.
+                         The compiler that just printed the fix rejects the
+                         request to apply it.
+
+So the gap is not "dxc does not know the fix". It knows, and prints it, and
+has no way to write it back. Ignore the banner line numbers: this comment
+block shifts them relative to the repro tested locally.

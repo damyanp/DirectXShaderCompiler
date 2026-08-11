@@ -1,0 +1,22 @@
+{
+  "batch": "batch-017",
+  "confidence": "high",
+  "created_at": "2022-11-03T21:45:34Z",
+  "godbolt_url": "https://godbolt.org/z/q9vnhdroE",
+  "history": "always-repro'd",
+  "labels": "fxc-disagrees",
+  "labels_add": "bug, correctness, diagnostic",
+  "labels_now": "fxc-disagrees",
+  "notes_path": "issues/4763/notes.md",
+  "number": 4763,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Both halves of the report still reproduce on main (1.10 5433-ab540090, 13730886e) and on all 20 stable releases v1.4.1907..v1.9.2607: the repro compiles with exit 0 and zero diagnostics while three resource types sit in cbuffers, and the reporter's 2022 offset/size table is still numerically exact (myInt at 12 with size 16 after StructuredBuffer<float3>, at 64 with size 68 after StructuredBuffer<float4x4>). dxv reports Validation succeeded, so this is silent acceptance rather than a front-end gap the validator catches. Not an oversight: commit 2b4f3e480 (2017) deliberately narrowed the pre-existing 'object types not supported' error to cbuffer/tbuffer view ARRAYS and declared resources zero-size; the array form is still diagnosed on every release probed (positive control, E_FAIL, one diagnostic), and in-tree tests assert the scalar form keeps working, so whether an error is owed is a language decision -- hlsl-specs#225 names this issue as needing it. FXC is silent too, but lays every cbuffer out as size 4 at offset 0, so the same source yields two host-visible layouts with no diagnostic from either compiler. The layout half has a mechanical cause: CGHLSLMS.cpp:1282 applies the zero-size rule only when !IsHLSLStructuredBufferType(Ty), so a StructuredBuffer<T> member is charged sizeof(T). Buffer<T> had the identical bug and was fixed by that same line (e6ba792e2, 2021-05-26), measured here as changing between v1.6.2104 and v1.6.2106.",
+  "title": "DXC doesn't report an error when placing a resource in a ConstantBuffer",
+  "triaged_at": "2026-08-10T23:52:59+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e6a9019e4e0823746470f3ab75341d6b",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4763"
+}

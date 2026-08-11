@@ -1,0 +1,56 @@
+Issue 4701 -- is the group-shared-memory byte count readable per release?
+
+Reader held FIXED at the ground-truth build; producer varied.
+reader = <repo>/build/Debug/bin/dxc.exe
+
+$ <cache>\compilers\releases\v1.4.1907\dxc.exe -T cs_6_0 -E main repro.hlsl -Fo <triage>\issues\4701\tgsm-v1.4.1907-repro.dxil
+$ <cache>\compilers\releases\v1.4.1907\dxc.exe -T cs_6_0 -E main repro.hlsl
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <triage>\issues\4701\tgsm-v1.4.1907-repro.dxil
+$ <cache>\compilers\releases\v1.4.1907\dxc.exe -T cs_6_0 -E main control-static.hlsl -Fo <triage>\issues\4701\tgsm-v1.4.1907-static.dxil
+$ <cache>\compilers\releases\v1.4.1907\dxc.exe -T cs_6_0 -E main control-static.hlsl
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <triage>\issues\4701\tgsm-v1.4.1907-static.dxil
+$ <cache>\compilers\releases\v1.7.2207\bin\x64\dxc.exe -T cs_6_0 -E main repro.hlsl -Fo <triage>\issues\4701\tgsm-v1.7.2207-repro.dxil
+$ <cache>\compilers\releases\v1.7.2207\bin\x64\dxc.exe -T cs_6_0 -E main repro.hlsl
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <triage>\issues\4701\tgsm-v1.7.2207-repro.dxil
+$ <cache>\compilers\releases\v1.7.2207\bin\x64\dxc.exe -T cs_6_0 -E main control-static.hlsl -Fo <triage>\issues\4701\tgsm-v1.7.2207-static.dxil
+$ <cache>\compilers\releases\v1.7.2207\bin\x64\dxc.exe -T cs_6_0 -E main control-static.hlsl
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <triage>\issues\4701\tgsm-v1.7.2207-static.dxil
+$ <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe -T cs_6_0 -E main repro.hlsl -Fo <triage>\issues\4701\tgsm-v1.8.2502-repro.dxil
+$ <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe -T cs_6_0 -E main repro.hlsl
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <triage>\issues\4701\tgsm-v1.8.2502-repro.dxil
+$ <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe -T cs_6_0 -E main control-static.hlsl -Fo <triage>\issues\4701\tgsm-v1.8.2502-static.dxil
+$ <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe -T cs_6_0 -E main control-static.hlsl
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <triage>\issues\4701\tgsm-v1.8.2502-static.dxil
+$ <cache>\compilers\releases\v1.9.2607\bin\x64\dxc.exe -T cs_6_0 -E main repro.hlsl -Fo <triage>\issues\4701\tgsm-v1.9.2607-repro.dxil
+$ <cache>\compilers\releases\v1.9.2607\bin\x64\dxc.exe -T cs_6_0 -E main repro.hlsl
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <triage>\issues\4701\tgsm-v1.9.2607-repro.dxil
+$ <cache>\compilers\releases\v1.9.2607\bin\x64\dxc.exe -T cs_6_0 -E main control-static.hlsl -Fo <triage>\issues\4701\tgsm-v1.9.2607-static.dxil
+$ <cache>\compilers\releases\v1.9.2607\bin\x64\dxc.exe -T cs_6_0 -E main control-static.hlsl
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <triage>\issues\4701\tgsm-v1.9.2607-static.dxil
+$ <repo>\build\Debug\bin\dxc.exe -T cs_6_0 -E main repro.hlsl -Fo <triage>\issues\4701\tgsm-main-debug-repro.dxil
+$ <repo>\build\Debug\bin\dxc.exe -T cs_6_0 -E main repro.hlsl
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <triage>\issues\4701\tgsm-main-debug-repro.dxil
+$ <repo>\build\Debug\bin\dxc.exe -T cs_6_0 -E main control-static.hlsl -Fo <triage>\issues\4701\tgsm-main-debug-static.dxil
+$ <repo>\build\Debug\bin\dxc.exe -T cs_6_0 -E main control-static.hlsl
+$ <repo>\build\Debug\bin\dxc.exe -dumpbin <triage>\issues\4701\tgsm-main-debug-static.dxil
+
+producer       arm      own disassembly  via fixed reader
+---------------------------------------------------------
+v1.4.1907      repro    field-absent     field-absent    
+v1.4.1907      static   field-absent     field-absent    
+v1.7.2207      repro    field-absent     field-absent    
+v1.7.2207      static   field-absent     field-absent    
+v1.8.2502      repro    field-absent     field-absent    
+v1.8.2502      static   field-absent     field-absent    
+v1.9.2607      repro    field-absent     field-absent    
+v1.9.2607      static   field-absent     field-absent    
+main-debug     repro    40               40              
+main-debug     static   0                0               
+
+CONCLUSION: NumBytesGroupSharedMemory is a post-v1.9.2607 addition to the PSV0
+runtime-info part.  No catalogued release emits it, and the fixed reader cannot
+recover it from a release-produced container either -- the field is not in those
+containers to be read.  So the byte count is evidence about the GROUND-TRUTH
+build only, and must be quoted that way.  The release history rests instead on
+the surviving `addrspace(3) global [10 x float]` and its store, which are present
+in every release's DXIL (see manual-case-release-matrix.txt).

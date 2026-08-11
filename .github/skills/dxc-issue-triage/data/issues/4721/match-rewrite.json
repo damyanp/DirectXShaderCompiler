@@ -1,0 +1,10 @@
+{
+  "kind": "all_of",
+  "value": [
+    {"kind": "contains", "value": "// Rewrite unchanged result:"},
+    {"kind": "regex", "value": "error: operands for short-circuiting logical binary operator must be scalar, for non-scalar types use 'and'"},
+    {"kind": "regex", "value": "^ +and\\(a, b\\) *$"},
+    {"kind": "regex", "value": "^ +bool4 mask;$"}
+  ],
+  "note": "Ask 3: `we also should consider applying fix-its automatically in the HLSL rewriters`. Scored against dxr.exe (compiler id main-debug-rw), not dxc.exe. Clause 1 proves the rewriter ran and emitted a rewrite; clauses 2 and 3 prove it computed the same fix-it hint dxc does; clause 4 is what the rewrite actually contains -- the declaration with the diagnosed initialiser dropped, rather than replaced by the suggested text. All four are positive, so nothing here is satisfied by a run that failed early. Control: `rewriter-control` runs the identical dxr command over control-fixed.hlsl, whose initialiser is valid; it must score no-match. That control is load-bearing -- without it, `the initialiser disappeared` would be indistinguishable from `this rewriter drops every initialiser`, which is a claim about the rewriter in general and not about fix-its."
+}

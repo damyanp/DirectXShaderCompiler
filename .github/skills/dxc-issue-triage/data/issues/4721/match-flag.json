@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "dxc failed : Unknown argument: '-fixit'",
+  "note": "Ask 1 alone, isolated from the HLSL-2021 hint clauses so it can be scanned across every stable release: does any shipped dxc accept -fixit? A match means the flag is NOT supported, so `always-repro'd` under this predicate is the population claim `no stable release has ever accepted -fixit`. Kept separate from match.json because match.json's hint clauses need HLSL 2021, which releases before v1.6.2112 cannot express -- mixing the two would date the flag's absence to the arrival of a language version it has nothing to do with. Wording verified portable to the oldest probeable release: v1.4.1907 (2019-07) prints this byte-for-byte. Control: `no-fixit-flag`, the same command with -fixit removed, must score no-match."
+}

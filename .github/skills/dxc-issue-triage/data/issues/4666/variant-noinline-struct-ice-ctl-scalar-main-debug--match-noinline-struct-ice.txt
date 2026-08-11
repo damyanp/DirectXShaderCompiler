@@ -1,0 +1,31 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:47:11+00:00
+# cmd: -T ps_6_0 -E main observation-noinline-struct-sampler-scalar.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-noinline-struct-ice.json
+# verdict: no-repro
+# variant: noinline-struct-ice-ctl-scalar (observation-noinline-struct-sampler-scalar.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main observation-noinline-struct-sampler-scalar.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+observation-noinline-struct-sampler-scalar.hlsl:14:70: error: phi/select disallowed on pointers to local resources.
+float4 main(float2 uv : TEXCOORD) : SV_Target { S s; s.s = G; return f(s, T, uv); }
+                                                                     ^
+observation-noinline-struct-sampler-scalar.hlsl:14:63: error: phi/select disallowed on pointers to local resources.
+float4 main(float2 uv : TEXCOORD) : SV_Target { S s; s.s = G; return f(s, T, uv); }
+                                                              ^
+observation-noinline-struct-sampler-scalar.hlsl:14:63: error: phi/select disallowed on pointers to local resources.
+observation-noinline-struct-sampler-scalar.hlsl:14:63: error: phi/select disallowed on pointers to local resources.
+observation-noinline-struct-sampler-scalar.hlsl:14:63: error: phi/select disallowed on pointers to local resources.
+observation-noinline-struct-sampler-scalar.hlsl:12:58: error: exported library functions cannot have resource parameters or return value.
+[noinline] float f(S q, Texture2D t, float2 uv) { return t.Sample(q.s, uv).x; }
+                                                         ^
+
+

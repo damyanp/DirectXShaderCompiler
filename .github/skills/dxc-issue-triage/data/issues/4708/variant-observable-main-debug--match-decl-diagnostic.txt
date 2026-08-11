@@ -1,0 +1,28 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:41:47+00:00
+# cmd: -T cs_6_0 -E main -HV 2021 repro-observable.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-decl-diagnostic.json
+# verdict: repro
+# variant: observable (repro-observable.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main -HV 2021 repro-observable.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro-observable.hlsl:23:12: error: overloading non-member 'operator+' is not allowed
+array<T,N> operator+ (array<T,N> lhs, T rhs) {
+           ^
+repro-observable.hlsl:29:12: error: overloading non-member 'operator+' is not allowed
+array<T,N> operator+ (T lhs, array<T,N> rhs) {
+           ^
+repro-observable.hlsl:42:35: error: scalar, vector, or matrix expected
+    array<float, 3> result = arr1 + 2.0f;
+                                  ^
+
+

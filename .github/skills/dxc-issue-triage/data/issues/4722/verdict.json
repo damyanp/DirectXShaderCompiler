@@ -1,0 +1,23 @@
+{
+  "batch": "batch-017",
+  "confidence": "high",
+  "created_at": "2022-10-12T15:13:49Z",
+  "expected_symptom": "Orientation qualifier requested on a template-dependent matrix is not present in the emitted DXIL, while the identical non-template declaration honours it.",
+  "godbolt_url": "https://godbolt.org/z/16hP1TjKK",
+  "history": "always-repro'd",
+  "labels": "hlsl2021,matrix-bug,tech-debt",
+  "labels_add": "bug, correctness, type-system",
+  "labels_now": "hlsl2021,matrix-bug,tech-debt",
+  "notes_path": "issues/4722/notes.md",
+  "number": 4722,
+  "repro_quality": "partial",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Matrix orientation never reaches a template-dependent matrix type. #pragma pack_matrix(row_major) on a matrix<T,X,Y> member is silently dropped -- the row_major, column_major and no-pragma builds are byte-identical, while the same three without the template differ -- and an explicitly written row_major on such a member is instead rejected with 'can only be used with a matrix type' at template definition time, which is the issue's own test case. Both faces come from testing matrix-ness on a still-dependent type (SemaType.cpp:4359 skips, SemaType.cpp:5820 rejects). -Zpr does work on template-dependent members, because it takes the codegen-default route rather than annotating the type. Reproduces on all 16 stable releases that can compile HLSL 2021 templates, from v1.6.2112 to main.",
+  "title": "`column_major` and `row_major` don't apply correctly to template-dependent types",
+  "triaged_at": "2026-08-10T23:52:59+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e6a9019e4e0823746470f3ab75341d6b",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4722"
+}

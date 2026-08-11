@@ -1,0 +1,186 @@
+# compiler: main-debug-dep4723
+# exe: <triage>/issues/4723/run-dep4723.cmd
+# ran: 2026-08-10T23:01:57+00:00
+# cmd: -T ps_6_0 -E main -MF dep-compile.d control-noinclude.hlsl ; -T ps_6_0 -E main -P -Fi repro.i -MF dep-preprocess.d control-noinclude.hlsl ; -T ps_6_0 -E main -MD control-noinclude.hlsl ; -T ps_6_0 -E main -P -Fi repro-md.i -MD control-noinclude.hlsl ; -T ps_6_0 -E main -M control-noinclude.hlsl ; -T ps_6_0 -E main -P -Fi repro-m.i -M control-noinclude.hlsl ; -T ps_6_0 -E main repro.i
+# exit: 1
+# timed_out: 0
+# match: match-depmissing.json
+# verdict: repro
+# variant: noinclude (control-noinclude.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main -MF dep-compile.d control-noinclude.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-cleared dep-compile.d
+dep4723-requested depfile-MF dep-compile.d
+$ dxc -T ps_6_0 -E main -MF dep-compile.d control-noinclude.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created dep-compile.d bytes=47
+dep4723-artifact depfile-MF dep-compile.d PRESENT bytes=47
+dep4723-content dep-compile.d | control-noinclude.hlsl: control-noinclude.hlsl
+dep4723-tail dep-compile.d | control-noinclude.hlsl: control-noinclude.hlsl
+dep4723-selftest artifacts-inspected=1
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main -P -Fi repro.i -MF dep-preprocess.d control-noinclude.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-cleared dep-preprocess.d
+dep4723-cleared repro.i
+dep4723-requested depfile-MF dep-preprocess.d
+dep4723-requested preprocessed-P repro.i
+$ dxc -T ps_6_0 -E main -P -Fi repro.i -MF dep-preprocess.d control-noinclude.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created repro.i bytes=159
+dep4723-artifact depfile-MF dep-preprocess.d MISSING
+dep4723-artifact preprocessed-P repro.i PRESENT bytes=159
+dep4723-content repro.i | #line 1 "control-noinclude.hlsl"
+dep4723-content repro.i | 
+dep4723-content repro.i | 
+dep4723-content repro.i | 
+dep4723-content repro.i | 
+dep4723-content repro.i | 
+dep4723-content repro.i | float4 main(float4 pos : SV_Position) : SV_Target {
+dep4723-content repro.i |   return pos * 0.5;
+dep4723-tail repro.i |   return pos * 0.5;
+dep4723-tail repro.i | }
+dep4723-tail repro.i | control-noinclude.hlsl: control-noinclude.hlsl
+dep4723-selftest artifacts-inspected=2
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main -MD control-noinclude.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-requested depfile-MD control-noinclude.d
+$ dxc -T ps_6_0 -E main -MD control-noinclude.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created control-noinclude.d bytes=47
+dep4723-artifact depfile-MD control-noinclude.d PRESENT bytes=47
+dep4723-content control-noinclude.d | control-noinclude.hlsl: control-noinclude.hlsl
+dep4723-tail control-noinclude.d | control-noinclude.hlsl: control-noinclude.hlsl
+dep4723-selftest artifacts-inspected=1
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main -P -Fi repro-md.i -MD control-noinclude.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-cleared control-noinclude.d
+dep4723-cleared repro-md.i
+dep4723-requested depfile-MD control-noinclude.d
+dep4723-requested preprocessed-P repro-md.i
+$ dxc -T ps_6_0 -E main -P -Fi repro-md.i -MD control-noinclude.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created repro-md.i bytes=159
+dep4723-artifact depfile-MD control-noinclude.d MISSING
+dep4723-artifact preprocessed-P repro-md.i PRESENT bytes=159
+dep4723-content repro-md.i | #line 1 "control-noinclude.hlsl"
+dep4723-content repro-md.i | 
+dep4723-content repro-md.i | 
+dep4723-content repro-md.i | 
+dep4723-content repro-md.i | 
+dep4723-content repro-md.i | 
+dep4723-content repro-md.i | float4 main(float4 pos : SV_Position) : SV_Target {
+dep4723-content repro-md.i |   return pos * 0.5;
+dep4723-tail repro-md.i |   return pos * 0.5;
+dep4723-tail repro-md.i | }
+dep4723-tail repro-md.i | control-noinclude.hlsl: control-noinclude.hlsl
+dep4723-selftest artifacts-inspected=2
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main -M control-noinclude.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-requested stdout-deps <stdout>
+$ dxc -T ps_6_0 -E main -M control-noinclude.hlsl
+--- dxc output ---
+control-noinclude.hlsl: control-noinclude.hlsl
+
+--- end dxc output ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-artifact stdout-deps <stdout> PRESENT
+dep4723-content <stdout> | control-noinclude.hlsl: control-noinclude.hlsl
+dep4723-selftest artifacts-inspected=1
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main -P -Fi repro-m.i -M control-noinclude.hlsl
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 0
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+dep4723-cleared repro-m.i
+dep4723-requested stdout-deps <stdout>
+dep4723-requested preprocessed-P repro-m.i
+$ dxc -T ps_6_0 -E main -P -Fi repro-m.i -M control-noinclude.hlsl
+--- dxc output: EMPTY ---
+dep4723-exit=0x00000000
+dep4723-status=clean
+dep4723-created repro-m.i bytes=159
+dep4723-artifact stdout-deps <stdout> MISSING
+dep4723-artifact preprocessed-P repro-m.i PRESENT bytes=159
+dep4723-content repro-m.i | #line 1 "control-noinclude.hlsl"
+dep4723-content repro-m.i | 
+dep4723-content repro-m.i | 
+dep4723-content repro-m.i | 
+dep4723-content repro-m.i | 
+dep4723-content repro-m.i | 
+dep4723-content repro-m.i | float4 main(float4 pos : SV_Position) : SV_Target {
+dep4723-content repro-m.i |   return pos * 0.5;
+dep4723-tail repro-m.i |   return pos * 0.5;
+dep4723-tail repro-m.i | }
+dep4723-tail repro-m.i | control-noinclude.hlsl: control-noinclude.hlsl
+dep4723-selftest artifacts-inspected=2
+
+--- stderr ---
+
+
+$ dxc -T ps_6_0 -E main repro.i
+[exe] <triage>/issues/4723/run-dep4723.cmd
+[exit] 1
+--- stdout ---
+dep4723-dxc=<repo>/build/Debug/bin/dxc.exe
+$ dxc -T ps_6_0 -E main repro.i
+--- dxc output ---
+control-noinclude.hlsl:9:1: error: unknown type name 'control'
+control-noinclude.hlsl: control-noinclude.hlsl
+^
+control-noinclude.hlsl:9:8: error: expected unqualified-id
+control-noinclude.hlsl: control-noinclude.hlsl
+       ^
+
+--- end dxc output ---
+dep4723-exit=0x80004005
+dep4723-status=diagnosed
+dep4723-selftest artifacts-inspected=0
+
+--- stderr ---
+

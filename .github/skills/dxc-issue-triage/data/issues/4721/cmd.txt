@@ -1,0 +1,2 @@
+-T ps_6_0 -E main -HV 2021 -fixit repro.hlsl
+-T ps_6_0 -E main -HV 2021 repro.hlsl

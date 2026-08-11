@@ -1,0 +1,18 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:44:47+00:00
+# cmd: -T ps_6_0 -E fn -HV 2021 -verify control-verify-nontemplate.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-verify.json
+# verdict: no-repro
+# variant: verify-nontemplate (control-verify-nontemplate.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E fn -HV 2021 -verify control-verify-nontemplate.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

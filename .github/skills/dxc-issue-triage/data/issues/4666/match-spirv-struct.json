@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "OpTypeStruct must not contain an (?:invalid )?opaque type"
+    },
+    {
+      "kind": "regex",
+      "value": "OpTypeStruct %_arr_type_sampler"
+    }
+  ],
+  "note": "Issue 4666's SECOND reported symptom: the struct workaround for symptom A produces SPIR-V that fails validation. Anchored on two clauses because neither alone survives contact with the evidence. (1) The validator's wording moved under us -- releases up to v1.8.2505.1 say 'must not contain an opaque type', v1.9.2602 onward say 'must not contain an INVALID opaque type'. That is a SPIRV-Tools change, not a DXC one, so the optional group is required or the predicate would invent a fix at v1.9.2602. (2) The second clause pins the complaint to the sampler array specifically, via the operand SPIRV-Tools echoes back -- '%Test = OpTypeStruct %_arr_type_sampler_uint_2', which is character-for-character the operand quoted in the issue body. Without it any unrelated opaque-in-struct rejection would score as this bug. Note the general hazard that the validator quotes the offending instruction into its own diagnostic, so an absence-style predicate over 'OpTypeStruct' would be satisfied by the complaint itself; both clauses here are positive, so that trap does not apply. Controls: control-spirv-struct-inlined.hlsl (same file without [noinline]) and control-spirv-hello.hlsl must both score no-match. The per-release gate is control-spirv-noinline-plain.hlsl compiled with -Vd, which must show '%Test = OpTypeStruct' -- see match-spirv-badir.json for why a clean compile is not enough."
+}

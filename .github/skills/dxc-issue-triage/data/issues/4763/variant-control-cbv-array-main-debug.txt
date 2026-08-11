@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:31:42+00:00
+# cmd: -T ps_6_0 -E PSMain control-cbv-array.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-cbv-array (control-cbv-array.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E PSMain control-cbv-array.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-cbv-array.hlsl:19:28: error: object types not supported in cbuffer/tbuffer view arrays.
+ConstantBuffer<ModelData2> cbModelData2[4];
+                           ^
+
+

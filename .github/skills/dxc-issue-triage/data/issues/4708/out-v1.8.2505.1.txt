@@ -1,0 +1,26 @@
+# compiler: v1.8.2505.1
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe
+# ran: 2026-08-10T22:31:26+00:00
+# cmd: -T cs_6_0 -E main -HV 2021 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E main -HV 2021 repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:15:12: error: overloading non-member 'operator+' is not allowed
+array<T,N> operator+ (array<T,N> lhs, T rhs) {
+           ^
+repro.hlsl:21:12: error: overloading non-member 'operator+' is not allowed
+array<T,N> operator+ (T lhs, array<T,N> rhs) {
+           ^
+repro.hlsl:34:35: error: scalar, vector, or matrix expected
+    array<float, 3> result = arr1 + 2.0f;
+                                  ^
+
+

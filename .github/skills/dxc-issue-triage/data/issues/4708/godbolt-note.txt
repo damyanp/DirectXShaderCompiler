@@ -1,0 +1,21 @@
+What to look for
+
+This is issue 4708's shader: a class template with two NON-member (namespace scope)
+operator+ templates, used as `arr1 + 2.0f`. The result is stored to a UAV so that a
+compiler which accepts the program shows its work; in the reporter's original the result
+was unused and an accepting compiler would emit an empty entry point, which reads as
+"nothing happened".
+
+Compare the panes:
+
+- Both DXC panes fail. The older one rejects only the USE of the operator; the trunk one
+  additionally rejects each DECLARATION, a diagnostic added in 2023. Same outcome, better
+  wording.
+- The Clang HLSL pane succeeds and emits a resource binding for the UAV plus a single
+  buffer store. Read the float constant in that store: it is the sum the free operator
+  computes, folded at compile time. So the operator was found, called and evaluated -- the
+  pane is not merely silent.
+
+Compiler Explorer builds DXC in Release and appends debug-info flags to its DXC panes;
+neither affects this comparison, which is a front-end accept/reject question. dxc_trunk is
+a rolling build, so treat its exact wording as current rather than pinned.

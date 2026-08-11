@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:28:43+00:00
+# cmd: -T ps_6_0 -E psMain case-cb-array-dynamic.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: cb-array-dynamic (case-cb-array-dynamic.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E psMain case-cb-array-dynamic.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+case-cb-array-dynamic.hlsl:26:41: error: Index for resource array inside cbuffer must be a literal expression
+        Texture2D<float4> foo_bar_tex = FooBarTextures   [ i ];
+                                        ^
+
+

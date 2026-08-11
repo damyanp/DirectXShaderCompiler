@@ -1,0 +1,12 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "^define void @PSMain\\(\\)" },
+    { "kind": "regex", "value": "^;\\s+\\}\\s+__cbModelData;\\s+; Offset:\\s+0 Size:\\s+4\\s*$" },
+    { "kind": "regex", "value": "^;\\s+uint myInt;\\s+; Offset:\\s+12\\s*$" },
+    { "kind": "regex", "value": "^;\\s+\\}\\s+__cbModelData2;\\s+; Offset:\\s+0 Size:\\s+16\\s*$" },
+    { "kind": "regex", "value": "^;\\s+uint myInt;\\s+; Offset:\\s+64\\s*$" },
+    { "kind": "regex", "value": "^;\\s+\\}\\s+__cbModelData3;\\s+; Offset:\\s+0 Size:\\s+68\\s*$" }
+  ],
+  "note": "Ask B of issue 4763: 'for StructuredBuffers, it generates bad sizes and offsets for the cbuffers'. Encodes the reporter's own annotated table verbatim -- ModelData2 (StructuredBuffer<float3>) size 16 with myInt at offset 12, ModelData3 (StructuredBuffer<float4x4>) size 68 with myInt at offset 64 -- i.e. a StructuredBuffer<T> member consumes sizeof(T) bytes of constant-buffer space and displaces the field after it. Clause 2 is the SELF-TEST: __cbModelData contains no resource and must read 'Size: 4' at offset 0. It proves in the same run that the layout table was emitted, is readable, and is formatted the way the other clauses expect -- so a release whose disassembler prints layouts differently scores no-match on the self-test as well and is recognisable as unmeasurable rather than fixed. Clause 1 proves the compile finished. The reporter's fourth case (ModelData4, Buffer<float4>, claimed offset 0 / size 4) is deliberately NOT in this predicate: it is the case they annotated as correct, and it is not stable across releases -- v1.4.1907 puts myInt at offset 16 with size 20, main puts it at offset 0 with size 4 -- so including it would date a change that is not the one the issue is about. That difference is recorded in notes.md instead."
+}

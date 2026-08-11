@@ -1,0 +1,14 @@
+{
+  "kind": "any_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "error:[^\\n]*\\r?\\n[^\\n]*result = arr1 \\+ 2\\.0f;"
+    },
+    {
+      "kind": "regex",
+      "value": "error:[^\\n]*\\r?\\n[^\\n]*operator\\+ \\(array<T,N> lhs, T rhs\\)"
+    }
+  ],
+  "note": "SYMPTOM: a non-member (free) operator overload is not usable in HLSL -- the reporter's `arr1 + 2.0f` does not resolve to the namespace-scope `operator+` templates. MATCH = the capability is absent. NO MATCH = the shader compiled and the free operator worked. Both clauses are deliberately filename-free and message-free, because the wording moved: releases v1.6.2112..v1.7.2308 accept the free declaration silently and reject only the USE (`error: scalar, vector, or matrix expected`), while v1.8.2403 onward additionally reject the DECLARATION (`error: overloading non-member 'operator+' is not allowed`, added by fb1f3036b / PR #5796, 2023-09-28). Anchoring on message text alone would therefore have drawn a false boundary at v1.8.2403. Instead each clause requires dxc to have echoed a SPECIFIC SOURCE CONSTRUCT of this shader back inside a diagnostic (dxc prints `file:line:col: error: msg` then the offending source line then a caret), which is a positive anchor: a build that never parsed that far cannot produce it. Clause 1 is the discriminating one and is controlled: control-member-operator.hlsl contains the byte-identical text `result = arr1 + 2.0f;` and differs from repro.hlsl in exactly one way -- the operator is a member -- and it compiles clean, so the predicate is not simply firing on the expression. control-free-function.hlsl (same free templates, named `add` instead of `operator+`) and control-hello.hlsl are the other two negative controls; all three are run with --expect no-match. Clause 2 exists only so that a hypothetical release which diagnosed the declaration and then RECOVERED at the use site could not score as `no match` and be misread as the capability working; the construct it quotes exists only in repro.hlsl, so it cannot be falsified by a control and carries no discriminating weight on its own. HAZARD: the symptom here IS a diagnostic, so a release that predates HLSL 2021 also errors and would score as a perfect reproduction. That is handled outside this file -- the per-release capability control (control-member-operator.hlsl) is run on EVERY probed release in measure-releases.py, and any release that cannot compile it is unmeasurable, not a reproduction."
+}

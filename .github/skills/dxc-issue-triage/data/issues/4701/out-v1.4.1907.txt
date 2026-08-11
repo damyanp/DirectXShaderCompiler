@@ -1,0 +1,74 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-10T22:24:36+00:00
+# cmd: -T cs_6_0 -E main repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+@"\01?a@@3PAMA" = external addrspace(3) global [10 x float], align 4
+
+define void @main() {
+  store float 1.000000e+00, float addrspace(3)* getelementptr inbounds ([10 x float], [10 x float] addrspace(3)* @"\01?a@@3PAMA", i32 0, i32 0), align 4, !tbaa !11
+  ret void
+}
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.typeAnnotations = !{!4}
+!dx.entryPoints = !{!8}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 4}
+!3 = !{!"cs", i32 6, i32 0}
+!4 = !{i32 1, void ()* @main, !5}
+!5 = !{!6}
+!6 = !{i32 1, !7, !7}
+!7 = !{}
+!8 = !{void ()* @main, !"main", null, null, !9}
+!9 = !{i32 4, !10}
+!10 = !{i32 8, i32 8, i32 1}
+!11 = !{!12, !12, i64 0}
+!12 = !{!"float", !13, i64 0}
+!13 = !{!"omnipotent char", !14, i64 0}
+!14 = !{!"Simple C/C++ TBAA"}
+
+
+--- stderr ---
+

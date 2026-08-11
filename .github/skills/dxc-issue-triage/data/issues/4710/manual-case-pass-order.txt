@@ -1,0 +1,75 @@
+# issue 4710 -- which guard emits the diagnostic, and what has run by then
+# generator: probe-pass-order.py (committed beside this file)
+# diagnostic: Index for resource array inside cbuffer must be a literal expression
+
+== step 1: dxc's own pass ordering ==
+$ dxc -T ps_6_0 -E psMain -Odump repro.hlsl
+  exit=0x00000000
+    [ 33] -hlsl-dxil-promote-local-resources
+    [ 34] -hlsl-dxil-promote-static-resources
+    [ 35] -invalidate-undef-resource
+    [ 36] -dxilgen  <<<
+    [ 37] -hlsl-dxil-precise
+    [ 38] -simplify-inst
+    [ 39] -scalarizer
+    [ 40] -dxil-elim-vector
+    [ 41] -dxil-loop-unroll,MaxIterationAttempt=1024,OnlyWarnOnFail=0,StructurizeLoopExits=1  <<<
+    [ 42] -loop-unroll,StructurizeLoopExits=1
+    [ 43] -simplify-inst
+  -dxilgen is at 36; -dxil-loop-unroll is at 41
+  -> the pass holding the guard runs BEFORE the pass that implements [unroll]
+  Same fact in source: lib/Transforms/IPO/PassManagerBuilder.cpp,
+  addHLSLPasses() adds createDxilGenerationPass(...) and only afterwards
+  createDxilLoopUnrollPass(...), under the comment '// Passes to handle [unroll]'.
+
+== step 2: does the front end reject it? ==
+$ dxc -T ps_6_0 -E psMain -fcgl repro.hlsl -Fc scratch-fcgl.ll
+  exit=0x00000000   diagnostic present: False
+  -> No. -fcgl stops before the DXIL passes and the shader is accepted,
+     so this is not a Sema/language rule despite the file:line:col shape.
+
+== step 3: replay the SHIPPED pass list and capture the call stack ==
+$ cdb -c "sxe -c \"kn 18; gh\" e0000001; g; q" dxopt -o=scratch-order-shipped.bc scratch-fcgl.ll <37 passes>
+  exit=0x00000001
+  guard 'GetBindingForResourceInCB' on the stack: True
+  frames (trimmed to the relevant chain):
+    dxcompiler!llvm_assert+0x51
+    dxcompiler!hlsl::dxilutil::EmitWarningOrErrorOnInstruction+0x165
+    dxcompiler!hlsl::dxilutil::EmitErrorOnInstruction+0x36
+    dxcompiler!hlsl::HLModule::GetBindingForResourceInCB+0xbe
+    dxcompiler!HLObjectOperationLowerHelper::CreateResourceForCbPtr+0x429
+    dxcompiler!HLObjectOperationLowerHelper::GetOrCreateResourceForCbPtr+0xae
+    dxcompiler!`anonymous namespace'::TranslateResourceInCB+0xe0
+    dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x11c5
+    dxcompiler!`anonymous namespace'::TranslateCBGepLegacy+0x1304
+    dxcompiler!`anonymous namespace'::TranslateCBAddressUserLegacy+0x14bc
+    dxcompiler!`anonymous namespace'::TranslateCBOperationsLegacy+0x114
+    dxcompiler!TranslateHLSubscript+0xef
+    dxcompiler!TranslateSubscriptOperation+0xf5
+    dxcompiler!TranslateHLBuiltinOperation+0x845
+    dxcompiler!hlsl::TranslateBuiltinOperations+0x290
+    dxcompiler!`anonymous namespace'::DxilGenerationPass::GenerateDxilOperations+0x1b7
+    dxcompiler!`anonymous namespace'::DxilGenerationPass::runOnModule+0x509
+  NOTE: dxopt has no thread file system, so llvm::errs() asserts while
+  printing the message -- the assert is the diagnostic being emitted, not a
+  separate failure. dxc.exe prints the same message and exits 0x80004005.
+
+== step 4: hoist [unroll] above -dxilgen -- NEGATIVE RESULT, read the self-check ==
+$ dxopt -o=scratch-order-hoisted.bc scratch-fcgl.ll <116 passes, -dxil-loop-unroll moved to index 36>
+  exit=0x00000000   diagnostic present: False
+  produced a module: True
+  SELF-CHECK: textureLoad calls = 1, SRV createHandle calls = 1
+              the source loop has 4 iterations, so a faithful unroll owes 4 of each
+    ; FooBars.0.Texture.0               texture     f32          2d      T0             t0     1
+  -> The hoist did NOT faithfully unroll the loop: iterations are missing.
+     It therefore says NOTHING about whether reordering would be a fix,
+     and is recorded here only so the absence of the diagnostic in this
+     arm is not mistaken for one.
+
+== what this file establishes ==
+  1. The diagnostic comes from DxilGenerationPass (a DXIL-lowering pass),
+     not from Sema, and the guard is !CbPtr->hasAllConstantIndices().
+  2. By the time that guard runs, [unroll] has not been applied, so the loop
+     induction variable is still a non-constant SSA value.
+  It does NOT establish what the right fix is, or whether the restriction is
+  intended. That is a design decision, not a measurement.

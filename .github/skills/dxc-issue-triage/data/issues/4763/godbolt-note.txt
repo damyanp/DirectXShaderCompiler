@@ -1,0 +1,31 @@
+Four panes, one source. Every pane compiles it; none rejects the resources
+declared inside the constant buffers.
+
+What to compare is the "Buffer Definitions" comment block that FXC and the two
+DXC panes print, and specifically the Offset column of the scalar field that
+follows each buffer member, plus the Size reported for each constant buffer.
+
+FXC (ps_5_0) places that scalar field at offset 0 in all four constant buffers
+and reports each of them as 4 bytes.
+
+Both DXC panes place it at offset 12 in the second constant buffer and at offset
+64 in the third, and report those two buffers as 16 and 68 bytes: a
+StructuredBuffer member consumes the size of its element type in the constant
+buffer. The fourth buffer, whose member is a typed Buffer rather than a
+StructuredBuffer, is laid out the way FXC lays it out.
+
+So the same source produces two different host-side constant-buffer layouts, and
+neither compiler says anything about it.
+
+The clang-dxc pane runs the front end only. Its diagnostics are all about the
+implicit uint-to-float4 conversions in the return statement, which is what shows
+that Sema did resolve the members of all four buffers; it says nothing about the
+resources inside them.
+
+Note the Resource Bindings table: the buffers are never read in this shader, so
+neither compiler emits a t# binding for them. The 1.6 pane's remark about a
+missing DXIL.dll is Compiler Explorer's environment, not this shader.
+
+Local evidence -- 20 stable DXC releases, the DXIL validator's verdict on the
+container, and the reflection the runtime would see -- is in the issue's triage
+directory.

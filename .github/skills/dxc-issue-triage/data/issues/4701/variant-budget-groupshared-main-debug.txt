@@ -1,0 +1,27 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T22:38:34+00:00
+# cmd: -T cs_6_0 -E main case-budget-groupshared.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: budget-groupshared (case-budget-groupshared.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc -T cs_6_0 -E main case-budget-groupshared.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+case-budget-groupshared.hlsl:9:10: error: Total Thread Group Shared Memory used by 'main' is 65536, exceeding maximum: 32768.
+note: at 'store float 1.000000e+00, float addrspace(3)* getelementptr inbounds ([16384 x float], [16384 x float] addrspace(3)* @"\01?big@@3PAMA", i32 0, i32 0), align 4, !tbaa !7' in block '#0' of function 'main'.
+Validation failed.
+
+
+

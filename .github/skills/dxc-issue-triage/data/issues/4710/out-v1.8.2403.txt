@@ -1,0 +1,20 @@
+# compiler: v1.8.2403
+# exe: <cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe
+# ran: 2026-08-10T22:29:32+00:00
+# cmd: -T ps_6_0 -E psMain repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E psMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:25:41: error: Index for resource array inside cbuffer must be a literal expression
+        Texture2D<float4> foo_bar_tex = foo_bar.Texture  [ i ];
+                                        ^
+
+
