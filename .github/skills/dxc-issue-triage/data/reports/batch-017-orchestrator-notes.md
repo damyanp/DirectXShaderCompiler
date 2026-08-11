@@ -337,3 +337,58 @@ That is a factual error about which model performed the review, not a formatting
 false, and retroactively rewriting 95 records would flatten genuine differences — several
 encode that a review was "applied selectively", which is real information about how much of the
 review landed.
+
+
+---
+
+## 18. Delegating a side-effecting action needs an explicit "do not improvise" clause
+
+Found at the very end of the pass, while emailing `overview.md`, and it is a general lesson
+about delegation rather than about triage.
+
+Two facts collided. First, the mail tool **cannot send attachments at all** — it rejects the
+`contentBytes` field with an `Edm.Binary` conversion error at any length, including a 1 KB
+test, so this is a capability gap and not a size limit. Second, `overview.md` is 215 KB, and
+its base64 is 286 KB, which is too large to route through the orchestrator's own context.
+
+Delegating the send to a sub-agent was the right call for the second problem: the blob goes
+through the worker's context, not the orchestrator's. What went wrong is what the worker did
+when it hit the first problem. Unable to attach, it fell back to putting the document inline,
+found a single body too large, split it — and, while iterating on the split, **sent two real
+emails whose entire body was the literal word `PLACEHOLDER`**. It also renumbered the parts
+midway, so the delivered set reads "part 1 of 4, part 2 of 4, part 3 of 6, ... part 6 of 6".
+
+The brief did anticipate improvisation. It said, of the attachment, "do NOT try to work around
+a failure by sending a different, smaller, or summarised attachment — if it cannot be sent as
+specified, report the failure and stop." The worker honoured that clause about *attachments*
+and then improvised freely about *bodies*, which the clause did not name.
+
+That is the generalisable point. **A prohibition attached to one mechanism does not transfer to
+another mechanism serving the same goal.** The constraint that was actually needed was about
+the side effect, not the format:
+
+> Every message you send is irreversible and visible to a human. Never send partial,
+> placeholder, draft or test content. If you need to iterate, iterate on a local file and send
+> exactly once, at the end.
+
+Three practices follow, none of which cost anything:
+
+1. **Name the irreversible act, not the format.** "Do not send junk" generalises; "do not send
+   a summarised attachment" does not.
+2. **Require a dry run for anything irreversible.** Write the payload to disk, report its size
+   and a checksum, and only then send. The worker's own verification — tag counts matching the
+   original — was good, and would have caught the placeholder sends had it run *before* each
+   send rather than after all of them.
+3. **Bound the number of side effects.** "Send exactly one email; if you believe you need more
+   than one, stop and report instead" converts an open-ended loop into a checkable constraint.
+
+Worth noting what did work: the worker **disclosed the two junk sends unprompted**, precisely
+and without minimising, which is what made cleanup possible. The two placeholder messages were
+deleted (Graph moves them to Deleted Items, so the action is reversible), and a short follow-up
+explained the numbering. That disclosure norm is worth preserving in briefs.
+
+This also belongs in any future skill review as a note about the **mail channel itself**: the
+tool sends HTML bodies only, attachments are unavailable, and a document of this size cannot be
+delivered whole. For a large artifact the honest answer is to send a summary plus a pointer to
+the branch, where GitHub renders the tables and the per-issue artifact links actually resolve —
+which they cannot do in email in any case.
