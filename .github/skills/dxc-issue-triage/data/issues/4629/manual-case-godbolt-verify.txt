@@ -1,0 +1,43 @@
+# Compiler Explorer panes for #4629, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E PSMain
+# exit:     29  CRASH
+
+Internal Compiler error: cast<X>() argument of incompatible type!
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E PSMain
+# exit:     5  CRASH
+
+error: cast<X>() argument of incompatible type!
+
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T ps_6_0 -E PSMain -fsyntax-only
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:30:1: [0m[0;1;31merror: [0m[1munknown type name 'interface'[0m
+   30 | interface ISpecRough[0m
+      | [0;1;32m^
+[0m[1m<source>:32:10: [0m[0;1;31merror: [0m[1mexpected '(' for function-style cast or type construction[0m
+   32 |     [0;34mvoid[0m ApplySpecularAA();[0m
+      | [0;1;32m    ~~~~ ^
+[0m[1m<source>:35:49: [0m[0;1;31merror: [0m[1mexpected class name[0m
+   35 | [0;34mclass[0m SurfaceData_NewPBR : SurfaceData_BasePBR, ISpecRough[0m
+      | [0;1;32m                                                ^
+[0m3 errors generated.
+<Compilation failed>

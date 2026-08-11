@@ -1,0 +1,7 @@
+Both DXC panes reject the Sample call. The three notes offered are all about
+argument count; the two-argument overload the code is actually asking for is never
+listed, and nothing names the type of the first argument. Compare the line just
+above it, which assigns the other heap subscript to a local without complaint, and
+see the issue thread for the same expression assigned to a SamplerState local or
+passed to a user-defined function, both of which compile.
+dxc_1_6_2112 is the December 2021 release this was filed against.

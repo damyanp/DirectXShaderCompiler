@@ -1,0 +1,16 @@
+This is issue 4527: a `static const` array declared inside a member function. The pixel and
+mesh shaders in the report are restated here as a compute shader so that all three panes can
+compile the same source; the construct is not stage-specific.
+
+The two panes without an extra define fail. The failure is not a syntax error -- the shader
+parses and generates code, and it is DXIL validation that rejects the result, naming the
+array's mangled symbol as a global with no definition and its vector element type as
+illegal. No object is produced, so nothing here reaches a runtime.
+
+The panes built with -D CONTROL_NO_STATIC differ from the others in one token: the local array
+loses `static`. That is one of the reporter's own workarounds. They compile, which is what
+makes the failure specific to the construct rather than to the shader or the flags.
+
+Local evidence uses the reporter's own pixel shader at ps_6_0 and mesh shader at ms_6_5, both
+of which fail the same way; Compiler Explorer runs Release builds and its oldest DXC is
+1.6.2112, so it corroborates current behaviour rather than dating it.

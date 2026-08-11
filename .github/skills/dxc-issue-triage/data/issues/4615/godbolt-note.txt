@@ -1,0 +1,21 @@
+Line numbers in these panes are shifted by this banner, which Compiler Explorer
+prepends to the source before compiling, so compare positions rather than the
+numbers quoted elsewhere.
+
+The source has one statement before a #line directive and one after it. This is
+a compute restating of the pixel-shader repro that was measured locally; Clang's
+DXIL backend cannot lower a shader writing SV_Target, and the two DXC panes are
+the control that the restating still shows the behaviour under test.
+
+Panes 1 and 2 (dxcompiler, oldest available and trunk): look at the !DILocation
+nodes near the end. Both statements are described by physical positions in this
+file, and every !DIFile names this file. The name the directive gives appears
+only inside !dx.source.contents, which is the compiler echoing the source back,
+not a debug location.
+
+Pane 3 is the same trunk compiler emitting SPIR-V from the same source, and pane
+4 is the Clang-based HLSL front end emitting DXIL. Both do the opposite: the
+statement after the directive is attributed to the file the directive names.
+
+Compiler Explorer's oldest DXC is 1.6.2112, which is already past the change
+this issue is about, so no pane here shows dxcompiler's earlier behaviour.

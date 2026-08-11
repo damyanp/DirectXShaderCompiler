@@ -1,0 +1,21 @@
+# Issue 4629. The reporter filed `-T ps_6_5 -E PSMain -HV 2021`, preserved
+# verbatim in cmd-as-filed.txt. This differs from it in two ways, both measured
+# rather than assumed, because targeting the newest profile and flag set the
+# reporter happened to use is what silently shortens a release history:
+#
+#   -HV 2021 dropped   `Unknown HLSL version: 2021` makes every release before
+#                      HLSL 2021 shipped an invalid-probe, so keeping it would
+#                      throw away the oldest end of the history.
+#   ps_6_5 -> ps_6_0   ps_6_0 is expressible by every release back to the
+#                      v1.4.1907 bisection floor.
+#
+# Equivalence evidence, all on the ground-truth build and all in this directory:
+#   variant-hv-default-*    -T ps_6_5 -E PSMain           -> repro, 0x80000003
+#   variant-ps60-hv2021-*   -T ps_6_0 -E PSMain -HV 2021  -> repro, 0x80000003
+#   variant-ps60-default-*  -T ps_6_0 -E PSMain           -> repro, 0x80000003
+#   manual-case-widened-stack.txt  same DXASSERT, same file:line, byte-identical
+#                                  frame offsets as the as-filed command line
+#
+# measure-history.py additionally runs the as-filed command against every
+# release, so nothing rests on the widening holding across releases either.
+-T ps_6_0 -E PSMain repro.hlsl

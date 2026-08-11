@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:19:55+00:00
+# cmd: -T ps_6_0 -E PSMain control-syntaxerror.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "unknown type name", so this build did not reach the code under test
+# variant: syntaxerror (control-syntaxerror.hlsl)
+# expect: invalid-probe
+
+$ dxc -T ps_6_0 -E PSMain control-syntaxerror.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-syntaxerror.hlsl:20:5: error: unknown type name 'nosuchtype'
+    nosuchtype obj ;
+    ^
+
+

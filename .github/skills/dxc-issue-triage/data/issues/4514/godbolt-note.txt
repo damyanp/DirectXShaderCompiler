@@ -1,0 +1,18 @@
+Issue 4514: a cbuffer declared inside a namespace is not reachable through a
+qualified name. Compare the panes rather than reading any one of them:
+
+  pane 1  dxc 1.6.2112 -- the "December 2021" build named in the report; the
+          qualified reference in main() is rejected by name lookup
+  pane 2  dxc trunk    -- same rejection today, unchanged
+  pane 3  dxc trunk -DWORKAROUND -- enables the reporter's extra Texture2D
+          declaration in the namespace; compiles clean, same qualified
+          reference
+  pane 4  clang (HLSL) -fsyntax-only -- the qualified reference
+  pane 5  clang (HLSL) -fsyntax-only -DUNQUALIFIED -- same shader, name used
+          without the namespace qualifier; the control for pane 4
+
+The whole finding is that panes 2 and 3 differ, and that the only difference
+between them is a declaration main() never mentions.
+
+Compiler Explorer runs Linux Release builds; the local evidence is a Windows
+Debug build. CE also appends its own debug-info flags to the DXC panes.

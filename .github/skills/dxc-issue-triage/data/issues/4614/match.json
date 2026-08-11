@@ -1,0 +1,8 @@
+{
+  "kind": "any_of",
+  "value": [
+    { "kind": "timeout" },
+    { "kind": "internal_failure" }
+  ],
+  "note": "ONE defect, TWO signatures, and either clause alone reports it fixed on whichever build shows the other. #4614's title says 'Assert/hang'; its predecessor #3016 explains why: 'an assert (which manifests as a hang outside of the debugger)'. A Release build has the assert compiled out under NDEBUG and spins instead -- that is the reporter's own 2022 observation, 'it hangs again'. An assert-enabled Debug build traps in seconds on the same input. So a bare 'timeout' scores the Debug ground truth clean and a bare 'internal_failure' scores the release binaries clean; both report this open bug as fixed. Deliberately NOT a match on the assert message: SKILL.md records that the text differs between Debug and Release and between Windows and Linux, and that an internal failure may print nothing at all. Note E_FAIL (0x80004005) is an ordinary diagnosed error and is NOT matched by internal_failure, so a compiler that cleanly rejects this shader scores no-repro (which would be 'changed-behavior', not a fix). Control: control-not-empty.hlsl is the reporter's own documented workaround (uncomment 'float makeMeNotEmpty;') and must score no-match, proving the predicate discriminates rather than firing on any vs_6_0 compile."
+}

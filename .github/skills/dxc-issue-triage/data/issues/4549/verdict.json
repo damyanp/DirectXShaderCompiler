@@ -1,0 +1,22 @@
+{
+  "batch": "batch-016",
+  "confidence": "high",
+  "created_at": "2022-07-12T16:09:44Z",
+  "godbolt_url": "https://godbolt.org/z/5z1YfdTPE",
+  "history": "always-repro'd",
+  "labels": "diagnostic",
+  "labels_add": "incorrect-code, bug",
+  "labels_now": "diagnostic",
+  "notes_path": "issues/4549/notes.md",
+  "number": 4549,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces unchanged on main and every release back to v1.4.1907. Not only a wording problem: hlsl::DiagnoseRegisterType (SemaHLSL.cpp:11866) has no AR_OBJECT_ACCELERATION_STRUCT case, so the 'u' is never diagnosed, and CGHLSLMS.cpp:3172 discards the register letter, binding the acceleration structure at t0. With nothing at t0 the shader compiles clean and silently binds elsewhere than written; the reported message is the allocator noticing the resulting SRV collision and correctly naming depth_buffer. DXC already emits 'invalid register specification, expected t binding' for StructuredBuffer at u0 on all 21 builds, so the fix is a missing switch arm, not new machinery.",
+  "title": "[HLSL] Misleading error message when using a UAV register for a raytracing acceleration structure",
+  "triaged_at": "2026-08-11T00:05:59+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4549"
+}

@@ -1,0 +1,23 @@
+# compiler: v1.9.2602
+# exe: <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+# ran: 2026-08-10T21:07:13+00:00
+# cmd: -T ps_6_6 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_6 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    float4 result = myTexture.Sample(SamplerDescriptorHeap[sampIdx], coord);
+                    ~~~~~~~~~~^~~~~~
+repro.hlsl:4:31: note: candidate function template not viable: requires 3 arguments, but 2 were provided
+repro.hlsl:4:31: note: candidate function template not viable: requires 4 arguments, but 2 were provided
+repro.hlsl:4:31: note: candidate function template not viable: requires 5 arguments, but 2 were provided
+
+

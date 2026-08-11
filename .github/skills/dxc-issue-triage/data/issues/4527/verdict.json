@@ -1,0 +1,23 @@
+{
+  "batch": "batch-016",
+  "confidence": "high",
+  "created_at": "2022-06-22T08:38:20Z",
+  "godbolt_url": "https://godbolt.org/z/oYrbGzGq3",
+  "history": "always-repro'd",
+  "labels": "",
+  "labels_add": "bug",
+  "labels_now": "",
+  "notes_path": "issues/4527/notes.md",
+  "number": 4527,
+  "repro_quality": "partial",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "changed-behavior",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still broken on main (1.9.0.5433, 13730886e) and on every stable release back to v1.4.1907, but in a different shape than reported: a static const array declared inside a member function is emitted with linkonce_odr rather than internal linkage, so dxilutil::IsStaticGlobal() skips it, LowerTypePass never flattens its <3 x float> element type, and dxc now rejects the shader with \"External declaration ... is unused\" / \"Vector type <3 x float> is not allowed\" (E_FAIL, no object emitted) instead of producing the bad bytecode the report describes. Pixel and mesh entry points both fail; all three reporter workarounds still compile; -spirv and clang accept the same source. Only -Vd produces a container, and it is unsigned with DXIL that dxv rejects.",
+  "text_stale": "Body: \"The following snippet compiles successfully with no errors\" describes no stock configuration measured here -- main (1.9.0.5433) and v1.7.2207, the release nearest the reported build date, both reject it with a hard validation error and emit no object. Only -Vd, which disables validation and signing, produces a container.",
+  "title": "Using a static const array in a member function declaration causes CREATEPIXELSHADER_INVALIDSHADERBYTECODE during CreatePipelineState",
+  "triaged_at": "2026-08-11T00:05:59+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4527"
+}

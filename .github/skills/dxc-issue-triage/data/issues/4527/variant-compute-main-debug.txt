@@ -1,0 +1,28 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:32:03+00:00
+# cmd: -T cs_6_0 -E main repro-cs.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: compute (repro-cs.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main repro-cs.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: External declaration '\01?kValues@?1??GetTestValue@MyClass@@QAA?AV?$vector@M$02@@I@Z@4QBV3@B' is unused.
+error: Vector type '<3 x float>' is not allowed.
+error: Vector type '<3 x float>' is not allowed.
+repro-cs.hlsl:30:22: error: Instructions must be of an allowed type.
+note: at '%6 = extractelement <3 x float> %5, i64 0' in block '#0' of function 'main'.
+Validation failed.
+
+
+

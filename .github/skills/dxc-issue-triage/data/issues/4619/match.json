@@ -1,0 +1,31 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "SELFCHECK: walk-completed=yes"
+    },
+    {
+      "kind": "contains",
+      "value": "SELFCHECK: shader-kind=Mesh"
+    },
+    {
+      "kind": "any_of",
+      "value": [
+        {
+          "kind": "contains",
+          "value": "DXIL.numthreads-metadata-tuple{32,2,1}=present"
+        },
+        {
+          "kind": "contains",
+          "value": "PSV-NUMTHREADS=32,2,1"
+        }
+      ]
+    },
+    {
+      "kind": "contains",
+      "value": "RESULT: GETTHREADGROUPSIZE=0,0,0 "
+    }
+  ],
+  "note": "Ask A of the issue: 'I tried ID3D12ShaderReflection::GetThreadGroupSize, but got 0, 0, 0 all the time'. The symptom is an out-parameter value, not a process exit code or a diagnostic, so nothing dxc.exe prints can express it -- the compiler for this issue is run-refl4619.cmd, which calls the accessor directly. Every clause is a positive `contains`, so there is no absence clause for a compile that never started to satisfy for free (SKILL.md, #1877/#2792): the harness prints nothing after a WALK-INCOMPLETE marker, so a release that cannot compile ms_6_5 cannot match. Clause 2 scopes the predicate to a mesh shader, which matters because 0,0,0 is the CORRECT answer for a pixel or vertex shader -- control-pixel exists to show that, and would otherwise score as a reproduction. Clause 3 is the anti-vacuity anchor: it requires the container to actually carry numthreads 32,2,1, read by two independent paths that do not go through ID3D12ShaderReflection (the DXIL metadata tuple in the disassembly, and PSVRuntimeInfo2). Without it, 'the accessor returned 0,0,0' would be indistinguishable from 'the shader never declared numthreads' -- and the two witnesses are OR'd because PSVRuntimeInfo2 postdates the first mesh-shader releases, so requiring both would silently demote the oldest releases the question can be asked of. 32/2/1 is deliberately non-unit and non-uniform: a harness returning a constant or swapping components could not print it. Controls: control-compute expects no-match (a compute shader with the same [numthreads(32,2,1)] must report 32,2,1, which is what proves the accessor and the harness both work); control-pixel and control-amplification expect no-match too, for the two other reasons above."
+}

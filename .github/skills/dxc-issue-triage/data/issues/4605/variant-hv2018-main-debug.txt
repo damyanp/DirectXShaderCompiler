@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:26:49+00:00
+# cmd: -T ps_6_0 -HV 2018 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: hv2018 (repro.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -HV 2018 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:4:18: error: Explicit template arguments on intrinsic Load are not supported
+  return buf.Load<float4>(idx1);
+                 ^
+
+

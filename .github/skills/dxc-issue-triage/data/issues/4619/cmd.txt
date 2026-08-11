@@ -1,0 +1,12 @@
+# The "compiler" here is run-refl4619.cmd, not dxc.exe.
+#
+# Both halves of the issue are questions about ID3D12ShaderReflection, an
+# interface dxc.exe never calls, and `dxa -dumpreflection` does not call
+# GetThreadGroupSize at all (see manual-case-dxa-dumpreflection.txt). The
+# harness compiles this source with the DXC under test and then calls the
+# accessors the reporter named, plus a container-side read of the same facts.
+#
+# ms_6_5 is the oldest mesh-shader profile there is: mesh shaders were
+# introduced in Shader Model 6.5, so this is already "the oldest profile that
+# still shows the symptom" (SKILL.md). No other flags: the issue reports none.
+-T ms_6_5 -E main repro.hlsl

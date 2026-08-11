@@ -1,0 +1,22 @@
+{
+  "batch": "batch-016",
+  "confidence": "high",
+  "created_at": "2022-08-19T22:21:17Z",
+  "godbolt_url": "https://godbolt.org/z/nE7zvT4sx",
+  "history": "always-repro'd",
+  "labels": "bug",
+  "labels_add": "up-for-grabs",
+  "labels_now": "bug",
+  "notes_path": "issues/4605/notes.md",
+  "number": 4605,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still reproduces on main (1.9.0.5433, 13730886e): RasterizerOrderedByteAddressBuffer.Load<float4>() and Store<float4>() are rejected with \"Explicit template arguments on intrinsic Load/Store are not supported\", while the identical shader on RWByteAddressBuffer compiles. All 20 stable releases v1.4.1907..v1.9.2607 reproduce with the identical diagnostic, and the RWByteAddressBuffer control compiles on every one of them, so none is an invalid probe. Sema allows explicit template arguments only for objects named ByteAddressBuffer or RWByteAddressBuffer (tools/clang/lib/Sema/SemaHLSL.cpp:11379-11381); AR_OBJECT_ROVBYTEADDRESS_BUFFER is not in that list and git log -S shows it never has been. clang-dxc trunk rejects Load on the ROV type whether or not it is templated, which is a wider gap rather than the same defect.",
+  "title": "RasterizerOrderedByteAddressBuffer doesn't accept templated Load/Store",
+  "triaged_at": "2026-08-11T00:05:59+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4605"
+}

@@ -1,0 +1,53 @@
+# compiler: main-debug-refl4619
+# exe: <triage>/issues/4619/run-refl4619.cmd
+# ran: 2026-08-10T21:23:22+00:00
+# cmd: -T ms_6_5 -E main repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -T ms_6_5 -E main repro.hlsl
+[exe] <triage>/issues/4619/run-refl4619.cmd
+[exit] 0
+--- stdout ---
+# refl4619: #4619 mesh-shader reflection probe
+dll: <repo>/build/Debug/bin/dxcompiler.dll
+source: repro.hlsl
+profile: ms_6_5
+IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+IDxcContainerReflection::GetPartReflection(ID3D12ShaderReflection) -> 0x00000000 (S_OK)
+ID3D12ShaderReflection::GetDesc -> 0x00000000 (S_OK)
+  D3D12_SHADER_DESC.Version=0x000D0065 kind=Mesh 6.5
+  D3D12_SHADER_DESC.Creator="dxc(private) 1.9.0.5433 (triage, ab5400907)"
+  D3D12_SHADER_DESC.InputParameters=0 OutputParameters=1 PatchConstantParameters=0
+  D3D12_SHADER_DESC.GSOutputTopology=0 (D3D_PRIMITIVE_TOPOLOGY_UNDEFINED)
+  D3D12_SHADER_DESC.GSMaxOutputVertexCount=0
+  D3D12_SHADER_DESC.InputPrimitive=0
+  D3D12_SHADER_DESC.cGSInstanceCount=0
+  D3D12_SHADER_DESC.cControlPoints=0
+  D3D12_SHADER_DESC.HSOutputPrimitive=0
+  D3D12_SHADER_DESC.HSPartitioning=0
+  D3D12_SHADER_DESC.TessellatorDomain=0
+ID3D12ShaderReflection::GetGSInputPrimitive -> 0
+ID3D12ShaderReflection::GetThreadGroupSize -> returns 64
+  out x=32 y=2 z=1
+--- container, read WITHOUT ID3D12ShaderReflection ---
+PSV0 part: found
+PSV.RuntimeInfoVersion=2
+PSV.RuntimeInfo1.ShaderStage=13 (Mesh)
+PSV.RuntimeInfo1.MS1.MeshOutputTopology=2 (Triangle)
+PSV.RuntimeInfo1.MS1.SigPrimVectors=0
+PSV.RuntimeInfo0.MS.MaxOutputVertices=3 MaxOutputPrimitives=1 PayloadSizeInBytes=0
+PSV.RuntimeInfo2.NumThreads=32,2,1
+DXIL.numthreads-metadata-tuple{32,2,1}=present
+DXIL.disasm-comment: ; NumThreads=(32,2,1)
+SELFCHECK: walk-completed=yes
+SELFCHECK: shader-kind=Mesh
+SELFCHECK: psv-readable=yes
+RESULT: GETTHREADGROUPSIZE=32,2,1 GETTHREADGROUPSIZE-RETURN=64 SHADERDESC-TOPOLOGY-FIELDS=GSOutputTopology:0,InputPrimitive:0,HSOutputPrimitive:0,TessellatorDomain:0,GSInputPrimitive:0 PSV-MESH-TOPOLOGY=2 PSV-NUMTHREADS=32,2,1
+
+--- stderr ---
+

@@ -1,0 +1,22 @@
+{
+  "batch": "batch-016",
+  "confidence": "high",
+  "created_at": "2022-08-31T09:54:05Z",
+  "godbolt_url": "https://godbolt.org/z/KcoeM9sra",
+  "history": "always-repro'd",
+  "labels": "bug,crash",
+  "labels_add": "hlsl-next",
+  "labels_now": "bug,crash",
+  "notes_path": "issues/4629/notes.md",
+  "number": 4629,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (1.9.0.5433, 13730886e) with the shader and command line as filed. Never worked: all 20 stable releases v1.4.1907-v1.9.2607 fail. 18 crash - 17 printing the reported message verbatim, v1.6.2104 with an access violation - while the two oldest (v1.4.1907, v1.5.2010) instead spin, each burning 239.0s CPU in 240.1s wall (1.00 core, sampled every 20s) with no output while a trivial shader compiles on the same binaries in 0.3s. match-crash.json (internal_failure AND NOT timeout) keeps that distinction visible, scoring those two invalid-probe. Predicate is internal_failure, deliberately not a text match: the Debug ground truth traps at 0x80000003 and prints no cast<X> text at all, and CE Linux prints cast<X>() without the llvm:: prefix, so a text predicate scores the ground-truth crash clean (demonstrated mechanically, no compiler run, in manual-case-predicate-trap.txt). Exit status alone is also insufficient - the bad cast is 0x80AA001D through v1.6.2112 and plain E_FAIL 0x80004005 from v1.7.2207 on, so 15 releases rest entirely on the text marker; a control parse error exits that same 0x80004005 and correctly scores no-repro. Cause is DXASSERT(onlyUsedByLifetimeMarkers) in SROA_Helper::RewriteBitCast, ScalarReplAggregatesHLSL.cpp:2630; under NDEBUG that assert compiles away and the same value reaches cast<IntrinsicInst> two lines later, so this is not a Debug-only artefact - the same binary produces the reporter's exact message and E_FAIL once the trap is stepped past. Trigger is the shader shape, not the flags: neither ps_6_5 nor -HV 2021 is load-bearing (identical assert, byte-identical frame offsets), and keeping -HV 2021 would have truncated the history to v1.6.2112, losing both hangs and the access violation. Report text is accurate and not stale.",
+  "title": "Internal llvm::cast<X> due to particular combination of class fields and methods",
+  "triaged_at": "2026-08-11T00:06:00+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4629"
+}

@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "Explicit template arguments on intrinsic Load are not supported",
+  "note": "The reported symptom IS a diagnostic, so the predicate quotes it verbatim. Anchored on the message rather than on 'error:' because the message text is unique to err_hlsl_intrinsic_template_arg_unsupported (tools/clang/include/clang/Basic/DiagnosticSemaKinds.td), which is declared Error<> and so can only ever appear as an error, while an 'error:' prefix could be separated from the text by ANSI colour escapes on some builds. This is a PRESENCE predicate, so a compile that failed early for an unrelated reason cannot satisfy it for free. Controls: control-rwbab.hlsl (same shader on RWByteAddressBuffer) must NOT match, which proves the predicate is specific to the ROV type and doubles as the feature-presence control for templated Load; control-rov-untemplated.hlsl (ROV with plain Load) must NOT match, which proves the ROV type and the ps_6_0 profile are fine."
+}

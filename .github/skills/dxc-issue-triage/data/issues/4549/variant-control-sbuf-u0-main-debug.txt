@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:28:26+00:00
+# cmd: -T ps_6_5 -E main control-sbuf-u0.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-sbuf-u0 (control-sbuf-u0.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_5 -E main control-sbuf-u0.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-sbuf-u0.hlsl:13:37: error: invalid register specification, expected 't' binding
+StructuredBuffer<float> opaque_sb : register(u0);
+                                    ^
+
+

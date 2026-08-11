@@ -1,0 +1,11 @@
+Issue 4540. Compare the two DXC panes: they compile the same shader, differing only in the
+`static` keyword on the groupshared declaration.
+
+Look at the global variable declaration just above `define void @main()`, and at the type on
+the stores and the load that use it. In the pane compiled with the keyword, that object has a
+1-bit integer type in the groupshared address space; in the pane without it, the same object
+has a 32-bit integer type. docs/DXIL.rst ("Memory access granularity") defines groupshared
+memory accesses for 32- and 64-bit types only.
+
+The i1 form is what shipping DXC has emitted for `static groupshared` since at least
+v1.4.1907, and DXIL validation accepts it.

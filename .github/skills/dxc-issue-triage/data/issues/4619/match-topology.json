@@ -1,0 +1,22 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "SELFCHECK: walk-completed=yes"
+    },
+    {
+      "kind": "contains",
+      "value": "SELFCHECK: shader-kind=Mesh"
+    },
+    {
+      "kind": "contains",
+      "value": "PSV.RuntimeInfo1.MS1.MeshOutputTopology=2 (Triangle)"
+    },
+    {
+      "kind": "contains",
+      "value": "SHADERDESC-TOPOLOGY-FIELDS=GSOutputTopology:0,InputPrimitive:0,HSOutputPrimitive:0,TessellatorDomain:0,GSInputPrimitive:0"
+    }
+  ],
+  "note": "Ask B of the issue: 'I can't find the primitive topology output for mesh shader'. This is an ABSENCE claim about an API surface, and SKILL.md is explicit that an absence clause is satisfied for free by a compile that never started and vacuously true on a shader that never declared the thing. Both traps are closed here by expressing the absence as a POSITIVE match on a rendered line rather than as a `not_contains`: clause 4 requires the harness to have actually printed every topology-bearing field of D3D12_SHADER_DESC, each reading its own undefined value, which a failed compile cannot produce. Clause 3 is the anti-vacuity anchor and the instrument self-test in one: it requires the SAME container, read WITHOUT ID3D12ShaderReflection, to carry the declared triangle topology. That is what makes this 'the API does not expose it' rather than 'the compiler never recorded it', and it means a broken PSV reader scores no-match instead of manufacturing a clean absence (SKILL.md, #2952's field-search self-test). The four fields in clause 4 are the complete topology-bearing surface of ID3D12ShaderReflection: D3D12_SHADER_DESC has no mesh-specific member at all (external/DirectX-Headers/include/directx/d3d12shader.h), and GetGSInputPrimitive is the only other topology accessor on the interface. Controls: control-geometry expects no-match because a real geometry shader populates GSOutputTopology, which proves the harness can detect a PRESENT topology rather than printing zeroes unconditionally; control-mesh-line expects no-match because its declared topology is Line, so clause 3 reads 1 -- proving the container-side reader tracks the declaration instead of emitting a constant."
+}

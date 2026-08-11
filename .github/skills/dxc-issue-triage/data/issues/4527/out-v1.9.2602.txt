@@ -1,0 +1,26 @@
+# compiler: v1.9.2602
+# exe: <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+# ran: 2026-08-10T21:16:24+00:00
+# cmd: -T ps_6_0 -E mainPS repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E mainPS repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: External declaration '\01?kValues@?1??GetTestValue@MyClass@@QAA?AV?$vector@M$02@@I@Z@4QBV3@B' is unused.
+error: Vector type '<3 x float>' is not allowed.
+error: Vector type '<3 x float>' is not allowed.
+repro.hlsl:93:16: error: Instructions must be of an allowed type.
+note: at '%6 = extractelement <3 x float> %5, i64 0' in block '#0' of function 'mainPS'.
+Validation failed.
+
+
+

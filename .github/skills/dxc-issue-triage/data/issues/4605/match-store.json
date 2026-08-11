@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "Explicit template arguments on intrinsic Store are not supported",
+  "note": "Second predicate for the Store half of the issue title. Same reasoning as match.json. Scored against store-rov.hlsl (expect match) and control-rwbab-store.hlsl (expect no-match)."
+}

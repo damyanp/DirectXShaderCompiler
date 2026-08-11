@@ -1,0 +1,24 @@
+# compiler: v1.6.2106
+# exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+# ran: 2026-08-10T21:05:33+00:00
+# cmd: -T cs_6_0 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:15:9: error: no member named 'testVariable' in namespace 'testNamespace'; did you mean simply 'testVariable'?
+    if( testNamespace::testVariable * tid.x > 0 )
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+        testVariable
+repro.hlsl:5:14: note: 'testVariable' declared here
+        uint testVariable;
+             ^
+
+

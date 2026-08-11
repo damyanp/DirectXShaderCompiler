@@ -1,0 +1,26 @@
+struct EmptyStruct
+{
+};
+
+struct BaseStruct
+{
+	EmptyStruct emptyStructMember;
+
+	float makeMeNotEmpty;	// Uncommented: the reporter's documented workaround
+};
+
+struct ChildStruct : BaseStruct
+{
+	float4 m_childMember;
+
+	float4 func() { return m_childMember; }
+};
+
+float4 main() : SV_Position
+{
+	ChildStruct var_1;
+	EmptyStruct var_2;
+	var_1.emptyStructMember = var_2;	// Comment out to prevent assert
+	var_1.m_childMember = 0;
+	return var_1.func();
+}

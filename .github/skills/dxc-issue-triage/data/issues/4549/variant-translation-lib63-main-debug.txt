@@ -1,0 +1,24 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:28:49+00:00
+# cmd: -T lib_6_3 translation-lib63.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: translation-lib63 (translation-lib63.hlsl)
+# expect: match
+
+$ dxc -T lib_6_3 translation-lib63.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: Resource depth_buffer with base 0 size 1 overlap with other resource with base 0 size 1 in space 0.
+Validation failed.
+
+
+

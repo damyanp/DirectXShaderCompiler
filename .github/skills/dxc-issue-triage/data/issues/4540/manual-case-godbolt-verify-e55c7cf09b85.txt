@@ -1,0 +1,638 @@
+# Compiler Explorer panes for #4540, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E main
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: f44c10ddeceb6199766d23f192ccee72.pdb
+; shader hash: f44c10ddeceb6199766d23f192ccee72
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; TileArgsBufferOut                     UAV     u32         buf      U0             u0     1
+; TilesOut                              UAV     u32         buf      U1             u1     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWBuffer<unsigned int>" = type { i32 }
+
+@storeTile = internal unnamed_addr addrspace(3) global i1 false
+
+define void @main() {
+  %TilesOut_UAV_buf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 1, i32 1, i1 false), !dbg !45 ; line:53 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %TileArgsBufferOut_UAV_buf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !45 ; line:53 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadIdInGroup.i32(i32 95, i32 0)  ; ThreadIdInGroup(component)
+  %2 = call i32 @dx.op.threadIdInGroup.i32(i32 95, i32 1)  ; ThreadIdInGroup(component)
+  %3 = call i32 @dx.op.groupId.i32(i32 94, i32 0)  ; GroupId(component)
+  %4 = call i32 @dx.op.groupId.i32(i32 94, i32 1)  ; GroupId(component)
+  call void @llvm.dbg.value(metadata i32 %3, i64 0, metadata !48, metadata !49), !dbg !50 ; var:"gid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %4, i64 0, metadata !48, metadata !51), !dbg !50 ; var:"gid" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !52, metadata !49), !dbg !53 ; var:"gtid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %2, i64 0, metadata !52, metadata !51), !dbg !53 ; var:"gtid" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  %5 = or i32 %2, %1, !dbg !54 ; line:36 col:18
+  %6 = icmp eq i32 %5, 0, !dbg !54 ; line:36 col:18
+  br i1 %6, label %7, label %8, !dbg !56 ; line:36 col:6
+
+; <label>:7                                       ; preds = %0
+  store i1 false, i1 addrspace(3)* @storeTile, align 4
+  br label %8, !dbg !57 ; line:39 col:2
+
+; <label>:8                                       ; preds = %7, %0
+  call void @dx.op.barrier(i32 80, i32 9), !dbg !59 ; line:41 col:2  ; Barrier(barrierMode)
+  store i1 true, i1 addrspace(3)* @storeTile, align 4
+  call void @dx.op.barrier(i32 80, i32 9), !dbg !60 ; line:45 col:2  ; Barrier(barrierMode)
+  %.b = load i1, i1 addrspace(3)* @storeTile, align 4
+  %9 = and i1 %6, %.b, !dbg !61 ; line:47 col:33
+  br i1 %9, label %10, label %13, !dbg !62 ; line:47 col:6
+
+; <label>:10                                      ; preds = %8
+  %11 = shl i32 %4, 10, !dbg !63 ; line:49 col:29
+  %12 = add i32 %11, %3, !dbg !64 ; line:49 col:36
+  call void @llvm.dbg.value(metadata i32 %12, i64 0, metadata !65, metadata !67), !dbg !68 ; var:"tileId" !DIExpression() func:"main"
+  %AtomicAdd = call i32 @dx.op.atomicBinOp.i32(i32 78, %dx.types.Handle %TileArgsBufferOut_UAV_buf, i32 0, i32 0, i32 undef, i32 undef, i32 1), !dbg !69 ; line:52 col:3  ; AtomicBinOp(handle,atomicOp,offset0,offset1,offset2,newValue)
+  call void @llvm.dbg.value(metadata i32 %AtomicAdd, i64 0, metadata !70, metadata !67), !dbg !71 ; var:"tileStoreIdx" !DIExpression() func:"main"
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %TilesOut_UAV_buf, i32 %AtomicAdd, i32 undef, i32 %12, i32 %12, i32 %12, i32 %12, i8 15), !dbg !72 ; line:53 col:26  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  br label %13, !dbg !73 ; line:54 col:2
+
+; <label>:13                                      ; preds = %10, %8
+  ret void, !dbg !74 ; line:55 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadIdInGroup.i32(i32, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.groupId.i32(i32, i32) #0
+
+; Function Attrs: noduplicate nounwind
+declare void @dx.op.barrier(i32, i32) #1
+
+; Function Attrs: nounwind
+declare i32 @dx.op.atomicBinOp.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #3
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { noduplicate nounwind }
+attributes #2 = { nounwind }
+attributes #3 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!25, !26}
+!llvm.ident = !{!27}
+!dx.source.contents = !{!28}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!29}
+!dx.source.args = !{!30}
+!dx.version = !{!31}
+!dx.valver = !{!32}
+!dx.shaderModel = !{!33}
+!dx.resources = !{!34}
+!dx.typeAnnotations = !{!39}
+!dx.entryPoints = !{!42}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !18)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 34, type: !5, isLocal: false, isDefinition: true, scopeLine: 35, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7, !7, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, size: 96, align: 32, elements: !9, templateParams: !14)
+!9 = !{!10, !12, !13}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !{!15, !16}
+!15 = !DITemplateTypeParameter(name: "element", type: !11)
+!16 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !{!19, !22, !23}
+!19 = !DIGlobalVariable(name: "TileArgsBufferOut", linkageName: "\01?TileArgsBufferOut@@3V?$RWBuffer@I@@A", scope: !0, file: !1, line: 24, type: !20, isLocal: false, isDefinition: true)
+!20 = !DICompositeType(tag: DW_TAG_class_type, name: "RWBuffer<unsigned int>", file: !1, line: 24, size: 32, align: 32, elements: !2, templateParams: !21)
+!21 = !{!15}
+!22 = !DIGlobalVariable(name: "TilesOut", linkageName: "\01?TilesOut@@3V?$RWBuffer@I@@A", scope: !0, file: !1, line: 25, type: !20, isLocal: false, isDefinition: true)
+!23 = !DIGlobalVariable(name: "storeTile", scope: !0, file: !1, line: 30, type: !24, isLocal: true, isDefinition: true)
+!24 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 49, baseType: !11)
+!25 = !{i32 2, !"Dwarf Version", i32 4}
+!26 = !{i32 2, !"Debug Info Version", i32 3}
+!27 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!28 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 4540. Compare the two DXC panes: they compile the same shader, differing only in the\0A// `static` keyword on the groupshared declaration.\0A//\0A// Look at the global variable declaration just above `define void @main()`, and at the type on\0A// the stores and the load that use it. In the pane compiled with the keyword, that object has a\0A// 1-bit integer type in the groupshared address space; in the pane without it, the same object\0A// has a 32-bit integer type. docs/DXIL.rst (\22Memory access granularity\22) defines groupshared\0A// memory accesses for 32- and 64-bit types only.\0A//\0A// The i1 form is what shipping DXC has emitted for `static groupshared` since at least\0A// v1.4.1907, and DXIL validation accepts it.\0A//==========================================================================//\0A\0A// Compiler Explorer publication source for issue 4540.\0A//\0A// CE gives every pane one shared source, so the one-variable A/B is expressed with a\0A// preprocessor guard: the pane compiled with -DNO_STATIC drops the `static` keyword and is\0A// otherwise identical. Everything else is byte-for-byte the shader from the issue body.\0A//\0A// The transformation itself is controlled locally: manual-case-godbolt-transform.txt shows\0A// this file with and without -DNO_STATIC producing exactly the same two globals as the\0A// untransformed repro.hlsl and control-no-static.hlsl.\0ARWBuffer<uint> TileArgsBufferOut;\0ARWBuffer<uint> TilesOut;\0A\0A#ifdef NO_STATIC\0Agroupshared uint storeTile;\0A#else\0Astatic groupshared uint storeTile;\0A#endif\0A\0A[numthreads(8,8,1)]\0Avoid main(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)\0A{\0A\09if (gtid.x == 0 && gtid.y == 0)\0A\09{\0A\09\09storeTile = 0;\0A\09}\0A\09\0A\09GroupMemoryBarrierWithGroupSync();\0A\0A\09storeTile = 1;\0A\0A\09GroupMemoryBarrierWithGroupSync();\0A\0A\09if (gtid.x == 0 && gtid.y == 0 && storeTile > 0)\0A\09{\0A\09\09const uint tileId = gid.y * 1024 + gid.x;\0A\0A\09\09uint tileStoreIdx;\0A\09\09InterlockedAdd(TileArgsBufferOut[0], 1, tileStoreIdx);\0A\09\09TilesOut[tileStoreIdx] = tileId;\09\09\09\0A\09}\0A}\0A"}
+!29 = !{!"/app/example.hlsl"}
+!30 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug"}
+!31 = !{i32 1, i32 0}
+!32 = !{i32 1, i32 6}
+!33 = !{!"cs", i32 6, i32 0}
+!34 = !{null, !35, null, null}
+!35 = !{!36, !38}
+!36 = !{i32 0, %"class.RWBuffer<unsigned int>"* undef, !"TileArgsBufferOut", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !37}
+!37 = !{i32 0, i32 5}
+!38 = !{i32 1, %"class.RWBuffer<unsigned int>"* undef, !"TilesOut", i32 0, i32 1, i32 1, i32 10, i1 false, i1 false, i1 false, !37}
+!39 = !{i32 1, void ()* @main, !40}
+!40 = !{!41}
+!41 = !{i32 0, !2, !2}
+!42 = !{void ()* @main, !"main", null, !34, !43}
+!43 = !{i32 4, !44}
+!44 = !{i32 8, i32 8, i32 1}
+!45 = !DILocation(line: 53, column: 3, scope: !46)
+!46 = distinct !DILexicalBlock(scope: !47, file: !1, line: 48, column: 2)
+!47 = distinct !DILexicalBlock(scope: !4, file: !1, line: 47, column: 6)
+!48 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "gid", arg: 3, scope: !4, file: !1, line: 34, type: !7)
+!49 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!50 = !DILocation(line: 34, column: 82, scope: !4)
+!51 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!52 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "gtid", arg: 2, scope: !4, file: !1, line: 34, type: !7)
+!53 = !DILocation(line: 34, column: 51, scope: !4)
+!54 = !DILocation(line: 36, column: 18, scope: !55)
+!55 = distinct !DILexicalBlock(scope: !4, file: !1, line: 36, column: 6)
+!56 = !DILocation(line: 36, column: 6, scope: !4)
+!57 = !DILocation(line: 39, column: 2, scope: !58)
+!58 = distinct !DILexicalBlock(scope: !55, file: !1, line: 37, column: 2)
+!59 = !DILocation(line: 41, column: 2, scope: !4)
+!60 = !DILocation(line: 45, column: 2, scope: !4)
+!61 = !DILocation(line: 47, column: 33, scope: !47)
+!62 = !DILocation(line: 47, column: 6, scope: !4)
+!63 = !DILocation(line: 49, column: 29, scope: !46)
+!64 = !DILocation(line: 49, column: 36, scope: !46)
+!65 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "tileId", scope: !46, file: !1, line: 49, type: !66)
+!66 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !24)
+!67 = !DIExpression()
+!68 = !DILocation(line: 49, column: 14, scope: !46)
+!69 = !DILocation(line: 52, column: 3, scope: !46)
+!70 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "tileStoreIdx", scope: !46, file: !1, line: 51, type: !24)
+!71 = !DILocation(line: 51, column: 8, scope: !46)
+!72 = !DILocation(line: 53, column: 26, scope: !46)
+!73 = !DILocation(line: 54, column: 2, scope: !46)
+!74 = !DILocation(line: 55, column: 1, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 2f1355a2e298bf5a9d826fa6786ac115.pdb
+; shader hash: 2f1355a2e298bf5a9d826fa6786ac115
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,8,1)
+; NumBytesGroupSharedMemory: 4
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; TileArgsBufferOut                     UAV     u32         buf      U0             u0     1
+; TilesOut                              UAV     u32         buf      U1             u1     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWBuffer<unsigned int>" = type { i32 }
+
+@storeTile = internal unnamed_addr addrspace(3) global i1 false
+
+define void @main() {
+  %TilesOut_UAV_buf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 1, i32 1, i1 false), !dbg !45 ; line:53 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %TileArgsBufferOut_UAV_buf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !45 ; line:53 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadIdInGroup.i32(i32 95, i32 0)  ; ThreadIdInGroup(component)
+  %2 = call i32 @dx.op.threadIdInGroup.i32(i32 95, i32 1)  ; ThreadIdInGroup(component)
+  %3 = call i32 @dx.op.groupId.i32(i32 94, i32 0)  ; GroupId(component)
+  %4 = call i32 @dx.op.groupId.i32(i32 94, i32 1)  ; GroupId(component)
+  call void @llvm.dbg.value(metadata i32 %3, i64 0, metadata !48, metadata !49), !dbg !50 ; var:"gid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %4, i64 0, metadata !48, metadata !51), !dbg !50 ; var:"gid" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !52, metadata !49), !dbg !53 ; var:"gtid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %2, i64 0, metadata !52, metadata !51), !dbg !53 ; var:"gtid" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  %5 = or i32 %2, %1, !dbg !54 ; line:36 col:18
+  %6 = icmp eq i32 %5, 0, !dbg !54 ; line:36 col:18
+  br i1 %6, label %7, label %8, !dbg !54 ; line:36 col:18
+
+; <label>:7                                       ; preds = %0
+  store i1 false, i1 addrspace(3)* @storeTile, align 4
+  br label %8, !dbg !56 ; line:39 col:2
+
+; <label>:8                                       ; preds = %7, %0
+  call void @dx.op.barrier(i32 80, i32 9), !dbg !58 ; line:41 col:2  ; Barrier(barrierMode)
+  store i1 true, i1 addrspace(3)* @storeTile, align 4
+  call void @dx.op.barrier(i32 80, i32 9), !dbg !59 ; line:45 col:2  ; Barrier(barrierMode)
+  %.b = load i1, i1 addrspace(3)* @storeTile, align 4
+  %or.cond5 = and i1 %6, %.b, !dbg !60 ; line:47 col:18
+  br i1 %or.cond5, label %9, label %12, !dbg !60 ; line:47 col:18
+
+; <label>:9                                       ; preds = %8
+  %10 = shl i32 %4, 10, !dbg !61 ; line:49 col:29
+  %11 = add i32 %10, %3, !dbg !62 ; line:49 col:36
+  call void @llvm.dbg.value(metadata i32 %11, i64 0, metadata !63, metadata !65), !dbg !66 ; var:"tileId" !DIExpression() func:"main"
+  %AtomicAdd = call i32 @dx.op.atomicBinOp.i32(i32 78, %dx.types.Handle %TileArgsBufferOut_UAV_buf, i32 0, i32 0, i32 undef, i32 undef, i32 1), !dbg !67 ; line:52 col:3  ; AtomicBinOp(handle,atomicOp,offset0,offset1,offset2,newValue)
+  call void @llvm.dbg.value(metadata i32 %AtomicAdd, i64 0, metadata !68, metadata !65), !dbg !69 ; var:"tileStoreIdx" !DIExpression() func:"main"
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %TilesOut_UAV_buf, i32 %AtomicAdd, i32 undef, i32 %11, i32 %11, i32 %11, i32 %11, i8 15), !dbg !70 ; line:53 col:26  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  br label %12, !dbg !71 ; line:54 col:2
+
+; <label>:12                                      ; preds = %9, %8
+  ret void, !dbg !72 ; line:55 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadIdInGroup.i32(i32, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.groupId.i32(i32, i32) #0
+
+; Function Attrs: noduplicate nounwind
+declare void @dx.op.barrier(i32, i32) #1
+
+; Function Attrs: nounwind
+declare i32 @dx.op.atomicBinOp.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #3
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { noduplicate nounwind }
+attributes #2 = { nounwind }
+attributes #3 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!25, !26}
+!llvm.ident = !{!27}
+!dx.source.contents = !{!28}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!29}
+!dx.source.args = !{!30}
+!dx.version = !{!31}
+!dx.valver = !{!32}
+!dx.shaderModel = !{!33}
+!dx.resources = !{!34}
+!dx.typeAnnotations = !{!39}
+!dx.entryPoints = !{!42}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !18)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 34, type: !5, isLocal: false, isDefinition: true, scopeLine: 35, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7, !7, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, size: 96, align: 32, elements: !9, templateParams: !14)
+!9 = !{!10, !12, !13}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !{!15, !16}
+!15 = !DITemplateTypeParameter(name: "element", type: !11)
+!16 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !{!19, !22, !23}
+!19 = !DIGlobalVariable(name: "TileArgsBufferOut", linkageName: "\01?TileArgsBufferOut@@3V?$RWBuffer@I@@A", scope: !0, file: !1, line: 24, type: !20, isLocal: false, isDefinition: true)
+!20 = !DICompositeType(tag: DW_TAG_class_type, name: "RWBuffer<unsigned int>", file: !1, line: 24, size: 32, align: 32, elements: !2, templateParams: !21)
+!21 = !{!15}
+!22 = !DIGlobalVariable(name: "TilesOut", linkageName: "\01?TilesOut@@3V?$RWBuffer@I@@A", scope: !0, file: !1, line: 25, type: !20, isLocal: false, isDefinition: true)
+!23 = !DIGlobalVariable(name: "storeTile", scope: !0, file: !1, line: 30, type: !24, isLocal: true, isDefinition: true)
+!24 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 49, baseType: !11)
+!25 = !{i32 2, !"Dwarf Version", i32 4}
+!26 = !{i32 2, !"Debug Info Version", i32 3}
+!27 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!28 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 4540. Compare the two DXC panes: they compile the same shader, differing only in the\0A// `static` keyword on the groupshared declaration.\0A//\0A// Look at the global variable declaration just above `define void @main()`, and at the type on\0A// the stores and the load that use it. In the pane compiled with the keyword, that object has a\0A// 1-bit integer type in the groupshared address space; in the pane without it, the same object\0A// has a 32-bit integer type. docs/DXIL.rst (\22Memory access granularity\22) defines groupshared\0A// memory accesses for 32- and 64-bit types only.\0A//\0A// The i1 form is what shipping DXC has emitted for `static groupshared` since at least\0A// v1.4.1907, and DXIL validation accepts it.\0A//==========================================================================//\0A\0A// Compiler Explorer publication source for issue 4540.\0A//\0A// CE gives every pane one shared source, so the one-variable A/B is expressed with a\0A// preprocessor guard: the pane compiled with -DNO_STATIC drops the `static` keyword and is\0A// otherwise identical. Everything else is byte-for-byte the shader from the issue body.\0A//\0A// The transformation itself is controlled locally: manual-case-godbolt-transform.txt shows\0A// this file with and without -DNO_STATIC producing exactly the same two globals as the\0A// untransformed repro.hlsl and control-no-static.hlsl.\0ARWBuffer<uint> TileArgsBufferOut;\0ARWBuffer<uint> TilesOut;\0A\0A#ifdef NO_STATIC\0Agroupshared uint storeTile;\0A#else\0Astatic groupshared uint storeTile;\0A#endif\0A\0A[numthreads(8,8,1)]\0Avoid main(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)\0A{\0A\09if (gtid.x == 0 && gtid.y == 0)\0A\09{\0A\09\09storeTile = 0;\0A\09}\0A\09\0A\09GroupMemoryBarrierWithGroupSync();\0A\0A\09storeTile = 1;\0A\0A\09GroupMemoryBarrierWithGroupSync();\0A\0A\09if (gtid.x == 0 && gtid.y == 0 && storeTile > 0)\0A\09{\0A\09\09const uint tileId = gid.y * 1024 + gid.x;\0A\0A\09\09uint tileStoreIdx;\0A\09\09InterlockedAdd(TileArgsBufferOut[0], 1, tileStoreIdx);\0A\09\09TilesOut[tileStoreIdx] = tileId;\09\09\09\0A\09}\0A}\0A"}
+!29 = !{!"/app/example.hlsl"}
+!30 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug"}
+!31 = !{i32 1, i32 0}
+!32 = !{i32 1, i32 10}
+!33 = !{!"cs", i32 6, i32 0}
+!34 = !{null, !35, null, null}
+!35 = !{!36, !38}
+!36 = !{i32 0, %"class.RWBuffer<unsigned int>"* undef, !"TileArgsBufferOut", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !37}
+!37 = !{i32 0, i32 5}
+!38 = !{i32 1, %"class.RWBuffer<unsigned int>"* undef, !"TilesOut", i32 0, i32 1, i32 1, i32 10, i1 false, i1 false, i1 false, !37}
+!39 = !{i32 1, void ()* @main, !40}
+!40 = !{!41}
+!41 = !{i32 0, !2, !2}
+!42 = !{void ()* @main, !"main", null, !34, !43}
+!43 = !{i32 4, !44}
+!44 = !{i32 8, i32 8, i32 1}
+!45 = !DILocation(line: 53, column: 3, scope: !46)
+!46 = distinct !DILexicalBlock(scope: !47, file: !1, line: 48, column: 2)
+!47 = distinct !DILexicalBlock(scope: !4, file: !1, line: 47, column: 6)
+!48 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "gid", arg: 3, scope: !4, file: !1, line: 34, type: !7)
+!49 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!50 = !DILocation(line: 34, column: 82, scope: !4)
+!51 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!52 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "gtid", arg: 2, scope: !4, file: !1, line: 34, type: !7)
+!53 = !DILocation(line: 34, column: 51, scope: !4)
+!54 = !DILocation(line: 36, column: 18, scope: !55)
+!55 = distinct !DILexicalBlock(scope: !4, file: !1, line: 36, column: 6)
+!56 = !DILocation(line: 39, column: 2, scope: !57)
+!57 = distinct !DILexicalBlock(scope: !55, file: !1, line: 37, column: 2)
+!58 = !DILocation(line: 41, column: 2, scope: !4)
+!59 = !DILocation(line: 45, column: 2, scope: !4)
+!60 = !DILocation(line: 47, column: 18, scope: !47)
+!61 = !DILocation(line: 49, column: 29, scope: !46)
+!62 = !DILocation(line: 49, column: 36, scope: !46)
+!63 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "tileId", scope: !46, file: !1, line: 49, type: !64)
+!64 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !24)
+!65 = !DIExpression()
+!66 = !DILocation(line: 49, column: 14, scope: !46)
+!67 = !DILocation(line: 52, column: 3, scope: !46)
+!68 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "tileStoreIdx", scope: !46, file: !1, line: 51, type: !24)
+!69 = !DILocation(line: 51, column: 8, scope: !46)
+!70 = !DILocation(line: 53, column: 26, scope: !46)
+!71 = !DILocation(line: 54, column: 2, scope: !46)
+!72 = !DILocation(line: 55, column: 1, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main -DNO_STATIC
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: d55b92cf0413adaccfc1b1aa4bc4b420.pdb
+; shader hash: d55b92cf0413adaccfc1b1aa4bc4b420
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,8,1)
+; NumBytesGroupSharedMemory: 4
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; TileArgsBufferOut                     UAV     u32         buf      U0             u0     1
+; TilesOut                              UAV     u32         buf      U1             u1     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWBuffer<unsigned int>" = type { i32 }
+
+@"\01?storeTile@@3IA" = external addrspace(3) global i32, align 4
+
+define void @main() {
+  %TilesOut_UAV_buf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 1, i32 1, i1 false), !dbg !46 ; line:53 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %TileArgsBufferOut_UAV_buf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !46 ; line:53 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadIdInGroup.i32(i32 95, i32 0)  ; ThreadIdInGroup(component)
+  %2 = call i32 @dx.op.threadIdInGroup.i32(i32 95, i32 1)  ; ThreadIdInGroup(component)
+  %3 = call i32 @dx.op.groupId.i32(i32 94, i32 0)  ; GroupId(component)
+  %4 = call i32 @dx.op.groupId.i32(i32 94, i32 1)  ; GroupId(component)
+  call void @llvm.dbg.value(metadata i32 %3, i64 0, metadata !49, metadata !50), !dbg !51 ; var:"gid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %4, i64 0, metadata !49, metadata !52), !dbg !51 ; var:"gid" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !53, metadata !50), !dbg !54 ; var:"gtid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata i32 %2, i64 0, metadata !53, metadata !52), !dbg !54 ; var:"gtid" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  %5 = or i32 %2, %1, !dbg !55 ; line:36 col:18
+  %6 = icmp eq i32 %5, 0, !dbg !55 ; line:36 col:18
+  br i1 %6, label %7, label %8, !dbg !55 ; line:36 col:18
+
+; <label>:7                                       ; preds = %0
+  store i32 0, i32 addrspace(3)* @"\01?storeTile@@3IA", align 4, !dbg !57, !tbaa !59 ; line:38 col:13
+  br label %8, !dbg !63 ; line:39 col:2
+
+; <label>:8                                       ; preds = %7, %0
+  call void @dx.op.barrier(i32 80, i32 9), !dbg !64 ; line:41 col:2  ; Barrier(barrierMode)
+  store i32 1, i32 addrspace(3)* @"\01?storeTile@@3IA", align 4, !dbg !65, !tbaa !59 ; line:43 col:12
+  call void @dx.op.barrier(i32 80, i32 9), !dbg !66 ; line:45 col:2  ; Barrier(barrierMode)
+  %9 = load i32, i32 addrspace(3)* @"\01?storeTile@@3IA", align 4
+  %10 = icmp ne i32 %9, 0, !dbg !67 ; line:47 col:46
+  %or.cond5 = and i1 %6, %10, !dbg !68 ; line:47 col:18
+  br i1 %or.cond5, label %11, label %14, !dbg !68 ; line:47 col:18
+
+; <label>:11                                      ; preds = %8
+  %12 = shl i32 %4, 10, !dbg !69 ; line:49 col:29
+  %13 = add i32 %12, %3, !dbg !70 ; line:49 col:36
+  call void @llvm.dbg.value(metadata i32 %13, i64 0, metadata !71, metadata !73), !dbg !74 ; var:"tileId" !DIExpression() func:"main"
+  %AtomicAdd = call i32 @dx.op.atomicBinOp.i32(i32 78, %dx.types.Handle %TileArgsBufferOut_UAV_buf, i32 0, i32 0, i32 undef, i32 undef, i32 1), !dbg !75 ; line:52 col:3  ; AtomicBinOp(handle,atomicOp,offset0,offset1,offset2,newValue)
+  call void @llvm.dbg.value(metadata i32 %AtomicAdd, i64 0, metadata !76, metadata !73), !dbg !77 ; var:"tileStoreIdx" !DIExpression() func:"main"
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %TilesOut_UAV_buf, i32 %AtomicAdd, i32 undef, i32 %13, i32 %13, i32 %13, i32 %13, i8 15), !dbg !78 ; line:53 col:26  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  br label %14, !dbg !79 ; line:54 col:2
+
+; <label>:14                                      ; preds = %11, %8
+  ret void, !dbg !80 ; line:55 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadIdInGroup.i32(i32, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.groupId.i32(i32, i32) #0
+
+; Function Attrs: noduplicate nounwind
+declare void @dx.op.barrier(i32, i32) #1
+
+; Function Attrs: nounwind
+declare i32 @dx.op.atomicBinOp.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #3
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { noduplicate nounwind }
+attributes #2 = { nounwind }
+attributes #3 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!25, !26}
+!llvm.ident = !{!27}
+!dx.source.contents = !{!28}
+!dx.source.defines = !{!29}
+!dx.source.mainFileName = !{!30}
+!dx.source.args = !{!31}
+!dx.version = !{!32}
+!dx.valver = !{!33}
+!dx.shaderModel = !{!34}
+!dx.resources = !{!35}
+!dx.typeAnnotations = !{!40}
+!dx.entryPoints = !{!43}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !18)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 34, type: !5, isLocal: false, isDefinition: true, scopeLine: 35, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7, !7, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, line: 28, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, line: 28, size: 96, align: 32, elements: !9, templateParams: !14)
+!9 = !{!10, !12, !13}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, line: 28, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, line: 28, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, line: 28, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !{!15, !16}
+!15 = !DITemplateTypeParameter(name: "element", type: !11)
+!16 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !{!19, !21, !24}
+!19 = !DIGlobalVariable(name: "storeTile", linkageName: "\01?storeTile@@3IA", scope: !0, file: !1, line: 28, type: !20, isLocal: false, isDefinition: true, variable: i32 addrspace(3)* @"\01?storeTile@@3IA")
+!20 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 28, baseType: !11)
+!21 = !DIGlobalVariable(name: "TileArgsBufferOut", linkageName: "\01?TileArgsBufferOut@@3V?$RWBuffer@I@@A", scope: !0, file: !1, line: 24, type: !22, isLocal: false, isDefinition: true)
+!22 = !DICompositeType(tag: DW_TAG_class_type, name: "RWBuffer<unsigned int>", file: !1, line: 24, size: 32, align: 32, elements: !2, templateParams: !23)
+!23 = !{!15}
+!24 = !DIGlobalVariable(name: "TilesOut", linkageName: "\01?TilesOut@@3V?$RWBuffer@I@@A", scope: !0, file: !1, line: 25, type: !22, isLocal: false, isDefinition: true)
+!25 = !{i32 2, !"Dwarf Version", i32 4}
+!26 = !{i32 2, !"Debug Info Version", i32 3}
+!27 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!28 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 4540. Compare the two DXC panes: they compile the same shader, differing only in the\0A// `static` keyword on the groupshared declaration.\0A//\0A// Look at the global variable declaration just above `define void @main()`, and at the type on\0A// the stores and the load that use it. In the pane compiled with the keyword, that object has a\0A// 1-bit integer type in the groupshared address space; in the pane without it, the same object\0A// has a 32-bit integer type. docs/DXIL.rst (\22Memory access granularity\22) defines groupshared\0A// memory accesses for 32- and 64-bit types only.\0A//\0A// The i1 form is what shipping DXC has emitted for `static groupshared` since at least\0A// v1.4.1907, and DXIL validation accepts it.\0A//==========================================================================//\0A\0A// Compiler Explorer publication source for issue 4540.\0A//\0A// CE gives every pane one shared source, so the one-variable A/B is expressed with a\0A// preprocessor guard: the pane compiled with -DNO_STATIC drops the `static` keyword and is\0A// otherwise identical. Everything else is byte-for-byte the shader from the issue body.\0A//\0A// The transformation itself is controlled locally: manual-case-godbolt-transform.txt shows\0A// this file with and without -DNO_STATIC producing exactly the same two globals as the\0A// untransformed repro.hlsl and control-no-static.hlsl.\0ARWBuffer<uint> TileArgsBufferOut;\0ARWBuffer<uint> TilesOut;\0A\0A#ifdef NO_STATIC\0Agroupshared uint storeTile;\0A#else\0Astatic groupshared uint storeTile;\0A#endif\0A\0A[numthreads(8,8,1)]\0Avoid main(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)\0A{\0A\09if (gtid.x == 0 && gtid.y == 0)\0A\09{\0A\09\09storeTile = 0;\0A\09}\0A\09\0A\09GroupMemoryBarrierWithGroupSync();\0A\0A\09storeTile = 1;\0A\0A\09GroupMemoryBarrierWithGroupSync();\0A\0A\09if (gtid.x == 0 && gtid.y == 0 && storeTile > 0)\0A\09{\0A\09\09const uint tileId = gid.y * 1024 + gid.x;\0A\0A\09\09uint tileStoreIdx;\0A\09\09InterlockedAdd(TileArgsBufferOut[0], 1, tileStoreIdx);\0A\09\09TilesOut[tileStoreIdx] = tileId;\09\09\09\0A\09}\0A}\0A"}
+!29 = !{!"NO_STATIC=1", !"NO_STATIC=1"}
+!30 = !{!"/app/example.hlsl"}
+!31 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug", !"-D", !"NO_STATIC", !"-D", !"NO_STATIC"}
+!32 = !{i32 1, i32 0}
+!33 = !{i32 1, i32 10}
+!34 = !{!"cs", i32 6, i32 0}
+!35 = !{null, !36, null, null}
+!36 = !{!37, !39}
+!37 = !{i32 0, %"class.RWBuffer<unsigned int>"* undef, !"TileArgsBufferOut", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !38}
+!38 = !{i32 0, i32 5}
+!39 = !{i32 1, %"class.RWBuffer<unsigned int>"* undef, !"TilesOut", i32 0, i32 1, i32 1, i32 10, i1 false, i1 false, i1 false, !38}
+!40 = !{i32 1, void ()* @main, !41}
+!41 = !{!42}
+!42 = !{i32 0, !2, !2}
+!43 = !{void ()* @main, !"main", null, !35, !44}
+!44 = !{i32 4, !45}
+!45 = !{i32 8, i32 8, i32 1}
+!46 = !DILocation(line: 53, column: 3, scope: !47)
+!47 = distinct !DILexicalBlock(scope: !48, file: !1, line: 48, column: 2)
+!48 = distinct !DILexicalBlock(scope: !4, file: !1, line: 47, column: 6)
+!49 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "gid", arg: 3, scope: !4, file: !1, line: 34, type: !7)
+!50 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!51 = !DILocation(line: 34, column: 82, scope: !4)
+!52 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!53 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "gtid", arg: 2, scope: !4, file: !1, line: 34, type: !7)
+!54 = !DILocation(line: 34, column: 51, scope: !4)
+!55 = !DILocation(line: 36, column: 18, scope: !56)
+!56 = distinct !DILexicalBlock(scope: !4, file: !1, line: 36, column: 6)
+!57 = !DILocation(line: 38, column: 13, scope: !58)
+!58 = distinct !DILexicalBlock(scope: !56, file: !1, line: 37, column: 2)
+!59 = !{!60, !60, i64 0}
+!60 = !{!"int", !61, i64 0}
+!61 = !{!"omnipotent char", !62, i64 0}
+!62 = !{!"Simple C/C++ TBAA"}
+!63 = !DILocation(line: 39, column: 2, scope: !58)
+!64 = !DILocation(line: 41, column: 2, scope: !4)
+!65 = !DILocation(line: 43, column: 12, scope: !4)
+!66 = !DILocation(line: 45, column: 2, scope: !4)
+!67 = !DILocation(line: 47, column: 46, scope: !48)
+!68 = !DILocation(line: 47, column: 18, scope: !48)
+!69 = !DILocation(line: 49, column: 29, scope: !47)
+!70 = !DILocation(line: 49, column: 36, scope: !47)
+!71 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "tileId", scope: !47, file: !1, line: 49, type: !72)
+!72 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !20)
+!73 = !DIExpression()
+!74 = !DILocation(line: 49, column: 14, scope: !47)
+!75 = !DILocation(line: 52, column: 3, scope: !47)
+!76 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "tileStoreIdx", scope: !47, file: !1, line: 51, type: !20)
+!77 = !DILocation(line: 51, column: 8, scope: !47)
+!78 = !DILocation(line: 53, column: 26, scope: !47)
+!79 = !DILocation(line: 54, column: 2, scope: !47)
+!80 = !DILocation(line: 55, column: 1, scope: !4)

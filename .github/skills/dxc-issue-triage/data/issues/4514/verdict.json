@@ -1,0 +1,21 @@
+{
+  "batch": "batch-016",
+  "confidence": "high",
+  "created_at": "2022-06-16T09:54:31Z",
+  "godbolt_url": "https://godbolt.org/z/1497YdPj1",
+  "history": "always-repro'd",
+  "labels": "bug",
+  "labels_now": "bug",
+  "notes_path": "issues/4514/notes.md",
+  "number": 4514,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (1.9.0.5433, 13730886e) and on all 20 stable releases v1.4.1907..v1.9.2607, probed linearly with no invalid probes; v1.4.1907 stderr is byte-identical to main, and the responsible line dates to the repository first commit 6ee4074a4 (2016-12-28), so the defect predates the bisection floor and the 2022 report. Diagnostic-quality issue: match.json quotes the reported error verbatim so classify() does not demote every reproducing release on its own no-member-named marker; no capture carries an invalid-probe-reason header. -HV is inert -- 2016/2017/2018/2021 all reproduce identically to no flag -- so cmd.txt correctly carries none and no fake version floor was introduced. Cause: HLSLBufferDecl::Create hardcodes the semantic DeclContext of every cbuffer/tbuffer to the TranslationUnitDecl (SemaHLSL.cpp:15420), so the namespace is only the lexical parent and the buffer members, republished through the transparent context, land in the TU; corroborated by -ast-dump and by debug info giving testVariable scope !0 and mangling ?testVariable@testBuffer@@3IB while a sibling namespace declaration gets DINamespace. The reporters Texture2D workaround is incidental and position-dependent: any namespace-scope declaration placed BEFORE the use works (static uint, struct), a second cbuffer does not, and moving it after main() re-breaks it -- four predictions written into the control shaders before running, all held. tbuffer identical. Compiler Explorer shows hlsl_clang_trunk behaving inversely to DXC, accepting the qualified name and rejecting the unqualified one, with its own control pane.",
+  "title": "Variable inside a namespace not found",
+  "triaged_at": "2026-08-11T00:05:58+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4514"
+}

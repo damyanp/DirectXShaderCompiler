@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:24:13+00:00
+# cmd: -T ps_6_0 godbolt-repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: godbolt-src (godbolt-repro.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 godbolt-repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+godbolt-repro.hlsl:18:18: error: Explicit template arguments on intrinsic Load are not supported
+  return buf.Load<float4>(idx1);
+                 ^
+
+

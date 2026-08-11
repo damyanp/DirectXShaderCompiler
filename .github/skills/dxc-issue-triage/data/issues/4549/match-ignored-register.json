@@ -1,0 +1,16 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "(?m)^;\\s*opaque_as\\s+\\S+.*(?<![\\w])t0(?![\\w])",
+      "note": "The DXIL resource-binding table places opaque_as at HLSL bind t0, although the source said register(u0). Text-free in the sense that matters: this is the compiler's own binding report, not a diagnostic, so no rewording of any error message can affect it. Also the anti-vacuity anchor -- the row exists only if the shader compiled and the resource survived to DXIL."
+    },
+    {
+      "kind": "not_regex",
+      "value": "(?m)^;\\s*opaque_as\\s+\\S+.*(?<![\\w])u0(?![\\w])",
+      "note": "...and it is not bound where the source asked. Guards against a build that somehow reports both."
+    }
+  ],
+  "note": "Second predicate for #4549, and the one that is immune to the wording hazard. Polarity: MATCH MEANS THE DEFECT IS PRESENT -- the 'u' register class written on a RaytracingAccelerationStructure is discarded and the resource is allocated as an SRV. Scored against control-as-u0-alone.hlsl, which declares the acceleration structure at register(u0) with nothing at t0, so no collision can occur and the binding is observable on its own. This is the behavioural half of the report (the reporter quotes Brian Favela speculating exactly this) and it is what makes the misleading message inevitable: by the time the register allocator runs, the u0 is gone. Root cause is hlsl::DiagnoseRegisterType (tools/clang/lib/Sema/SemaHLSL.cpp:11866-12012), whose switch has no AR_OBJECT_ACCELERATION_STRUCT case, plus InitFromUnusualAnnotations (tools/clang/lib/CodeGen/CGHLSLMS.cpp:3172-3186), which reads RegisterAssignment::RegisterNumber and uses RegisterType only as a present/absent flag."
+}

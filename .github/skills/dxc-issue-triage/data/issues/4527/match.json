@@ -1,0 +1,9 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex",
+      "value": "External declaration '[^']*kValues[^']*' is unused" },
+    { "kind": "contains", "value": "Validation failed." }
+  ],
+  "note": "The defect is that DXC lowers the member function's `static const float3 kValues[3]` to a *declaration* with no definition: at -fcgl it is a `linkonce_odr constant` in a COMDAT, and by the end of codegen it is an unresolved external of vector type. The DXIL is therefore invalid, and both clauses name that directly.  Clause 1 is anchored on the mangled symbol so it cannot be satisfied by an unrelated validation failure; it also survives wording drift -- v1.5.2010 appends 'Use /Zi for source location.' and v1.6.2104+ prefix a file:line:col, and the regex spans neither.  Clause 2 is the anti-vacuity anchor: 'Validation failed.' can only be printed by a build that parsed the shader, ran codegen and reached validation, so a release that predates mesh-shader syntax (v1.4.1907 answers `unknown type name 'indices'`) cannot satisfy this predicate and is correctly left to the invalid-probe classifier rather than scoring as a reproduction.  Deliberately NOT internal_failure: this is an ordinary diagnosed error. Measured exit is 0x80004005 (E_FAIL), which on Windows is what dxc returns for any diagnosed error, so an exit-code predicate here would invent a crash that does not happen.  Deliberately NOT a predicate on the container being unsigned: signing depends on dxil.dll being present, so 'digest is zero' would match everything in an environment without it. The unsigned container is measured separately, under -Vd, in manual-case-unsigned-container.txt.  Controls: control-member-const.hlsl, control-global-static.hlsl and control-global-scope-static.hlsl are the reporter's own three workarounds; each compiles cleanly and must score no-match."
+}

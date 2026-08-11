@@ -1,0 +1,22 @@
+# Compiler Explorer panes for #4614, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T vs_6_0 -E main
+# exit:     143  CRASH
+
+Killed - processing time exceeded
+Program terminated with signal: SIGKILL
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T vs_6_0 -E main
+# exit:     143  CRASH
+
+Killed - processing time exceeded
+Program terminated with signal: SIGKILL
+<Compilation failed>

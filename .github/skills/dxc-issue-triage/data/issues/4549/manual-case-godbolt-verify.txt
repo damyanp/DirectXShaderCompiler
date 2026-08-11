@@ -1,0 +1,26 @@
+# Compiler Explorer panes for #4549, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_5 -E main
+# exit:     5
+
+<source>:27:1: error: resource depth_buffer at register 0 overlaps with resource opaque_as at register 0, space 0
+Texture2D<float> depth_buffer : register(t0);
+^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_5 -E main
+# exit:     5
+
+<source>:27:1: error: resource depth_buffer at register 0 overlaps with resource opaque_as at register 0, space 0
+Texture2D<float> depth_buffer : register(t0);
+^
+
+<Compilation failed>

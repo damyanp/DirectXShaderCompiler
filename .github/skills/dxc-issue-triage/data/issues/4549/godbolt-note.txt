@@ -1,0 +1,11 @@
+This shader is invalid on purpose: RaytracingAccelerationStructure is an SRV-class
+resource, so register(u0) is wrong. The question is what DXC says about it.
+
+In the DXC panes, look at the error: it is a register collision that names
+depth_buffer, which is declared correctly at t0 and is not the mistake. Nothing in
+the output mentions the register class of the acceleration structure, so nothing
+points at the declaration that has to change.
+
+For contrast, change the acceleration structure's line to a different SRV-class
+resource with the same wrong register -- StructuredBuffer<float> opaque_as :
+register(u0) -- and DXC names the mistake on that declaration instead.

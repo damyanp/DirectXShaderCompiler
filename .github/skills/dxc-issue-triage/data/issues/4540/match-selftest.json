@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "addrspace\\(3\\)\\s+global\\s+i\\d+\\b" },
+    { "kind": "regex", "value": "define void @main\\(\\)" }
+  ],
+  "note": "Issue 4540 INSTRUMENT SELF-TEST, not a symptom predicate. Clauses 2 and 3 of match.json on their own: 'this build compiled the repro to a real DXIL module containing a groupshared (addrspace(3)) global of some integer type'. It must match on EVERY probed release, in both the broken shape (i1) and any hypothetical fixed shape (i32). A release where this scores no-match did not answer the question -- it is unmeasurable, not fixed -- which is the specific way a disassembler formatting change could otherwise masquerade as a behaviour change. Bisected linearly beside match.json so the reading exists per release on disk (out-rel-*--match-selftest.txt)."
+}

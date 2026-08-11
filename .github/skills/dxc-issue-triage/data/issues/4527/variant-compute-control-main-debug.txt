@@ -1,0 +1,121 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:32:03+00:00
+# cmd: -T cs_6_0 -E main -D CONTROL_NO_STATIC repro-cs.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: compute-control (repro-cs.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main -D CONTROL_NO_STATIC repro-cs.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: 8059cd26b9b7b797d34c54f29031e446
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; Out                                   UAV     f32         buf      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWBuffer<vector<float, 4> >" = type { <4 x float> }
+
+@"\01?kValues@?1??GetTestValue@MyClass@@QAA?AV?$vector@M$02@@I@Z@3QBV3@B.v.1dim" = internal constant [9 x float] [float 0.000000e+00, float 0.000000e+00, float 1.000000e+00, float 0.000000e+00, float 1.000000e+00, float 0.000000e+00, float 1.000000e+00, float 0.000000e+00, float 0.000000e+00], align 4
+
+define void @main() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %3 = urem i32 %2, 3
+  %4 = mul i32 %3, 3
+  %5 = add i32 0, %4
+  %6 = getelementptr [9 x float], [9 x float]* @"\01?kValues@?1??GetTestValue@MyClass@@QAA?AV?$vector@M$02@@I@Z@3QBV3@B.v.1dim", i32 0, i32 %5
+  %7 = load float, float* %6, align 4
+  %8 = mul i32 %3, 3
+  %9 = add i32 1, %8
+  %10 = getelementptr [9 x float], [9 x float]* @"\01?kValues@?1??GetTestValue@MyClass@@QAA?AV?$vector@M$02@@I@Z@3QBV3@B.v.1dim", i32 0, i32 %9
+  %11 = load float, float* %10, align 4
+  %12 = mul i32 %3, 3
+  %13 = add i32 2, %12
+  %14 = getelementptr [9 x float], [9 x float]* @"\01?kValues@?1??GetTestValue@MyClass@@QAA?AV?$vector@M$02@@I@Z@3QBV3@B.v.1dim", i32 0, i32 %13
+  %15 = load float, float* %14, align 4
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %1, i32 %2, i32 undef, float %7, float %11, float %15, float 1.000000e+00, i8 15)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!8}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 10}
+!3 = !{!"cs", i32 6, i32 0}
+!4 = !{null, !5, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.RWBuffer<vector<float, 4> >"* undef, !"", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !7}
+!7 = !{i32 0, i32 9}
+!8 = !{void ()* @main, !"main", null, !4, !9}
+!9 = !{i32 4, !10}
+!10 = !{i32 1, i32 1, i32 1}
+
+
+--- stderr ---
+

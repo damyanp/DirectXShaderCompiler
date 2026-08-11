@@ -1,0 +1,17 @@
+DXC issue 4629. This shader is valid HLSL. A class inherits both a base class
+and an interface, each contributing a field or a method, and the entry point
+touches the inherited field.
+
+What to look for: none of the DXC panes emit any DXIL. Each stops in the
+optimizer with an abnormal exit status and a single diagnostic line naming an
+internal LLVM type-conversion failure -- not a diagnostic about the source.
+Compare the "Output" / exit code of each pane; a working compile would show a
+target datalayout line and a define for the entry point.
+
+Compiler Explorer runs Release builds, so the assertions-enabled build's
+signature is not visible here. Locally, a Debug build of main stops earlier, at
+an assert in ScalarReplAggregatesHLSL.cpp (SROA_Helper::RewriteBitCast), and
+exits 0x80000003 with no mention of a conversion failure at all.
+
+Removing the interface from the inheritance list, and nothing else, compiles
+cleanly on every DXC build tested.

@@ -1,0 +1,42 @@
+db:    <cache>\triage.db
+query: SELECT tag, published_at, bisectable, prerelease, asset_name FROM releases ORDER BY published_at
+
+tag                            published    bisectable  prerelease  asset
+-------------------------------------------------------------------------
+v1.2.0-alpha                   2017-12-01   0           1           (none)
+v1.4.1907                      2019-09-02   1           0           dxc_2019-07-15.zip
+v1.5.2003                      2020-03-30   0           1           dxc_2020_03-25.zip
+v1.5.2010                      2020-10-23   1           0           dxc_2020_10-22.zip
+v1.6.2104                      2021-04-20   1           0           dxc_2021_04-20.zip
+v1.6.2106                      2021-07-08   1           0           dxc_2021_07_01.zip
+v1.6.2112                      2021-12-08   1           0           dxc_2021_12_08.zip
+v1.7.2207                      2022-07-14   1           0           dxc_2022_07_18.zip
+v1.7.2212                      2022-12-16   1           0           dxc_2022_12_16.zip
+v1.7.2212.1                    2023-03-02   1           0           dxc_2023_03_01.zip
+v1.8.2306-preview              2023-06-22   0           1           dxc_preview_2023_06_21.zip
+v1.7.2308                      2023-08-14   1           0           dxc_2023_08_14.zip
+v1.8.2403                      2024-03-11   1           0           dxc_2024_03_07.zip
+v1.8.2403.1                    2024-03-22   1           0           dxc_2024_03_22.zip
+v1.8.2403.2                    2024-04-02   1           0           dxc_2024_03_29.zip
+v1.8.2405                      2024-05-28   1           0           dxc_2024_05_24.zip
+v1.8.2405-mesh-nodes-preview   2024-07-18   0           1           dxc_mesh_nodes_preview_2024_07_17.zip
+v1.8.2407                      2024-07-31   1           0           dxc_2024_07_31.zip
+v1.8.2502                      2025-02-21   1           0           dxc_2025_02_20.zip
+v1.8.2505                      2025-05-30   1           0           dxc_2025_05_24.zip
+v1.8.2505.1                    2025-07-15   1           0           dxc_2025_07_14.zip
+v1.9.2602                      2026-02-26   1           0           dxc_2026_02_20.zip
+v1.10.2605.2                   2026-04-27   0           1           dxc_preview_2026_04_22.zip
+v1.10.2605.24                  2026-05-26   0           1           dxc_preview_2026_05_22.zip
+v1.9.2602.24                   2026-06-03   1           0           dxc_2026_05_27.zip
+v1.9.2607                      2026-07-29   1           0           dxc_2026_07_29.zip
+
+=== summary
+
+releases known:                26
+stable and bisectable:         20  v1.4.1907, v1.5.2010, v1.6.2104, v1.6.2106, v1.6.2112, v1.7.2207, v1.7.2212, v1.7.2212.1, v1.7.2308, v1.8.2403, v1.8.2403.1, v1.8.2403.2, v1.8.2405, v1.8.2407, v1.8.2502, v1.8.2505, v1.8.2505.1, v1.9.2602, v1.9.2602.24, v1.9.2607
+prerelease, skipped by policy: 5  v1.5.2003, v1.8.2306-preview, v1.8.2405-mesh-nodes-preview, v1.10.2605.2, v1.10.2605.24
+no usable dxc asset:           1  v1.2.0-alpha
+
+the #4520 history is measured over the stable set above;
+what each of those builds actually did is in
+manual-case-release-history.txt and out-<tag>.txt.

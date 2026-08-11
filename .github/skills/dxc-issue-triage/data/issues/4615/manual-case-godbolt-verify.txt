@@ -1,0 +1,582 @@
+# Compiler Explorer panes for #4615, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E main -Zi -Qembed_debug
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 1c733015dcea9e46ce8f12592516e473.pdb
+; shader hash: 1c733015dcea9e46ce8f12592516e473
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; Out                                   UAV     f32         buf      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWBuffer<float>" = type { float }
+
+define void @main() {
+  %Out_UAV_buf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !43 ; line:33 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadId.i32(i32 93, i32 0), !dbg !44 ; line:30 col:17  ; ThreadId(component)
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !45, metadata !46), !dbg !44 ; var:"tid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  %2 = uitofp i32 %1 to float, !dbg !47 ; line:31 col:18
+  %3 = fmul fast float %2, 6.000000e+00, !dbg !48 ; line:33 col:19
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %Out_UAV_buf, i32 0, i32 undef, float %3, float %3, float %3, float %3, i8 15), !dbg !49 ; line:33 col:10  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void, !dbg !50 ; line:34 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!24, !25}
+!llvm.ident = !{!26}
+!dx.source.contents = !{!27}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!28}
+!dx.source.args = !{!29}
+!dx.version = !{!30}
+!dx.valver = !{!31}
+!dx.shaderModel = !{!32}
+!dx.resources = !{!33}
+!dx.typeAnnotations = !{!37}
+!dx.entryPoints = !{!40}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !18)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 30, type: !5, isLocal: false, isDefinition: true, scopeLine: 30, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, size: 96, align: 32, elements: !9, templateParams: !14)
+!9 = !{!10, !12, !13}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !{!15, !16}
+!15 = !DITemplateTypeParameter(name: "element", type: !11)
+!16 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !{!19}
+!19 = !DIGlobalVariable(name: "Out", linkageName: "\01?Out@@3V?$RWBuffer@M@@A", scope: !0, file: !1, line: 27, type: !20, isLocal: false, isDefinition: true)
+!20 = !DICompositeType(tag: DW_TAG_class_type, name: "RWBuffer<float>", file: !1, line: 27, size: 32, align: 32, elements: !2, templateParams: !21)
+!21 = !{!22}
+!22 = !DITemplateTypeParameter(name: "element", type: !23)
+!23 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!24 = !{i32 2, !"Dwarf Version", i32 4}
+!25 = !{i32 2, !"Debug Info Version", i32 3}
+!26 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!27 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Line numbers in these panes are shifted by this banner, which Compiler Explorer\0A// prepends to the source before compiling, so compare positions rather than the\0A// numbers quoted elsewhere.\0A//\0A// The source has one statement before a #line directive and one after it. This is\0A// a compute restating of the pixel-shader repro that was measured locally; Clang's\0A// DXIL backend cannot lower a shader writing SV_Target, and the two DXC panes are\0A// the control that the restating still shows the behaviour under test.\0A//\0A// Panes 1 and 2 (dxcompiler, oldest available and trunk): look at the !DILocation\0A// nodes near the end. Both statements are described by physical positions in this\0A// file, and every !DIFile names this file. The name the directive gives appears\0A// only inside !dx.source.contents, which is the compiler echoing the source back,\0A// not a debug location.\0A//\0A// Pane 3 is the same trunk compiler emitting SPIR-V from the same source, and pane\0A// 4 is the Clang-based HLSL front end emitting DXIL. Both do the opposite: the\0A// statement after the directive is attributed to the file the directive names.\0A//\0A// Compiler Explorer's oldest DXC is 1.6.2112, which is already past the change\0A// this issue is about, so no pane here shows dxcompiler's earlier behaviour.\0A//==========================================================================//\0A\0A// Issue 4615: compute restating of repro.hlsl, for compilers whose DXIL backend\0A// cannot lower a pixel shader writing SV_Target. Same shape as repro.hlsl: one\0ARWBuffer<float> Out : register(u0);\0A// statement before the #line directive and one after it.\0A[numthreads(1, 1, 1)]\0Avoid main(uint3 tid : SV_DispatchThreadID) {\0A  float before = tid.x * 3.0f;\0A#line 400 \22virtual-source.hlsl\22\0A  Out[0] = before * 2.0f;\0A}\0A"}
+!28 = !{!"/app/example.hlsl"}
+!29 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug", !"-Zi", !"-Qembed_debug"}
+!30 = !{i32 1, i32 0}
+!31 = !{i32 1, i32 6}
+!32 = !{!"cs", i32 6, i32 0}
+!33 = !{null, !34, null, null}
+!34 = !{!35}
+!35 = !{i32 0, %"class.RWBuffer<float>"* undef, !"Out", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !36}
+!36 = !{i32 0, i32 9}
+!37 = !{i32 1, void ()* @main, !38}
+!38 = !{!39}
+!39 = !{i32 0, !2, !2}
+!40 = !{void ()* @main, !"main", null, !33, !41}
+!41 = !{i32 4, !42}
+!42 = !{i32 1, i32 1, i32 1}
+!43 = !DILocation(line: 33, column: 3, scope: !4)
+!44 = !DILocation(line: 30, column: 17, scope: !4)
+!45 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "tid", arg: 1, scope: !4, file: !1, line: 30, type: !7)
+!46 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!47 = !DILocation(line: 31, column: 18, scope: !4)
+!48 = !DILocation(line: 33, column: 19, scope: !4)
+!49 = !DILocation(line: 33, column: 10, scope: !4)
+!50 = !DILocation(line: 34, column: 1, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main -Zi -Qembed_debug
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: eda64612c4433b1ed8da4a4ee58fa37e.pdb
+; shader hash: eda64612c4433b1ed8da4a4ee58fa37e
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; Out                                   UAV     f32         buf      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWBuffer<float>" = type { float }
+
+define void @main() {
+  %Out_UAV_buf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !43 ; line:33 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadId.i32(i32 93, i32 0), !dbg !44 ; line:31 col:18  ; ThreadId(component)
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !45, metadata !46), !dbg !47 ; var:"tid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  %2 = uitofp i32 %1 to float, !dbg !44 ; line:31 col:18
+  %3 = fmul fast float %2, 6.000000e+00, !dbg !48 ; line:33 col:19
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %Out_UAV_buf, i32 0, i32 undef, float %3, float %3, float %3, float %3, i8 15), !dbg !49 ; line:33 col:10  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void, !dbg !50 ; line:34 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!24, !25}
+!llvm.ident = !{!26}
+!dx.source.contents = !{!27}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!28}
+!dx.source.args = !{!29}
+!dx.version = !{!30}
+!dx.valver = !{!31}
+!dx.shaderModel = !{!32}
+!dx.resources = !{!33}
+!dx.typeAnnotations = !{!37}
+!dx.entryPoints = !{!40}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !18)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 30, type: !5, isLocal: false, isDefinition: true, scopeLine: 30, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, size: 96, align: 32, elements: !9, templateParams: !14)
+!9 = !{!10, !12, !13}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !{!15, !16}
+!15 = !DITemplateTypeParameter(name: "element", type: !11)
+!16 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !{!19}
+!19 = !DIGlobalVariable(name: "Out", linkageName: "\01?Out@@3V?$RWBuffer@M@@A", scope: !0, file: !1, line: 27, type: !20, isLocal: false, isDefinition: true)
+!20 = !DICompositeType(tag: DW_TAG_class_type, name: "RWBuffer<float>", file: !1, line: 27, size: 32, align: 32, elements: !2, templateParams: !21)
+!21 = !{!22}
+!22 = !DITemplateTypeParameter(name: "element", type: !23)
+!23 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!24 = !{i32 2, !"Dwarf Version", i32 4}
+!25 = !{i32 2, !"Debug Info Version", i32 3}
+!26 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!27 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Line numbers in these panes are shifted by this banner, which Compiler Explorer\0A// prepends to the source before compiling, so compare positions rather than the\0A// numbers quoted elsewhere.\0A//\0A// The source has one statement before a #line directive and one after it. This is\0A// a compute restating of the pixel-shader repro that was measured locally; Clang's\0A// DXIL backend cannot lower a shader writing SV_Target, and the two DXC panes are\0A// the control that the restating still shows the behaviour under test.\0A//\0A// Panes 1 and 2 (dxcompiler, oldest available and trunk): look at the !DILocation\0A// nodes near the end. Both statements are described by physical positions in this\0A// file, and every !DIFile names this file. The name the directive gives appears\0A// only inside !dx.source.contents, which is the compiler echoing the source back,\0A// not a debug location.\0A//\0A// Pane 3 is the same trunk compiler emitting SPIR-V from the same source, and pane\0A// 4 is the Clang-based HLSL front end emitting DXIL. Both do the opposite: the\0A// statement after the directive is attributed to the file the directive names.\0A//\0A// Compiler Explorer's oldest DXC is 1.6.2112, which is already past the change\0A// this issue is about, so no pane here shows dxcompiler's earlier behaviour.\0A//==========================================================================//\0A\0A// Issue 4615: compute restating of repro.hlsl, for compilers whose DXIL backend\0A// cannot lower a pixel shader writing SV_Target. Same shape as repro.hlsl: one\0ARWBuffer<float> Out : register(u0);\0A// statement before the #line directive and one after it.\0A[numthreads(1, 1, 1)]\0Avoid main(uint3 tid : SV_DispatchThreadID) {\0A  float before = tid.x * 3.0f;\0A#line 400 \22virtual-source.hlsl\22\0A  Out[0] = before * 2.0f;\0A}\0A"}
+!28 = !{!"/app/example.hlsl"}
+!29 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug", !"-Zi", !"-Qembed_debug"}
+!30 = !{i32 1, i32 0}
+!31 = !{i32 1, i32 10}
+!32 = !{!"cs", i32 6, i32 0}
+!33 = !{null, !34, null, null}
+!34 = !{!35}
+!35 = !{i32 0, %"class.RWBuffer<float>"* undef, !"Out", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !36}
+!36 = !{i32 0, i32 9}
+!37 = !{i32 1, void ()* @main, !38}
+!38 = !{!39}
+!39 = !{i32 0, !2, !2}
+!40 = !{void ()* @main, !"main", null, !33, !41}
+!41 = !{i32 4, !42}
+!42 = !{i32 1, i32 1, i32 1}
+!43 = !DILocation(line: 33, column: 3, scope: !4)
+!44 = !DILocation(line: 31, column: 18, scope: !4)
+!45 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "tid", arg: 1, scope: !4, file: !1, line: 30, type: !7)
+!46 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!47 = !DILocation(line: 30, column: 17, scope: !4)
+!48 = !DILocation(line: 33, column: 19, scope: !4)
+!49 = !DILocation(line: 33, column: 10, scope: !4)
+!50 = !DILocation(line: 34, column: 1, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main -spirv -fspv-debug=line
+# exit:     0
+
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 22
+; Schema: 0
+               OpCapability Shader
+               OpCapability SampledBuffer
+               OpCapability ImageBuffer
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %gl_GlobalInvocationID
+               OpExecutionMode %main LocalSize 1 1 1
+          %3 = OpString "/app/example.hlsl"
+          %4 = OpString "virtual-source.hlsl"
+               OpSource HLSL 600 %3 "//==========================================================================//
+// Line numbers in these panes are shifted by this banner, which Compiler Explorer
+// prepends to the source before compiling, so compare positions rather than the
+// numbers quoted elsewhere.
+//
+// The source has one statement before a #line directive and one after it. This is
+// a compute restating of the pixel-shader repro that was measured locally; Clang's
+// DXIL backend cannot lower a shader writing SV_Target, and the two DXC panes are
+// the control that the restating still shows the behaviour under test.
+//
+// Panes 1 and 2 (dxcompiler, oldest available and trunk): look at the !DILocation
+// nodes near the end. Both statements are described by physical positions in this
+// file, and every !DIFile names this file. The name the directive gives appears
+// only inside !dx.source.contents, which is the compiler echoing the source back,
+// not a debug location.
+//
+// Pane 3 is the same trunk compiler emitting SPIR-V from the same source, and pane
+// 4 is the Clang-based HLSL front end emitting DXIL. Both do the opposite: the
+// statement after the directive is attributed to the file the directive names.
+//
+// Compiler Explorer's oldest DXC is 1.6.2112, which is already past the change
+// this issue is about, so no pane here shows dxcompiler's earlier behaviour.
+//==========================================================================//
+
+// Issue 4615: compute restating of repro.hlsl, for compilers whose DXIL backend
+// cannot lower a pixel shader writing SV_Target. Same shape as repro.hlsl: one
+RWBuffer<float> Out : register(u0);
+// statement before the #line directive and one after it.
+[numthreads(1, 1, 1)]
+void main(uint3 tid : SV_DispatchThreadID) {
+  float before = tid.x * 3.0f;
+#line 400 \"virtual-source.hlsl\"
+  Out[0] = before * 2.0f;
+}
+"
+               OpSource HLSL 600 %4
+               OpName %type_buffer_image "type.buffer.image"
+               OpName %Out "Out"
+               OpName %main "main"
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %Out DescriptorSet 0
+               OpDecorate %Out Binding 0
+      %float = OpTypeFloat 32
+       %uint = OpTypeInt 32 0
+     %uint_0 = OpConstant %uint 0
+%type_buffer_image = OpTypeImage %float Buffer 2 0 0 2 R32f
+%_ptr_UniformConstant_type_buffer_image = OpTypePointer UniformConstant %type_buffer_image
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+       %void = OpTypeVoid
+         %14 = OpTypeFunction %void
+        %Out = OpVariable %_ptr_UniformConstant_type_buffer_image UniformConstant
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+    %float_6 = OpConstant %float 6
+               OpLine %3 30 1
+       %main = OpFunction %void None %14
+               OpNoLine
+         %16 = OpLabel
+               OpLine %3 30 1
+         %17 = OpLoad %v3uint %gl_GlobalInvocationID
+               OpLine %3 31 18
+         %18 = OpCompositeExtract %uint %17 0
+         %19 = OpConvertUToF %float %18
+               OpLine %4 400 18
+         %20 = OpFMul %float %19 %float_6
+               OpLine %4 400 2
+         %21 = OpLoad %type_buffer_image %Out
+               OpImageWrite %21 %uint_0 %20 None
+               OpLine %4 401 1
+               OpReturn
+               OpFunctionEnd
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main -Zi
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:31:18: [0m[0;1;35mwarning: [0m[1mimplicit conversion from 'uint' (aka 'unsigned int') to 'float' may lose precision [-Wimplicit-int-float-conversion][0m
+   31 |   [0;34mfloat[0m before = tid.x * [0;32m3.0f[0m;[0m
+      | [0;1;32m                 ^~~~~ ~
+[0m1 warning generated.
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+; Out                                   UAV     f32         buf      U0             u0         1
+;
+; ModuleID = '/app/example.hlsl'
+source_filename = "/app/example.hlsl"
+target datalayout = "e-m:e-ve-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxilv1.0-unknown-shadermodel6.0-compute"
+
+%"RWBuffer<float>" = type { float }
+%dx.types.Handle = type { ptr }
+
+@Out = external constant %"RWBuffer<float>"
+
+; Function Attrs: convergent noinline nounwind memory(write, inaccessiblemem: none, target_mem: none)
+define void @main() local_unnamed_addr #0 {
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !74, metadata !DIExpression()), !dbg !82
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !74, metadata !DIExpression()), !dbg !82
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !77, metadata !DIExpression()), !dbg !82
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !77, metadata !DIExpression()), !dbg !82
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 1, i64 0, metadata !78, metadata !DIExpression()), !dbg !82
+  tail call void @llvm.dbg.value(metadata i32 1, metadata !78, metadata !DIExpression()), !dbg !82
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !79, metadata !DIExpression()), !dbg !82
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !79, metadata !DIExpression()), !dbg !82
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata ptr @.str, i64 0, metadata !80, metadata !DIExpression()), !dbg !82
+  tail call void @llvm.dbg.value(metadata ptr @.str, metadata !80, metadata !DIExpression()), !dbg !82
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !82
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 0)
+  %3 = uitofp reassoc nnan ninf nsz arcp afn i32 %2 to float, !dbg !90
+  %4 = fmul reassoc nnan ninf nsz arcp afn float %3, 6.000000e+00, !dbg !104
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !107, metadata !DIExpression()), !dbg !111
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !107, metadata !DIExpression()), !dbg !111
+  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %1, i32 0, i32 undef, float %4, float %4, float %4, float %4, i8 15), !dbg !113
+  ret void
+}
+
+; Function Attrs: nounwind memory(none)
+declare i32 @dx.op.threadId.i32(i32, i32) #1
+
+; Function Attrs: nounwind memory(read)
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #3
+
+; Function Attrs: nounwind memory(none)
+declare void @llvm.dbg.value(metadata, metadata, metadata) #1
+
+attributes #0 = { convergent noinline nounwind memory(write, inaccessiblemem: none, target_mem: none) }
+attributes #1 = { nounwind memory(none) }
+attributes #2 = { nounwind memory(read) }
+attributes #3 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!dx.valver = !{!55}
+!dx.source.contents = !{!56}
+!dx.source.defines = !{!57}
+!dx.source.mainFileName = !{!58}
+!dx.source.args = !{!59}
+!llvm.ident = !{!60}
+!dx.shaderModel = !{!61}
+!dx.version = !{!62}
+!dx.resources = !{!63}
+!dx.entryPoints = !{!67}
+!llvm.module.flags = !{!70, !71, !72, !73}
+
+; DXIL: !0: additional data: !114
+!0 = distinct !DICompileUnit(language: DW_LANG_HLSL, file: !1, producer: "clang version 24.0.0git (https://github.com/llvm/llvm-project.git 3f6b3a3385561c0f5a76a8e4048cb5420966e1bb)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, retainedTypes: !2, globals: !52, splitDebugInlining: false, nameTableKind: None)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{!3, !5, !7}
+!3 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !4, size: 32)
+!4 = !DICompositeType(tag: DW_TAG_structure_type, name: "__hlsl_resource_t", file: !1, flags: DIFlagFwdDecl)
+!5 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !6, size: 32)
+!6 = !DIBasicType(name: "float", size: 32, encoding: DW_ATE_float)
+!7 = distinct !DICompositeType(tag: DW_TAG_class_type, name: "RWBuffer<float>", scope: !8, size: 32, flags: DIFlagTypePassByReference | DIFlagNonTrivial, elements: !9, templateParams: !50)
+!8 = !DINamespace(name: "hlsl", scope: null)
+!9 = !{!10, !12, !16, !21, !25, !33, !34, !39, !42, !47}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "__handle", scope: !7, file: !11, line: 401, baseType: !3, size: 32)
+!11 = !DIFile(filename: "example.hlsl", directory: "/app")
+!12 = !DISubprogram(name: "RWBuffer", linkageName: "_ZN4hlsl8RWBufferIfEC4Ev", scope: !7, file: !11, type: !13, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!13 = !DISubroutineType(types: !14)
+!14 = !{null, !15}
+!15 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !7, size: 32, flags: DIFlagArtificial | DIFlagObjectPointer)
+!16 = !DISubprogram(name: "RWBuffer", linkageName: "_ZN4hlsl8RWBufferIfEC4ERKS1_", scope: !7, file: !11, type: !17, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!17 = !DISubroutineType(types: !18)
+!18 = !{null, !15, !19}
+!19 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !20, size: 32)
+!20 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !7)
+!21 = !DISubprogram(name: "operator=", linkageName: "_ZN4hlsl8RWBufferIfEaSERKS1_", scope: !7, file: !11, type: !22, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!22 = !DISubroutineType(types: !23)
+!23 = !{!24, !15, !19}
+!24 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !7, size: 32)
+!25 = !DISubprogram(name: "__createFromBinding", linkageName: "_ZN4hlsl8RWBufferIfE19__createFromBindingEjjijPKc", scope: !7, file: !11, type: !26, flags: DIFlagPublic | DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!26 = !DISubroutineType(types: !27)
+!27 = !{!7, !28, !28, !29, !28, !30}
+!28 = !DIBasicType(name: "unsigned int", size: 32, encoding: DW_ATE_unsigned)
+!29 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
+!30 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !31, size: 32)
+!31 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !32)
+!32 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_signed_char)
+!33 = !DISubprogram(name: "__createFromImplicitBinding", linkageName: "_ZN4hlsl8RWBufferIfE27__createFromImplicitBindingEjjijPKc", scope: !7, file: !11, type: !26, flags: DIFlagPublic | DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!34 = !DISubprogram(name: "operator[]", linkageName: "_ZNK4hlsl8RWBufferIfEixEj", scope: !7, file: !11, type: !35, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!35 = !DISubroutineType(types: !36)
+!36 = !{!37, !38, !28}
+!37 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !6, size: 32)
+!38 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !20, size: 32, flags: DIFlagArtificial | DIFlagObjectPointer)
+!39 = !DISubprogram(name: "Load", linkageName: "_ZNK4hlsl8RWBufferIfE4LoadEj", scope: !7, file: !11, type: !40, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!40 = !DISubroutineType(types: !41)
+!41 = !{!6, !38, !28}
+!42 = !DISubprogram(name: "Load", linkageName: "_ZNK4hlsl8RWBufferIfE4LoadEjRj", scope: !7, file: !11, type: !43, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!43 = !DISubroutineType(types: !44)
+!44 = !{!6, !38, !28, !45}
+!45 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !46)
+!46 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !28, size: 32)
+!47 = !DISubprogram(name: "GetDimensions", linkageName: "_ZN4hlsl8RWBufferIfE13GetDimensionsERj", scope: !7, file: !11, type: !48, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!48 = !DISubroutineType(types: !49)
+!49 = !{null, !15, !45}
+!50 = !{!51}
+!51 = !DITemplateTypeParameter(name: "element_type", type: !6)
+!52 = !{!53}
+; DXIL: !53: to be replaced by: !54
+!53 = !DIGlobalVariableExpression(var: !54, expr: !DIExpression())
+!54 = distinct !DIGlobalVariable(name: "Out", linkageName: "_ZL3Out", scope: !0, file: !11, line: 27, type: !7, isLocal: true, isDefinition: true)
+!55 = !{i32 1, i32 8}
+!56 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Line numbers in these panes are shifted by this banner, which Compiler Explorer\0A// prepends to the source before compiling, so compare positions rather than the\0A// numbers quoted elsewhere.\0A//\0A// The source has one statement before a #line directive and one after it. This is\0A// a compute restating of the pixel-shader repro that was measured locally; Clang's\0A// DXIL backend cannot lower a shader writing SV_Target, and the two DXC panes are\0A// the control that the restating still shows the behaviour under test.\0A//\0A// Panes 1 and 2 (dxcompiler, oldest available and trunk): look at the !DILocation\0A// nodes near the end. Both statements are described by physical positions in this\0A// file, and every !DIFile names this file. The name the directive gives appears\0A// only inside !dx.source.contents, which is the compiler echoing the source back,\0A// not a debug location.\0A//\0A// Pane 3 is the same trunk compiler emitting SPIR-V from the same source, and pane\0A// 4 is the Clang-based HLSL front end emitting DXIL. Both do the opposite: the\0A// statement after the directive is attributed to the file the directive names.\0A//\0A// Compiler Explorer's oldest DXC is 1.6.2112, which is already past the change\0A// this issue is about, so no pane here shows dxcompiler's earlier behaviour.\0A//==========================================================================//\0A\0A// Issue 4615: compute restating of repro.hlsl, for compilers whose DXIL backend\0A// cannot lower a pixel shader writing SV_Target. Same shape as repro.hlsl: one\0ARWBuffer<float> Out : register(u0);\0A// statement before the #line directive and one after it.\0A[numthreads(1, 1, 1)]\0Avoid main(uint3 tid : SV_DispatchThreadID) {\0A  float before = tid.x * 3.0f;\0A#line 400 \22virtual-source.hlsl\22\0A  Out[0] = before * 2.0f;\0A}\0A"}
+!57 = !{}
+!58 = !{!"example.hlsl"}
+!59 = !{!"--driver-mode=dxc", !"-g", !"-Qembed_debug", !"-Fc", !"/app/output.s", !"-fcolor-diagnostics", !"-gen-reproducer=off", !"-T", !"cs_6_0", !"-hlsl-entry", !"main", !"-g", !"/app/example.hlsl", !"-S", !"-O3"}
+!60 = !{!"clang version 24.0.0git (https://github.com/llvm/llvm-project.git 3f6b3a3385561c0f5a76a8e4048cb5420966e1bb)"}
+!61 = !{!"cs", i32 6, i32 0}
+!62 = !{i32 1, i32 0}
+!63 = !{null, !64, null, null}
+!64 = !{!65}
+!65 = !{i32 0, ptr @Out, !"Out", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !66}
+!66 = !{i32 0, i32 9}
+!67 = !{ptr @main, !"main", null, !63, !68}
+!68 = !{i32 4, !69}
+!69 = !{i32 1, i32 1, i32 1}
+!70 = !{i32 2, !"Dwarf Version", i32 4}
+!71 = !{i32 2, !"Debug Info Version", i32 3}
+!72 = !{i32 2, !"frame-pointer", i32 2}
+!73 = !{i32 2, !"debug-info-assignment-tracking", i1 true}
+!74 = !DILocalVariable(name: "registerNo", arg: 1, scope: !75, file: !11, type: !28)
+; DXIL: !75: to be replaced by: !115
+!75 = distinct !DISubprogram(name: "__createFromBinding", linkageName: "_ZN4hlsl8RWBufferIfE19__createFromBindingEjjijPKc", scope: !7, file: !11, line: 401, type: !26, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !25, retainedNodes: !76)
+!76 = !{!74, !77, !78, !79, !80, !81}
+!77 = !DILocalVariable(name: "spaceNo", arg: 2, scope: !75, file: !11, type: !28)
+!78 = !DILocalVariable(name: "range", arg: 3, scope: !75, file: !11, type: !29)
+!79 = !DILocalVariable(name: "index", arg: 4, scope: !75, file: !11, type: !28)
+!80 = !DILocalVariable(name: "name", arg: 5, scope: !75, file: !11, type: !30)
+!81 = !DILocalVariable(name: "tmp", scope: !75, file: !11, type: !7)
+!82 = !DILocation(line: 0, scope: !75, inlinedAt: !83)
+!83 = distinct !DILocation(line: 0, scope: !84, inlinedAt: !87)
+; DXIL: !84: to be replaced by: !116
+!84 = distinct !DISubprogram(name: "__cxx_global_var_init", scope: !11, file: !11, type: !85, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!85 = !DISubroutineType(types: !86)
+!86 = !{null}
+!87 = distinct !DILocation(line: 0, scope: !88)
+; DXIL: !88: to be replaced by: !117
+!88 = distinct !DISubprogram(linkageName: "_GLOBAL__sub_I_example.hlsl", scope: !11, file: !11, type: !89, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!89 = !DISubroutineType(types: !57)
+!90 = !DILocation(line: 31, column: 18, scope: !91)
+; DXIL: !91: to be replaced by: !118
+!91 = distinct !DISubprogram(name: "main", linkageName: "_Z4mainDv3_j", scope: !11, file: !11, line: 30, type: !92, scopeLine: 30, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !101)
+!92 = !DISubroutineType(types: !93)
+!93 = !{null, !94}
+!94 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", scope: !8, file: !95, line: 70, baseType: !96)
+!95 = !DIFile(filename: "/cefs/f8/f8b118a0883540b862d99540_clang-trunk-20260810/lib/clang/24/include/hlsl/hlsl_basic_types.h", directory: "")
+!96 = !DIDerivedType(tag: DW_TAG_typedef, name: "vector<unsigned int, 3>", scope: !8, file: !11, baseType: !97)
+!97 = !DICompositeType(tag: DW_TAG_array_type, baseType: !98, size: 96, flags: DIFlagVector, elements: !99)
+!98 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", scope: !8, file: !95, line: 35, baseType: !28)
+!99 = !{!100}
+!100 = !DISubrange(count: 3)
+!101 = !{!102, !103}
+!102 = !DILocalVariable(name: "tid", arg: 1, scope: !91, file: !11, line: 30, type: !94)
+!103 = !DILocalVariable(name: "before", scope: !91, file: !11, line: 31, type: !6)
+!104 = !DILocation(line: 400, column: 19, scope: !105)
+!105 = !DILexicalBlockFile(scope: !91, file: !106, discriminator: 0)
+!106 = !DIFile(filename: "virtual-source.hlsl", directory: "/app")
+!107 = !DILocalVariable(name: "Index", arg: 2, scope: !108, file: !11, type: !28)
+; DXIL: !108: to be replaced by: !119
+!108 = distinct !DISubprogram(name: "operator[]", linkageName: "_ZNK4hlsl8RWBufferIfEixEj", scope: !7, file: !11, line: 401, type: !35, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !34, retainedNodes: !109)
+!109 = !{!110, !107}
+!110 = !DILocalVariable(name: "this", arg: 1, scope: !108, type: !19, flags: DIFlagArtificial | DIFlagObjectPointer)
+!111 = !DILocation(line: 0, scope: !108, inlinedAt: !112)
+!112 = distinct !DILocation(line: 400, column: 3, scope: !105)
+!113 = !DILocation(line: 400, column: 10, scope: !105)
+!114 = !{!75, !84, !88, !91, !108}
+!115 = !DISubprogram(name: "__createFromBinding", linkageName: "_ZN4hlsl8RWBufferIfE19__createFromBindingEjjijPKc", scope: !7, file: !11, line: 401, type: !26, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !25, retainedNodes: !76)
+!116 = !DISubprogram(name: "__cxx_global_var_init", scope: !11, file: !11, type: !85, flags: DIFlagArtificial, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!117 = !DISubprogram(linkageName: "_GLOBAL__sub_I_example.hlsl", scope: !11, file: !11, type: !89, flags: DIFlagArtificial, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!118 = !DISubprogram(name: "main", linkageName: "_Z4mainDv3_j", scope: !11, file: !11, line: 30, type: !92, scopeLine: 30, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !101)
+!119 = !DISubprogram(name: "operator[]", linkageName: "_ZNK4hlsl8RWBufferIfEixEj", scope: !7, file: !11, line: 401, type: !35, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !34, retainedNodes: !109)

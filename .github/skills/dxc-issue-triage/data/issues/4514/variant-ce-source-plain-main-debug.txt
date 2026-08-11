@@ -1,0 +1,26 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:18:08+00:00
+# cmd: -T cs_6_0 -E main godbolt-source.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: ce-source-plain (godbolt-source.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main godbolt-source.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+godbolt-source.hlsl:19:9: error: no member named 'testVariable' in namespace 'testNamespace'; did you mean simply 'testVariable'?
+    if( testNamespace::testVariable * tid.x > 0 )
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+        testVariable
+godbolt-source.hlsl:5:14: note: 'testVariable' declared here
+        uint testVariable;
+             ^
+
+

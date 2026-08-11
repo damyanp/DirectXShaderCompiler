@@ -1,0 +1,138 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-10T21:06:36+00:00
+# cmd: -T cs_6_0 -E main repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; TileArgsBufferOut                     UAV     u32         buf      U0             u0     1
+; TilesOut                              UAV     u32         buf      U1             u1     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%"class.RWBuffer<unsigned int>" = type { i32 }
+%dx.types.Handle = type { i8* }
+
+@"\01?TileArgsBufferOut@@3V?$RWBuffer@I@@A" = external constant %"class.RWBuffer<unsigned int>", align 4
+@"\01?TilesOut@@3V?$RWBuffer@I@@A" = external constant %"class.RWBuffer<unsigned int>", align 4
+@storeTile = internal unnamed_addr addrspace(3) global i1 false
+
+define void @main() {
+  %TilesOut_UAV_buf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 1, i32 1, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %TileArgsBufferOut_UAV_buf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadIdInGroup.i32(i32 95, i32 0)  ; ThreadIdInGroup(component)
+  %2 = call i32 @dx.op.threadIdInGroup.i32(i32 95, i32 1)  ; ThreadIdInGroup(component)
+  %3 = call i32 @dx.op.groupId.i32(i32 94, i32 0)  ; GroupId(component)
+  %4 = call i32 @dx.op.groupId.i32(i32 94, i32 1)  ; GroupId(component)
+  %5 = or i32 %2, %1
+  %6 = icmp eq i32 %5, 0
+  br i1 %6, label %7, label %8
+
+; <label>:7                                       ; preds = %0
+  store i1 false, i1 addrspace(3)* @storeTile, align 4
+  br label %8
+
+; <label>:8                                       ; preds = %7, %0
+  call void @dx.op.barrier(i32 80, i32 9)  ; Barrier(barrierMode)
+  store i1 true, i1 addrspace(3)* @storeTile, align 4
+  call void @dx.op.barrier(i32 80, i32 9)  ; Barrier(barrierMode)
+  %.b = load i1, i1 addrspace(3)* @storeTile, align 4
+  %9 = and i1 %6, %.b
+  br i1 %9, label %10, label %13
+
+; <label>:10                                      ; preds = %8
+  %11 = shl i32 %4, 10
+  %12 = add i32 %11, %3
+  %AtomicAdd = call i32 @dx.op.atomicBinOp.i32(i32 78, %dx.types.Handle %TileArgsBufferOut_UAV_buf, i32 0, i32 0, i32 undef, i32 undef, i32 1)  ; AtomicBinOp(handle,atomicOp,offset0,offset1,offset2,newValue)
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %TilesOut_UAV_buf, i32 %AtomicAdd, i32 undef, i32 %12, i32 %12, i32 %12, i32 %12, i8 15)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  br label %13
+
+; <label>:13                                      ; preds = %10, %8
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadIdInGroup.i32(i32, i32) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.groupId.i32(i32, i32) #0
+
+; Function Attrs: noduplicate nounwind
+declare void @dx.op.barrier(i32, i32) #1
+
+; Function Attrs: nounwind
+declare i32 @dx.op.atomicBinOp.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #3
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { noduplicate nounwind }
+attributes #2 = { nounwind }
+attributes #3 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!9, !12}
+!dx.entryPoints = !{!16}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 4}
+!3 = !{!"cs", i32 6, i32 0}
+!4 = !{null, !5, null, null}
+!5 = !{!6, !8}
+!6 = !{i32 0, %"class.RWBuffer<unsigned int>"* undef, !"TileArgsBufferOut", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !7}
+!7 = !{i32 0, i32 5}
+!8 = !{i32 1, %"class.RWBuffer<unsigned int>"* undef, !"TilesOut", i32 0, i32 1, i32 1, i32 10, i1 false, i1 false, i1 false, !7}
+!9 = !{i32 0, %"class.RWBuffer<unsigned int>" undef, !10}
+!10 = !{i32 4, !11}
+!11 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 5}
+!12 = !{i32 1, void ()* @main, !13}
+!13 = !{!14}
+!14 = !{i32 0, !15, !15}
+!15 = !{}
+!16 = !{void ()* @main, !"main", null, !4, !17}
+!17 = !{i32 4, !18}
+!18 = !{i32 8, i32 8, i32 1}
+
+
+--- stderr ---
+

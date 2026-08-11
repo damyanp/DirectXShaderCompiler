@@ -1,0 +1,175 @@
+compiler: <repo>/build/Debug/bin/dxc.exe
+version:  dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+profile:  -T ps_6_6 -E main
+
+
+=== Sample: heap subscript passed inline
+    $ dxc -T ps_6_6 -E main Sample-inline.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     return myTexture.Sample(SamplerDescriptorHeap[sampIdx], coord);
+      | }
+      exit=2147500037  Sample-inline.hlsl:4:22: error: no matching member function for call to 'Sample'
+
+=== Sample: hoisted into a local first (control)
+    $ dxc -T ps_6_6 -E main Sample-hoisted.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     SamplerState s = SamplerDescriptorHeap[sampIdx];
+      |     return myTexture.Sample(s, coord);
+      | }
+      exit=0  (compiled)
+
+=== SampleLevel: heap subscript passed inline
+    $ dxc -T ps_6_6 -E main SampleLevel-inline.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     return myTexture.SampleLevel(SamplerDescriptorHeap[sampIdx], coord, 0);
+      | }
+      exit=2147500037  SampleLevel-inline.hlsl:4:22: error: no matching member function for call to 'SampleLevel'
+
+=== SampleLevel: hoisted into a local first (control)
+    $ dxc -T ps_6_6 -E main SampleLevel-hoisted.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     SamplerState s = SamplerDescriptorHeap[sampIdx];
+      |     return myTexture.SampleLevel(s, coord, 0);
+      | }
+      exit=0  (compiled)
+
+=== SampleBias: heap subscript passed inline
+    $ dxc -T ps_6_6 -E main SampleBias-inline.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     return myTexture.SampleBias(SamplerDescriptorHeap[sampIdx], coord, 0);
+      | }
+      exit=2147500037  SampleBias-inline.hlsl:4:22: error: no matching member function for call to 'SampleBias'
+
+=== SampleBias: hoisted into a local first (control)
+    $ dxc -T ps_6_6 -E main SampleBias-hoisted.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     SamplerState s = SamplerDescriptorHeap[sampIdx];
+      |     return myTexture.SampleBias(s, coord, 0);
+      | }
+      exit=0  (compiled)
+
+=== SampleGrad: heap subscript passed inline
+    $ dxc -T ps_6_6 -E main SampleGrad-inline.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     return myTexture.SampleGrad(SamplerDescriptorHeap[sampIdx], coord, coord, coord);
+      | }
+      exit=2147500037  SampleGrad-inline.hlsl:4:22: error: no matching member function for call to 'SampleGrad'
+
+=== SampleGrad: hoisted into a local first (control)
+    $ dxc -T ps_6_6 -E main SampleGrad-hoisted.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     SamplerState s = SamplerDescriptorHeap[sampIdx];
+      |     return myTexture.SampleGrad(s, coord, coord, coord);
+      | }
+      exit=0  (compiled)
+
+=== SampleCmp: heap subscript passed inline
+    $ dxc -T ps_6_6 -E main SampleCmp-inline.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     return myTexture.SampleCmp(SamplerDescriptorHeap[sampIdx], coord, 0.5);
+      | }
+      exit=2147500037  SampleCmp-inline.hlsl:4:22: error: no matching member function for call to 'SampleCmp'
+
+=== SampleCmp: hoisted into a local first (control)
+    $ dxc -T ps_6_6 -E main SampleCmp-hoisted.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     SamplerComparisonState s = SamplerDescriptorHeap[sampIdx];
+      |     return myTexture.SampleCmp(s, coord, 0.5);
+      | }
+      exit=0  (compiled)
+
+=== SampleCmpLevelZero: heap subscript passed inline
+    $ dxc -T ps_6_6 -E main SampleCmpLevelZero-inline.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     return myTexture.SampleCmpLevelZero(SamplerDescriptorHeap[sampIdx], coord, 0.5);
+      | }
+      exit=2147500037  SampleCmpLevelZero-inline.hlsl:4:22: error: no matching member function for call to 'SampleCmpLevelZero'
+
+=== SampleCmpLevelZero: hoisted into a local first (control)
+    $ dxc -T ps_6_6 -E main SampleCmpLevelZero-hoisted.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     SamplerComparisonState s = SamplerDescriptorHeap[sampIdx];
+      |     return myTexture.SampleCmpLevelZero(s, coord, 0.5);
+      | }
+      exit=0  (compiled)
+
+=== GatherRed: heap subscript passed inline
+    $ dxc -T ps_6_6 -E main GatherRed-inline.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     return myTexture.GatherRed(SamplerDescriptorHeap[sampIdx], coord);
+      | }
+      exit=2147500037  GatherRed-inline.hlsl:4:22: error: no matching member function for call to 'GatherRed'
+
+=== GatherRed: hoisted into a local first (control)
+    $ dxc -T ps_6_6 -E main GatherRed-hoisted.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     SamplerState s = SamplerDescriptorHeap[sampIdx];
+      |     return myTexture.GatherRed(s, coord);
+      | }
+      exit=0  (compiled)
+
+=== CalculateLevelOfDetail: heap subscript passed inline
+    $ dxc -T ps_6_6 -E main CalculateLevelOfDetail-inline.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     return myTexture.CalculateLevelOfDetail(SamplerDescriptorHeap[sampIdx], coord);
+      | }
+      exit=2147500037  CalculateLevelOfDetail-inline.hlsl:4:22: error: no matching member function for call to 'CalculateLevelOfDetail'
+
+=== CalculateLevelOfDetail: hoisted into a local first (control)
+    $ dxc -T ps_6_6 -E main CalculateLevelOfDetail-hoisted.hlsl
+      | float4 main(uint texIdx : TIX, uint sampIdx : SIX, float2 coord : C) : SV_Target
+      | {
+      |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+      |     SamplerState s = SamplerDescriptorHeap[sampIdx];
+      |     return myTexture.CalculateLevelOfDetail(s, coord);
+      | }
+      exit=0  (compiled)
+
+
+=== summary
+
+intrinsic method         inline exit  no-matching-member  hoisted (control) exit
+--------------------------------------------------------------------------------
+Sample                   2147500037   True                0                     
+SampleLevel              2147500037   True                0                     
+SampleBias               2147500037   True                0                     
+SampleGrad               2147500037   True                0                     
+SampleCmp                2147500037   True                0                     
+SampleCmpLevelZero       2147500037   True                0                     
+GatherRed                2147500037   True                0                     
+CalculateLevelOfDetail   2147500037   True                0                     
+
+cases measured:                       8
+control (hoisted) compiled:           8/8
+inline heap subscript rejected with "no matching member function for call to ...": 8/8
+inline heap subscript compiled:       0/8

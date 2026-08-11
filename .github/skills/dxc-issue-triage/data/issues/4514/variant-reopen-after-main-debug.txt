@@ -1,0 +1,26 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:23:13+00:00
+# cmd: -T cs_6_0 -E main control-reopen-after.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: reopen-after (control-reopen-after.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main control-reopen-after.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-reopen-after.hlsl:19:9: error: no member named 'testVariable' in namespace 'testNamespace'; did you mean simply 'testVariable'?
+    if( testNamespace::testVariable * tid.x > 0 )
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+        testVariable
+control-reopen-after.hlsl:12:14: note: 'testVariable' declared here
+        uint testVariable;
+             ^
+
+

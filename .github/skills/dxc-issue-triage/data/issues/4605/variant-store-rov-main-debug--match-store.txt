@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:06:35+00:00
+# cmd: -T ps_6_0 store-rov.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-store.json
+# verdict: repro
+# variant: store-rov (store-rov.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 store-rov.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+store-rov.hlsl:5:12: error: Explicit template arguments on intrinsic Store are not supported
+  buf.Store<float4>(idx1, float4(1, 2, 3, 4));
+           ^
+
+

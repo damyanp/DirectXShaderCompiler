@@ -1,0 +1,26 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:15:31+00:00
+# cmd: -T ms_6_5 -E TestDxcBugMS variant-mesh.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: mesh (variant-mesh.hlsl)
+# expect: match
+
+$ dxc -T ms_6_5 -E TestDxcBugMS variant-mesh.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: External declaration '\01?kValues@?1??GetTestValue@MyClass@@QAA?AV?$vector@M$02@@I@Z@4QBV3@B' is unused.
+error: Vector type '<3 x float>' is not allowed.
+error: Vector type '<3 x float>' is not allowed.
+Validation failed.
+
+
+

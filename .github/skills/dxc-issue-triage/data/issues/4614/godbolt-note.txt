@@ -1,0 +1,9 @@
+This shader is valid HLSL and should compile. Watch the compile time and the
+exit status rather than the output: on a Release build (which is what Compiler
+Explorer runs) the SROA_HLSL pass spins instead of finishing, so the pane
+should stall and end in a timeout or a killed process rather than producing
+DXIL or an error message. An assert-enabled build stops instead, in
+SROA_Helper::RewriteBitCast.
+
+Two one-line edits in the source below both make it compile: giving BaseStruct
+a non-empty member, or removing the assignment of the empty struct.

@@ -1,0 +1,15 @@
+This pane shows a mesh shader's DXIL, not reflection output. Compiler Explorer
+runs dxc.exe, which never calls ID3D12ShaderReflection, so no pane can answer
+the question this issue actually asks. What the pane can show is that both
+facts the reporter wanted are present in the compiled container.
+
+Scroll to the metadata at the bottom, to the named list of entry points. The
+last operand of the entry point is a tag list; the entry with tag number 9
+holds the mesh-shader state, and its operand tuple has five fields in this
+order: thread group size, max vertex count, max primitive count, output
+topology, payload size. Read that tuple against the two attributes at the top
+of the shader and every field lines up.
+
+The declared thread group size appears as a nested three-element tuple, and
+the fourth field of the mesh state carries the output topology as an integer
+enum value, where 1 is line and 2 is triangle.

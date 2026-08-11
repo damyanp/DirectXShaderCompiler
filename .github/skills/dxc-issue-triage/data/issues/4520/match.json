@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "no matching member function for call to 'Sample'"
+    },
+    {
+      "kind": "regex",
+      "value": "requires 3 arguments, but 2 were provided"
+    },
+    {
+      "kind": "not_regex",
+      "value": "use of undeclared identifier|unknown type name"
+    }
+  ],
+  "note": "The symptom is a DIAGNOSTIC on a call that the SM 6.6 Dynamic Resources spec says should compile, not a crash and not an exit code. `nonzero_exit` is deliberately not used: on Windows dxc returns E_FAIL (0x80004005) for every ordinary diagnosed error, so it would score a correct rejection identically to this one. Clauses 1 and 2 are the two things the issue quotes verbatim -- the call is rejected with the generic overload-set error, and the only notes offered are about ARITY (`requires 3 arguments, but 2 were provided`) on a call that supplied the right number of arguments for the 2-argument `Sample(SamplerState, float2)` the user meant. Clause 3 is the anti-vacuity guard, and it is load-bearing because clauses 1 and 2 can be produced WITHOUT the feature under test: `myTexture` is declared explicitly as `Texture2D<float4>`, so a release that has no `SamplerDescriptorHeap` still performs `Sample` overload resolution and can still emit both, which would score a pre-SM-6.6 build as a reproduction and fake an `always-repro'd` history across the SM 6.6 boundary. A build that does not know the identifiers says so (`use of undeclared identifier` / `unknown type name`), clause 3 fails, the probe scores no-repro, and classify() then demotes it to invalid-probe on the same marker text -- which is the correct outcome. Note this makes _is_absence_predicate() true, so a MATCHING probe is demoted if the output also carries a feature-absence marker; that is checked per capture rather than assumed. CONTROLS, all captured: control-workaround-local.hlsl (the reporter's own workaround -- assign the subscript to a `SamplerState` local, then Sample) is both the negative control and the FEATURE-PRESENCE control, since it compiles only on a build that has SM 6.6 dynamic resources, and it is run on every probed release in manual-case-release-history.txt; control-cast.hlsl is the reporter's other workaround; control-standalone-fn.hlsl is the maintainer's 2024-07-31 case, passing the same subscript to a user-defined function taking `SamplerState`; control-plain-sampler.hlsl replaces the heap subscript with an ordinary declared `SamplerState` and proves the predicate does not fire on an unremarkable `Sample`. All four expect no-match. See notes.md."
+}

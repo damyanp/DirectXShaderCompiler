@@ -1,0 +1,1 @@
+dxc_1_6_2112:-T ps_6_0,dxc_trunk:-T ps_6_0,dxc_trunk:-T ps_6_0 -DUSE_RW,hlsl_clang_trunk:-T ps_6_0 -fsyntax-only,hlsl_clang_trunk:-T ps_6_0 -fsyntax-only -DUSE_RW,hlsl_clang_trunk:-T ps_6_0 -fsyntax-only -DUNTEMPLATED

@@ -1,0 +1,1 @@
+-T ps_6_5 -E main repro.hlsl

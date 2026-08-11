@@ -1,0 +1,52 @@
+# compiler: main-debug-refl4619
+# exe: <triage>/issues/4619/run-refl4619.cmd
+# ran: 2026-08-10T21:24:15+00:00
+# cmd: -T gs_6_0 -E main control-geometry.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-topology.json
+# verdict: no-repro
+# variant: geometry-topology (control-geometry.hlsl)
+# expect: no-match
+
+$ dxc -T gs_6_0 -E main control-geometry.hlsl
+[exe] <triage>/issues/4619/run-refl4619.cmd
+[exit] 0
+--- stdout ---
+# refl4619: #4619 mesh-shader reflection probe
+dll: <repo>/build/Debug/bin/dxcompiler.dll
+source: control-geometry.hlsl
+profile: gs_6_0
+IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+IDxcContainerReflection::Load -> 0x00000000 (S_OK)
+IDxcContainerReflection::FindFirstPartKind(DXIL) -> 0x00000000 (S_OK)
+IDxcContainerReflection::GetPartReflection(ID3D12ShaderReflection) -> 0x00000000 (S_OK)
+ID3D12ShaderReflection::GetDesc -> 0x00000000 (S_OK)
+  D3D12_SHADER_DESC.Version=0x00020060 kind=Geometry 6.0
+  D3D12_SHADER_DESC.Creator="dxc(private) 1.9.0.5433 (triage, ab5400907)"
+  D3D12_SHADER_DESC.InputParameters=1 OutputParameters=1 PatchConstantParameters=0
+  D3D12_SHADER_DESC.GSOutputTopology=5 (TRIANGLESTRIP)
+  D3D12_SHADER_DESC.GSMaxOutputVertexCount=3
+  D3D12_SHADER_DESC.InputPrimitive=3
+  D3D12_SHADER_DESC.cGSInstanceCount=1
+  D3D12_SHADER_DESC.cControlPoints=0
+  D3D12_SHADER_DESC.HSOutputPrimitive=0
+  D3D12_SHADER_DESC.HSPartitioning=0
+  D3D12_SHADER_DESC.TessellatorDomain=0
+ID3D12ShaderReflection::GetGSInputPrimitive -> 3
+ID3D12ShaderReflection::GetThreadGroupSize -> returns 0
+  out x=0 y=0 z=0
+--- container, read WITHOUT ID3D12ShaderReflection ---
+PSV0 part: found
+PSV.RuntimeInfoVersion=2
+PSV.RuntimeInfo1.ShaderStage=2 (Geometry)
+PSV.RuntimeInfo2.NumThreads=0,0,0
+DXIL.numthreads-metadata-tuple{32,2,1}=absent
+DXIL.disasm-comment: absent
+SELFCHECK: walk-completed=yes
+SELFCHECK: shader-kind=Geometry
+SELFCHECK: psv-readable=yes
+RESULT: GETTHREADGROUPSIZE=0,0,0 GETTHREADGROUPSIZE-RETURN=0 SHADERDESC-TOPOLOGY-FIELDS=GSOutputTopology:5,InputPrimitive:3,HSOutputPrimitive:0,TessellatorDomain:0,GSInputPrimitive:3 PSV-MESH-TOPOLOGY=4294967295 PSV-NUMTHREADS=0,0,0
+
+--- stderr ---
+

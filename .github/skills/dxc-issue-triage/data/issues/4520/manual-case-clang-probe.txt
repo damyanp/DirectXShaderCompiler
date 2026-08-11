@@ -1,0 +1,96 @@
+
+=== hlsl_clang_trunk   case=repro   userArguments='-T ps_6_6 -E main -fsyntax-only'
+    | float4  main(uint texIdx: TIX, uint sampIdx : SIX, float2 coord: C) : SV_Target
+    | {
+    |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+    |     float4 result = myTexture.Sample(SamplerDescriptorHeap[sampIdx], coord);
+    |     return result;
+    | }
+    exit=1
+    clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+    clang: warning: argument unused during compilation: '-S' [-Wunused-command-line-argument]
+    <source>:3:35: error: use of undeclared identifier 'ResourceDescriptorHeap'
+        3 |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+          |                                   ^~~~~~~~~~~~~~~~~~~~~~
+    <source>:4:38: error: use of undeclared identifier 'SamplerDescriptorHeap'
+        4 |     float4 result = myTexture.Sample(SamplerDescriptorHeap[sampIdx], coord);
+          |                                      ^~~~~~~~~~~~~~~~~~~~~
+    2 errors generated.
+
+=== hlsl_clang_trunk   case=workaround   userArguments='-T ps_6_6 -E main -fsyntax-only'
+    | float4  main(uint texIdx: TIX, uint sampIdx : SIX, float2 coord: C) : SV_Target
+    | {
+    |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+    |     SamplerState mySampler = SamplerDescriptorHeap[sampIdx];
+    |     float4 result = myTexture.Sample(mySampler, coord);
+    |     return result;
+    | }
+    exit=1
+    clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+    clang: warning: argument unused during compilation: '-S' [-Wunused-command-line-argument]
+    <source>:3:35: error: use of undeclared identifier 'ResourceDescriptorHeap'
+        3 |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+          |                                   ^~~~~~~~~~~~~~~~~~~~~~
+    <source>:4:30: error: use of undeclared identifier 'SamplerDescriptorHeap'
+        4 |     SamplerState mySampler = SamplerDescriptorHeap[sampIdx];
+          |                              ^~~~~~~~~~~~~~~~~~~~~
+    2 errors generated.
+
+=== hlsl_clang_trunk   case=trivial   userArguments='-T ps_6_6 -E main -fsyntax-only'
+    | Texture2D<float4> myTexture;
+    | SamplerState mySampler;
+    | 
+    | float4  main(float2 coord: C) : SV_Target
+    | {
+    |     return myTexture.Sample(mySampler, coord);
+    | }
+    exit=0
+    clang: warning: argument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument]
+    clang: warning: argument unused during compilation: '-S' [-Wunused-command-line-argument]
+
+=== dxc_trunk   case=repro   userArguments='-T ps_6_6 -E main'
+    | float4  main(uint texIdx: TIX, uint sampIdx : SIX, float2 coord: C) : SV_Target
+    | {
+    |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+    |     float4 result = myTexture.Sample(SamplerDescriptorHeap[sampIdx], coord);
+    |     return result;
+    | }
+    exit=5
+    <source>:4:31: error: no matching member function for call to 'Sample'
+        float4 result = myTexture.Sample(SamplerDescriptorHeap[sampIdx], coord);
+                        ~~~~~~~~~~^~~~~~
+    <source>:4:31: note: candidate function template not viable: requires 3 arguments, but 2 were provided
+    <source>:4:31: note: candidate function template not viable: requires 4 arguments, but 2 were provided
+    <source>:4:31: note: candidate function template not viable: requires 5 arguments, but 2 were provided
+
+=== dxc_trunk   case=workaround   userArguments='-T ps_6_6 -E main'
+    | float4  main(uint texIdx: TIX, uint sampIdx : SIX, float2 coord: C) : SV_Target
+    | {
+    |     Texture2D<float4> myTexture = ResourceDescriptorHeap[texIdx];
+    |     SamplerState mySampler = SamplerDescriptorHeap[sampIdx];
+    |     float4 result = myTexture.Sample(mySampler, coord);
+    |     return result;
+    | }
+    exit=0
+
+=== dxc_trunk   case=trivial   userArguments='-T ps_6_6 -E main'
+    | Texture2D<float4> myTexture;
+    | SamplerState mySampler;
+    | 
+    | float4  main(float2 coord: C) : SV_Target
+    | {
+    |     return myTexture.Sample(mySampler, coord);
+    | }
+    exit=0
+
+
+=== summary
+
+compiler             case         exit   first diagnostic                                                                
+-------------------------------------------------------------------------------------------------------------------------
+hlsl_clang_trunk     repro        1      <source>:3:35: error: use of undeclared identifier 'ResourceDescriptorHeap'     
+hlsl_clang_trunk     workaround   1      <source>:3:35: error: use of undeclared identifier 'ResourceDescriptorHeap'     
+hlsl_clang_trunk     trivial      0      (no error line)                                                                 
+dxc_trunk            repro        5      <source>:4:31: error: no matching member function for call to 'Sample'          
+dxc_trunk            workaround   0      (no error line)                                                                 
+dxc_trunk            trivial      0      (no error line)                                                                 

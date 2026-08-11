@@ -1,0 +1,1 @@
+dxc_1_6_2112:-T cs_6_0 -E main,dxc_trunk:-T cs_6_0 -E main,dxc_trunk:-T cs_6_0 -E main -DWORKAROUND,hlsl_clang_trunk:-T cs_6_0 -E main -fsyntax-only,hlsl_clang_trunk:-T cs_6_0 -E main -fsyntax-only -DUNQUALIFIED

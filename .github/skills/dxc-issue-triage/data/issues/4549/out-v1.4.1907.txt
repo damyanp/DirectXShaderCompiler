@@ -1,0 +1,33 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-10T21:27:52+00:00
+# cmd: -T ps_6_5 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "use of undeclared identifier", so this build did not reach the code under test
+
+$ dxc -T ps_6_5 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:22:3: error: use of undeclared identifier 'RayQuery'
+  RayQuery<RAY_FLAG_NONE> q;
+  ^
+repro.hlsl:22:27: error: use of undeclared identifier 'q'
+  RayQuery<RAY_FLAG_NONE> q;
+                          ^
+repro.hlsl:23:3: error: use of undeclared identifier 'q'
+  q.TraceRayInline(opaque_as, RAY_FLAG_NONE, 0xff, ray);
+  ^
+repro.hlsl:24:3: error: use of undeclared identifier 'q'
+  q.Proceed();
+  ^
+repro.hlsl:27:20: error: use of undeclared identifier 'q'
+  return float4(d, q.CommittedRayT(), 0, 1);
+                   ^
+
+

@@ -1,0 +1,13 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "internal_failure"
+    },
+    {
+      "kind": "timeout",
+      "invert": true
+    }
+  ],
+  "note": "Second predicate for issue 4629, isolating the shape the reporter actually reported: a bounded internal failure (assert trap / bad cast), NOT a hang. It exists because the primary match.json scores two releases as reproductions on the strength of a timeout -- is_internal_failure() returns True for timed_out, which is right in general (a hung compiler failed) but conflates two observably different signatures here. Measured: v1.4.1907 and v1.5.2010 do not crash on this input, they spin -- v1.4.1907 and v1.5.2010 each burned 239.0s of CPU in 240.1s of wall clock -- a mean of 1.00 core, sampled every 20s and linear throughout -- emitted no output at all, and were still running when killed at the deadline; a trivial shader compiles on both in 0.3s (manual-case-oldest-hang.txt). A process blocked on a dialog or a handle accrues no CPU, so this is a spin inside the compiler, not a crash and not a prompt. Splitting the predicate keeps the two facts separate, so the write-up can say '18 of 20 stable releases fail exactly as reported, the two oldest hang instead' rather than flattening both into one number. Both predicates agree that no release compiles this shader. Same reasoning as match.json otherwise: keyed on exit status, never on the reported message text."
+}

@@ -1,0 +1,20 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "nonzero_exit",
+      "note": "The shader is rejected. Structural anchor, no text involved. Both sides of this issue agree the shader is invalid, so this alone says nothing -- it is here so the absence clause below cannot be satisfied by a build that produced no diagnostics at all."
+    },
+    {
+      "kind": "regex",
+      "value": "(?m)^[^\\n]*\\bdepth_buffer\\b[^\\n]*\\b(?:register|space)\\s+\\d",
+      "note": "The complaint names depth_buffer -- the correctly-declared resource that is not the mistake -- and talks about its register or space number. This is the substance of the report ('a diagnostic that points at the wrong thing'), keyed on an identifier from the repro rather than on DXC's phrasing, so it survives rewording, survives the two names being printed in either order, and survives the message coming from a different component. It has to: DXC emits two unrelated wordings for this collision. The register allocator (lib/HLSL/DxilCondenseResources.cpp:158-168) prints `resource depth_buffer at register 0 overlaps with resource opaque_as at register 0, space 0`; for a library target the DXIL validator instead prints `Resource depth_buffer with base 0 size 1 overlap with other resource with base 0 size 1 in space 0`. Requiring a DIGIT after register/space is deliberate: HLSL source spells a binding `register(t0)`, never `register 0`, so a clang caret line echoing depth_buffer's own declaration cannot satisfy this clause. An earlier version of this predicate also required the word `error` on the same line and was wrong -- v1.4.1907's validator prints the message with no `error:` prefix at all (see manual-case-release-matrix.txt), which would have scored the oldest release as clean."
+    },
+    {
+      "kind": "not_regex",
+      "value": "(?i)invalid register specification",
+      "note": "DXC's existing register-class diagnostic (err_hlsl_incorrect_bind_semantic / warn_hlsl_incorrect_bind_semantic, tools/clang/include/clang/Basic/DiagnosticSemaKinds.td:7762-7765) is not emitted for the acceleration structure. hlsl::DiagnoseRegisterType (tools/clang/lib/Sema/SemaHLSL.cpp:11866-12012) is where the gap is: its switch has no AR_OBJECT_ACCELERATION_STRUCT arm, so an acceleration structure falls through to `default: // Other types have no associated registers` with isValid still true and nothing is said. Absence clause, deliberately narrow, and anchored by the two clauses above. control-sbuf-u0.hlsl proves it can fail: a StructuredBuffer -- also SRV-class -- at register(u0) does get this message, on every release back to v1.4.1907."
+    }
+  ],
+  "note": "#4549 is a diagnostic-quality issue, so the predicate has to test substance rather than sentences: message text is the least portable thing DXC produces and a cosmetic rewording must not score as a fix. Substance tested: (a) the shader is rejected, (b) the rejection is reported as something about the innocent resource's binding, and (c) nothing tells the developer that the acceleration structure is in the wrong register class. Rewording the collision message leaves all three true and still scores `repro`. A real fix -- any diagnostic on the `opaque_as` declaration -- either trips clause (c) or stops compilation before the allocator runs, which makes clause (b) false. Deliberately NOT tested: the exact collision wording, the register numbers, and the reporter's `GDA5BD758` token, which is his engine's rather than DXC's. The behavioural half of the report -- that the 'u' is discarded and the resource bound as an SRV -- is measured without reference to any diagnostic by match-ignored-register.json against control-as-u0-alone.hlsl."
+}

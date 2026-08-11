@@ -1,0 +1,13 @@
+#4605: the two arms of this source differ in one token — which byte-address
+buffer type `buf` is declared as. Panes built with -DUSE_RW declare
+RWByteAddressBuffer; panes without it declare
+RasterizerOrderedByteAddressBuffer, which is the reporter's shader verbatim.
+
+What to look for: the -DUSE_RW panes compile and emit a bufferLoad; the panes
+without it fail in Sema at the '<' opening the template argument list, before
+any code is generated. The caret column in the diagnostic points at that '<'.
+The rasterizer-ordered type is otherwise usable at this profile — dropping the
+template argument list compiles it fine locally.
+
+CE runs Linux Release builds and appends -Zi -Qembed_debug; neither affects
+this, which is a front-end rejection.

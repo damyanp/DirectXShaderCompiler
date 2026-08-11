@@ -1,0 +1,300 @@
+
+=== v1.4.1907   <cache>/compilers/releases/v1.4.1907/dxc.exe
+    $ dxc --version
+      exit=1  dxc failed : Unknown argument: '--version'
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  error: invalid profile ps_6_6
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=2147500037  error: invalid profile ps_6_6
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=2147500037  error: invalid profile ps_6_6
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=2147500037  error: invalid profile ps_6_6
+
+=== v1.5.2010   <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+    $ dxc --version
+      exit=1  dxc failed : Unknown argument: '--version'
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  error: invalid profile ps_6_6
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=2147500037  error: invalid profile ps_6_6
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=2147500037  error: invalid profile ps_6_6
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=2147500037  error: invalid profile ps_6_6
+
+=== v1.6.2104   <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+    $ dxc --version
+      exit=1  dxc failed : Unknown argument: '--version'
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.6.2106   <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+    $ dxc --version
+      exit=1  dxc failed : Unknown argument: '--version'
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.6.2112   <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.6 - 1.6.2112.12 (770ac0cc1); dxil.dll: 1.6(101.6.2112.2)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.7.2207   <cache>/compilers/releases/v1.7.2207/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.7 - 1.7.2207.3 (e9137cd1d); dxil.dll: 1.7(101.7.2207.10)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.7.2212   <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.7 - 1.7.2212.12 (8c9d92be7); dxil.dll: 1.7(101.7.2212.14)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.7.2212.1   <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.7 - 1.7.2212.40 (e043f4a12); dxil.dll: 1.7(101.7.2212.36)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.7.2308   <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.7 - 1.7.2308.7 (69e54e290); dxil.dll: 1.7(101.7.2308.12)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.8.2403   <cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.8 - 1.8.2403.34 (c9660a8c0); dxil.dll: 1.8(101.8.2403.18)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.8.2403.1   <cache>/compilers/releases/v1.8.2403.1/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.8 - 1.8.2403.36 (9c2b82878); dxil.dll: 1.8(101.8.2403.21)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.8.2403.2   <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.8 - 1.8.2403.37 (11e1318c3); dxil.dll: 1.8(101.8.2403.24)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.8.2405   <cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.8 - 1.8.2405.15 (fd7e54bcd); dxil.dll: 1.8(101.8.2405.17)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.8.2407   <cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.8 - 1.8.2407.7 (416fab6b5); dxil.dll: 1.8(101.8.2407.12)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.8.2502   <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.8 - 1.8.2502.8 (b4711839e); dxil.dll: 1.8(1.8.2502.8)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.8.2505   <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.9 - 1.8.2505.28 (9efbb6c32); dxil.dll: 1.9(1.8.2505.28)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.8.2505.1   <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.9 - 1.8.2505.32 (b106a961d); dxil.dll: 1.9(1.8.2505.32)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.9.2602   <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.9(5184-21d28f72)(1.9.2602.17) - 1.9.2602.17 (21d28f727)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.9.2602.24   <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.9(5191-d355aa83)(1.9.2602.24) - 1.9.2602.24 (d355aa836)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== v1.9.2607   <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.9(5402-0d3ee6b5)(1.9.0.5402) - 1.9.0.5402 (0d3ee6b55-dirty)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+=== main-debug   <repo>/build/Debug/bin/dxc.exe
+    $ dxc --version
+      exit=0  dxcompiler.dll: 1.10(5433-ab540090)(1.9.0.5433) - 1.9.0.5433 (triage, ab5400907)
+    $ dxc -T ps_6_6 -E main repro.hlsl
+      exit=2147500037  repro.hlsl:4:31: error: no matching member function for call to 'Sample'
+    $ dxc -T ps_6_6 -E main control-workaround-local.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-standalone-fn.hlsl
+      exit=0  ;
+    $ dxc -T ps_6_6 -E main control-cast.hlsl
+      exit=0  ;
+
+
+=== summary
+
+symptom       = repro.hlsl printed "no matching member function for call to 'Sample'"
+arity-note    = repro.hlsl printed "requires 3 arguments, but 2 were provided"
+feature       = control-workaround-local.hlsl COMPILED (exit 0)
+heap-dxil     = ...and its DXIL declares BOTH descriptor-heap
+                feature flags and contains dx.op.createHandleFromHeap.
+                feature+heap-dxil together mean this release really
+                has SM 6.6 dynamic resources, so its repro result
+                is evidence about #4520
+standalone-fn = control-standalone-fn.hlsl COMPILED (exit 0)
+cast          = control-cast.hlsl COMPILED (exit 0)
+rejected-with = first feature-absence marker in the REPRO output,
+                if any
+
+release          symptom  arity-note  feature  heap-dxil  standalone-fn  cast   rejected-with             
+----------------------------------------------------------------------------------------------------------
+v1.4.1907        False    False       False    False      False          False  invalid profile           
+v1.5.2010        False    False       False    False      False          False  invalid profile           
+v1.6.2104        True     True        True     True       True           True   -                         
+v1.6.2106        True     True        True     True       True           True   -                         
+v1.6.2112        True     True        True     True       True           True   -                         
+v1.7.2207        True     True        True     True       True           True   -                         
+v1.7.2212        True     True        True     True       True           True   -                         
+v1.7.2212.1      True     True        True     True       True           True   -                         
+v1.7.2308        True     True        True     True       True           True   -                         
+v1.8.2403        True     True        True     True       True           True   -                         
+v1.8.2403.1      True     True        True     True       True           True   -                         
+v1.8.2403.2      True     True        True     True       True           True   -                         
+v1.8.2405        True     True        True     True       True           True   -                         
+v1.8.2407        True     True        True     True       True           True   -                         
+v1.8.2502        True     True        True     True       True           True   -                         
+v1.8.2505        True     True        True     True       True           True   -                         
+v1.8.2505.1      True     True        True     True       True           True   -                         
+v1.9.2602        True     True        True     True       True           True   -                         
+v1.9.2602.24     True     True        True     True       True           True   -                         
+v1.9.2607        True     True        True     True       True           True   -                         
+main-debug       True     True        True     True       True           True   -                         
+
+builds measured:            21 (20 stable releases + main-debug)
+builds with the feature:    19  v1.6.2104, v1.6.2106, v1.6.2112, v1.7.2207, v1.7.2212, v1.7.2212.1, v1.7.2308, v1.8.2403, v1.8.2403.1, v1.8.2403.2, v1.8.2405, v1.8.2407, v1.8.2502, v1.8.2505, v1.8.2505.1, v1.9.2602, v1.9.2602.24, v1.9.2607, main-debug
+builds WITHOUT the feature: 2  v1.4.1907, v1.5.2010
+symptom on a build that HAS the feature:      19/19
+symptom on a build that LACKS the feature:    0/2   <- these are NOT evidence about #4520
+standalone-fn compiled on:  19/19 builds that have the feature
+cast workaround compiled on: 19/19 builds that have the feature

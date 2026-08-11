@@ -1,0 +1,15 @@
+# Issue 4527. The reporter attached a complete shader but no command line, so the profile and
+# entry point are mine, not theirs. `mainPS` + the file's shipped defines
+# (TEST_CASE=CASE_MEMBER_FUNCTION_STATIC, TEST_SHADER_TYPE=SHADER_TYPE_PIXEL) are the
+# combination the title names: CREATEPIXELSHADER_INVALIDSHADERBYTECODE.
+#
+# ps_6_0 is the oldest profile that still shows the symptom -- nothing here needs a later
+# shader model. The mesh entry point in the same file is not compiled by this command; it is
+# covered by variant-mesh.hlsl at ms_6_5.
+#
+# No -Fo, per the workspace convention: `run --shader X` retargets only the source operand, so
+# an -Fo here would make every control overwrite one output file. Without it dxc prints the
+# disassembly to stdout, which means a build that ever compiles this cleanly leaves its DXIL in
+# the capture. Container-level facts (signed/unsigned, dxv verdict) are measured separately by
+# measure.py, which uses its own filenames.
+-T ps_6_0 -E mainPS repro.hlsl

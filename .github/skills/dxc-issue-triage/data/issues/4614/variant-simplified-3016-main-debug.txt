@@ -1,0 +1,98 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:27:03+00:00
+# cmd: -T vs_6_0 -E main control-simplified-3016.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: simplified-3016 (control-simplified-3016.hlsl)
+# expect: no-match
+
+$ dxc -T vs_6_0 -E main control-simplified-3016.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; OUT                      0   x           0     NONE    uint       
+;
+; shader hash: 675fa2533a1eee24557112354afdcbf6
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Vertex Shader
+; OutputPositionPresent=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 1
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 1
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; OUT                      0        nointerpolation       
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+;
+; ViewId state:
+;
+; Number of inputs: 0, outputs: 1
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @main() {
+  ret void
+}
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.viewIdState = !{!4}
+!dx.entryPoints = !{!5}
+
+!0 = !{!"dxc(private) 1.9.0.5433 (triage, ab5400907)"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 10}
+!3 = !{!"vs", i32 6, i32 0}
+!4 = !{[2 x i32] [i32 0, i32 1]}
+!5 = !{void ()* @main, !"main", !6, null, null}
+!6 = !{null, !7, null}
+!7 = !{!8}
+!8 = !{i32 0, !"OUT", i8 5, i8 0, !9, i8 1, i32 1, i8 1, i32 0, i8 0, null}
+!9 = !{i32 0}
+
+
+--- stderr ---
+

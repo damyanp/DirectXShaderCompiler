@@ -1,0 +1,22 @@
+{
+  "batch": "batch-016",
+  "confidence": "high",
+  "created_at": "2022-07-04T07:34:36Z",
+  "expected_symptom": "`static groupshared uint` lowers to a groupshared global of LLVM type i1 (`addrspace(3) global i1`), a type docs/DXIL.rst:240 defines for thread-local memory but not for groupshared memory. Scored as a presence, not an absence, with a self-test clause matching a groupshared global of ANY integer type and an anchor on `define void @main()` so a failed compile cannot score as a reproduction. Known-good control: the same file with the single token `static` removed, which must not match.",
+  "godbolt_url": "https://godbolt.org/z/7Kexss5x8",
+  "history": "always-repro'd",
+  "labels": "bug,correctness,validation",
+  "labels_now": "bug,correctness,validation",
+  "notes_path": "issues/4540/notes.md",
+  "number": 4540,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (1.9.0.5433) and on all 20 stable releases from v1.4.1907 to v1.9.2607, so it predates the 2022 report. `static groupshared uint` lowers to `@storeTile = internal unnamed_addr addrspace(3) global i1 false`; docs/DXIL.rst:240 defines i1 memory accesses for thread-local memory only, and i32/f32/f64 for groupshared. Removing the single token `static` gives `addrspace(3) global i32` -- that is the known-good control, and across 22 builds (20 stable releases, 1 prerelease, main) the repro emits i1 on 22/22 while the control emits it on 0/22, with the predicate self-test passing 22/22. Confirms the maintainer comment about the validator and the spec contradicting each other: DXIL validation accepts the i1 module on 22/22 builds, while a 64KB-groupshared control is correctly rejected on 22/22, so the validator does police groupshared memory and still does not object. Attributed by measurement with dxopt (null-pass control emits i32): -globalopt is necessary and sufficient, matching TryToShrinkGlobalToBoolean (lib/Transforms/IPO/GlobalOpt.cpp:1595); `static` supplies the internal linkage that makes the global eligible. The shrink is value-preserving per thread (loads come back as select/zext); what it breaks is the groupshared object type. Clang trunk emits addrspace(3) global i32 for the same source at -O3. The reporter's GPU-level symptom was not verified -- it needs hardware.",
+  "title": "[DXIL] Incorrect codegen when using \"static\" on groupshared variables",
+  "triaged_at": "2026-08-11T00:05:59+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4540"
+}

@@ -1,0 +1,22 @@
+{
+  "batch": "batch-016",
+  "confidence": "high",
+  "created_at": "2022-08-26T03:55:16Z",
+  "godbolt_url": "https://godbolt.org/z/oT63zTbMf",
+  "history": "always-repro'd",
+  "labels": "enhancement,reflection",
+  "labels_now": "enhancement,reflection",
+  "notes_path": "issues/4619/notes.md",
+  "number": 4619,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.6-sol",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Two asks with opposite answers, and the finding is what happened to the resolution rather than the repro. (A) GetThreadGroupSize returning 0,0,0 for mesh shaders was a real bug, fixed 2022-10-27 by PR #4745 -- two months after this issue was filed, by a PR that never referenced it. closingIssuesReferences is empty, the timeline has no cross-reference of any kind, and the issue still has 0 comments; it was then labelled enhancement+reflection in 2024-01 (15 months after the fix shipped) and milestoned Backlog in 2024-09, both against a state that was already obsolete. On main (13730886e) it returns the declared 32,2,1. (B) Output primitive topology still has no accessor on ID3D12ShaderReflection, on any of 20 releases or on main: GSOutputTopology comes from DxilModule::GetStreamPrimitiveTopology(), only ever set for GS, and D3D12_SHADER_DESC has no mesh member, so this needs new API surface -- enhancement, matching the existing label, now measured rather than assumed. The data is in the container, so there is a workaround today: PSVRuntimeInfo1::MS1.MeshOutputTopology (=2 Triangle) and the DXIL mesh entry-point tag 9, field 3. Measured with a host harness (refl4619.cpp) registered as a compiler, because dxc.exe never calls the interface and dxa -dumpreflection cannot answer either half -- D3DReflectionDumper has zero GetThreadGroupSize call sites and prints GSOutputTopology only for geometry shaders. 5 controls (compute, amplification, pixel, geometry, mesh-line) all pass --expect no-match.",
+  "text_stale": "The body's first sentence -- 'I tried ID3D12ShaderReflection::GetThreadGroupSize, but got 0, 0, 0 all the time' -- has been false of every DXC since v1.7.2212 (2022-12-16). It was true when filed (v1.7.2207 reproduces), so this is staleness by the compiler moving, not by bad reporting. The harm is the usual one inverted: a reader spot-checking the issue finds GetThreadGroupSize works and may close the whole thing, dropping the still-open topology half; a reader who trusts the text instead goes looking for a bug fixed four years ago. The title names both asks and so overstates the remaining work. Nothing in the thread records the fix.",
+  "title": "How to get thread group size and output primitive topology in MeshShader?",
+  "triaged_at": "2026-08-11T00:06:00+00:00",
+  "triaged_by": "claude-opus-5",
+  "triaged_with_commit": "13730886e",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4619"
+}

@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:12:16+00:00
+# cmd: -T ps_6_0 -E main -Zi -Qembed_debug control-diag.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: diag (control-diag.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main -Zi -Qembed_debug control-diag.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+virtual-source.hlsl:400:17: error: invalid format for vector swizzle 'no_such_member'
+  return before.no_such_member;
+                ^
+
+

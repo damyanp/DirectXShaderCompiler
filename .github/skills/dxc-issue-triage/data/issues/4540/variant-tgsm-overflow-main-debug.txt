@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:20:07+00:00
+# cmd: -T cs_6_0 -E main control-tgsm-overflow.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: tgsm-overflow (control-tgsm-overflow.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main control-tgsm-overflow.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+control-tgsm-overflow.hlsl:13:2: error: Total Thread Group Shared Memory used by 'main' is 65536, exceeding maximum: 32768.
+note: at '%4 = getelementptr [16384 x i32], [16384 x i32] addrspace(3)* @"\01?big@@3PAIA", i32 0, i32 %2' in block '#0' of function 'main'.
+Validation failed.
+
+
+

@@ -1,0 +1,26 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-10T21:14:54+00:00
+# cmd: -T cs_6_0 -E main control-two-cbuffers.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: two-cbuffers (control-two-cbuffers.hlsl)
+# expect: match
+
+$ dxc -T cs_6_0 -E main control-two-cbuffers.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-two-cbuffers.hlsl:23:9: error: no member named 'testVariable' in namespace 'testNamespace'; did you mean simply 'testVariable'?
+    if( testNamespace::testVariable * tid.x > 0 )
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+        testVariable
+control-two-cbuffers.hlsl:11:14: note: 'testVariable' declared here
+        uint testVariable;
+             ^
+
+

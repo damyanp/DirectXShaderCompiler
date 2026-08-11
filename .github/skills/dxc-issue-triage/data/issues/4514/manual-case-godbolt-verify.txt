@@ -1,0 +1,183 @@
+# Compiler Explorer panes for #4514, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E main
+# exit:     5
+
+<source>:40:9: error: no member named 'testVariable' in namespace 'testNamespace'; did you mean simply 'testVariable'?
+    if( testNamespace::testVariable * tid.x > 0 )
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+        testVariable
+<source>:26:14: note: 'testVariable' declared here
+        uint testVariable;
+             ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main
+# exit:     5
+
+<source>:40:9: error: no member named 'testVariable' in namespace 'testNamespace'; did you mean simply 'testVariable'?
+    if( testNamespace::testVariable * tid.x > 0 )
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+        testVariable
+<source>:26:14: note: 'testVariable' declared here
+        uint testVariable;
+             ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main -DWORKAROUND
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: cc67955f09dc383e2255f07621282dac.pdb
+; shader hash: cc67955f09dc383e2255f07621282dac
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @main() {
+  ret void, !dbg !53 ; line:43 col:1
+}
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!37, !38}
+!llvm.ident = !{!39}
+!dx.source.contents = !{!40}
+!dx.source.defines = !{!41}
+!dx.source.mainFileName = !{!42}
+!dx.source.args = !{!43}
+!dx.version = !{!44}
+!dx.valver = !{!45}
+!dx.shaderModel = !{!46}
+!dx.typeAnnotations = !{!47}
+!dx.entryPoints = !{!50}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, beb6c47d)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !18)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 35, type: !5, isLocal: false, isDefinition: true, scopeLine: 36, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, line: 26, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, line: 26, size: 96, align: 32, elements: !9, templateParams: !14)
+!9 = !{!10, !12, !13}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, line: 26, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, line: 26, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, line: 26, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !{!15, !16}
+!15 = !DITemplateTypeParameter(name: "element", type: !11)
+!16 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !{!19, !22}
+!19 = !DIGlobalVariable(name: "testVariable", linkageName: "\01?testVariable@testBuffer@@3IB", scope: !0, file: !1, line: 26, type: !20, isLocal: false, isDefinition: true)
+!20 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !21)
+!21 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 26, baseType: !11)
+!22 = !DIGlobalVariable(name: "testTexture", linkageName: "\01?testTexture@testNamespace@@3V?$Texture2D@V?$vector@M$03@@@@A", scope: !23, file: !1, line: 30, type: !24, isLocal: false, isDefinition: true)
+!23 = !DINamespace(name: "testNamespace", scope: null, file: !1, line: 22)
+!24 = !DICompositeType(tag: DW_TAG_class_type, name: "Texture2D<vector<float, 4> >", file: !1, line: 30, size: 160, align: 32, elements: !2, templateParams: !25)
+!25 = !{!26}
+!26 = !DITemplateTypeParameter(name: "element", type: !27)
+!27 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, line: 30, size: 128, align: 32, elements: !28, templateParams: !34)
+!28 = !{!29, !31, !32, !33}
+!29 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !27, file: !1, line: 30, baseType: !30, size: 32, align: 32, flags: DIFlagPublic)
+!30 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !27, file: !1, line: 30, baseType: !30, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!32 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !27, file: !1, line: 30, baseType: !30, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!33 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !27, file: !1, line: 30, baseType: !30, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!34 = !{!35, !36}
+!35 = !DITemplateTypeParameter(name: "element", type: !30)
+!36 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 4)
+!37 = !{i32 2, !"Dwarf Version", i32 4}
+!38 = !{i32 2, !"Debug Info Version", i32 3}
+!39 = !{!"dxc(private) 1.9.0.10001 (main, beb6c47d)"}
+!40 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Issue 4514: a cbuffer declared inside a namespace is not reachable through a\0A// qualified name. Compare the panes rather than reading any one of them:\0A//\0A//   pane 1  dxc 1.6.2112 -- the \22December 2021\22 build named in the report; the\0A//           qualified reference in main() is rejected by name lookup\0A//   pane 2  dxc trunk    -- same rejection today, unchanged\0A//   pane 3  dxc trunk -DWORKAROUND -- enables the reporter's extra Texture2D\0A//           declaration in the namespace; compiles clean, same qualified\0A//           reference\0A//   pane 4  clang (HLSL) -fsyntax-only -- the qualified reference\0A//   pane 5  clang (HLSL) -fsyntax-only -DUNQUALIFIED -- same shader, name used\0A//           without the namespace qualifier; the control for pane 4\0A//\0A// The whole finding is that panes 2 and 3 differ, and that the only difference\0A// between them is a declaration main() never mentions.\0A//\0A// Compiler Explorer runs Linux Release builds; the local evidence is a Windows\0A// Debug build. CE also appends its own debug-info flags to the DXC panes.\0A//==========================================================================//\0A\0Anamespace testNamespace\0A{\0A    cbuffer testBuffer\0A    {\0A        uint testVariable;\0A    }\0A\0A#ifdef WORKAROUND\0A    Texture2D testTexture;\0A#endif\0A}\0A\0A[numthreads(1, 1, 1)]\0Avoid main( in uint3 tid : SV_DispatchThreadID )\0A{\0A#ifdef UNQUALIFIED\0A    if( testVariable * tid.x > 0 )\0A#else\0A    if( testNamespace::testVariable * tid.x > 0 )\0A#endif\0A        return;\0A}\0A"}
+!41 = !{!"WORKAROUND=1", !"WORKAROUND=1"}
+!42 = !{!"/app/example.hlsl"}
+!43 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug", !"-D", !"WORKAROUND", !"-D", !"WORKAROUND"}
+!44 = !{i32 1, i32 0}
+!45 = !{i32 1, i32 10}
+!46 = !{!"cs", i32 6, i32 0}
+!47 = !{i32 1, void ()* @main, !48}
+!48 = !{!49}
+!49 = !{i32 0, !2, !2}
+!50 = !{void ()* @main, !"main", null, null, !51}
+!51 = !{i32 4, !52}
+!52 = !{i32 1, i32 1, i32 1}
+!53 = !DILocation(line: 43, column: 1, scope: !4)
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main -fsyntax-only
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+<No output file>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main -fsyntax-only -DUNQUALIFIED
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-S' [-Wunused-command-line-argument][0m
+[1m<source>:38:9: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'testVariable'; did you mean 'testNamespace::testVariable'?[0m
+   38 |     [0;34mif[0m( testVariable * tid.x > [0;32m0[0m )[0m
+      | [0;1;32m        ^~~~~~~~~~~~
+[0m      | [0;32m        testNamespace::testVariable
+[0m[1m<source>:26:14: [0m[0;1;36mnote: [0m'testNamespace::testVariable' declared here[0m
+   26 |         uint testVariable;[0m
+      | [0;1;32m             ^
+[0m1 error generated.
+<Compilation failed>

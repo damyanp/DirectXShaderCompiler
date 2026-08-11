@@ -1,0 +1,26 @@
+{
+  "kind": "all_of",
+  "note": "Issue 4615: DXIL debug locations report the PHYSICAL source location instead of the #line-mapped one. repro.hlsl puts one statement at physical line 7 (before any #line directive) and one at physical line 9, which `#line 400 \"virtual-source.hlsl\"` on line 8 maps to virtual line 400 in a virtual file. Clauses 1-2 are PRESENCE clauses and clauses 3-4 are the absence half of the symptom; the presence clauses exist because an absence-only predicate is satisfied for free by any run that emitted no debug info at all (dropped -Zi, unparsed -Qembed_debug, a release that rejected the input), which would score every such failure as a textbook reproduction. Every clause is anchored on the metadata FORM (!DILocation(line: / !DIFile(filename: ) and never on the bare token, because -Zi echoes the source -- including the literal text of the #line directive -- into !dx.source.contents, where a bare search for 400 or virtual-source.hlsl gets a free hit and would falsify the absence clauses on a compiler that does reproduce. Verified live in both directions: v1.4.1907 emits !DILocation(line: 400 ... !DIFile(filename: \"virtual-source.hlsl\") and scores no-match; main emits !DILocation(line: 9 and scores match. Node spelling (!DILocation/!DIFile) is identical on v1.4.1907 and on main, so the predicate is instrument-portable across the whole catalog.",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "!DILocation\\(line: 7,",
+      "note": "SELF-TEST / anti-vacuity. The Sample() call sits at physical line 7, BEFORE the #line directive, so its debug location is line 7 under both behaviours. If this clause fails the release emitted no debug metadata, or spells it differently, or never compiled the repro -- the probe is unmeasurable, not clean."
+    },
+    {
+      "kind": "regex",
+      "value": "!DILocation\\(line: 9,",
+      "note": "SYMPTOM, positive form. The return statement is physically on line 9 and virtually on line 400. Seeing line 9 is the reported defect stated as a presence, not an absence."
+    },
+    {
+      "kind": "not_regex",
+      "value": "!DILocation\\(line: 40[01],",
+      "note": "SYMPTOM, absence form: no debug location uses the #line-mapped line number. Proven live -- v1.4.1907 emits !DILocation(line: 400, column: 17 and fails this clause."
+    },
+    {
+      "kind": "not_regex",
+      "value": "!DIFile\\(filename: \"virtual-source\\.hlsl\"",
+      "note": "SYMPTOM, absence form: no DIFile names the #line virtual file. Proven live -- v1.4.1907 emits !DIFile(filename: \"virtual-source.hlsl\", directory: \"\") and fails this clause. Anchored on the !DIFile form so the copy of the directive inside !dx.source.contents cannot satisfy it."
+    }
+  ]
+}
