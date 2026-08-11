@@ -114,6 +114,19 @@ def esc(text):
     return " ".join((text or "").split()).replace("|", "\\|")
 
 
+def clip(text, width):
+    """Truncate visibly.
+
+    Roughly half the recorded `history` values are prose rather than a
+    taxonomy term, and a silent cut can invert what the cell says: one reads
+    "Fixed between v1.6.2112 and v1.7.2207" where the full text continues
+    "DO NOT READ THE BISECT LINE AS SYMPTOM HISTORY". An explicit ellipsis
+    keeps a fragment from being mistaken for a whole value.
+    """
+    text = text or ""
+    return text if len(text) <= width else text[: width - 1].rstrip() + "…"
+
+
 def main():
     if not os.path.exists(DB):
         sys.exit(f"no database at {DB}; run `triage.py reindex` first")
@@ -212,7 +225,7 @@ def main():
               "| {q} | {ce} | {art} |".format(
                   n=r["number"], repo=REPO, t=esc(r["title"]) or "—",
                   flag=flag, st=r["status"] or "—",
-                  h=esc(r["history"])[:60] or "—",
+                  h=clip(esc(r["history"]), 60) or "—",
                   c=r["confidence"] or "—", q=r["repro_quality"] or "—",
                   ce=ce_cell(r), art=artifact_links(r["number"])))
         w("")
@@ -234,6 +247,10 @@ def main():
                 w("")
             if r["text_stale"]:
                 w(f"> ⚠️ **Issue text is stale.** {esc(r['text_stale'])}")
+                w("")
+            hist = esc(r["history"])
+            if len(hist) > 60:
+                w(f"*History:* {hist}")
                 w("")
             bits = []
             if (r["labels_add"] or "").strip():
