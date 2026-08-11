@@ -46,8 +46,13 @@ when did that change?** Produce a report backed by on-disk evidence.
 - **Only public repros go to Compiler Explorer.** `godbolt` uploads the shader to a public
   third-party service. Repros derived from public issues in this public repo are fine;
   anything from a private report, a customer, or unreleased work is not.
-- **Evidence or it didn't happen.** Every verdict must be reproducible by a human from the
-  files left behind: the repro, the exact command, and the captured output.
+- **Evidence or it didn't happen.** Every verdict and every measurement asserted in
+  `notes.md` or `comment.md` must be reproducible from the files left behind: the repro, the
+  exact command, and the captured output. If prose names a command, version, count, pane,
+  permalink or quoted output, copy it from a durable artifact rather than terminal scrollback
+  or memory. If a draft contradicts a claim made by a named person, that contradiction needs
+  its own recorded measurement with a discriminating control — preferably a pre-declared
+  `--hypothesis` — or it does not go in the draft.
 - **Batch and checkpoint.** Triage a handful of issues, then stop and let a human review
   before continuing. Verdict quality degrades silently; unattended full passes hide that.
 
@@ -133,8 +138,11 @@ isolation — it is the one place cross-issue context can leak back in. Give it:
   in this file, where every future batch gets it too;
 - the path to this skill, and the instruction to follow it;
 - the ground-truth compiler id, and the reminder to verify `dxc --version`;
-- the boundary: it writes only `data/issues/<nnnn>/`, and records method observations in
-  `method-notes.md` rather than editing `SKILL.md` or `triage.py`;
+- the boundary, stated explicitly and in full: it writes inside
+  `data/issues/<nnnn>/` **and nowhere else**, and records method observations in
+  `method-notes.md` rather than editing `SKILL.md` or shared scripts. It must not rebuild or
+  relink a shared repository target while peers are measuring the ground-truth build; record
+  that question as unmeasured unless the orchestrator grants a quiescent exception;
 - the check it may run: `triage.py audit --issue <n>`, and it *should* run it before reporting
   back. `audit` opens no transaction and rewrites no table, so it is safe in a parallel phase;
   it was added precisely because the only way to reach the completeness check used to be
@@ -142,8 +150,14 @@ isolation — it is the one place cross-issue context can leak back in. Give it:
   runs;` and cost two batch-004 workers their in-flight rows. Batch 008's brief banned both,
   which removed the per-issue completeness check from exactly the phase it was built for; one
   worker ran it anyway and was right to;
-- the stop condition: verdict recorded and draft written, or a clear statement of what blocked
-  it. `inconclusive` is a real outcome; a forced verdict is not.
+- the stop condition: `verdict.json`, `notes.md` and `comment.md` exist, the per-issue audit
+  has run after the verdict was recorded, and a substantive final response states the verdict
+  or the exact blocker. An idle/empty final turn is not completion. `inconclusive` is a real
+  outcome; a forced verdict is not.
+
+The orchestrator verifies completion from disk rather than worker self-report, re-prompts any
+worker whose substantive response is missing, and checks for new untracked files outside the
+skill tree before commit.
 
 Two things belong to the batch, not the issue, so tell the worker not to attempt them:
 `reviewed_by` (step 10 runs once over all the drafts) and any cross-issue claim. A worker that
@@ -184,8 +198,12 @@ declared expectation had been satisfied the whole time while the header beneath 
 opposite.
 
 It cannot check reasoning. It will not tell you a repro is unfaithful to the issue, that the
-predicate tests the wrong thing, or that a verdict misreads its own output. That is what the
-human gate and the blind test are for.
+predicate tests the wrong thing, or that a verdict misreads its own output. It also does not
+execute bespoke `manual-case-*.txt` generators or issue-local history matrices unless they
+have been registered as a compiler and captured through `run`. If a headline status or release
+boundary comes only from a manual harness, either bring it under `run`/`runs`, or state in the
+notes and batch report that it is outside automatic re-checking and re-run it deliberately at
+collation. The human gate and blind test cover the remaining reasoning gap.
 
 It also cannot check what it cannot see. The rebuild reads `issues` from `verdict.json`
 alone, so any column written by another subcommand — `title`, `url`, `created_at`, `labels`
@@ -259,12 +277,13 @@ design:
 
 Evidence is committed because a verdict nobody can re-check is just an assertion. The cache
 is not, because it is either huge, machine-specific, or derived. `scripts/triage.py` is the
-only tool you need.
+core triage CLI; batch verification and collation also use `test_predicates.py`,
+`check_paths.py`, `render_comments.py` and `render_overview.py`.
 
 ```bash
-python triage.py init                        # first time only
-python triage.py reindex                     # after a fresh clone: rebuild db from data/
-python triage.py catalog --seed-from <repo>/build/tools/clang/test/dxc_releases
+python scripts/triage.py init                        # first time only
+python scripts/triage.py reindex                     # after a fresh clone: rebuild db from data/
+python scripts/triage.py catalog --seed-from <repo>/build/tools/clang/test/dxc_releases
 ```
 
 `catalog` records every release that ships a `dxc` binary. Ordering uses the **build date
@@ -272,12 +291,17 @@ encoded in the asset name**, not the publish date — servicing patches ship lon
 snapshot they were built from. `--seed-from` adopts release trees the DXC test infrastructure
 already downloaded, for free.
 
-The catalog is also the reconciliation layer for the two physical release roots: downloaded
-assets under `.cache` and test-seeded trees under
-`build/tools/clang/test/dxc_releases`. The `seed_local()` importer writes the selected
-executable into the single `releases.cached_path` column; there is no `seed_local` column.
-Release-matrix scripts should query `cached_path` rather than walking one root and silently
-missing the other.
+The catalog is the only supported release-enumeration API. It reconciles downloaded assets
+under `.cache` with test-seeded trees under
+`build/tools/clang/test/dxc_releases`, and stores the selected executable in
+`releases.cached_path`; there is no `seed_local` column. Release-matrix scripts **must obtain
+executables through `ensure_release(tag)` or catalog
+`cached_path`, ordered by `build_date`, and must not recurse either cache root**. The physical
+trees are nonuniform and can contain both x64 and arm64 `dxc.exe` files; an arm64 launch
+failure on an x64 host can otherwise be scored as empty compiler output and manufacture a
+reproduction. A NULL `cached_path` for a row with a usable asset means unresolved machine
+state; consult `asset_name`, `bisectable` and the per-issue release policy rather than inferring
+that the release lacks the tool.
 
 ### `reindex` is a regression test over every past batch
 
@@ -319,7 +343,8 @@ share of old DXC issues are asserts, and Release builds have asserts compiled ou
 
 ```bash
 cmake --build <build> --config Debug --target dxc --parallel
-python triage.py compiler --id main-debug --exe <build>/Debug/bin/dxc --commit $(git rev-parse HEAD)
+python scripts/triage.py compiler --id main-debug --exe <build>/Debug/bin/dxc \
+  --commit <public-upstream-sha>
 ```
 
 **Verify the version string before trusting anything.** DXC caches generated version headers
@@ -349,12 +374,12 @@ Triage provenance is worthless if the binary misreports what it is.
 > as a contradiction. See `reports/provenance-correction.md` for a worked example covering 25
 > issues.
 
-> **Re-register the compiler after *every* rebuild, and re-read the registry to confirm.**
-> `triage.py compiler` updates the database but not `.cache/compilers/<id>.json`, so a
-> mid-pass rebuild silently leaves the registry describing the previous binary. The label
-> `main-debug` is a *mutable pointer*, and capture headers record the compiler's path, not its
-> commit — so the only in-file trace of what actually ran is the version string DXIL metadata
-> happens to embed, and crash-only probes emit none at all.
+> **Re-register the compiler after *every* rebuild, and inspect what was registered.**
+> `triage.py compiler` updates both the `compilers` database row and
+> `.cache/compilers/<id>.json`, then prints the executable, version, commit and registry path.
+> Confirm those values before continuing. The label `main-debug` is still a *mutable pointer*,
+> and capture headers record the compiler's path rather than its commit, so crash-only probes
+> still have no independent in-file build identity.
 
 > **Scope any provenance query to ground-truth captures.** Version strings also appear in
 > release captures and pasted third-party output. Filter on the `# compiler: main-debug`
@@ -392,7 +417,7 @@ Triage provenance is worthless if the binary misreports what it is.
 ### 1. Read the whole issue, comments included
 
 ```bash
-python triage.py fetch --issue <N> --batch batch-001
+python scripts/triage.py fetch --issue <N> --batch batch-001
 ```
 
 Comments routinely hold the real repro, a smaller reproducer, a maintainer's design position,
@@ -426,6 +451,10 @@ printed into a verdict, and "does not reproduce" becomes unfalsifiable.
 
 Record the repro quality honestly: `complete`, `partial`, `prose-only`, `none`, or
 `agent-constructed`.
+
+Treat `expected.md` as write-once once the first probe has run. If the evidence contradicts
+it, preserve the prediction and reconcile the difference explicitly in `notes.md`; do not
+silently rewrite the pre-run criterion to fit the output.
 
 ### 3. Build the repro
 
@@ -516,16 +545,22 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 > Note that dxc's assert output puts the value of `File:` on the *following* line, so reading
 > only the first line attributes the assert to the wrong file.
 >
-> **Run `cdb` through `cmd.exe`, not through PowerShell.** From PowerShell, `cdb -c "..."`
-> produces no output at all — no error, no diagnostic, exit 0 — which reads as "the debugger
-> found nothing". Measured on #3377. Put the whole invocation, redirection included, inside
-> `cmd.exe /c`, and drop the `--` separator, which `cmd` does not need and `cdb` sometimes
-> takes as a target. While you are there: **do not try to report `ERRORLEVEL` from a `.cmd`
-> harness.** `set /a` resets it and a nested `for /f` clobbers it, so a batch file will
-> cheerfully print `0` for a run that crashed. Capture exit statuses from the Python that
-> launched the process. Invoke a local harness as `.\name.cmd` inside `cmd /c`; bare
-> `name.cmd` need not resolve because the current directory is not guaranteed to be on
-> `PATH`.
+> **Choose the `cdb` launcher by the caller.** From an interactive PowerShell command,
+> put the complete invocation and redirection inside `cmd.exe /c`; direct PowerShell
+> invocation can silently produce no output. From Python, do **not** add another shell:
+> pass the `cdb.exe` argv list directly to `subprocess.run` and record
+> `subprocess.list2cmdline(argv)` in the capture. Wrapping a quoted debugger path and quoted
+> `-c` script in `cmd.exe /c` from Python can make `cmd` report that the debugger path is not
+> a command.
+>
+> When attaching to a live hung process, a bare `kn` initially shows the injected
+> `DbgUiRemoteBreakin` thread, not necessarily the compiler's hung thread. Capture all threads
+> with `~*kn` or select the target thread explicitly before interpreting the stack.
+>
+> Do not report `%ERRORLEVEL%` from the same compound `cmd` line: expansion happens at parse
+> time, and batch helpers such as `set /a` or `for /f` can overwrite it. Capture the native
+> status in Python. Invoke a local `.cmd` harness as `.\name.cmd`; a bare name need not resolve
+> because the current directory is not guaranteed to be on `PATH`.
 
 > **When the symptom is in a pass `dxc.exe` cannot run, register the harness as a compiler.**
 > Some defects live in code no compiler driver reaches — PIX's `IDxcOptimizer` passes are the
@@ -537,7 +572,7 @@ issues need `-spirv`. If the issue has no repro, construct a best-effort one and
 > The cheaper route is to make the harness *look like a compiler*:
 >
 > ```bash
-> python triage.py compiler --id main-debug-pix --exe <abs path>/run-passes.cmd
+> python scripts/triage.py compiler --id main-debug-pix --exe <abs path>/run-passes.cmd
 > ```
 >
 > The wrapper needs an absolute path, must answer `--version`, and should take the real
@@ -754,6 +789,20 @@ release, not only on `main`. Two tidy-looking regressions were instrument change
 self-test flips while the behavioural clauses do not, that release is unmeasurable under the
 predicate, not `no-repro`; write an instrument-portable twin or use a fixed reader.
 
+Before using any printed string, field or layout spelling as a history anchor, prove that the
+anchor is present in a known-good compile at both the oldest and newest releases in the range.
+A boundary at either measurable endpoint is especially suspicious: it may be the anchor's
+history rather than the defect's.
+
+A control whose expected result is also the default or no-op result proves nothing about
+whether a requested mode ran. Add an engagement witness whose output changes only when the
+mode or pass is active.
+
+A release tag is a bundle, not just `dxc.exe`. When the symptom is a validator verdict, record
+the emitted artifact separately from the bundled validator's pass/fail result. If two releases
+emit byte-identical bad artifacts and only the validator verdict moves, attribute the boundary
+to the validator component, not to DXC code generation.
+
 With `-Zi`, embedded source is both a hazard and a free control. Never test a missing
 identifier by its bare spelling — `!dx.source.contents` manufactures that hit in every run.
 Anchor on the metadata form (`!DILocalVariable(... name: "X")`), and use the embedded
@@ -762,7 +811,7 @@ Keep any self-test variable live: dead-code elimination can remove its metadata 
 working instrument look broken.
 
 ```bash
-python triage.py run --issue <N> --shader control-separate-raydesc.hlsl \
+python scripts/triage.py run --issue <N> --shader control-separate-raydesc.hlsl \
     --label control --expect no-match
 ```
 
@@ -780,6 +829,19 @@ both directions, and both are real:
 | --- | --- |
 | `--expect no-match` | a **negative** control: a known-good input the predicate must not fire on. #3009's predicate matched a fully-correct shader until it was narrowed |
 | `--expect match` | an **identity** control: #1803's shader declared `column_major` must produce *identical* DXIL to the `row_major` original, because that identity is what proves the attribute is ignored |
+
+**Use `--hypothesis` when the expected result is a prediction, not a control invariant.**
+A refuted control means the instrument or control is wrong; a refuted hypothesis is often the
+finding. Record that distinction before running:
+
+```bash
+python scripts/triage.py run --issue <N> --shader case.hlsl \
+  --label scope-question --expect no-match --hypothesis
+```
+
+The capture records `# expectation-kind: hypothesis` and
+`# outcome: supported|refuted`. `triage.py expect` deliberately refuses to rewrite a tested
+hypothesis after the result is known; use a new label for a new prediction.
 
 Getting this backwards is easy and the check catches it: a blanket "warn if a control matches"
 rule reports #1803's central finding as a predicate bug.
@@ -835,8 +897,8 @@ real absence from a typo in a regex.
 ### 5. Run against the ground-truth build
 
 ```bash
-python triage.py run --issue <N>
-python triage.py run --issue <N> --match match-crash.json   # extra predicate
+python scripts/triage.py run --issue <N>
+python scripts/triage.py run --issue <N> --match match-crash.json   # extra predicate
 ```
 
 > **`--shader` and `--args` are not interchangeable.** `run --shader X --label Y` reuses
@@ -848,10 +910,16 @@ python triage.py run --issue <N> --match match-crash.json   # extra predicate
 > stale for the length of the triage. `run` now warns at capture time. Reach for `--shader`
 > unless the stage or flag set genuinely has to change.
 
-> **Editing a captured repro's comments invalidates the capture.** Assert and diagnostic output
-> quotes `Line:` numbers, so tidying a comment after the fact silently desynchronises every
-> line number in every file you have already written. Preserve the line count, or re-capture.
-> Noticed on #2530.
+> **Editing any captured input invalidates every capture that used it.** Comment edits can
+> desynchronise quoted `Line:` numbers, and a labelled variant can change behavior while
+> keeping the same filename and command. The tool checks `cmd.txt` staleness but does not
+> persist input-content hashes, so re-run every affected primary and labelled capture after a
+> source edit; preserving line count is not enough when semantics changed.
+>
+> `run --shader` also preserves fixed output arguments such as `-Fo out.cso`. Several
+> variants can therefore overwrite the same produced artifact even though their text captures
+> have different labels. Give each arm a distinct output path via labelled `--args`, or use a
+> matrix harness that owns and records its output names.
 
 Then classify against `expected.md`:
 
@@ -925,6 +993,16 @@ reflection interface.
 > re-quotes arguments and silently repairs the bug. Keep the raw invocation in its own script
 > next to the issue, and record which shell produced the result.
 
+> **File-output and command-line issues need harness controls of their own.** Treat the harness
+> as part of the instrument. Capture every produced file's byte size and both its head and
+> tail; a head-only excerpt can hide an appended defect. Delete expected outputs before each
+> arm and report PRESENT/MISSING explicitly so stale files cannot satisfy the predicate.
+> Capture the real subprocess status in Python. `%ERRORLEVEL%` in a single `cmd /c` line is
+> expanded before the command runs, and a `.cmd` wrapper can mangle an HRESULT into a
+> crash-looking unsigned value. If a wrapper must be registered as a compiler, return a small
+> documented wrapper status and print the real hexadecimal status and classification in the
+> captured text.
+
 > **PowerShell will silently eat `$` and `` ` `` out of any prose you write through it.** Two
 > different mechanisms, both invisible, both measured in batch 006 and both landing in committed
 > artifacts. In a **double-quoted** string `$Globals` expands to nothing — `triage.py verdict
@@ -952,8 +1030,8 @@ release binaries and repeat the run; a single clean pass is not evidence of a fi
 > **A nondeterministic bug makes single-run probes worthless — use `--repeat`.**
 >
 > ```bash
-> python triage.py run    --issue <N> --repeat 25
-> python triage.py bisect --issue <N> --repeat 10 --linear
+> python scripts/triage.py run    --issue <N> --repeat 25
+> python scripts/triage.py bisect --issue <N> --repeat 10 --linear
 > ```
 >
 > `--repeat` runs the repro up to N times and reports the symptom if *any* run shows it,
@@ -1003,9 +1081,9 @@ release binaries and repeat the run; a single clean pass is not evidence of a fi
 ### 6. Locate the transition
 
 ```bash
-python triage.py bisect --issue <N>
-python triage.py bisect --issue <N> --linear    # non-monotonic history
-python triage.py bisect --issue <N> --repeat 10 # nondeterministic symptom
+python scripts/triage.py bisect --issue <N>
+python scripts/triage.py bisect --issue <N> --linear    # non-monotonic history
+python scripts/triage.py bisect --issue <N> --repeat 10 # nondeterministic symptom
 ```
 
 Checks both endpoints first and short-circuits when they agree, so an always-broken or
@@ -1099,6 +1177,11 @@ across issues.
 > stamps `# invalid-probe-reason:` into the capture saying which rule fired and on what text,
 > so an `invalid-probe` you did not expect is readable on disk instead of only reconstructable
 > by re-reading `classify`.
+
+When one issue uses several predicates for the same diagnostic surface, a secondary predicate
+may opt into a sibling predicate's literal diagnostic quotation with a top-level field such as
+`"quote_from": ["match-diagnostic.json"]`. Use this only when the predicates genuinely describe
+the same diagnostic; without the explicit link, sibling predicates remain isolated.
 
 > **`invalid-probe` on the repro is ambiguous on its own; a feature-presence control resolves
 > it.** "This release rejected the input" can mean the release predates the feature, or that
@@ -1290,13 +1373,15 @@ at filing is insufficient.
 ### 7. Publish a shareable repro
 
 ```bash
-python triage.py godbolt --issue <N>
+python scripts/triage.py godbolt --issue <N>
 ```
 
 Compiles the repro on [Compiler Explorer](https://godbolt.org), prints the result per
 compiler, and stores a short link on the issue row. Default compilers are `dxc_1_6_2112`
-(CE's oldest) and `dxc_trunk`. **The link is verified before it is handed over** — never
-publish one without checking it shows what you claim.
+(CE's oldest) and `dxc_trunk`. By default the command writes every pane's full output to
+`manual-case-godbolt-verify.txt` and then attempts to read the short link back. A read-back
+mismatch or request failure is only a warning: the command still records and prints the URL.
+Treat any warning as a hard stop, inspect the saved panes, and open the link before citing it.
 
 **Always write `issues/<nnnn>/godbolt-note.txt`.** It is prepended to the shared source as a
 `// What to look for` banner. A bare link to a shader that compiles "fine" invites the reader
@@ -1305,6 +1390,12 @@ to conclude the bug is gone — name the exact thing to check: the `HLSL Bind` c
 repro stays exactly what was tested locally; the banner is presentation, not evidence. Write
 plain prose, not leading `//`; `annotate()` owns the marker and strips one if supplied so old
 notes cannot publish as `// //`.
+
+The annotation is compiled input, so it also shifts every source line number reported by a
+pane. Do not copy a local line number into a draft after adding the banner; quote the archived
+pane output instead. `dxc -verify` scans comments for directive tokens such as
+`expected-error`, including explanatory prose, so keep those literal tokens out of
+`godbolt-note.txt` and ordinary header comments unless they are intentional verify directives.
 
 **CE's DXC panes always include debug-info flags.** The generated arguments append
 `-Zi -Qembed_debug -Fc -`, so tests whose output is mode-sensitive need a local control
@@ -1320,7 +1411,7 @@ adapter is a separate environment and may use `-Fc -` internally.
 is a pure feature request with nothing to see, record that decision instead of forcing one:
 
 ```bash
-python triage.py godbolt --issue <N> --skip "pure feature request; nothing to see"
+python scripts/triage.py godbolt --issue <N> --skip "pure feature request; nothing to see"
 ```
 
 But revisit that call once you have tried a Clang pane. #1627 was skipped as "just an
@@ -1337,7 +1428,7 @@ which is how a contrasting compiler is placed beside DXC:
 
 ```bash
 # "FXC diagnoses this and DXC does not" — shown, not asserted
-python triage.py godbolt --issue 1306 \
+python scripts/triage.py godbolt --issue 1306 \
   --compilers "fxc_10_0_19041:/T cs_5_0 /E main,dxc_1_6_2112,dxc_trunk"
 ```
 
@@ -1351,7 +1442,7 @@ reproduce in DXC?" and "has the successor compiler already answered this?" are d
 questions, and the second is often the more useful one for an old issue:
 
 ```bash
-python triage.py godbolt --issue 708 \
+python scripts/triage.py godbolt --issue 708 \
   --compilers "dxc_1_6_2112,dxc_trunk,hlsl_clang_trunk"
 ```
 
@@ -1491,8 +1582,8 @@ an exact trunk symptom in anything you publish; describe the class of failure in
 ### 8. Review the labels
 
 ```bash
-python triage.py labels --refresh          # re-fetch the taxonomy, then list it
-python triage.py labels --issue <N>        # current vs proposed for one issue
+python scripts/triage.py labels --refresh          # re-fetch the taxonomy, then list it
+python scripts/triage.py labels --issue <N>        # current vs proposed for one issue
 ```
 
 **Never hardcode a label list, and never work from memory or from a previous batch.** Labels
@@ -1503,7 +1594,7 @@ Proposals are recorded through `verdict` and **validated against the live set** 
 label is rejected with a near-miss suggestion rather than silently stored:
 
 ```bash
-python triage.py verdict --issue 1702 \
+python scripts/triage.py verdict --issue 1702 \
   --labels-now "bug,shader-linking" \
   --labels-add "fxc-disagrees,incorrect-code,correctness,check-in-clang" \
   --labels-remove "shader-linking"
@@ -1742,7 +1833,7 @@ current-path search incorrectly dated it to the April file move.
 > re-derive the file instead of trusting it.
 
 ```bash
-python triage.py verdict --issue <N> --status repros --repro-quality complete \
+python scripts/triage.py verdict --issue <N> --status repros --repro-quality complete \
   --history "always-repro'd" --confidence high --suggested-action still-valid-keep-open \
   --summary "..." --notes-path issues/<nnnn>/notes.md --triaged-with-commit <sha> \
   --triaged-by "<model>" --reviewed-by "<reviewer model>"
@@ -1771,8 +1862,14 @@ Suggested actions (recorded, **never applied**): `close-fixed`,
 
 ## Batch report
 
-Write `reports/batch-NNN.md` covering: ground truth used (commit + version), a summary table
-with a Compiler Explorer link per issue, per-issue findings, the **draft comments**, and —
+Before writing `reports/batch-NNN.md`, enumerate the batch's issue directories and read every
+`method-notes.md` in full; a worker summary is not a substitute. Record which observations
+were promoted, rejected as issue-specific, superseded, or left as an open tooling question.
+Also re-read every `match*.json` `note` against the implementation and captures — predicate
+explanations are unreviewed prose and have been wrong while the predicate itself was right.
+
+Write the report covering: ground truth used (commit + version), a summary table with a
+Compiler Explorer link per issue, per-issue findings, the **draft comments**, and —
 importantly — **what the batch taught you about the method**. Predicate bugs and methodology
 gaps found while triaging are as valuable as the verdicts, and should change how the next
 batch is run.
@@ -1896,9 +1993,9 @@ unrecognised falls through to the last tier rather than disappearing.
 ## Useful queries
 
 ```bash
-python triage.py status
-python triage.py sql "SELECT number, status, history FROM issues WHERE status='does-not-repro'"
-python triage.py sql "SELECT number, fixed_in FROM issues WHERE history='fixed'"
+python scripts/triage.py status
+python scripts/triage.py sql "SELECT number, status, history FROM issues WHERE status='does-not-repro'"
+python scripts/triage.py sql "SELECT number, fixed_in FROM issues WHERE history='fixed'"
 ```
 
 ## Selecting a batch

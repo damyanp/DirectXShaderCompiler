@@ -1,22 +1,33 @@
 #!/usr/bin/env python3
-"""Tooling for DXC open-issue triage.
+"""Tooling for evidence-backed, report-only DXC open-issue triage.
 
 Answers, per issue: is there a usable repro, does it still reproduce against a
 current build, and which release fixed it or introduced it.
 
-The workspace lives outside the DXC repo (set DXC_TRIAGE_ROOT, default
-~/dxc-triage) and holds a SQLite index plus per-issue evidence, so a long pass
-can be stopped and resumed.
+Committed evidence defaults to `<skill>/data`; machine-local release binaries
+and the derived SQLite index default to `<skill>/.cache`. Override with
+DXC_TRIAGE_ROOT and DXC_TRIAGE_CACHE. The index is derived, not authoritative:
+disk is truth, and `reindex` rebuilds it by re-scoring every archived capture
+with today's predicate code, so a long pass can be stopped and resumed.
 
   triage.py init
   triage.py catalog
   triage.py compiler --id main-debug --exe <path/to/dxc>
   triage.py fetch    --issue 1768
+  triage.py expect   --issue 1768
   triage.py run      --issue 1768 [--compiler main-debug] [--match match.json]
-  triage.py bisect   --issue 1768 [--match match.json]
+                                  [--repeat N] [--shader X --label Y --expect E]
+  triage.py bisect   --issue 1768 [--match match.json] [--linear] [--repeat N]
+  triage.py godbolt  --issue 1768 [--compilers ...] [--skip "reason"]
+  triage.py labels   [--refresh] [--issue 1768]
   triage.py verdict  --issue 1768 --status repros --repro-quality complete ...
+  triage.py reindex
+  triage.py audit    [--issue 1768] [--collated]
   triage.py status
   triage.py sql "SELECT ..."
+
+`reindex` rewrites shared state and is unsafe to run while per-issue workers
+are live; it belongs to the collation phase.
 
 This tool is read-only with respect to GitHub: it only ever runs `gh issue
 view`, `gh release list/view/download`. It never edits, labels, comments on or

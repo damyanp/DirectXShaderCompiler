@@ -8,8 +8,8 @@ repro, does it still reproduce, and when did that change?**
 ## Layout
 
 ```
-scripts/            triage.py, test_predicates.py, render_comments.py,
-                    render_overview.py
+scripts/            triage.py, test_predicates.py, check_paths.py,
+                    render_comments.py, render_overview.py
 data/issues/<nnnn>/ the evidence for one issue
 data/reports/       overview.md, plus one report per batch
 .cache/             compilers and the database -- gitignored, regenerable
@@ -47,10 +47,13 @@ fix, not on triage. Severity lives in the issue's labels; this report answers "w
 | `expected.md` | what "this reproduces" means, **written before anything was run** |
 | `repro.hlsl`, `cmd.txt` | the repro, and the exact arguments every compiler receives |
 | `cmd-as-filed.txt` | present when `cmd.txt` deliberately departs from the report |
-| `match.json` | the symptom predicate, with a `note` justifying it |
-| `out-<compiler>.txt` | a probe of the repro; header records exe, command, exit and verdict |
-| `variant-*.txt` | a *control* or translated variant — deliberately not scored by `match.json` |
-| `manual-case-*.txt` | output captured by hand, where the repro is not a `dxc` invocation |
+| `match*.json` | symptom predicates, each with a `note` justifying it |
+| `out-<compiler>[--<predicate>].txt` | a primary probe; header records exe, command, exit, predicate and verdict |
+| `variant-*.txt` | a labelled control or translated variant, scored by its `# match:` predicate and checked against `# expect:`, but never treated as the primary repro probe |
+| `manual-case-*.txt` | output captured outside a direct `triage.py run`; generate it from a committed issue-local harness where possible and keep the generator beside it |
+| `godbolt-note.txt`, `godbolt.txt`, `godbolt-source.txt` | the CE annotation, pane specification and optional presentation source |
+| `release-policy.json` | an explicit, validated per-issue prerelease opt-in |
+| `method-notes.md` | worker observations for collation to promote, reject or supersede |
 | `notes.md` | what was tested, what happened, and the assessment |
 | `comment.md` | a **draft** comment for a maintainer to review — never posted by this skill |
 | `verdict.json` | the recorded verdict; the database is rebuilt from these |
@@ -69,7 +72,7 @@ when it was measured is part of the evidence.
 | `repros` | the reported symptom is still observed |
 | `does-not-repro` | the repro runs clean; the symptom is gone |
 | `changed-behavior` | still misbehaves, but differently than reported |
-| `not-compiler-verifiable` | judging it needs a GPU, driver or runtime, not a compiler |
+| `not-compiler-verifiable` | compiler output is not the right instrument; use GPU/driver/runtime, build/package, metadata or process evidence instead |
 | `inconclusive` | the repro is too ambiguous to judge |
 
 | `repro_quality` | meaning |
@@ -144,7 +147,7 @@ cd .github/skills/dxc-issue-triage
 python scripts/triage.py reindex          # rebuild the database from data/
 python scripts/triage.py catalog --seed-from ../../../build/tools/clang/test/dxc_releases
 python scripts/triage.py compiler --id main-debug --exe ../../../build/Debug/bin/dxc.exe \
-                                  --commit $(git rev-parse HEAD)
+                                  --commit <public-upstream-sha>
 ```
 
 `reindex` restores issues and runs. The release catalog and the local Debug build are
