@@ -1213,6 +1213,88 @@ static void
 ValidateLinAlgMatrixAccumulateToDescriptor(CallInst *CI,
                                            ValidationContext &ValCtx) {
   ValidateLinAlgOpParameters(CI, ValCtx);
+
+  DxilInst_LinAlgMatrixAccumulateToDescriptor Op(CI);
+  Type *MatTy = Op.get_matrix()->getType();
+
+  assert(dxilutil::IsHLSLLinAlgMatrixType(MatTy) && "Must be LinAlg type");
+  auto MatIt = ValCtx.LinAlgTargetTypeMap.find(MatTy);
+  if (MatIt == ValCtx.LinAlgTargetTypeMap.end())
+    return;
+  LinAlgTargetType MatLATT = MatIt->second;
+
+  ConstantInt *LayoutCI = dyn_cast<ConstantInt>(Op.get_layout());
+  if (!LayoutCI) {
+    ValCtx.EmitInstrFormatError(
+        CI, ValidationRule::InstrOpConst,
+        {"Layout", "LinAlgMatrixAccumulateToDescriptor"});
+    return;
+  }
+  auto Layout = static_cast<DXIL::MatrixLayout>(LayoutCI->getLimitedValue());
+  bool LayoutIsRowColMajor = (Layout == DXIL::MatrixLayout::RowMajor ||
+                              Layout == DXIL::MatrixLayout::ColumnMajor);
+
+  // Thread Matrix must have layout OuterProductOptimal*
+  if (MatLATT.Scope == DXIL::MatrixScope::Thread &&
+      (Layout != DXIL::MatrixLayout::OuterProductOptimal &&
+       Layout != DXIL::MatrixLayout::OuterProductOptimalTranspose))
+    ValCtx.EmitInstrFormatError(
+        CI, ValidationRule::InstrLinAlgMatrixScopeReqLayout2,
+        {MatrixScopeToString(MatLATT.Scope), "OuterProductOptimal",
+         "OuterProductOptimalTranspose"});
+
+  // Wave/ThreadGroup matrix must have layout RowMajor/ColMajor
+  if (MatLATT.Scope != DXIL::MatrixScope::Thread && !LayoutIsRowColMajor)
+    ValCtx.EmitInstrFormatError(
+        CI, ValidationRule::InstrLinAlgMatrixScopeReqLayout2,
+        {MatrixScopeToString(MatLATT.Scope), "RowMajor", "ColumnMajor"});
+
+  // Stride must be an imm 0 if layout is not Row/Col Major
+  if (!LayoutIsRowColMajor) {
+    ConstantInt *StrideCI = dyn_cast<ConstantInt>(Op.get_stride());
+    if (StrideCI) {
+      if (!StrideCI->isZero())
+        ValCtx.EmitInstrFormatError(
+            CI, ValidationRule::InstrLinAlgMatrixLayoutReqStride,
+            {MatrixLayoutToString(Layout)});
+    } else
+      ValCtx.EmitInstrFormatError(
+          CI, ValidationRule::InstrOpConst,
+          {"Stride", "LinAlgMatrixAccumulateToDescriptor"});
+  }
+
+  // Matrix must have Accumulator use
+  if (MatLATT.Use != DXIL::MatrixUse::Accumulator)
+    ValCtx.EmitInstrFormatError(
+        CI, ValidationRule::InstrLinAlgMatrixUseMismatch,
+        {MatrixUseToString(MatLATT.Use), "Accumulator"});
+
+  // handle must be a UAV Raw buffer (RWByteAddressBuffer)
+  DXIL::ComponentType ResCompTy;
+  DXIL::ResourceClass ResClass;
+  DXIL::ResourceKind ResKind =
+      GetResourceKindAndCompTy(Op.get_handle(), ResCompTy, ResClass, ValCtx);
+  if (ResClass != DXIL::ResourceClass::UAV ||
+      ResKind != DXIL::ResourceKind::RawBuffer)
+    ValCtx.EmitInstrFormatError(CI,
+                                ValidationRule::InstrLinAlgMatrixRequiresRWBAB,
+                                {"LinAlgMatrixAccumulateToDescriptor"});
+
+  // Align must be an immediate constant that is a multiple of 128 greater than
+  // 0
+  ConstantInt *AlignCI = dyn_cast<ConstantInt>(Op.get_align());
+  if (AlignCI) {
+    unsigned Align = AlignCI->getLimitedValue();
+    if (Align == 0)
+      ValCtx.EmitInstrFormatError(CI, ValidationRule::InstrParamMinimumValue,
+                                  {"Align", "0", std::to_string(Align)});
+    if (Align % 128 != 0)
+      ValCtx.EmitInstrFormatError(CI, ValidationRule::InstrParamMultiple,
+                                  {"Align", "128", std::to_string(Align)});
+  } else
+    ValCtx.EmitInstrFormatError(
+        CI, ValidationRule::InstrOpConst,
+        {"Align", "LinAlgMatrixAccumulateToDescriptor"});
 }
 
 static void ValidateLinAlgMatrixAccumulateToMemory(CallInst *CI,
@@ -1270,16 +1352,16 @@ static void ValidateLinAlgMatrixLoadFromDescriptor(CallInst *CI,
   ValidateLinAlgOpReturnMatrix(CI, ValCtx);
   ValidateLinAlgOpParameters(CI, ValCtx);
 
+  DxilInst_LinAlgMatrixLoadFromDescriptor Op(CI);
   Type *RetMatTy = CI->getType();
+
   assert(dxilutil::IsHLSLLinAlgMatrixType(RetMatTy) && "Must be LinAlg type");
   auto RetIt = ValCtx.LinAlgTargetTypeMap.find(RetMatTy);
   if (RetIt == ValCtx.LinAlgTargetTypeMap.end())
     return;
   LinAlgTargetType RetLATT = RetIt->second;
 
-  Value *StrideOp = CI->getArgOperand(3);
-  Value *LayoutOp = CI->getArgOperand(4);
-  ConstantInt *LayoutCI = dyn_cast<ConstantInt>(LayoutOp);
+  ConstantInt *LayoutCI = dyn_cast<ConstantInt>(Op.get_layout());
   if (!LayoutCI) {
     ValCtx.EmitInstrFormatError(CI, ValidationRule::InstrOpConst,
                                 {"Layout", "LinAlgMatrixLoadFromDescriptor"});
@@ -1298,7 +1380,7 @@ static void ValidateLinAlgMatrixLoadFromDescriptor(CallInst *CI,
 
   // Stride must be an imm 0 if Layout is not Row/Col Major
   if (!LayoutIsRowColMajor) {
-    ConstantInt *StrideCI = dyn_cast<ConstantInt>(StrideOp);
+    ConstantInt *StrideCI = dyn_cast<ConstantInt>(Op.get_stride());
     if (StrideCI) {
       if (!StrideCI->isZero())
         ValCtx.EmitInstrFormatError(
@@ -1307,6 +1389,32 @@ static void ValidateLinAlgMatrixLoadFromDescriptor(CallInst *CI,
     } else
       ValCtx.EmitInstrFormatError(CI, ValidationRule::InstrOpConst,
                                   {"Stride", "LinAlgMatrixLoadFromDescriptor"});
+  }
+
+  // Align must be an immediate constant that is a multiple of 128
+  ConstantInt *AlignCI = dyn_cast<ConstantInt>(Op.get_align());
+  if (AlignCI) {
+    unsigned Align = AlignCI->getLimitedValue();
+    if (Align == 0)
+      ValCtx.EmitInstrFormatError(CI, ValidationRule::InstrParamMinimumValue,
+                                  {"Align", "0", std::to_string(Align)});
+    if (Align % 128 != 0)
+      ValCtx.EmitInstrFormatError(CI, ValidationRule::InstrParamMultiple,
+                                  {"Align", "128", std::to_string(Align)});
+  } else
+    ValCtx.EmitInstrFormatError(CI, ValidationRule::InstrOpConst,
+                                {"Align", "LinAlgMatrixLoadFromDescriptor"});
+
+  // Thread matrix may only load from SRV ByteAddressBuffer
+  if (RetLATT.Scope == DXIL::MatrixScope::Thread) {
+    DXIL::ComponentType ResCompTy;
+    DXIL::ResourceClass ResClass;
+    DXIL::ResourceKind ResKind =
+        GetResourceKindAndCompTy(Op.get_handle(), ResCompTy, ResClass, ValCtx);
+    if (ResClass != DXIL::ResourceClass::SRV ||
+        ResKind != DXIL::ResourceKind::RawBuffer)
+      ValCtx.EmitInstrError(
+          CI, ValidationRule::InstrLinAlgMatrixLoadThreadRequiresBAB);
   }
 }
 
