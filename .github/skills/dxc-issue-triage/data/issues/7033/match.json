@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "The reported symptom is a DXC crash. This predicate covers the differing assert/crash forms across Debug and stable Release builds; control-no-rayquery.hlsl must not match."
+}

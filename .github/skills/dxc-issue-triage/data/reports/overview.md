@@ -4,9 +4,9 @@
 
 # DXC issue triage — overview
 
-**105 issues triaged** across 17 batches (001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 012, 013, 014, 015, 016, 017). Ordered by what a maintainer can act on, most actionable first.
+**107 issues triaged** across 18 batches (001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 012, 013, 014, 015, 016, 017, 018). Ordered by what a maintainer can act on, most actionable first.
 
-**Oldest-100 progress: 100/100.** 5 deliberately selected issues are counted separately: [#5293](https://github.com/microsoft/DirectXShaderCompiler/issues/5293), [#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527), [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725), [#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732), [#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737).
+**Oldest-100 progress: 102/100.** 5 deliberately selected issues are counted separately: [#5293](https://github.com/microsoft/DirectXShaderCompiler/issues/5293), [#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527), [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725), [#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732), [#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737).
 
 > 🔔 **Recent activity — [#5293](https://github.com/microsoft/DirectXShaderCompiler/issues/5293):** New external report on 2026-08-10: Release crash and Debug assert; the thread is actively watched.
 
@@ -16,13 +16,13 @@ Nothing here has been applied. No issue has been edited, commented on, closed or
 
 | Action | Issues |
 | --- | ---: |
-| [Ready to close](#ready-to-close) | 7 |
+| [Ready to close](#ready-to-close) | 9 |
 | [Needs a maintainer decision](#needs-a-maintainer-decision) | 10 |
 | [Reclassify](#reclassify) | 24 |
 | [Confirmed still broken (keep open)](#confirmed-still-broken-keep-open) | 64 |
-| **Total** | **105** |
+| **Total** | **107** |
 
-**23 issues whose text no longer matches their measured behaviour or artifacts.** `text_stale` is not itself a reproduction verdict: some issues below still reproduce and some do not. It means a reader following the current title, body, or thread would be led away from the measured result. Correcting that text is a cheap, immediate action.
+**24 issues whose text no longer matches their measured behaviour or artifacts.** `text_stale` is not itself a reproduction verdict: some issues below still reproduce and some do not. It means a reader following the current title, body, or thread would be led away from the measured result. Correcting that text is a cheap, immediate action.
 
 | # | What is stale |
 | --- | --- |
@@ -46,6 +46,7 @@ Nothing here has been applied. No issue has been edited, commented on, closed or
 | [#4619](https://github.com/microsoft/DirectXShaderCompiler/issues/4619) | The body's first sentence -- 'I tried ID3D12ShaderReflection::GetThreadGroupSize, but got 0, 0, 0 all the time' -- has been false of every DXC since v1.7.2212 (2022-12-16). It was true when filed (v1.7.2207 reproduces), so this is staleness by the compiler moving, not by bad reporting. The harm is the usual one inverted: a reader spot-checking the issue finds GetThreadGroupSize works and may close the whole thing, dropping the still-open topology half; a reader who trusts the text instead goes looking for a bug fixed four years ago. The title names both asks and so overstates the remaining work. Nothing in the thread records the fix. |
 | [#4708](https://github.com/microsoft/DirectXShaderCompiler/issues/4708) | Standing maintainer comment (2023-06-30) names HLSL 202x; hlsl-specs proposal 0008 was retargeted to 202y (2025-04-01) and marked Accepted (2025-07-22). Version number only; the comment's substance was correct. |
 | [#5293](https://github.com/microsoft/DirectXShaderCompiler/issues/5293) | The 2023-06-23 maintainer comment states the assert has no impact on AST formation or code generation and that the code behaves correctly with the assert removed. Measured evidence contradicts this: with NDEBUG the code reads a valueless Optional and performs an out-of-bounds SmallBitVector access, which crashes 12 consecutive shipping releases once the function has 29 or more tracked locals. simontaylor81 raised exactly this in 2024 and it was never resolved on the thread. |
+| [#7033](https://github.com/microsoft/DirectXShaderCompiler/issues/7033) | The title says ray queries do not work with rich SPIR-V debug information, but the crash is fixed in v1.9.2602 and current main. |
 | [#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527) | Title says 'case sensitive'. Case is not the mechanism: #pragma once keys on the path as spelled, so './x' vs '././x' fails with case held constant. The real scope is wider than the title. |
 | [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725) | Title scopes this to 'passing a payload by value to HitObject::Invoke'. Measured: dx::HitObject::TraceRay fails identically, and a mutable static payload passed straight to Invoke fails with no by-value parameter and no user function at all. So the title's 'by value' is one instance of a wider trigger -- an object-method intrinsic with an inout record parameter called with an argument whose address is not provably non-aliasing -- stated as a lead; only Invoke and TraceRay were measured. |
 | [#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732) | Title says 'silent miscompilation or ICE', but the body's own Actual Behavior section says all four filed defects are now diagnosed at compile time and defect 4 no longer ICEs -- only the heap-only conditional case is still described as silent. Neither state is reachable from main: the issue is filed against the unmerged branch of PR #8517 and says so only in passing, so anyone checking it against main or any release sees a loud validation error and concludes it cannot be reproduced. |
@@ -58,9 +59,11 @@ Nothing here has been applied. No issue has been edited, commented on, closed or
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | [#2922](https://github.com/microsoft/DirectXShaderCompiler/issues/2922) | value-to-declare pass not handling pointer case under -O1 ⚠️ | does-not-repro | Fixed between v1.6.2112 (2021-12-08) and v1.7.2207 (2022-07… | high | prose-only | [End684Ycq](https://godbolt.org/z/End684Ycq) | [draft](../issues/2922/comment.md) · [notes](../issues/2922/notes.md) · [expected](../issues/2922/expected.md) · [method](../issues/2922/method-notes.md) |
 | [#3414](https://github.com/microsoft/DirectXShaderCompiler/issues/3414) | DXIL Modifying recursive payload does not work ⚠️ | does-not-repro | fixed | high | complete | [9vKr9a34K](https://godbolt.org/z/9vKr9a34K) | [draft](../issues/3414/comment.md) · [notes](../issues/3414/notes.md) · [expected](../issues/3414/expected.md) · [method](../issues/3414/method-notes.md) |
+| [#7033](https://github.com/microsoft/DirectXShaderCompiler/issues/7033) | [SPIR-V] Ray queries do not work with -fspv-debug=vulkan-with-source ⚠️ | does-not-repro | fixed | high | complete | [EbMbKx9d9](https://godbolt.org/z/EbMbKx9d9) | [draft](../issues/7033/comment.md) · [notes](../issues/7033/notes.md) · [expected](../issues/7033/expected.md) |
 | [#2918](https://github.com/microsoft/DirectXShaderCompiler/issues/2918) | PIX: Numbering pass fails with /Od when subroutines are used | does-not-repro | fixed-in: v1.6.2104 | high | agent-constructed | [a4qPPYzvK](https://godbolt.org/z/a4qPPYzvK) | [draft](../issues/2918/comment.md) · [notes](../issues/2918/notes.md) · [expected](../issues/2918/expected.md) · [method](../issues/2918/method-notes.md) |
 | [#3038](https://github.com/microsoft/DirectXShaderCompiler/issues/3038) | DXR 1.1: Using TraceRayInline(...) right after TraceRay(...) crashes shader compilation | does-not-repro | fixed-in: v1.8.2505 | high | agent-constructed | [6s1W5rfKx](https://godbolt.org/z/6s1W5rfKx) | [draft](../issues/3038/comment.md) · [notes](../issues/3038/notes.md) · [expected](../issues/3038/expected.md) |
 | [#3954](https://github.com/microsoft/DirectXShaderCompiler/issues/3954) | AnyHit Shader hits `llvm_unreachable("Unexpected matrix subscript use.")` | does-not-repro | fixed in v1.8.2502 (repro'd v1.4.1907..v1.8.2407, 14 releas… | high | complete | [PT7Yqj1r6](https://godbolt.org/z/PT7Yqj1r6) | [draft](../issues/3954/comment.md) · [notes](../issues/3954/notes.md) · [expected](../issues/3954/expected.md) · [method](../issues/3954/method-notes.md) |
+| [#7300](https://github.com/microsoft/DirectXShaderCompiler/issues/7300) | [SPIR-V] Failed to compile ray query shader with -fspv-debug=vulkan-with-source | does-not-repro | fixed | high | complete | [zbP5qasd3](https://godbolt.org/z/zbP5qasd3) | [draft](../issues/7300/comment.md) · [notes](../issues/7300/notes.md) · [expected](../issues/7300/expected.md) · [method](../issues/7300/method-notes.md) |
 | [#3768](https://github.com/microsoft/DirectXShaderCompiler/issues/3768) | [SPIR-V] crash compiling shader using printf | does-not-repro | regressed-in v1.6.2104; fixed-in v1.6.2112 | high | complete | [e5KT1E6W9](https://godbolt.org/z/e5KT1E6W9) | [draft](../issues/3768/comment.md) · [notes](../issues/3768/notes.md) · [expected](../issues/3768/expected.md) · [method](../issues/3768/method-notes.md) |
 | [#4168](https://github.com/microsoft/DirectXShaderCompiler/issues/4168) | Can't get cbuffer's variables from a linked shader | does-not-repro | fixed | high | prose-only | n/a | [draft](../issues/4168/comment.md) · [notes](../issues/4168/notes.md) · [expected](../issues/4168/expected.md) · [method](../issues/4168/method-notes.md) |
 
@@ -84,6 +87,13 @@ Fixed. From v1.6.2104 to v1.8.2502 (13 consecutive stable releases) DXC passed a
 
 *Labels:* add `correctness`, `dxil`.
 
+**[#7033](https://github.com/microsoft/DirectXShaderCompiler/issues/7033) — [SPIR-V] Ray queries do not work with -fspv-debug=vulkan-with-source**  
+<sub>batch 018 · triaged against `89e2f98e2` · drafted by `GPT-5.4` · reviewed by `GPT-5.6 Sol`</sub>
+
+The as-filed ray-query rich-debug crash is fixed in v1.9.2602; measured at commit 61de7411f, whose parent b0245e32f still fails the filed command.
+
+> ⚠️ **Issue text is stale.** The title says ray queries do not work with rich SPIR-V debug information, but the crash is fixed in v1.9.2602 and current main.
+
 **[#2918](https://github.com/microsoft/DirectXShaderCompiler/issues/2918) — PIX: Numbering pass fails with /Od when subroutines are used**  
 <sub>batch 007 · triaged against `13730886e` · drafted by `claude-opus-4.6 (Copilot CLI)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
 
@@ -106,6 +116,13 @@ Does not reproduce on main (1.9.0.5433, 13730886e): the AnyHit repro compiles cl
 *History:* fixed in v1.8.2502 (repro'd v1.4.1907..v1.8.2407, 14 releases; clean v1.8.2502..v1.9.2607, 6 releases; no invalid probes; defect predates the oldest release carrying a dxc asset)
 
 *Labels:* add `matrix-bug`.
+
+**[#7300](https://github.com/microsoft/DirectXShaderCompiler/issues/7300) — [SPIR-V] Failed to compile ray query shader with -fspv-debug=vulkan-with-source**  
+<sub>batch 018 · triaged against `89e2f98e2` · drafted by `GPT-5.4` · reviewed by `GPT-5.6 Sol`</sub>
+
+The complete ray-query debug-info repro fails through v1.8.2505.1 and compiles from stable v1.9.2602 onward; the fix was measured at commit 61de7411f, whose parent b0245e32f still fails the filed command.
+
+*Labels:* add `crash`; remove `needs-triage`.
 
 **[#3768](https://github.com/microsoft/DirectXShaderCompiler/issues/3768) — [SPIR-V] crash compiling shader using printf**  
 <sub>batch 002 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
@@ -1072,9 +1089,9 @@ Reproduces on main (1.9.0.5433) and on all 20 stable releases from v1.4.1907 to 
 
 ## Provenance and limits
 
-- Ground truth is a **Debug** build of `main` (4 commits across batches). Debug matters: many older issues are asserts, which a Release build compiles out.
+- Ground truth is a **Debug** build of `main` (5 commits across batches). Debug matters: many older issues are asserts, which a Release build compiles out.
 - **The release bisection floor is v1.4.1907** (2019-07), the oldest release shipping a usable `dxc`. For issues filed before it, "always reproduced" means "for as long as it is possible to check". SPIR-V issues have a higher floor still.
 - **Compiler Explorer runs Release builds**, so a Debug-only assert looks clean there. CE corroborates the local build; it never overrules it. `dxc_trunk` is a rolling build and is not reproducible over time.
 - **Sampling is deliberately unrepresentative.** Batches over-weight the oldest issues, so the verdict distribution here does not generalise to the backlog.
 
-Per-batch reports, including the method findings that changed how later batches were run: [batch 001](batch-001.md), [batch 002](batch-002.md), [batch 003](batch-003.md), [batch 004](batch-004.md), [batch 005](batch-005.md), [batch 006](batch-006.md), [batch 007](batch-007.md), [batch 008](batch-008.md), [batch 009](batch-009.md), [batch 010](batch-010.md), [batch 011](batch-011.md), [batch 012](batch-012.md), [batch 013](batch-013.md), [batch 014](batch-014.md), [batch 015](batch-015.md), [batch 016](batch-016.md), [batch 017](batch-017.md).
+Per-batch reports, including the method findings that changed how later batches were run: [batch 001](batch-001.md), [batch 002](batch-002.md), [batch 003](batch-003.md), [batch 004](batch-004.md), [batch 005](batch-005.md), [batch 006](batch-006.md), [batch 007](batch-007.md), [batch 008](batch-008.md), [batch 009](batch-009.md), [batch 010](batch-010.md), [batch 011](batch-011.md), [batch 012](batch-012.md), [batch 013](batch-013.md), [batch 014](batch-014.md), [batch 015](batch-015.md), [batch 016](batch-016.md), [batch 017](batch-017.md), [batch 018](batch-018.md).

@@ -132,7 +132,7 @@ So `-Fd` never worked for SPIR-V; it went from a confusing failure to an explici
 | releases | primary `match.json` | instrument `match-instrument.json` |
 | --- | --- | --- |
 | v1.4.1907 | `invalid-probe` (`SPIR-V CodeGen not available`) | `invalid-probe` |
-| v1.5.2010, v1.6.2104, v1.6.2106 | `no-repro` | `no-repro` |
+| v1.5.2010, v1.6.2104, v1.6.2106 | `invalid-probe` (`unknown SPIR-V debug info control parameter`) | `invalid-probe` |
 | v1.6.2112 … v1.9.2607 (16 releases) | `repro` | `repro` |
 
 The two scans are **identical**, and that is the finding: the apparent transition at v1.6.2112

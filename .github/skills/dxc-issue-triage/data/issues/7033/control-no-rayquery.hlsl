@@ -1,0 +1,3 @@
+[shader("raygeneration")]
+void main() {
+}

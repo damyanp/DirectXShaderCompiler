@@ -1100,6 +1100,25 @@ def argument_spelling_variants(arg):
             and v.lower() not in {x.lower() for x in variants[:i]}]
 
 
+# Diagnostics meaning "this build cannot express your input", so a probe that
+# emitted one never reached the code under test. Each marker names something the
+# compiler does not HAVE, and each was added only after it was watched firing on
+# a real capture. `classify` is the only consumer; `test_predicates.py` imports
+# this constant rather than restating it, because a second copy drifts silently
+# -- the test's copy had already lost three markers by batch 018.
+UNSUPPORTED_MARKER_RE = (
+    r"(?i)invalid profile|unsupported profile|unrecognized (?:argument|option)|"
+    r"unknown argument|unknown HLSL version(?::\s*[^\r\n]+)?|"
+    r"unknown SPIR-V debug info control parameter(?::\s*[^\r\n]+)?|"
+    r"requires shader model|"
+    r"is not supported (?:for|on|in|with) "
+    r"(?:the current |this |target )*(?:target|profile|shader model|stage)|"
+    r"CodeGen not available|recompile with -D|"
+    r"use of undeclared identifier|unknown type name|"
+    r"no member named|no matching function for call to|"
+    r"for non-scalar types use 'select'")
+
+
 def replace_argument_spelling(cmds, old, new):
     """Replace one complete argv token in every command line."""
     rewritten, changed = [], False
@@ -1205,16 +1224,15 @@ def classify(issue, text, rc, timed_out, match_file="match.json", explain=False)
     # target/profile forms that really do mean "this build cannot express your
     # input". Noticed independently on #8732; it fired on no archived capture,
     # so the anchoring changes no existing verdict.
-    hit = re.search(
-        r"(?i)invalid profile|unsupported profile|unrecognized (?:argument|option)|"
-        r"unknown argument|unknown HLSL version(?::\s*[^\r\n]+)?|"
-        r"requires shader model|"
-        r"is not supported (?:for|on|in|with) "
-        r"(?:the current |this |target )*(?:target|profile|shader model|stage)|"
-        r"CodeGen not available|recompile with -D|"
-        r"use of undeclared identifier|unknown type name|"
-        r"no member named|no matching function for call to|"
-        r"for non-scalar types use 'select'", text)
+    # A release can also reject an unknown *value* of an option it otherwise
+    # recognises. Measured on #7300: v1.5.2010, v1.6.2104 and v1.6.2106 answer
+    # "unknown SPIR-V debug info control parameter: vulkan-with-source" and exit
+    # 1 -- they parsed -fspv-debug but cannot express the mode the repro asks
+    # for, so they never ran it. Scored as clean runs they place a fix boundary
+    # at whichever release learned the spelling. This marker is anchored to the
+    # SPIR-V debug-info form actually observed doing it; it is not generalised
+    # to "unknown ... parameter", which would demote ordinary errors.
+    hit = re.search(UNSUPPORTED_MARKER_RE, text)
     marker = hit.group(0) if hit else None
     # ...unless the issue under triage is ABOUT that diagnostic, in which case
     # the marker is measuring the symptom rather than feature absence. See

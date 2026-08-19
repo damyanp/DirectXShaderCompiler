@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "The reported symptom is an access violation. Internal-failure scoring covers crash-shape changes across Debug and stable Release builds; the same shader without -fspv-debug=vulkan-with-source is captured as a negative control."
+}

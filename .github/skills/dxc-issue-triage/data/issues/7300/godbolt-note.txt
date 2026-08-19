@@ -1,0 +1,1 @@
+The older DXC pane terminates abnormally when rich Vulkan source debug information is generated for the ray-query local. The current pane should emit SPIR-V successfully.

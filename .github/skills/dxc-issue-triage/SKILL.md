@@ -1151,6 +1151,21 @@ across issues.
 > A driver can reject the language mode itself before parsing any source.
 > `dxc failed : Unknown HLSL version: 2021` is an `invalid-probe`, not a clean result; four
 > old releases did exactly this on #5293. The classifier recognises it explicitly.
+>
+> **A release can also reject an unknown *value* of an option it does recognise**, which every
+> marker above misses because they all name a missing feature. Measured on #7300: v1.5.2010,
+> v1.6.2104 and v1.6.2106 answer `unknown SPIR-V debug info control parameter:
+> vulkan-with-source` and exit 1. They parsed `-fspv-debug` and could not express the mode the
+> repro asks for, so they never ran it — and scored clean they place a fix boundary at whichever
+> release learned the spelling. The classifier now recognises that diagnostic, anchored to the
+> observed SPIR-V debug-info form rather than generalised to `unknown ... parameter`, which
+> would demote ordinary errors. When a repro turns on an option *value*, check what the old
+> releases actually said about it before believing a clean run.
+>
+> The markers live in one place, `triage.UNSUPPORTED_MARKER_RE`, and `test_predicates.py`
+> imports it. It used to restate the pattern instead, and by batch 018 that copy had silently
+> lost three markers — so the suite was passing against a regex the classifier does not use. A
+> test that restates the thing under test tests itself.
 
 > **The markers break down on an issue whose reported symptom IS a diagnostic**, because then
 > the signal ("this build rejected the input before reaching the code under test") and the
@@ -1811,6 +1826,19 @@ current-path search incorrectly dated it to the April file move.
 > ancestry check proves a commit is *in* the fixing release, not that it *is* the fix. #3038's
 > window between v1.8.2502 and v1.8.2505 holds 162 commits. Say so, and call the attribution
 > strong rather than certain unless you built at the commit and tested it.
+>
+> **If the exact commit matters, build it — the bracket is cheap next to the claim.** Measured
+> on #7300 and #7033: create detached worktrees at the candidate and its **first parent**, check
+> their submodule pins are identical so the only source difference is the candidate's own diff,
+> build `dxc` in each, and run the issue's exact `cmd.txt`. The attribution holds only if the
+> parent still fails *and* the commit does not. Do it outside the repository working tree and in
+> separate build directories: never rebuild or relink the shared ground-truth target, which
+> peers may be measuring. Give each arm the issue's own control — the parent must fail *only* in
+> the mode under test, or you have measured a broken build. Generate the capture from a
+> committed harness, and record each binary's self-reported `--version`: that is the only build
+> identity a crash-only probe carries. Note that the local build's signature need not match the
+> shipped one — #7300's parent asserts (`0xE0000001`) where every release access-violates
+> (`0xC0000005`), which is why the predicate keys on internal-failure status, not text.
 >
 > **Count the window by *file*, not by commit title.** Titles are the tempting filter and they
 > are unreliable in both directions. Measured on #2923: nine commits touch `lib/DxilPIXPasses/`

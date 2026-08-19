@@ -1,0 +1,62 @@
+> git --no-pager show --stat --oneline 61de7411f952cb0c4b6c73091555dad6419180ee
+61de7411f lower spirv ray query type to opaque debug type (#7139)
+ tools/clang/lib/SPIRV/DebugTypeVisitor.cpp        |  1 +
+ tools/clang/test/CodeGenSPIRV/rayquery_debug.hlsl | 11 +++++++++++
+ 2 files changed, 12 insertions(+)
+exit: 0
+> git --no-pager show --format=fuller 61de7411f952cb0c4b6c73091555dad6419180ee -- tools/clang/lib/SPIRV/DebugTypeVisitor.cpp tools/clang/test/CodeGenSPIRV/rayquery_debug.hlsl
+commit 61de7411f952cb0c4b6c73091555dad6419180ee
+Author:     ChristianReinbold <32750401+ChristianReinbold@users.noreply.github.com>
+AuthorDate: Wed Nov 5 14:15:40 2025 +0100
+Commit:     GitHub <noreply@github.com>
+CommitDate: Wed Nov 5 13:15:40 2025 +0000
+
+    lower spirv ray query type to opaque debug type (#7139)
+    
+    Pull request for Issue
+    [#7033](https://github.com/microsoft/DirectXShaderCompiler/issues/7033).
+    It is still lacking a test though. If you can give me a quick pointer to
+    a test directory where I can reformulate my reproducer as a test, I will
+    add it as well.
+    
+    ---------
+    
+    Co-authored-by: Christian Reinbold <dev@creinbold.de>
+    Co-authored-by: Steven Perron <stevenperron@google.com>
+
+diff --git a/tools/clang/lib/SPIRV/DebugTypeVisitor.cpp b/tools/clang/lib/SPIRV/DebugTypeVisitor.cpp
+index 866f7d3f6..a7778c627 100644
+--- a/tools/clang/lib/SPIRV/DebugTypeVisitor.cpp
++++ b/tools/clang/lib/SPIRV/DebugTypeVisitor.cpp
+@@ -323,6 +323,7 @@ SpirvDebugType *DebugTypeVisitor::lowerToDebugType(const SpirvType *spirvType) {
+   }
+   case SpirvType::TK_Image:
+   case SpirvType::TK_Sampler:
++  case SpirvType::TK_RayQueryKHR:
+   case SpirvType::TK_Struct: {
+     debugType = lowerToDebugTypeComposite(spirvType);
+     break;
+diff --git a/tools/clang/test/CodeGenSPIRV/rayquery_debug.hlsl b/tools/clang/test/CodeGenSPIRV/rayquery_debug.hlsl
+new file mode 100644
+index 000000000..73f4b7a61
+--- /dev/null
++++ b/tools/clang/test/CodeGenSPIRV/rayquery_debug.hlsl
+@@ -0,0 +1,11 @@
++// RUN: %dxc -T cs_6_5 -E main -fspv-target-env=vulkan1.2 -fspv-debug=vulkan-with-source -spirv %s | FileCheck %s
++
++// CHECK: [[rayQueryKHR_name_id:%[0-9]+]] = OpString "@rayQueryKHR"
++// CHECK: [[rayQueryKHR_linkage_name_id:%[0-9]+]] = OpString "rayQueryKHR"
++// CHECK: [[debug_info_none_id:%[0-9]+]] = OpExtInst %void [[_:%[0-9]+]] DebugInfoNone
++// CHECK: [[_:%[0-9]+]] = OpExtInst %void [[_:%[0-9]+]] DebugTypeComposite [[rayQueryKHR_name_id]] %uint_0 [[_:%[0-9]+]] %uint_0 %uint_0 [[_:%[0-9]+]] [[rayQueryKHR_linkage_name_id]] [[debug_info_none_id]] %uint_3{{$}}
++
++[numthreads(64, 1, 1)]
++void main() {
++    RayQuery<RAY_FLAG_NONE> q;
++}
+exit: 0
+> git merge-base --is-ancestor 61de7411f952cb0c4b6c73091555dad6419180ee v1.9.2602
+exit: 0
+> git merge-base --is-ancestor 61de7411f952cb0c4b6c73091555dad6419180ee v1.8.2505.1
+exit: 1
+> git merge-base --is-ancestor 61de7411f952cb0c4b6c73091555dad6419180ee 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+exit: 0

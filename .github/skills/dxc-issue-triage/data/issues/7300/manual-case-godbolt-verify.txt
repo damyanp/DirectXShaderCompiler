@@ -1,0 +1,272 @@
+# Compiler Explorer panes for #7300, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_5 -E main -D SPIRV -O3 -spirv -fspv-target-env=vulkan1.2 -fspv-extension=KHR -fspv-debug=vulkan-with-source
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_5 -E main -D SPIRV -O3 -spirv -fspv-target-env=vulkan1.2 -fspv-extension=KHR -fspv-debug=vulkan-with-source
+# exit:     0
+
+; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 263
+; Schema: 0
+               OpCapability RayQueryKHR
+               OpCapability Shader
+               OpExtension "SPV_KHR_ray_query"
+               OpExtension "SPV_KHR_non_semantic_info"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %gl_GlobalInvocationID %SceneBVH %u_Output
+               OpExecutionMode %main LocalSize 8 8 1
+          %6 = OpString "/app/example.hlsl"
+          %7 = OpString "//==========================================================================//
+// The older DXC pane terminates abnormally when rich Vulkan source debug information is generated for the ray-query local. The current pane should emit SPIR-V successfully.
+//==========================================================================//
+
+#pragma pack_matrix(row_major)
+
+RaytracingAccelerationStructure SceneBVH : register(t0);
+RWTexture2D<uint> u_Output : register(u0);
+
+[numthreads(8, 8, 1)]
+void main(uint2 pixel : SV_DispatchThreadID)
+{
+    RayDesc ray;
+    ray.Origin = float3(pixel.x, pixel.y, 0);
+    ray.TMin = 0;
+    ray.TMax = 1000;
+    ray.Direction = float3(0, 1, 0);
+
+    uint instanceMask = 0xFF;
+    uint rayFlags = 0;
+
+    RayQuery<RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES> rayQuery;
+
+    rayQuery.TraceRayInline(SceneBVH, rayFlags, instanceMask, ray);
+    rayQuery.Proceed();
+
+    if (rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
+        u_Output[pixel] = 1;
+    else
+        u_Output[pixel] = 0;
+}
+"
+          %8 = OpString "@rayQueryKHR"
+          %9 = OpString "rayQueryKHR"
+         %10 = OpString "uint"
+         %11 = OpString "main"
+         %12 = OpString ""
+         %13 = OpString "rayQuery"
+         %14 = OpString "rayFlags"
+         %15 = OpString "instanceMask"
+         %16 = OpString "float"
+         %17 = OpString "Origin"
+         %18 = OpString "TMin"
+         %19 = OpString "Direction"
+         %20 = OpString "TMax"
+         %21 = OpString "RayDesc"
+         %22 = OpString "ray"
+         %23 = OpString "pixel"
+         %24 = OpString "__dxc_setup"
+         %25 = OpString "c1104ee6"
+         %26 = OpString " -E main -T cs_6_5 -Zi -Qembed_debug -D SPIRV -O3 -spirv -fspv-target-env=vulkan1.2 -fspv-extension=KHR -fspv-debug=vulkan-with-source -D SPIRV"
+         %27 = OpString "@type.2d.image"
+         %28 = OpString "type.2d.image"
+         %29 = OpString "TemplateParam"
+         %30 = OpString "u_Output"
+         %31 = OpString "@accelerationStructureNV"
+         %32 = OpString "accelerationStructureNV"
+         %33 = OpString "SceneBVH"
+               OpName %accelerationStructureNV "accelerationStructureNV"
+               OpName %SceneBVH "SceneBVH"
+               OpName %type_2d_image "type.2d.image"
+               OpName %u_Output "u_Output"
+               OpName %main "main"
+               OpName %rayQueryKHR "rayQueryKHR"
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %SceneBVH DescriptorSet 0
+               OpDecorate %SceneBVH Binding 0
+               OpDecorate %u_Output DescriptorSet 0
+               OpDecorate %u_Output Binding 0
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_1 = OpConstant %int 1
+      %float = OpTypeFloat 32
+    %float_0 = OpConstant %float 0
+ %float_1000 = OpConstant %float 1000
+      %int_3 = OpConstant %int 3
+    %float_1 = OpConstant %float 1
+    %v3float = OpTypeVector %float 3
+        %106 = OpConstantComposite %v3float %float_0 %float_1 %float_0
+      %int_2 = OpConstant %int 2
+       %uint = OpTypeInt 32 0
+   %uint_255 = OpConstant %uint 255
+     %uint_0 = OpConstant %uint 0
+   %uint_640 = OpConstant %uint 640
+     %uint_1 = OpConstant %uint 1
+    %uint_32 = OpConstant %uint 32
+%accelerationStructureNV = OpTypeAccelerationStructureKHR
+%_ptr_UniformConstant_accelerationStructureNV = OpTypePointer UniformConstant %accelerationStructureNV
+%type_2d_image = OpTypeImage %uint 2D 2 0 0 2 R32ui
+%_ptr_UniformConstant_type_2d_image = OpTypePointer UniformConstant %type_2d_image
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+       %void = OpTypeVoid
+     %uint_4 = OpConstant %uint 4
+     %uint_5 = OpConstant %uint 5
+     %uint_3 = OpConstant %uint 3
+     %uint_6 = OpConstant %uint 6
+     %uint_2 = OpConstant %uint 2
+    %uint_11 = OpConstant %uint 11
+    %uint_12 = OpConstant %uint 12
+    %uint_22 = OpConstant %uint 22
+    %uint_78 = OpConstant %uint 78
+    %uint_20 = OpConstant %uint 20
+    %uint_10 = OpConstant %uint 10
+    %uint_19 = OpConstant %uint 19
+    %uint_96 = OpConstant %uint 96
+   %uint_128 = OpConstant %uint 128
+   %uint_224 = OpConstant %uint 224
+   %uint_256 = OpConstant %uint 256
+    %uint_13 = OpConstant %uint 13
+    %uint_17 = OpConstant %uint 17
+     %uint_8 = OpConstant %uint 8
+     %uint_7 = OpConstant %uint 7
+    %uint_33 = OpConstant %uint 33
+        %115 = OpTypeFunction %void
+     %v2uint = OpTypeVector %uint 2
+    %uint_31 = OpConstant %uint 31
+%rayQueryKHR = OpTypeRayQueryKHR
+%_ptr_Function_rayQueryKHR = OpTypePointer Function %rayQueryKHR
+    %uint_14 = OpConstant %uint 14
+    %uint_25 = OpConstant %uint 25
+    %uint_34 = OpConstant %uint 34
+    %uint_40 = OpConstant %uint 40
+    %uint_18 = OpConstant %uint 18
+    %uint_44 = OpConstant %uint 44
+    %uint_15 = OpConstant %uint 15
+    %uint_16 = OpConstant %uint 16
+    %uint_35 = OpConstant %uint 35
+    %uint_21 = OpConstant %uint 21
+    %uint_24 = OpConstant %uint 24
+    %uint_29 = OpConstant %uint 29
+    %uint_39 = OpConstant %uint 39
+       %bool = OpTypeBool
+    %uint_27 = OpConstant %uint 27
+     %uint_9 = OpConstant %uint 9
+    %uint_28 = OpConstant %uint 28
+    %uint_30 = OpConstant %uint 30
+   %SceneBVH = OpVariable %_ptr_UniformConstant_accelerationStructureNV UniformConstant
+   %u_Output = OpVariable %_ptr_UniformConstant_type_2d_image UniformConstant
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+         %38 = OpExtInst %void %1 DebugInfoNone
+         %39 = OpExtInst %void %1 DebugExpression
+         %40 = OpExtInst %void %1 DebugOperation %uint_0
+         %42 = OpExtInst %void %1 DebugSource %6 %7
+         %43 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %42 %uint_5
+         %47 = OpExtInst %void %1 DebugTypeComposite %8 %uint_0 %42 %uint_0 %uint_0 %43 %9 %38 %uint_3
+         %49 = OpExtInst %void %1 DebugTypeTemplate %47
+         %50 = OpExtInst %void %1 DebugTypeBasic %10 %uint_32 %uint_6 %uint_0
+         %53 = OpExtInst %void %1 DebugTypeVector %50 %uint_2
+         %55 = OpExtInst %void %1 DebugTypeFunction %uint_3 %void %53
+         %56 = OpExtInst %void %1 DebugFunction %11 %55 %42 %uint_11 %uint_1 %43 %12 %uint_3 %uint_12
+         %59 = OpExtInst %void %1 DebugLexicalBlock %42 %uint_12 %uint_1 %56
+         %60 = OpExtInst %void %1 DebugLocalVariable %13 %49 %42 %uint_22 %uint_78 %59 %uint_4
+         %63 = OpExtInst %void %1 DebugLocalVariable %14 %50 %42 %uint_20 %uint_10 %59 %uint_4
+         %66 = OpExtInst %void %1 DebugLocalVariable %15 %50 %42 %uint_19 %uint_10 %59 %uint_4
+         %68 = OpExtInst %void %1 DebugTypeBasic %16 %uint_32 %uint_3 %uint_0
+         %69 = OpExtInst %void %1 DebugTypeVector %68 %uint_3
+         %70 = OpExtInst %void %1 DebugTypeMember %17 %69 %42 %uint_0 %uint_0 %uint_0 %uint_96 %uint_3
+         %72 = OpExtInst %void %1 DebugTypeMember %18 %68 %42 %uint_0 %uint_0 %uint_96 %uint_32 %uint_3
+         %73 = OpExtInst %void %1 DebugTypeMember %19 %69 %42 %uint_0 %uint_0 %uint_128 %uint_96 %uint_3
+         %75 = OpExtInst %void %1 DebugTypeMember %20 %68 %42 %uint_0 %uint_0 %uint_224 %uint_32 %uint_3
+         %77 = OpExtInst %void %1 DebugTypeComposite %21 %uint_1 %42 %uint_0 %uint_0 %43 %21 %uint_256 %uint_3 %70 %72 %73 %75
+         %79 = OpExtInst %void %1 DebugLocalVariable %22 %77 %42 %uint_13 %uint_13 %59 %uint_4
+         %81 = OpExtInst %void %1 DebugLocalVariable %23 %53 %42 %uint_11 %uint_17 %56 %uint_4 %uint_1
+         %83 = OpExtInst %void %1 DebugTypeFunction %uint_3 %void
+         %84 = OpExtInst %void %1 DebugFunction %24 %83 %42 %uint_11 %uint_1 %43 %12 %uint_3 %uint_12
+         %85 = OpExtInst %void %1 DebugTypeComposite %27 %uint_0 %42 %uint_0 %uint_0 %43 %28 %38 %uint_3
+         %86 = OpExtInst %void %1 DebugTypeTemplateParameter %29 %50 %38 %42 %uint_0 %uint_0
+         %87 = OpExtInst %void %1 DebugTypeTemplate %85 %86
+         %88 = OpExtInst %void %1 DebugGlobalVariable %30 %87 %42 %uint_8 %uint_19 %43 %30 %u_Output %uint_8
+         %90 = OpExtInst %void %1 DebugTypeComposite %31 %uint_1 %42 %uint_0 %uint_0 %43 %32 %38 %uint_3
+         %91 = OpExtInst %void %1 DebugGlobalVariable %33 %90 %42 %uint_7 %uint_33 %43 %33 %SceneBVH %uint_8
+         %94 = OpExtInst %void %1 DebugEntryPoint %84 %43 %25 %26
+         %95 = OpExtInst %void %1 DebugInlinedAt %uint_11 %84
+         %96 = OpExtInst %void %1 DebugExpression %40
+       %main = OpFunction %void None %115
+        %137 = OpLabel
+        %138 = OpVariable %_ptr_Function_rayQueryKHR Function
+        %255 = OpExtInst %void %1 DebugScope %84
+        %139 = OpExtInst %void %1 DebugFunctionDefinition %84 %main
+        %140 = OpLoad %v3uint %gl_GlobalInvocationID
+        %141 = OpVectorShuffle %v2uint %140 %140 0 1
+        %256 = OpExtInst %void %1 DebugScope %56 %95
+        %142 = OpExtInst %void %1 DebugValue %81 %141 %39
+        %257 = OpExtInst %void %1 DebugScope %59 %95
+        %143 = OpExtInst %void %1 DebugLine %42 %uint_14 %uint_14 %uint_25 %uint_31
+        %144 = OpCompositeExtract %uint %140 0
+        %146 = OpConvertUToF %float %144
+        %147 = OpExtInst %void %1 DebugLine %42 %uint_14 %uint_14 %uint_34 %uint_40
+        %148 = OpCompositeExtract %uint %140 1
+        %150 = OpConvertUToF %float %148
+        %151 = OpExtInst %void %1 DebugLine %42 %uint_14 %uint_14 %uint_18 %uint_44
+        %152 = OpCompositeConstruct %v3float %146 %150 %float_0
+        %153 = OpExtInst %void %1 DebugLine %42 %uint_14 %uint_14 %uint_5 %uint_44
+        %154 = OpExtInst %void %1 DebugValue %79 %152 %39 %int_0
+        %155 = OpExtInst %void %1 DebugLine %42 %uint_15 %uint_15 %uint_5 %uint_16
+        %156 = OpExtInst %void %1 DebugValue %79 %float_0 %39 %int_1
+        %157 = OpExtInst %void %1 DebugLine %42 %uint_16 %uint_16 %uint_5 %uint_16
+        %158 = OpExtInst %void %1 DebugValue %79 %float_1000 %39 %int_3
+        %159 = OpExtInst %void %1 DebugLine %42 %uint_17 %uint_17 %uint_5 %uint_35
+        %160 = OpExtInst %void %1 DebugValue %79 %106 %39 %int_2
+        %161 = OpExtInst %void %1 DebugLine %42 %uint_19 %uint_19 %uint_5 %uint_25
+        %162 = OpExtInst %void %1 DebugValue %66 %uint_255 %39
+        %163 = OpExtInst %void %1 DebugLine %42 %uint_20 %uint_20 %uint_5 %uint_21
+        %164 = OpExtInst %void %1 DebugValue %63 %uint_0 %39
+        %165 = OpExtInst %void %1 DebugLine %42 %uint_22 %uint_22 %uint_5 %uint_78
+        %166 = OpExtInst %void %1 DebugDeclare %60 %138 %39
+        %167 = OpExtInst %void %1 DebugLine %42 %uint_24 %uint_24 %uint_29 %uint_29
+        %168 = OpLoad %accelerationStructureNV %SceneBVH
+        %169 = OpExtInst %void %1 DebugLine %42 %uint_24 %uint_24 %uint_5 %uint_5
+               OpRayQueryInitializeKHR %138 %168 %uint_640 %uint_255 %152 %float_0 %106 %float_1000
+        %170 = OpExtInst %void %1 DebugLine %42 %uint_25 %uint_25 %uint_5 %uint_22
+        %171 = OpRayQueryProceedKHR %bool %138
+        %172 = OpExtInst %void %1 DebugLine %42 %uint_27 %uint_27 %uint_9 %uint_34
+        %173 = OpRayQueryGetIntersectionTypeKHR %uint %138 %uint_1
+        %174 = OpExtInst %void %1 DebugLine %42 %uint_27 %uint_27 %uint_9 %uint_39
+        %175 = OpIEqual %bool %173 %uint_1
+        %258 = OpExtInst %void %1 DebugNoScope
+               OpSelectionMerge %177 None
+               OpBranchConditional %175 %179 %180
+        %179 = OpLabel
+        %259 = OpExtInst %void %1 DebugScope %59 %95
+        %181 = OpExtInst %void %1 DebugLine %42 %uint_28 %uint_28 %uint_9 %uint_27
+        %182 = OpLoad %type_2d_image %u_Output
+               OpImageWrite %182 %141 %uint_1 None
+        %184 = OpExtInst %void %1 DebugLine %42 %uint_28 %uint_28 %uint_27 %uint_27
+               OpBranch %177
+        %180 = OpLabel
+        %260 = OpExtInst %void %1 DebugScope %59 %95
+        %185 = OpExtInst %void %1 DebugLine %42 %uint_30 %uint_30 %uint_9 %uint_27
+        %186 = OpLoad %type_2d_image %u_Output
+               OpImageWrite %186 %141 %uint_0 None
+        %188 = OpExtInst %void %1 DebugLine %42 %uint_30 %uint_30 %uint_27 %uint_27
+               OpBranch %177
+        %177 = OpLabel
+        %261 = OpExtInst %void %1 DebugScope %84
+        %189 = OpExtInst %void %1 DebugLine %42 %uint_31 %uint_31 %uint_1 %uint_1
+               OpReturn
+        %262 = OpExtInst %void %1 DebugNoScope
+               OpFunctionEnd

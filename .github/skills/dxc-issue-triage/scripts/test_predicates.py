@@ -254,7 +254,7 @@ for desc, pred, want in [
 # --- feature-absence diagnostics are invalid probes, not clean runs --------
 # Measured on #3038: v1.4.1907 predates DXR 1.1 and answers "use of undeclared
 # identifier 'RayQuery'". That is not evidence the bug was absent.
-_unsupported_re = r"(?i)invalid profile|unsupported profile|unrecognized (?:argument|option)|unknown argument|unknown HLSL version|is not supported|requires shader model|CodeGen not available|recompile with -D|use of undeclared identifier|unknown type name|no member named|no matching function for call to"
+_unsupported_re = triage.UNSUPPORTED_MARKER_RE
 
 for desc, text, want in [
     ("undeclared identifier is an invalid probe",
@@ -266,6 +266,15 @@ for desc, text, want in [
     ("invalid profile still detected", "error: invalid profile ps_6_7", True),
     ("unknown HLSL version is an invalid probe",
      "dxc failed : Unknown HLSL version: 2021", True),
+    # #7300: three releases parse -fspv-debug but cannot express the requested
+    # mode, so they never ran it. Scored clean they invent a fix boundary.
+    ("an unknown SPIR-V debug-info mode is an invalid probe",
+     "dxc failed : unknown SPIR-V debug info control parameter: "
+     "vulkan-with-source", True),
+    # ...but the marker is anchored: an ordinary diagnostic that merely contains
+    # the word "parameter" must not be demoted.
+    ("an ordinary parameter diagnostic is NOT an invalid probe",
+     "error: too few arguments for parameter 'x'", False),
     ("an ordinary syntax error is NOT an invalid probe",
      "error: expected ';' after expression", False),
     ("clean output is NOT an invalid probe", "; shader hash: abc", False),

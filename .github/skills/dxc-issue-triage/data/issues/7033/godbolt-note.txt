@@ -1,0 +1,2 @@
+The oldest DXC pane exits abnormally while compiling the ray-query variable. The trunk pane
+should compile successfully and show rich non-semantic debug instructions for that variable.

@@ -1,0 +1,96 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T03:38:39+00:00
+# cmd: -T cs_6_5 -E main -D SPIRV -O3 -spirv -fspv-target-env=vulkan1.2 -fspv-extension=KHR repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: no-debug-info (repro.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_5 -E main -D SPIRV -O3 -spirv -fspv-target-env=vulkan1.2 -fspv-extension=KHR repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 46
+; Schema: 0
+               OpCapability RayQueryKHR
+               OpCapability Shader
+               OpExtension "SPV_KHR_ray_query"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %gl_GlobalInvocationID %SceneBVH %u_Output
+               OpExecutionMode %main LocalSize 8 8 1
+               OpSource HLSL 650
+               OpName %accelerationStructureNV "accelerationStructureNV"
+               OpName %SceneBVH "SceneBVH"
+               OpName %type_2d_image "type.2d.image"
+               OpName %u_Output "u_Output"
+               OpName %main "main"
+               OpName %rayQueryKHR "rayQueryKHR"
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %SceneBVH DescriptorSet 0
+               OpDecorate %SceneBVH Binding 0
+               OpDecorate %u_Output DescriptorSet 0
+               OpDecorate %u_Output Binding 0
+      %float = OpTypeFloat 32
+    %float_0 = OpConstant %float 0
+ %float_1000 = OpConstant %float 1000
+    %float_1 = OpConstant %float 1
+    %v3float = OpTypeVector %float 3
+         %13 = OpConstantComposite %v3float %float_0 %float_1 %float_0
+       %uint = OpTypeInt 32 0
+   %uint_255 = OpConstant %uint 255
+     %uint_0 = OpConstant %uint 0
+   %uint_640 = OpConstant %uint 640
+     %uint_1 = OpConstant %uint 1
+%accelerationStructureNV = OpTypeAccelerationStructureKHR
+%_ptr_UniformConstant_accelerationStructureNV = OpTypePointer UniformConstant %accelerationStructureNV
+%type_2d_image = OpTypeImage %uint 2D 2 0 0 2 R32ui
+%_ptr_UniformConstant_type_2d_image = OpTypePointer UniformConstant %type_2d_image
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+       %void = OpTypeVoid
+         %24 = OpTypeFunction %void
+     %v2uint = OpTypeVector %uint 2
+%rayQueryKHR = OpTypeRayQueryKHR
+%_ptr_Function_rayQueryKHR = OpTypePointer Function %rayQueryKHR
+       %bool = OpTypeBool
+   %SceneBVH = OpVariable %_ptr_UniformConstant_accelerationStructureNV UniformConstant
+   %u_Output = OpVariable %_ptr_UniformConstant_type_2d_image UniformConstant
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+       %main = OpFunction %void None %24
+         %28 = OpLabel
+         %29 = OpVariable %_ptr_Function_rayQueryKHR Function
+         %30 = OpLoad %v3uint %gl_GlobalInvocationID
+         %31 = OpVectorShuffle %v2uint %30 %30 0 1
+         %32 = OpCompositeExtract %uint %30 0
+         %33 = OpConvertUToF %float %32
+         %34 = OpCompositeExtract %uint %30 1
+         %35 = OpConvertUToF %float %34
+         %36 = OpCompositeConstruct %v3float %33 %35 %float_0
+         %37 = OpLoad %accelerationStructureNV %SceneBVH
+               OpRayQueryInitializeKHR %29 %37 %uint_640 %uint_255 %36 %float_0 %13 %float_1000
+         %38 = OpRayQueryProceedKHR %bool %29
+         %39 = OpRayQueryGetIntersectionTypeKHR %uint %29 %uint_1
+         %40 = OpIEqual %bool %39 %uint_1
+               OpSelectionMerge %41 None
+               OpBranchConditional %40 %42 %43
+         %42 = OpLabel
+         %44 = OpLoad %type_2d_image %u_Output
+               OpImageWrite %44 %31 %uint_1 None
+               OpBranch %41
+         %43 = OpLabel
+         %45 = OpLoad %type_2d_image %u_Output
+               OpImageWrite %45 %31 %uint_0 None
+               OpBranch %41
+         %41 = OpLabel
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

@@ -1,0 +1,2 @@
+?? .github/skills/dxc-issue-triage/data/issues/7033/
+?? .github/skills/dxc-issue-triage/data/issues/7300/

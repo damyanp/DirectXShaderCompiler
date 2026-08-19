@@ -1,0 +1,10 @@
+COMMAND: git diff --name-only 7665270b9 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+total changed paths: 5315
+changed paths outside triage skill: 0
+outside paths:
+
+CONTROL COMMAND: git diff --name-only 7665270b9 origin/main^
+total changed paths: 5316
+changed paths outside triage skill: 1
+first 20 outside paths:
+tools/clang/unittests/HLSLExec/LinAlgTests.cpp

@@ -1,0 +1,480 @@
+=== v1.4.1907 ===
+exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+version-command: <cache>/compilers/releases/v1.4.1907/dxc.exe --version
+version-exit: 1
+version: dxc failed : Unknown argument: '--version'
+[rayquery-without-rich-debug]
+command: <cache>/compilers/releases/v1.4.1907/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 repro.hlsl
+exit: 1 (0x00000001)
+output: dxc failed : Unknown HLSL version: 2021
+[rich-debug-without-rayquery]
+command: <cache>/compilers/releases/v1.4.1907/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source control-no-rayquery.hlsl
+exit: 1 (0x00000001)
+output: dxc failed : Unknown HLSL version: 2021
+=== v1.5.2010 ===
+exe: <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+version-command: <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe --version
+version-exit: 1
+version: dxc failed : Unknown argument: '--version'
+[rayquery-without-rich-debug]
+command: <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 repro.hlsl
+exit: 1 (0x00000001)
+output: dxc failed : Unknown HLSL version: 2021
+[rich-debug-without-rayquery]
+command: <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source control-no-rayquery.hlsl
+exit: 1 (0x00000001)
+output: dxc failed : Unknown HLSL version: 2021
+=== v1.6.2104 ===
+exe: <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+version-command: <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe --version
+version-exit: 1
+version: dxc failed : Unknown argument: '--version'
+[rayquery-without-rich-debug]
+command: <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 repro.hlsl
+exit: 1 (0x00000001)
+output: dxc failed : Unknown HLSL version: 2021
+[rich-debug-without-rayquery]
+command: <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source control-no-rayquery.hlsl
+exit: 1 (0x00000001)
+output: dxc failed : Unknown HLSL version: 2021
+=== v1.6.2106 ===
+exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+version-command: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe --version
+version-exit: 1
+version: dxc failed : Unknown argument: '--version'
+[rayquery-without-rich-debug]
+command: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 repro.hlsl
+exit: 1 (0x00000001)
+output: dxc failed : Unknown HLSL version: 2021
+[rich-debug-without-rayquery]
+command: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source control-no-rayquery.hlsl
+exit: 1 (0x00000001)
+output: dxc failed : Unknown HLSL version: 2021
+=== v1.6.2112 ===
+exe: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+version-command: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe --version
+version-exit: 0
+version: dxcompiler.dll: 1.6 - 1.6.2112.12 (770ac0cc1); dxil.dll: 1.6(101.6.2112.2)
+[rayquery-without-rich-debug]
+command: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 repro.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 5
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpCapability RayQueryKHR
+               OpExtension "SPV_KHR_ray_tracing"
+               OpExtension "SPV_KHR_ray_query"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationNV %main "main"
+               OpSource HLSL 640
+               OpName %main "main"
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %main = OpFunction %void None %3
+          %4 = OpLabel
+               OpReturn
+               OpFunctionEnd
+[rich-debug-without-rayquery]
+command: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source control-no-rayquery.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 15
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_non_semantic_info"
+               OpExtension "SPV_KHR_ray_tracing"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationNV %main "main"
+          %3 = OpString "control-no-rayquery.hlsl"
+          %4 = OpString "[shader(\"raygeneration\")]
+
+void main() {
+
+}
+
+"
+          %5 = OpString "main"
+          %6 = OpString ""
+               OpName %main "main"
+       %void = OpTypeVoid
+       %uint = OpTypeInt 32 0
+     %uint_3 = OpConstant %uint 3
+     %uint_1 = OpConstant %uint 1
+         %12 = OpTypeFunction %void
+          %8 = OpExtInst %void %1 DebugSource %3 %4
+       %main = OpFunction %void None %12
+         %13 = OpLabel
+         %14 = OpExtInst %void %1 DebugLine %8 %uint_3 %uint_3 %uint_1 %uint_1
+               OpReturn
+               OpFunctionEnd
+=== v1.8.2403.2 ===
+exe: <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe
+version-command: <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe --version
+version-exit: 0
+version: dxcompiler.dll: 1.8 - 1.8.2403.37 (11e1318c3); dxil.dll: 1.8(101.8.2403.24)
+[rayquery-without-rich-debug]
+command: <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 repro.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 5
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_ray_tracing"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationNV %main "main"
+               OpSource HLSL 640
+               OpName %main "main"
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %main = OpFunction %void None %3
+          %4 = OpLabel
+               OpReturn
+               OpFunctionEnd
+[rich-debug-without-rayquery]
+command: <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source control-no-rayquery.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 25
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_non_semantic_info"
+               OpExtension "SPV_KHR_ray_tracing"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationNV %main "main"
+          %3 = OpString "control-no-rayquery.hlsl"
+          %4 = OpString "[shader(\"raygeneration\")]
+
+void main() {
+
+}
+
+"
+          %5 = OpString "main"
+          %6 = OpString ""
+          %7 = OpString "11e1318c"
+          %8 = OpString " -E lib.no::entry -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source -Qembed_debug"
+               OpName %main "main"
+       %void = OpTypeVoid
+       %uint = OpTypeInt 32 0
+     %uint_3 = OpConstant %uint 3
+     %uint_1 = OpConstant %uint 1
+     %uint_4 = OpConstant %uint 4
+     %uint_5 = OpConstant %uint 5
+     %uint_2 = OpConstant %uint 2
+         %21 = OpTypeFunction %void
+         %10 = OpExtInst %void %1 DebugTypeFunction %uint_3 %void
+         %12 = OpExtInst %void %1 DebugSource %3 %4
+         %13 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %12 %uint_5
+         %17 = OpExtInst %void %1 DebugFunction %5 %10 %12 %uint_2 %uint_1 %13 %6 %uint_3 %uint_2
+         %19 = OpExtInst %void %1 DebugEntryPoint %17 %13 %7 %8
+       %main = OpFunction %void None %21
+         %22 = OpLabel
+         %23 = OpExtInst %void %1 DebugFunctionDefinition %17 %main
+         %24 = OpExtInst %void %1 DebugLine %12 %uint_3 %uint_3 %uint_1 %uint_1
+               OpReturn
+               OpFunctionEnd
+
+warning: Member functions will not be linked to their class in the debug information. See https://github.com/KhronosGroup/SPIRV-Registry/issues/203
+=== v1.8.2505 ===
+exe: <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+version-command: <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe --version
+version-exit: 0
+version: dxcompiler.dll: 1.9 - 1.8.2505.28 (9efbb6c32); dxil.dll: 1.9(1.8.2505.28)
+[rayquery-without-rich-debug]
+command: <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 repro.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 5
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_ray_tracing"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationKHR %main "main"
+               OpSource HLSL 640
+               OpName %main "main"
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %main = OpFunction %void None %3
+          %4 = OpLabel
+               OpReturn
+               OpFunctionEnd
+[rich-debug-without-rayquery]
+command: <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source control-no-rayquery.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 26
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_non_semantic_info"
+               OpExtension "SPV_KHR_ray_tracing"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationKHR %main "main"
+          %3 = OpString "control-no-rayquery.hlsl"
+          %4 = OpString "[shader(\"raygeneration\")]
+
+void main() {
+
+}
+
+"
+          %5 = OpString "main"
+          %6 = OpString ""
+          %7 = OpString "wrapper"
+          %8 = OpString "9efbb6c3"
+          %9 = OpString " -E lib.no::entry -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source -Qembed_debug"
+               OpName %main "main"
+       %void = OpTypeVoid
+       %uint = OpTypeInt 32 0
+     %uint_3 = OpConstant %uint 3
+     %uint_1 = OpConstant %uint 1
+     %uint_4 = OpConstant %uint 4
+     %uint_5 = OpConstant %uint 5
+     %uint_2 = OpConstant %uint 2
+         %22 = OpTypeFunction %void
+         %11 = OpExtInst %void %1 DebugTypeFunction %uint_3 %void
+         %13 = OpExtInst %void %1 DebugSource %3 %4
+         %14 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %13 %uint_5
+         %18 = OpExtInst %void %1 DebugFunction %7 %11 %13 %uint_2 %uint_1 %14 %6 %uint_3 %uint_2
+         %20 = OpExtInst %void %1 DebugEntryPoint %18 %14 %8 %9
+       %main = OpFunction %void None %22
+         %23 = OpLabel
+         %24 = OpExtInst %void %1 DebugFunctionDefinition %18 %main
+         %25 = OpExtInst %void %1 DebugLine %13 %uint_3 %uint_3 %uint_1 %uint_1
+               OpReturn
+               OpFunctionEnd
+=== v1.8.2505.1 ===
+exe: <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe
+version-command: <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe --version
+version-exit: 0
+version: dxcompiler.dll: 1.9 - 1.8.2505.32 (b106a961d); dxil.dll: 1.9(1.8.2505.32)
+[rayquery-without-rich-debug]
+command: <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 repro.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 5
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_ray_tracing"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationKHR %main "main"
+               OpSource HLSL 640
+               OpName %main "main"
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %main = OpFunction %void None %3
+          %4 = OpLabel
+               OpReturn
+               OpFunctionEnd
+[rich-debug-without-rayquery]
+command: <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source control-no-rayquery.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 26
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_non_semantic_info"
+               OpExtension "SPV_KHR_ray_tracing"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationKHR %main "main"
+          %3 = OpString "control-no-rayquery.hlsl"
+          %4 = OpString "[shader(\"raygeneration\")]
+
+void main() {
+
+}
+
+"
+          %5 = OpString "main"
+          %6 = OpString ""
+          %7 = OpString "wrapper"
+          %8 = OpString "b106a961"
+          %9 = OpString " -E lib.no::entry -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source -Qembed_debug"
+               OpName %main "main"
+       %void = OpTypeVoid
+       %uint = OpTypeInt 32 0
+     %uint_3 = OpConstant %uint 3
+     %uint_1 = OpConstant %uint 1
+     %uint_4 = OpConstant %uint 4
+     %uint_5 = OpConstant %uint 5
+     %uint_2 = OpConstant %uint 2
+         %22 = OpTypeFunction %void
+         %11 = OpExtInst %void %1 DebugTypeFunction %uint_3 %void
+         %13 = OpExtInst %void %1 DebugSource %3 %4
+         %14 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %13 %uint_5
+         %18 = OpExtInst %void %1 DebugFunction %7 %11 %13 %uint_2 %uint_1 %14 %6 %uint_3 %uint_2
+         %20 = OpExtInst %void %1 DebugEntryPoint %18 %14 %8 %9
+       %main = OpFunction %void None %22
+         %23 = OpLabel
+         %24 = OpExtInst %void %1 DebugFunctionDefinition %18 %main
+         %25 = OpExtInst %void %1 DebugLine %13 %uint_3 %uint_3 %uint_1 %uint_1
+               OpReturn
+               OpFunctionEnd
+=== v1.9.2602 ===
+exe: <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+version-command: <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe --version
+version-exit: 0
+version: dxcompiler.dll: 1.9(5184-21d28f72)(1.9.2602.17) - 1.9.2602.17 (21d28f727)
+[rayquery-without-rich-debug]
+command: <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 repro.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 5
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_ray_tracing"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationKHR %main "main"
+               OpSource HLSL 640
+               OpName %main "main"
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %main = OpFunction %void None %3
+          %4 = OpLabel
+               OpReturn
+               OpFunctionEnd
+[rich-debug-without-rayquery]
+command: <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source control-no-rayquery.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 28
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_non_semantic_info"
+               OpExtension "SPV_KHR_ray_tracing"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationKHR %main "main"
+          %3 = OpString "control-no-rayquery.hlsl"
+          %4 = OpString "[shader(\"raygeneration\")]
+
+void main() {
+
+}
+
+"
+          %5 = OpString "main"
+          %6 = OpString ""
+          %7 = OpString "__dxc_setup"
+          %8 = OpString "21d28f72"
+          %9 = OpString " -E lib.no::entry -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source -Qembed_debug"
+               OpName %main "main"
+       %void = OpTypeVoid
+       %uint = OpTypeInt 32 0
+     %uint_3 = OpConstant %uint 3
+     %uint_1 = OpConstant %uint 1
+     %uint_4 = OpConstant %uint 4
+     %uint_5 = OpConstant %uint 5
+     %uint_2 = OpConstant %uint 2
+         %22 = OpTypeFunction %void
+         %11 = OpExtInst %void %1 DebugTypeFunction %uint_3 %void
+         %13 = OpExtInst %void %1 DebugSource %3 %4
+         %14 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %13 %uint_5
+         %18 = OpExtInst %void %1 DebugFunction %7 %11 %13 %uint_2 %uint_1 %14 %6 %uint_3 %uint_2
+         %20 = OpExtInst %void %1 DebugEntryPoint %18 %14 %8 %9
+       %main = OpFunction %void None %22
+         %23 = OpLabel
+         %26 = OpExtInst %void %1 DebugScope %18
+         %24 = OpExtInst %void %1 DebugFunctionDefinition %18 %main
+         %25 = OpExtInst %void %1 DebugLine %13 %uint_3 %uint_3 %uint_1 %uint_1
+               OpReturn
+         %27 = OpExtInst %void %1 DebugNoScope
+               OpFunctionEnd
+=== v1.9.2607 ===
+exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+version-command: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe --version
+version-exit: 0
+version: dxcompiler.dll: 1.9(5402-0d3ee6b5)(1.9.0.5402) - 1.9.0.5402 (0d3ee6b55-dirty)
+[rayquery-without-rich-debug]
+command: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 repro.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 5
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_ray_tracing"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationKHR %main "main"
+               OpSource HLSL 640
+               OpName %main "main"
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %main = OpFunction %void None %3
+          %4 = OpLabel
+               OpReturn
+               OpFunctionEnd
+[rich-debug-without-rayquery]
+command: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source control-no-rayquery.hlsl
+exit: 0 (0x00000000)
+output: ; SPIR-V
+; Version: 1.5
+; Generator: Google spiregg; 0
+; Bound: 28
+; Schema: 0
+               OpCapability RayTracingKHR
+               OpExtension "SPV_KHR_non_semantic_info"
+               OpExtension "SPV_KHR_ray_tracing"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint RayGenerationKHR %main "main"
+          %3 = OpString "control-no-rayquery.hlsl"
+          %4 = OpString "[shader(\"raygeneration\")]
+
+void main() {
+
+}
+
+"
+          %5 = OpString "main"
+          %6 = OpString ""
+          %7 = OpString "__dxc_setup"
+          %8 = OpString "0d3ee6b5"
+          %9 = OpString " -E lib.no::entry -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -fspv-debug=vulkan-with-source -Qembed_debug"
+               OpName %main "main"
+       %void = OpTypeVoid
+       %uint = OpTypeInt 32 0
+     %uint_3 = OpConstant %uint 3
+     %uint_1 = OpConstant %uint 1
+     %uint_4 = OpConstant %uint 4
+     %uint_5 = OpConstant %uint 5
+     %uint_2 = OpConstant %uint 2
+         %22 = OpTypeFunction %void
+         %11 = OpExtInst %void %1 DebugTypeFunction %uint_3 %void
+         %13 = OpExtInst %void %1 DebugSource %3 %4
+         %14 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %13 %uint_5
+         %18 = OpExtInst %void %1 DebugFunction %7 %11 %13 %uint_2 %uint_1 %14 %6 %uint_3 %uint_2
+         %20 = OpExtInst %void %1 DebugEntryPoint %18 %14 %8 %9
+       %main = OpFunction %void None %22
+         %23 = OpLabel
+         %26 = OpExtInst %void %1 DebugScope %18
+         %24 = OpExtInst %void %1 DebugFunctionDefinition %18 %main
+         %25 = OpExtInst %void %1 DebugLine %13 %uint_3 %uint_3 %uint_1 %uint_1
+               OpReturn
+         %27 = OpExtInst %void %1 DebugNoScope
+               OpFunctionEnd

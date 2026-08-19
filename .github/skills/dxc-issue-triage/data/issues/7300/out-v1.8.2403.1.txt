@@ -1,0 +1,17 @@
+# compiler: v1.8.2403.1
+# exe: <cache>/compilers/releases/v1.8.2403.1/bin/x64/dxc.exe
+# ran: 2026-08-19T03:39:27+00:00
+# cmd: -T cs_6_5 -E main -D SPIRV -O3 -spirv -fspv-target-env=vulkan1.2 -fspv-extension=KHR -fspv-debug=vulkan-with-source repro.hlsl
+# exit: 3221225477
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_5 -E main -D SPIRV -O3 -spirv -fspv-target-env=vulkan1.2 -fspv-extension=KHR -fspv-debug=vulkan-with-source repro.hlsl
+[exe] <cache>/compilers/releases/v1.8.2403.1/bin/x64/dxc.exe
+[exit] 3221225477
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: access violation. Attempted to read from address 0x0000000000000008
+
