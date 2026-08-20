@@ -1,0 +1,321 @@
+# Compiler Explorer panes for #5883, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E main
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 231efa5a8e64651d6aabc0045b2c9b86.pdb
+; shader hash: 231efa5a8e64651d6aabc0045b2c9b86
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; buffer                                UAV    byte         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%struct.RWByteAddressBuffer = type { i32 }
+
+define void @main() {
+  %buffer_UAV_rawbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !67 ; line:23 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @llvm.dbg.value(metadata <6 x float> <float 4.200000e+01, float 4.500000e+01, float 4.300000e+01, float 4.600000e+01, float 4.400000e+01, float 4.700000e+01>, i64 0, metadata !68, metadata !69), !dbg !70 ; var:"m" !DIExpression() func:"main"
+  call void @llvm.dbg.value(metadata <6 x float> <float 1.000000e+00, float 4.500000e+01, float 2.000000e+00, float 4.600000e+01, float 3.000000e+00, float 4.700000e+01>, i64 0, metadata !68, metadata !69), !dbg !70 ; var:"m" !DIExpression() func:"main"
+  call void @llvm.dbg.value(metadata <6 x float> <float 1.000000e+00, float 4.000000e+00, float 2.000000e+00, float 5.000000e+00, float 3.000000e+00, float 6.000000e+00>, i64 0, metadata !68, metadata !69), !dbg !70 ; var:"m" !DIExpression() func:"main"
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %buffer_UAV_rawbuf, i32 0, i32 undef, i32 42, i32 43, i32 44, i32 undef, i8 7), !dbg !67 ; line:23 col:3  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %buffer_UAV_rawbuf, i32 16, i32 undef, i32 45, i32 46, i32 47, i32 undef, i8 7), !dbg !71 ; line:24 col:3  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void, !dbg !72 ; line:25 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!49, !50}
+!llvm.ident = !{!51}
+!dx.source.contents = !{!52}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!53}
+!dx.source.args = !{!54}
+!dx.version = !{!55}
+!dx.valver = !{!56}
+!dx.shaderModel = !{!57}
+!dx.resources = !{!58}
+!dx.typeAnnotations = !{!61}
+!dx.entryPoints = !{!64}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !35, globals: !39)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4, !19, !27}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2x3", file: !1, line: 17, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "matrix<float, 2, 3>", file: !1, line: 17, size: 192, align: 32, elements: !6, templateParams: !14)
+!6 = !{!7, !9, !10, !11, !12, !13}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "_11", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "_12", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "_13", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !DIDerivedType(tag: DW_TAG_member, name: "_21", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "_22", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, offset: 128, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "_23", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, offset: 160, flags: DIFlagPublic)
+!14 = !{!15, !16, !18}
+!15 = !DITemplateTypeParameter(name: "element", type: !8)
+!16 = !DITemplateValueParameter(name: "row_count", type: !17, value: i32 2)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !DITemplateValueParameter(name: "col_count", type: !17, value: i32 3)
+!19 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, line: 18, baseType: !20)
+!20 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, line: 18, size: 96, align: 32, elements: !21, templateParams: !25)
+!21 = !{!22, !23, !24}
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !20, file: !1, line: 18, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !20, file: !1, line: 18, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!24 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !20, file: !1, line: 18, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!25 = !{!15, !26}
+!26 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!27 = !DIDerivedType(tag: DW_TAG_typedef, name: "int3", file: !1, line: 23, baseType: !28)
+!28 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<int, 3>", file: !1, line: 23, size: 96, align: 32, elements: !29, templateParams: !33)
+!29 = !{!30, !31, !32}
+!30 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !28, file: !1, line: 23, baseType: !17, size: 32, align: 32, flags: DIFlagPublic)
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !28, file: !1, line: 23, baseType: !17, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!32 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !28, file: !1, line: 23, baseType: !17, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!33 = !{!34, !26}
+!34 = !DITemplateTypeParameter(name: "element", type: !17)
+!35 = !{!36}
+!36 = !DISubprogram(name: "main", scope: !1, file: !1, line: 16, type: !37, isLocal: false, isDefinition: true, scopeLine: 16, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!37 = !DISubroutineType(types: !38)
+!38 = !{null}
+!39 = !{!40, !45, !47}
+!40 = !DIGlobalVariable(name: "a", scope: !36, file: !1, line: 21, type: !41, isLocal: true, isDefinition: true)
+!41 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !42)
+!42 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", file: !1, line: 9, size: 192, align: 32, elements: !43)
+!43 = !{!44}
+!44 = !DIDerivedType(tag: DW_TAG_member, name: "m", scope: !42, file: !1, line: 10, baseType: !4, size: 192, align: 32)
+!45 = !DIGlobalVariable(name: "buffer", linkageName: "\01?buffer@@3URWByteAddressBuffer@@A", scope: !0, file: !1, line: 13, type: !46, isLocal: false, isDefinition: true)
+!46 = !DICompositeType(tag: DW_TAG_structure_type, name: "RWByteAddressBuffer", file: !1, line: 13, size: 32, align: 32, elements: !2)
+!47 = !DIGlobalVariable(name: "a.0", linkageName: "\01?a@?1??main@@YAXXZ@3US@@B.0.v.v", scope: !36, file: !1, line: 21, type: !48, isLocal: false, isDefinition: true)
+!48 = !DIDerivedType(tag: DW_TAG_member, name: ".0", baseType: !41, size: 192, align: 8)
+!49 = !{i32 2, !"Dwarf Version", i32 4}
+!50 = !{i32 2, !"Debug Info Version", i32 3}
+!51 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!52 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: the two BufferStore calls. A correct compile emits the\0A// values written to `m` after its declaration (1,2,3 and 4,5,6). This dxc\0A// build instead emits the matrix's DECLARATION-time constants (42,43,44 and\0A// 45,46,47), silently discarding the two assignments to `m` that run before\0A// the const-qualified struct init `const S a = {m};`.\0A//==========================================================================//\0A\0Astruct S {\0A  float2x3 m;\0A};\0A\0ARWByteAddressBuffer buffer : register(u0);\0A\0A[numthreads(1, 1, 1)]\0Avoid main() {\0A  float2x3 m = float2x3(42.0f, 43.0f, 44.0f, 45.0f, 46.0f, 47.0f);\0A  m[0] = float3(1, 2, 3);\0A  m[1] = float3(4, 5, 6);\0A\0A  const S a = {m}; // invalid: should capture 1,2,3,4,5,6, not the init values\0A\0A  buffer.Store3(0u, int3(a.m[0]));\0A  buffer.Store3(16u, int3(a.m[1]));\0A}\0A"}
+!53 = !{!"/app/example.hlsl"}
+!54 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug"}
+!55 = !{i32 1, i32 0}
+!56 = !{i32 1, i32 6}
+!57 = !{!"cs", i32 6, i32 0}
+!58 = !{null, !59, null, null}
+!59 = !{!60}
+!60 = !{i32 0, %struct.RWByteAddressBuffer* undef, !"buffer", i32 0, i32 0, i32 1, i32 11, i1 false, i1 false, i1 false, null}
+!61 = !{i32 1, void ()* @main, !62}
+!62 = !{!63}
+!63 = !{i32 1, !2, !2}
+!64 = !{void ()* @main, !"main", null, !58, !65}
+!65 = !{i32 0, i64 16, i32 4, !66}
+!66 = !{i32 1, i32 1, i32 1}
+!67 = !DILocation(line: 23, column: 3, scope: !36)
+!68 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "m", scope: !36, file: !1, line: 17, type: !4)
+!69 = !DIExpression()
+!70 = !DILocation(line: 17, column: 12, scope: !36)
+!71 = !DILocation(line: 24, column: 3, scope: !36)
+!72 = !DILocation(line: 25, column: 1, scope: !36)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 0f343016fce872e4737310b41659b3a4.pdb
+; shader hash: 0f343016fce872e4737310b41659b3a4
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; buffer                                UAV    byte         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%struct.RWByteAddressBuffer = type { i32 }
+
+define void @main() {
+  %buffer_UAV_rawbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !67 ; line:23 col:3  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @llvm.dbg.value(metadata <6 x float> <float 1.000000e+00, float 4.000000e+00, float 2.000000e+00, float 5.000000e+00, float 3.000000e+00, float 6.000000e+00>, i64 0, metadata !68, metadata !69), !dbg !70 ; var:"m" !DIExpression() func:"main"
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %buffer_UAV_rawbuf, i32 0, i32 undef, i32 42, i32 43, i32 44, i32 undef, i8 7), !dbg !67 ; line:23 col:3  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %buffer_UAV_rawbuf, i32 16, i32 undef, i32 45, i32 46, i32 47, i32 undef, i8 7), !dbg !71 ; line:24 col:3  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void, !dbg !72 ; line:25 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!49, !50}
+!llvm.ident = !{!51}
+!dx.source.contents = !{!52}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!53}
+!dx.source.args = !{!54}
+!dx.version = !{!55}
+!dx.valver = !{!56}
+!dx.shaderModel = !{!57}
+!dx.resources = !{!58}
+!dx.typeAnnotations = !{!61}
+!dx.entryPoints = !{!64}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !35, globals: !39)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4, !19, !27}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2x3", file: !1, line: 17, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "matrix<float, 2, 3>", file: !1, line: 17, size: 192, align: 32, elements: !6, templateParams: !14)
+!6 = !{!7, !9, !10, !11, !12, !13}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "_11", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "_12", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "_13", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !DIDerivedType(tag: DW_TAG_member, name: "_21", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "_22", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, offset: 128, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "_23", scope: !5, file: !1, line: 17, baseType: !8, size: 32, align: 32, offset: 160, flags: DIFlagPublic)
+!14 = !{!15, !16, !18}
+!15 = !DITemplateTypeParameter(name: "element", type: !8)
+!16 = !DITemplateValueParameter(name: "row_count", type: !17, value: i32 2)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !DITemplateValueParameter(name: "col_count", type: !17, value: i32 3)
+!19 = !DIDerivedType(tag: DW_TAG_typedef, name: "float3", file: !1, line: 18, baseType: !20)
+!20 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 3>", file: !1, line: 18, size: 96, align: 32, elements: !21, templateParams: !25)
+!21 = !{!22, !23, !24}
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !20, file: !1, line: 18, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !20, file: !1, line: 18, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!24 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !20, file: !1, line: 18, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!25 = !{!15, !26}
+!26 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!27 = !DIDerivedType(tag: DW_TAG_typedef, name: "int3", file: !1, line: 23, baseType: !28)
+!28 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<int, 3>", file: !1, line: 23, size: 96, align: 32, elements: !29, templateParams: !33)
+!29 = !{!30, !31, !32}
+!30 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !28, file: !1, line: 23, baseType: !17, size: 32, align: 32, flags: DIFlagPublic)
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !28, file: !1, line: 23, baseType: !17, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!32 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !28, file: !1, line: 23, baseType: !17, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!33 = !{!34, !26}
+!34 = !DITemplateTypeParameter(name: "element", type: !17)
+!35 = !{!36}
+!36 = !DISubprogram(name: "main", scope: !1, file: !1, line: 16, type: !37, isLocal: false, isDefinition: true, scopeLine: 16, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!37 = !DISubroutineType(types: !38)
+!38 = !{null}
+!39 = !{!40, !45, !47}
+!40 = !DIGlobalVariable(name: "a", scope: !36, file: !1, line: 21, type: !41, isLocal: true, isDefinition: true)
+!41 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !42)
+!42 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", file: !1, line: 9, size: 192, align: 32, elements: !43)
+!43 = !{!44}
+!44 = !DIDerivedType(tag: DW_TAG_member, name: "m", scope: !42, file: !1, line: 10, baseType: !4, size: 192, align: 32)
+!45 = !DIGlobalVariable(name: "buffer", linkageName: "\01?buffer@@3URWByteAddressBuffer@@A", scope: !0, file: !1, line: 13, type: !46, isLocal: false, isDefinition: true)
+!46 = !DICompositeType(tag: DW_TAG_structure_type, name: "RWByteAddressBuffer", file: !1, line: 13, size: 32, align: 32, elements: !2)
+!47 = !DIGlobalVariable(name: "a.0", linkageName: "\01?a@?1??main@@YAXXZ@3US@@B.0.v.v", scope: !36, file: !1, line: 21, type: !48, isLocal: false, isDefinition: true)
+!48 = !DIDerivedType(tag: DW_TAG_member, name: ".0", baseType: !41, size: 192, align: 8)
+!49 = !{i32 2, !"Dwarf Version", i32 4}
+!50 = !{i32 2, !"Debug Info Version", i32 3}
+!51 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!52 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: the two BufferStore calls. A correct compile emits the\0A// values written to `m` after its declaration (1,2,3 and 4,5,6). This dxc\0A// build instead emits the matrix's DECLARATION-time constants (42,43,44 and\0A// 45,46,47), silently discarding the two assignments to `m` that run before\0A// the const-qualified struct init `const S a = {m};`.\0A//==========================================================================//\0A\0Astruct S {\0A  float2x3 m;\0A};\0A\0ARWByteAddressBuffer buffer : register(u0);\0A\0A[numthreads(1, 1, 1)]\0Avoid main() {\0A  float2x3 m = float2x3(42.0f, 43.0f, 44.0f, 45.0f, 46.0f, 47.0f);\0A  m[0] = float3(1, 2, 3);\0A  m[1] = float3(4, 5, 6);\0A\0A  const S a = {m}; // invalid: should capture 1,2,3,4,5,6, not the init values\0A\0A  buffer.Store3(0u, int3(a.m[0]));\0A  buffer.Store3(16u, int3(a.m[1]));\0A}\0A"}
+!53 = !{!"/app/example.hlsl"}
+!54 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug"}
+!55 = !{i32 1, i32 0}
+!56 = !{i32 1, i32 10}
+!57 = !{!"cs", i32 6, i32 0}
+!58 = !{null, !59, null, null}
+!59 = !{!60}
+!60 = !{i32 0, %struct.RWByteAddressBuffer* undef, !"buffer", i32 0, i32 0, i32 1, i32 11, i1 false, i1 false, i1 false, null}
+!61 = !{i32 1, void ()* @main, !62}
+!62 = !{!63}
+!63 = !{i32 1, !2, !2}
+!64 = !{void ()* @main, !"main", null, !58, !65}
+!65 = !{i32 0, i64 16, i32 4, !66}
+!66 = !{i32 1, i32 1, i32 1}
+!67 = !DILocation(line: 23, column: 3, scope: !36)
+!68 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "m", scope: !36, file: !1, line: 17, type: !4)
+!69 = !DIExpression()
+!70 = !DILocation(line: 17, column: 12, scope: !36)
+!71 = !DILocation(line: 24, column: 3, scope: !36)
+!72 = !DILocation(line: 25, column: 1, scope: !36)

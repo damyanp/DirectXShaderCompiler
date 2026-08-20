@@ -1,0 +1,40 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T22:09:51+00:00
+# cmd: -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro.hlsl ; -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc ; -dumpbin linked.bc
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:3:2: warning: attribute 'numthreads' ignored without accompanying shader attribute [-Wmisplaced-attributes]
+[numthreads(8, 8, 1)]
+ ^
+
+
+
+$ dxc -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 1
+--- stdout ---
+Link failed:
+error: Cannot find definition of function main
+
+--- stderr ---
+
+
+$ dxc -dumpbin linked.bc
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 1
+--- stdout ---
+
+
+--- stderr ---
+The system cannot find the file specified. linked.bc
+

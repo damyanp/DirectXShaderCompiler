@@ -1,0 +1,144 @@
+#5172 -- the source behind the measurement
+
+Produced by `python measure-5172.py --source`, run from a checkout
+of the repo this file lives in. Every command is echoed exactly as
+executed; re-run any of them yourself.
+
+==============================================================================
+CONTROL: both IDxcCompiler::Compile and IDxcCompiler3::Compile DO take an IDxcIncludeHandler (so the search tool can find a presence, not just report an absence)
+------------------------------------------------------------------------------
+$ git grep -n -B3 -A1 IDxcIncludeHandler -- include/dxc/dxcapi.h
+(exit 0)
+include/dxc/dxcapi.h-39-
+include/dxc/dxcapi.h-40-struct IMalloc;
+include/dxc/dxcapi.h-41-
+include/dxc/dxcapi.h:42:struct IDxcIncludeHandler;
+include/dxc/dxcapi.h-43-
+--
+include/dxc/dxcapi.h-221-typedef IDxcBlobWide IDxcBlobUtf16;
+include/dxc/dxcapi.h-222-#endif
+include/dxc/dxcapi.h-223-
+include/dxc/dxcapi.h:224:CROSS_PLATFORM_UUIDOF(IDxcIncludeHandler,
+include/dxc/dxcapi.h-225-                      "7f61fc7d-950d-467f-b3e3-3c02fb49187c")
+--
+include/dxc/dxcapi.h-231-/// Use IDxcUtils::CreateDefaultIncludeHandler to create a default
+include/dxc/dxcapi.h-232-/// implementation that reads include files from the filesystem.
+include/dxc/dxcapi.h-233-///
+include/dxc/dxcapi.h:234:struct IDxcIncludeHandler : public IUnknown {
+include/dxc/dxcapi.h-235-  /// \brief Load a source file to be included by the compiler.
+--
+include/dxc/dxcapi.h-339-
+include/dxc/dxcapi.h-340-  /// \deprecated
+include/dxc/dxcapi.h-341-  virtual HRESULT STDMETHODCALLTYPE
+include/dxc/dxcapi.h:342:  CreateIncludeHandler(_COM_Outptr_ IDxcIncludeHandler **ppResult) = 0;
+include/dxc/dxcapi.h-343-
+--
+include/dxc/dxcapi.h-408-      _In_ UINT32 argCount,    // Number of arguments.
+include/dxc/dxcapi.h-409-      _In_count_(defineCount) const DxcDefine *pDefines, // Array of defines.
+include/dxc/dxcapi.h-410-      _In_ UINT32 defineCount,                           // Number of defines.
+include/dxc/dxcapi.h:411:      _In_opt_ IDxcIncludeHandler
+include/dxc/dxcapi.h-412-          *pIncludeHandler, // User-provided interface to handle #include
+--
+include/dxc/dxcapi.h-428-      _In_ UINT32 argCount,    // Number of arguments.
+include/dxc/dxcapi.h-429-      _In_count_(defineCount) const DxcDefine *pDefines, // Array of defines.
+include/dxc/dxcapi.h-430-      _In_ UINT32 defineCount,                           // Number of defines.
+include/dxc/dxcapi.h:431:      _In_opt_ IDxcIncludeHandler
+include/dxc/dxcapi.h-432-          *pIncludeHandler, // user-provided interface to handle #include
+--
+include/dxc/dxcapi.h-462-      _In_ UINT32 argCount,    // Number of arguments.
+include/dxc/dxcapi.h-463-      _In_count_(defineCount) const DxcDefine *pDefines, // Array of defines.
+include/dxc/dxcapi.h-464-      _In_ UINT32 defineCount,                           // Number of defines.
+include/dxc/dxcapi.h:465:      _In_opt_ IDxcIncludeHandler
+include/dxc/dxcapi.h-466-          *pIncludeHandler, // user-provided interface to handle #include
+--
+include/dxc/dxcapi.h-620-  /// \param ppResult Address of the pointer that receives a pointer to the
+include/dxc/dxcapi.h-621-  /// newly created include handler.
+include/dxc/dxcapi.h-622-  virtual HRESULT STDMETHODCALLTYPE
+include/dxc/dxcapi.h:623:  CreateDefaultIncludeHandler(_COM_Outptr_ IDxcIncludeHandler **ppResult) = 0;
+include/dxc/dxcapi.h-624-
+--
+include/dxc/dxcapi.h-848-      _In_opt_count_(argCount)
+include/dxc/dxcapi.h-849-          LPCWSTR *pArguments, ///< Array of pointers to arguments.
+include/dxc/dxcapi.h-850-      _In_ UINT32 argCount,    ///< Number of arguments.
+include/dxc/dxcapi.h:851:      _In_opt_ IDxcIncludeHandler
+include/dxc/dxcapi.h-852-          *pIncludeHandler,  ///< user-provided interface to handle include
+
+==============================================================================
+SUBJECT: IDxcIndex::ParseTranslationUnit's full parameter list -- no IDxcIncludeHandler parameter appears anywhere in it
+------------------------------------------------------------------------------
+$ git grep -n -A8 "virtual HRESULT STDMETHODCALLTYPE ParseTranslationUnit" -- include/dxc/dxcisense.h
+(exit 0)
+include/dxc/dxcisense.h:802:  virtual HRESULT STDMETHODCALLTYPE ParseTranslationUnit(
+include/dxc/dxcisense.h-803-      _In_z_ const char *source_filename,
+include/dxc/dxcisense.h-804-      _In_count_(num_command_line_args) const char *const *command_line_args,
+include/dxc/dxcisense.h-805-      int num_command_line_args,
+include/dxc/dxcisense.h-806-      _In_count_(num_unsaved_files) IDxcUnsavedFile **unsaved_files,
+include/dxc/dxcisense.h-807-      unsigned num_unsaved_files, DxcTranslationUnitFlags options,
+include/dxc/dxcisense.h-808-      _Out_ IDxcTranslationUnit **pTranslationUnit) = 0;
+include/dxc/dxcisense.h-809-};
+include/dxc/dxcisense.h-810-
+
+==============================================================================
+SUBJECT: the implementation unconditionally binds to a disk filesystem, with a TODO predating this issue
+------------------------------------------------------------------------------
+$ git grep -n -B4 -A6 "HRESULT DxcIndex::ParseTranslationUnit" -- tools/clang/tools/libclang/dxcisenseimpl.cpp
+(exit 0)
+tools/clang/tools/libclang/dxcisenseimpl.cpp-969-}
+tools/clang/tools/libclang/dxcisenseimpl.cpp-970-
+tools/clang/tools/libclang/dxcisenseimpl.cpp-971-///////////////////////////////////////////////////////////////////////////////
+tools/clang/tools/libclang/dxcisenseimpl.cpp-972-
+tools/clang/tools/libclang/dxcisenseimpl.cpp:973:HRESULT DxcIndex::ParseTranslationUnit(const char *source_filename,
+tools/clang/tools/libclang/dxcisenseimpl.cpp-974-                                       const char *const *command_line_args,
+tools/clang/tools/libclang/dxcisenseimpl.cpp-975-                                       int num_command_line_args,
+tools/clang/tools/libclang/dxcisenseimpl.cpp-976-                                       IDxcUnsavedFile **unsaved_files,
+tools/clang/tools/libclang/dxcisenseimpl.cpp-977-                                       unsigned num_unsaved_files,
+tools/clang/tools/libclang/dxcisenseimpl.cpp-978-                                       DxcTranslationUnitFlags options,
+tools/clang/tools/libclang/dxcisenseimpl.cpp-979-                                       IDxcTranslationUnit **pTranslationUnit) {
+
+==============================================================================
+History: when did that TODO/MSFileSystem-only implementation first appear? (repo-wide -S search, not scoped to the current path, per SKILL.md's #2952 lesson about path moves)
+------------------------------------------------------------------------------
+$ git log -S "until an interface to file access is defined" --all "--format=%H %ad %s" --date=short -- tools/clang/tools/libclang/dxcisenseimpl.cpp
+(exit 0)
+8a8b29f967b5925a970949984442b3783d730551 2025-06-03 [spirv] AMD work graphs extension (#7353)
+6ee4074a4b43fa23bf5ad27e4f6cafc6b835e437 2016-12-28 first commit
+
+==============================================================================
+CONTROL: origin/main is shallow-grafted at a 2025-06-03 boundary (see .git/shallow), so this file shows as "new file" there and an ancestry check against it is expected to say false -- that is the graft artifact, not a real disagreement (confirmed next)
+------------------------------------------------------------------------------
+$ git merge-base --is-ancestor 6ee4074a4b43fa23bf5ad27e4f6cafc6b835e437^{commit} origin/main
+(exit 1)
+
+
+==============================================================================
+The real check: is the first commit an ancestor of the oldest stable release tag, fetched with deep history from `upstream`? (exit 0 expected -- this is the genuine, ungrafted answer)
+------------------------------------------------------------------------------
+$ git merge-base --is-ancestor 6ee4074a4b43fa23bf5ad27e4f6cafc6b835e437^{commit} refs/tags/v1.4.1907
+(exit 0)
+
+
+==============================================================================
+Confirm v1.4.1907 predates the issue (filed 2023-04-23)
+------------------------------------------------------------------------------
+$ git log -1 "--format=%H %ad %s" --date=short refs/tags/v1.4.1907
+(exit 0)
+7279b1857d34f182ee219a489c11033601ebfe51 2019-08-30 Added section on where to get interim releases
+
+==============================================================================
+The 2025-06-03 commit found by -S is the shallow graft's own "new file" boundary, not a real edit -- confirm the whole file appears as added, not modified, in that commit
+------------------------------------------------------------------------------
+$ git show --stat 8a8b29f967b5925a970949984442b3783d730551 -- tools/clang/tools/libclang/dxcisenseimpl.cpp
+(exit 0)
+commit 8a8b29f967b5925a970949984442b3783d730551
+Author: Dan Brown <61992655+danbrown-amd@users.noreply.github.com>
+Date:   Tue Jun 3 10:22:13 2025 -0600
+
+    [spirv] AMD work graphs extension (#7353)
+    
+    Enables work graphs for SPIR-V target, based on AMD_shader_enqueue
+    extension.
+    Closes #5960.
+
+ tools/clang/tools/libclang/dxcisenseimpl.cpp | 2025 ++++++++++++++++++++++++++
+ 1 file changed, 2025 insertions(+)
+

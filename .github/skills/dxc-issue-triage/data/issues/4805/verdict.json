@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2022-11-20T14:14:12Z",
+  "godbolt_skip": "API-only defect unreachable via CE's dxc.exe-backed panes; see notes.md",
+  "history": "always-repro'd",
+  "labels": "bug,api",
+  "labels_now": "bug,api",
+  "notes_path": "issues/4805/notes.md",
+  "number": 4805,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "changed-behavior",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "A caller-supplied, non-disk-backed IDxcIncludeHandler's content is never what gets embedded as an included file's SPIR-V DebugSource text (-fspv-debug=vulkan-with-source): EmitVisitor.cpp's ReadSourceCode always does its own independent raw disk read instead of reusing the buffer the handler already returned to the parser. Measured with a purpose-built API harness (handler4805.cpp, registered as compiler main-debug-inc4805) since dxc.exe's CLI can never supply a custom handler at all. Three scenarios isolate it cleanly: repro.hlsl (no disk file backs the include) compiles S_OK with the marker absent (the reported defect); control-identical (byte-identical disk file at the resolved path) compiles S_OK with the marker present, proving the harness/API/byte-search all work; control-mismatch (a real but differently-formatted file at the same path) now FAILS compilation outright on main-debug with a SPIR-V validator rejection -- a newly-found, worse failure mode absent on v1.7.2207 (2022, contemporary with filing) and v1.8.2502 (2025-02), bounded by git merge-base to PR #7662 (97b5edbc4, merged 2025-07-24). The literal 2022 crash does not reproduce on any build tested; today's shape (silent content loss, no crash) matches the second commenter leozzyzheng's 2025-11-19 report more closely than the original body. DXIL (-Zi -Qembed_debug) was checked but the byte-search instrument's own positive control failed there (DXIL's debug source is not a contiguous ASCII run), so it is left unmeasured, not asserted either way. Godbolt explicitly skipped: CE's dxc panes cannot supply a custom IDxcIncludeHandler at all.",
+  "text_stale": "The body describes a crash under -Zi/-fspv-debug=source with CWD=parent-dir; this no longer reproduces as a crash on any build tested (the disk-read failure has been wrapped in a non-crashing catch since 2020, predating the report). The underlying 'handler ignored' defect the title names is still fully real and unfixed -- only the reported symptom's shape (crash vs silent content loss) is stale. leozzyzheng's 2025-11-19 comment already reflects the current, non-crashing shape.",
+  "title": "Compiler does not use the custom include handler when compiling with `-Zi`",
+  "triaged_at": "2026-08-20T05:15:13+00:00",
+  "triaged_by": "claude-opus-4.6",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4805"
+}

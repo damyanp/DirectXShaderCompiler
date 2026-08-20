@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Crash issue (labels: bug, crash, shader-linking, incorrect-code). Reported as an access-violation null-deref when a non-library (ordinary cs_6_3) compiled container is fed to `dxc -link`. Per the skill's exit-code guidance, use internal_failure rather than matching the crash text: the reporter's own build (1.7.2207.3) and current builds may format the message differently, and an internal failure can print nothing at all on some builds."
+}

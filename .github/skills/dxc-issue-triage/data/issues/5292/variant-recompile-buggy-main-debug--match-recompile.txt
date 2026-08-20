@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-20T04:58:34+00:00
+# cmd: -T ps_6_0 -E ps_main rewritten-buggy.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-recompile.json
+# verdict: repro
+# variant: recompile-buggy (rewritten-buggy.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E ps_main rewritten-buggy.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+rewritten-buggy.hlsl:1:9: error: unknown type name 'PSOutput'
+typedef PSOutput PSPointOutput;
+        ^
+rewritten-buggy.hlsl:2:16: error: unknown type name 'VSOutput'
+float4 ps_main(VSOutput psIn) : SV_Target {
+               ^
+
+

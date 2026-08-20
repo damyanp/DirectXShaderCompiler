@@ -1,0 +1,14 @@
+{
+  "kind": "any_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "field 'ddxRay' is 'write' for 'caller' stage but field is never written for TraceRay call"
+    },
+    {
+      "kind": "regex",
+      "value": "field 'ddyRay' is 'write' for 'caller' stage but field is never written for TraceRay call"
+    }
+  ],
+  "note": "The reporter's symptom is this specific -Wpayload-access-trace warning firing on a write(caller)-qualified field that IS written -- just in the caller of the function that contains the TraceRay call (a one-function-removed helper, TraceRadianceRay/Trace). repro.hlsl writes ddxRay/ddyRay directly in the raygeneration shader and only then calls a helper that performs the TraceRay call, structurally matching the report. Either field name matching is sufficient: reindex should also confirm on a control that a field written to and traced directly (same-function, matching nested_access.hlsl TEST_NUM=5) does not trip this regex, and that a field that really is never written does."
+}

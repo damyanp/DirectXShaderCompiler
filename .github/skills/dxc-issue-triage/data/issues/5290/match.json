@@ -1,0 +1,16 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "VS_OUTPUT\\s+input",
+      "note": "positive anchor: proves the rewrite completed and ps_main's own parameter is still declared with type VS_OUTPUT (i.e. the run did not fail before reaching the point where this matters)."
+    },
+    {
+      "kind": "not_regex",
+      "value": "struct\\s+VS_OUTPUT\\b",
+      "note": "absence: VS_OUTPUT's own struct declaration must be present somewhere in the output for ps_main's signature to remain self-consistent HLSL. Its disappearance while still named by the retained parameter is exactly the defect quoted in the issue body -- the entry point's OWN, otherwise-unread parameter type is dropped from the 'used types' set."
+    }
+  ],
+  "note": "Ask 1 (the issue's title): dxr -remove-unused-functions -remove-unused-globals -E ps_main removes struct VS_OUTPUT even though it types ps_main's own (unread) parameter. all_of guards against the not_regex clause being satisfied for free by a failed/empty rewrite (see control-entry-not-found.hlsl)."
+}

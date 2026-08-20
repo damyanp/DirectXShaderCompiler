@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Reported symptom is an assert in LowerTypeVisitor::visitInstruction (isa<SpirvDebugGlobalVariable> && isa<HybridType>) when a Debug build compiles a cbuffer with -fspv-debug=vulkan-with-source and -fvk-use-dx-layout. internal_failure is scored on exit status, not message text, because a later report (comment 2023-08-03, DXC v1.7.2308.10004) shows the same class of defect surfacing on a different, larger shader as a Release-build access violation rather than a trapped assert. -fvk-use-dx-layout is a load-bearing control per a maintainer's own comment (\"the test case passes if you remove -fvk-use-dx-layout\"); that control is captured as variant-no-dx-layout-main-debug.txt with --expect no-match."
+}

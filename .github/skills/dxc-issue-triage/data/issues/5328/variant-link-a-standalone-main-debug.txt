@@ -1,0 +1,17 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T20:31:03+00:00
+# cmd: -T lib_6_9 link-a.hlsl -Fo link-a-standalone.obj
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: unscored
+# variant: link-a-standalone (link-a.hlsl)
+
+$ dxc -T lib_6_9 link-a.hlsl -Fo link-a-standalone.obj
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

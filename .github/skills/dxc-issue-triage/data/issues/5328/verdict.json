@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-06-27T15:07:13Z",
+  "godbolt_skip": "MatrixBitcastLowerPass only runs during multi-module dxc -T lib_6_x -link; CE compiles a single file per pane with no linking step, so it cannot demonstrate the reported code path",
+  "history": "always-repro'd",
+  "labels": "matrix-bug,tech-debt",
+  "labels_add": "crash, shader-linking",
+  "labels_now": "matrix-bug,tech-debt",
+  "notes_path": "data\\issues\\5328\\notes.md",
+  "number": 5328,
+  "repro_quality": "partial",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Confirmed present, unchanged, on main-debug @ 89e2f98e29c289ae8ad9e00dd310104fea9fd7df: HLMatrixBitcastLowerPass.cpp:244 constructs IRBuilder<>(LI) inside the StoreInst arm, where LI is guaranteed null (sibling if/else-if arm). This is an unconditional null deref once the branch executes, per IRBuilder's Instruction* ctor semantics. Several agent-constructed dxc -T lib_6_x -link repro attempts did not trigger it (AlwaysInlinerPass inlines the cross-module call before the buggy pass runs), so the verdict rests on static source verification, not an executed crash of this exact branch. The 2026-04-27 comment's crash is a separate, unrelated bug in HLMatrixLowerPass.cpp (different file/function/fault).",
+  "title": "Typo and potential null dereference in HLMatrixBitcastLowerPass.cpp",
+  "triaged_at": "2026-08-20T05:15:21+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5328"
+}

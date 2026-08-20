@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-11-28T21:32:34Z",
+  "godbolt_url": "https://godbolt.org/z/17nh9j5fW",
+  "history": "always-repro'd",
+  "labels": "bug,crash,correctness",
+  "labels_add": "hlsl-next",
+  "labels_now": "bug,crash,correctness",
+  "notes_path": "issues\\6073\\notes.md",
+  "number": 6073,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still reproduces on main and on every stable release that can parse HLSL templates (v1.7.2308..v1.9.2607, 12 releases, no invalid probes inside that range); older releases reject 'template' as a reserved keyword and are invalid-probes, not clean results. Release binaries print the exact text quoted in the issue, byte-identical mangled name included; the Debug ground truth instead crashes earlier on an unrelated Debug-only assert in clang::LinkageComputer::getLVForDecl, confirmed (via cdb 'gh' continuation past that assert) to be the same defect reaching the identical Comdat text downstream. Both patterns the issue says already work (non-templated static member; templated const static member) still compile cleanly.",
+  "title": "Non-const static data members of templated structs fail to compile",
+  "triaged_at": "2026-08-20T05:15:34+00:00",
+  "triaged_by": "GitHub Copilot CLI",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/6073"
+}

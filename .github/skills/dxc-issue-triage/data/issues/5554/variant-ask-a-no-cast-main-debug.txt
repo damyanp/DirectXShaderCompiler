@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T21:09:32+00:00
+# cmd: -HV 2021 -T ps_6_6 -E PSMain variant-ask-a-no-cast.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: ask-a-no-cast (variant-ask-a-no-cast.hlsl)
+# expect: match
+
+$ dxc -HV 2021 -T ps_6_6 -E PSMain variant-ask-a-no-cast.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-ask-a-no-cast.hlsl:31:6: error: non-type template argument of type 'KEK' is not an integral constant expression
+test<KEK::COUNT> instance;
+     ^~~~~~~~~~
+
+

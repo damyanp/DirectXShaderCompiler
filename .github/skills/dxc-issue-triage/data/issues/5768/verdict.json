@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-21T21:45:31Z",
+  "godbolt_url": "https://godbolt.org/z/PWdbvjGP3",
+  "history": "always-repro'd",
+  "labels": "bug,tech-debt,diagnostic",
+  "labels_add": "type-system, validation",
+  "labels_now": "bug,tech-debt,diagnostic",
+  "notes_path": "issues/5768/notes.md",
+  "number": 5768,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still reproduces on main (89e2f98e2): SV_VertexID typed float compiles past Sema and is only rejected at DXIL validation ('SV_VertexID must be uint'), not as a compile-time error. Always-repro'd across all 20 probeable stable releases v1.4.1907..v1.9.2607 (linear scan). PR #3043 added exactly this check and merged 2021-02-25 but was reverted 5 days later ('due to regressions'); both events fall entirely between stable releases v1.5.2010 and v1.6.2104, so no release ever shipped it, and no follow-up has landed since.",
+  "title": "Declare SV_VertexID as float only get validation error",
+  "triaged_at": "2026-08-20T05:15:29+00:00",
+  "triaged_by": "Claude Sonnet 4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5768"
+}

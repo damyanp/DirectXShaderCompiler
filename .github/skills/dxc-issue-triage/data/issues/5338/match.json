@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Signature-independent by design (SKILL.md step 4): a Release build (asserts compiled out) takes the reporter's own 'llvm::cast<X>() argument of incompatible type!' E_FAIL path (0x80004005, text-marker only -- see INTERNAL_MARKERS), while a Debug/assertions build (our ground truth, main-debug) instead traps the maintainer-quoted ScalarReplAggregatesHLSL.cpp RewriteBitCast assertion, exit 0x80000003 or 0xE0000001. is_internal_failure() catches both by exit status first; text is only a backstop for the E_FAIL case. dxc returns E_FAIL for ordinary diagnosed errors too, so 'nonzero exit' alone would be wrong here -- but E_FAIL alone does not satisfy this predicate; only the exit-code allowlist or an INTERNAL_MARKERS text hit does. CONTROL: control-no-cast.hlsl is the same struct/signature/loop shape without the array-reinterpret cast and must compile cleanly (--expect no-match, see variant-no-cast-*.txt)."
+}

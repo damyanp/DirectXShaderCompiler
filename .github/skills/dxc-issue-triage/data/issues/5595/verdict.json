@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-08-24T03:48:23Z",
+  "expected_symptom": "A lit test format/mechanism exists that lets an individual .hlsl/.ll file under tools/clang/test/HLSLFileCheckLit get the same hash-stability coverage a file under tools/clang/test/HLSLFileCheck gets today via the TAEF CodeGenHashStability* tests, so a file can move from HLSLFileCheck to HLSLFileCheckLit without losing coverage.",
+  "godbolt_skip": "Pure test-infrastructure (lit test-runner) feature request with no shader repro; Compiler Explorer compiles a single HLSL source through fixed compiler panes and cannot express or evaluate lit test-format/runner capability.",
+  "history": "unknown",
+  "labels": "enhancement,test,tech-debt",
+  "labels_now": "enhancement,test,tech-debt",
+  "notes_path": "issues/5595/notes.md",
+  "number": 5595,
+  "repro_quality": "none",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Test-infrastructure feature request, not a compiler bug -- no lit-native hash-stability mechanism exists on main (HLSLFileCheckLit has 29 files, none hash-tested; HLSLFileCheck has 2212, hash-tested only via 10 TAEF CodeGenHashStability* methods). A same-day fix attempt, PR #5600 ('Fixes #5595'), added a DxcHashTest lit format and got three weeks of substantive maintainer review, but stalled unmerged on an unresolved design objection (does not respect lit local-config traversal); its last commit is 2023-09-22 and gh/git both confirm it was never merged. Duplicate issue #5552 was closed in favor of this one. Issue text remains accurate.",
+  "title": "[Feature Request] support hash stability test in lit",
+  "triaged_at": "2026-08-20T05:15:25+00:00",
+  "triaged_by": "claude-sonnet-5",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5595"
+}

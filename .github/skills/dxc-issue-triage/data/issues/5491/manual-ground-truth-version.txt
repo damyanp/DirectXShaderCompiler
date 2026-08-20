@@ -1,0 +1,17 @@
+dxc --version: dxcompiler.dll: 1.10(5465-7665270b)(1.9.0.5465) - 1.9.0.5465 (triage, 7665270b9)
+local build HEAD: ced72eee367189d37543579a6315b9a50f70af5d (branch: triage)
+registered main-debug compiler json (.cache/compilers/main-debug.json) git_commit: 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+
+Cite the public upstream commit 89e2f98e29c289ae8ad9e00dd310104fea9fd7df, not the self-reported local branch commit.
+
+Equivalence control: git diff --name-only 89e2f98e29c289ae8ad9e00dd310104fea9fd7df HEAD, filtered to paths outside .github/skills/ (the triage workspace):
+(no output -- zero files outside the triage skill directory differ)
+
+CONTROL (must show real differences, proving the check above can detect a difference): git diff --name-only 89e2f98e29c289ae8ad9e00dd310104fea9fd7df~50 HEAD, same filter, first 5 lines:
+
+.github/copilot-instructions.md
+azure-pipelines.yml
+docs/DXIL.rst
+docs/ReleaseNotes.md
+external/SPIRV-Headers
+

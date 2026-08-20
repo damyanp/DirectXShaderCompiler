@@ -1,0 +1,24 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T18:38:45+00:00
+# cmd: -T cs_6_6 -E main -Od -Vd -spirv variant-cs-array.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-crash.json
+# verdict: no-repro
+# variant: spirv-crash (variant-cs-array.hlsl)
+# expect: match
+# expectation-kind: hypothesis
+# outcome: refuted
+
+$ dxc -T cs_6_6 -E main -Od -Vd -spirv variant-cs-array.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-cs-array.hlsl:14:46: error: Cannot cast initializer type 'Texture2D<vector<float, 4> >' into variable type 'const Texture2D<vector<float, 4> >'
+static const Texture2D<float4> textures[2] = {
+                                             ^
+
+

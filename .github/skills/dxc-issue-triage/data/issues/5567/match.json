@@ -1,0 +1,16 @@
+{
+  "kind": "all_of",
+  "note": "Symptom is the ABSENCE of -Wcomma-in-init (warn_hlsl_comma_in_init) for a comma expression nested inside a larger expression used as an initializer (here, divided by a scalar). The not_contains clause alone would be satisfied for free by any compile that failed before Sema's initializer check ran, so it is anchored with a positive control proving the compile actually succeeded (exit 0, not internal_failure/nonzero_exit). The companion shader control-direct-comma.hlsl puts the *same* comma pair directly as the initializer (no division) and must still show the diagnostic (--expect no-match against this predicate), proving the diagnostic itself is still implemented and the pipeline reaches it -- otherwise 'no warning' on the repro could just as well mean the whole check was removed.",
+  "value": [
+    {
+      "kind": "nonzero_exit",
+      "invert": true,
+      "note": "positive anchor: dxc must exit 0 (clean compile of valid HLSL) so an absent warning cannot be attributed to a failed/aborted compile"
+    },
+    {
+      "kind": "not_contains",
+      "value": "comma expression used where a constructor list may have been intended",
+      "note": "the exact warn_hlsl_comma_in_init diagnostic text (DiagnosticSemaKinds.td); its absence here is the reported gap"
+    }
+  ]
+}

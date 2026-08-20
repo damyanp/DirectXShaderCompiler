@@ -1,0 +1,4 @@
+Compile with dxc_1_6_2112 and dxc_trunk: both report the second diagnostic pane, an overload
+resolution error naming two candidate functions, for the plain (unsuffixed) integer literal
+call site. Compile the same source with hlsl_clang_trunk (the new Clang-based HLSL front end):
+it succeeds and emits DXIL instead.

@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-11-30T12:20:03Z",
+  "godbolt_url": "https://godbolt.org/z/zxjbnx5dE",
+  "history": "always-repro'd across v1.6.2104..v1.9.2607 (bisection floor: lib_6_6 postdates v1.4.1907/v1.5.2010, which answer invalid profile lib_6_6)",
+  "labels": "bug,needs-triage",
+  "labels_add": "correctness, matrix-bug",
+  "labels_now": "bug,needs-triage",
+  "notes_path": "data/issues/6082/notes.md",
+  "number": 6082,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "needs-human-judgement",
+  "summary": "DXC still bitcasts a bool-matrix payload field's <N x i1>-vector-backed pointer to <N x i32>* and loads through it, assuming 32-bit-per-lane spacing where LLVM vectors are bit-packed; unchanged v1.6.2104 (oldest lib_6_6 release) through main and CE trunk. DXC's own validator accepts the output; the maintainers' unresolved position is that this is only unsound if DXIL is reinterpreted as standard modern LLVM IR, which is what the reporter's own opt-based repro does. No fix or resolution since the thread went quiet 2024-04-10.",
+  "title": "Incorrect DXIL bitcasts generated for bool matrices in ray payloads ",
+  "triaged_at": "2026-08-20T05:15:34+00:00",
+  "triaged_by": "GitHub Copilot CLI",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/6082"
+}

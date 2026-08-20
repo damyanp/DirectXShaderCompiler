@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-29T19:08:06Z",
+  "godbolt_skip": "build-configuration tech-debt issue (UBSAN alignment sanitizer disabled in CMake); no HLSL/shader repro exists or applies -- nothing for Compiler Explorer to show",
+  "history": "always-repro'd",
+  "labels": "bug,tech-debt",
+  "labels_add": "sanitizer, build",
+  "labels_now": "bug,tech-debt",
+  "notes_path": "issues\\5804\\notes.md",
+  "number": 5804,
+  "repro_quality": "prose-only",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "UBSAN's alignment sub-sanitizer, disabled by #5803/#6431 because CheckedReaderWriter does unaligned access, is still excluded (fno-sanitize=vptr,function,alignment) in cmake/modules/HandleLLVMOptions.cmake at ground truth; no fix or re-enable has landed.",
+  "title": "Fix UBSAN alignment failures",
+  "triaged_at": "2026-08-20T05:15:30+00:00",
+  "triaged_by": "claude-sonnet-4.6 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5804"
+}

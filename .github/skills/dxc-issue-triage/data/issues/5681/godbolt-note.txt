@@ -1,0 +1,6 @@
+Look at the exit status and stderr of each pane, not the presence of a diagnostic file. The
+older dxc_1_6_2112 pane is expected to end with an internal-compiler-error / access-violation
+message rather than any ordinary "error:" text, matching the reporter's crash claim. The
+current dxc_trunk pane is expected to end cleanly with an ordinary diagnosed error
+("Atomic operation targets must be groupshared, Node Record or UAV.") and no crash-shaped exit
+status -- that is the fix this triage located between v1.8.2502 and v1.8.2505.

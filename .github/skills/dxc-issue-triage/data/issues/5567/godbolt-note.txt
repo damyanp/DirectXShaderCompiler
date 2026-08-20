@@ -1,0 +1,7 @@
+Look at the stderr for each DXC pane. Neither should print any diagnostic at all: the
+shader compiles clean with no `-Wcomma-in-init` warning for `uint2 a = (1, 2) / 2;`,
+even though the comma pair is very likely a forgotten `uint2(...)` constructor call.
+Compare this with the Clang pane (the from-scratch HLSL front end being developed in
+upstream llvm-project, a different codebase from this DXC repository): check whether
+it diagnoses the nested comma expression here, since a maintainer comment on the issue
+says Clang currently warns "in these cases".

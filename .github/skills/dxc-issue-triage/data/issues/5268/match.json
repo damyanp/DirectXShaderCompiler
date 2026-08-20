@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "# dxc (recompile) classification: diagnosed-error"
+    },
+    {
+      "kind": "regex",
+      "value": "use of undeclared identifier 'POINT_SIZE'"
+    }
+  ],
+  "note": "The issue's claim is that -remove-unused-globals drops a static global whose declaration is still needed by another static global's initializer, so the rewritten source 'leads to compile error'. harness.py (this issue's dxr+dxc pipeline harness) prints its own self-controlled classification line for the recompile stage, computed from the recompile's real exit status via the same INTERNAL_STATUS/E_FAIL table triage.py uses (see harness.py's classify()) -- this is NOT a dxc-emitted diagnostic string, so it is stable across dxc versions/platforms in the way SKILL.md's 'message text is not portable' warning is about, and it is a positive marker under the reporter's own control, not the compiler's. 'diagnosed-error' means the recompile failed with an ordinary E_FAIL (not a crash) -- exactly the reported symptom, a compile error, not a crash. The second clause anchors on the specific missing identifier so an unrelated diagnosed error cannot satisfy the predicate for free. Negative controls: control-single-level.hlsl (one static global used directly, no chain -- rewriter keeps it, recompiles clean) and control-chain-both-unused.hlsl (neither global reachable from the entry point -- rewriter removes both, recompiles clean) both must score no-match; see variant-control-*-main-debug-dxr.txt."
+}

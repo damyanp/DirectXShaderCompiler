@@ -1,0 +1,16 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "not_regex",
+      "value": "redefinition of '\\w+' shadows declaration in the outer scope",
+      "note": "the reported symptom: HV2021 prints no -Wfor-redefinition shadow warning for the repro's inner-scope 'i' that shadows the outer-scope 'i'."
+    },
+    {
+      "kind": "contains",
+      "value": "target triple = \"dxil-ms-dx\"",
+      "note": "anti-vacuity anchor: the repro must actually finish compiling to DXIL disassembly (dxc's default no -Fo behaviour is to print it to stdout). Without this, a build that simply failed to parse the shader would also satisfy the absence clause above for the wrong reason -- see the invalid-probe/absence-predicate trap in SKILL.md step 4."
+    }
+  ],
+  "note": "Symptom present = the -HV 2021 compile of repro.hlsl (a loop induction variable 'i' that shadows an outer-scope 'i') prints no shadow-redefinition warning, while a successful compile still happened. See variant-hv2018-control-<compiler>.txt and variant-hv2016-control-<compiler>.txt for the same source under older language versions, which DO print the warning and are the positive control (--expect match) proving the predicate can detect the warning when it is present."
+}

@@ -1,0 +1,6 @@
+What to look for: both panes fail DXIL validation on the DispatchMesh call in
+taskMain, citing a payload-size disagreement between the actual and declared
+sizes of the empty payload struct S{}. Exit status 5 (Linux truncation of
+0x80004005, E_FAIL) is an ordinary diagnosed validation failure, not a crash.
+Compare against a payload struct with at least one member, which validates
+cleanly with no such diagnostic.

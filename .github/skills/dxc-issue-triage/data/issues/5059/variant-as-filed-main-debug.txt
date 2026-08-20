@@ -1,0 +1,27 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T19:22:21+00:00
+# cmd: -T lib_6_3 repro.hlsl -Fc i33.dxil.txt
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: as-filed (repro.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc -T lib_6_3 repro.hlsl -Fc i33.dxil.txt
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:8:2: warning: attribute 'numthreads' ignored without accompanying shader attribute [-Wmisplaced-attributes]
+[numthreads(8, 8, 1)]
+ ^
+repro.hlsl:7:2: warning: attribute 'RootSignature' ignored without accompanying shader attribute [-Wmisplaced-attributes]
+[RootSignature(_RootSig)]
+ ^
+
+

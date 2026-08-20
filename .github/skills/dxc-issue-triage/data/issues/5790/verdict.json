@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-27T14:42:16Z",
+  "godbolt_skip": "pure GitHub repository-settings question (branch protection / ruleset); no shader, source, or compiler behavior exists to show on Compiler Explorer",
+  "history": "n/a",
+  "labels": "enhancement",
+  "labels_now": "enhancement",
+  "notes_path": "issues/5790/notes.md",
+  "number": 5790,
+  "repro_quality": "prose-only",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Repo-settings request, not a compiler bug: enable 'Require conversation resolution before merging' on main. pow2clk said in 2023-10-25 it 'has been done for all branches', but Keenuts reported on 2025-04-23 that a comment-only review still let auto-merge submit PR #7369. Live read-only gh api checks (2026-08-19) confirm the setting is off today on both mechanisms GitHub exposes: classic branch protection ('required_conversation_resolution': false) and the org-sourced 'microsoft-production-ruleset' pull_request rule ('required_review_thread_resolution': false, ruleset created 2025-05-07, after Keenuts' report). No branch-protection change history is exposed by the API, so whether it was toggled off or superseded by the ruleset cannot be determined.",
+  "text_stale": "pow2clk's 2023-10-25 comment ('This has been done for all branches') no longer matches main's live configuration; both the classic branch-protection toggle and the org ruleset's equivalent rule are off as of this triage",
+  "title": "[Github] Enable \"Require conversation resolution before merging\" ?",
+  "triaged_at": "2026-08-20T05:15:29+00:00",
+  "triaged_by": "claude-sonnet-4.6 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e2",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5790"
+}

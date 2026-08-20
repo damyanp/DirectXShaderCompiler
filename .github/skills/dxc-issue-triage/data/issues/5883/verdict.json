@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-10-17T18:59:12Z",
+  "godbolt_url": "https://godbolt.org/z/s7WdTna8d",
+  "history": "always-repro'd",
+  "labels": "bug,matrix-bug,correctness",
+  "labels_now": "bug,matrix-bug,correctness",
+  "notes_path": "issues/5883/notes.md",
+  "number": 5883,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Const-qualified local aggregate init (struct/array-of-matrix, later widened by reporter to struct/array of any type) folds the referenced variable's own DECLARATION-time initializer instead of its current value, silently discarding any writes made to it before the const init. Reproduces on main-debug (89e2f98e2) and on every bisectable stable release v1.4.1907..v1.9.2607 (always-repro'd); non-const control on the same shader is correct. Corroborated on Compiler Explorer (dxc_1_6_2112, dxc_trunk).",
+  "title": "Initializing a const-qualified var of type 'struct/array of (struct/array of) more than one type' with initializer 'init' will ignore any dynamic writes made to 'init' beforehand",
+  "triaged_at": "2026-08-20T05:15:31+00:00",
+  "triaged_by": "Copilot CLI (batch-019 per-issue worker)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5883"
+}

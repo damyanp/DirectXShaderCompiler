@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "IDxcCompiler::Compile status -> 0x00000000 (S_OK)"
+    },
+    {
+      "kind": "contains",
+      "value": "marker-present-in-container: NO"
+    },
+    {
+      "kind": "contains",
+      "value": "RESULT-COMPLETE"
+    }
+  ],
+  "note": "The reported defect: a caller-supplied, non-disk-backed IDxcIncludeHandler serves the #include, the compile succeeds, but the marker embedded in the handler's own served content (HANDLER4805_MARKER_f3c9a1) is absent from the raw SPIR-V container -- the custom handler's content was not what got embedded as the included file's DebugSource text. Every clause is a positive `contains`; there is no absence clause a compile that never started could satisfy for free (SKILL.md, #1877/#2792). Clause 1 anchors the compile as having actually succeeded (S_OK), so this predicate cannot be confused with the separate, unrelated failure mode captured by match-regression.json. Clause 3 (RESULT-COMPLETE) anchors that the harness reached its own end-of-run marker rather than crashing or exiting early for an unrelated reason -- if the harness itself crashed partway through, this file would show neither clause 2 nor 3, and the predicate correctly reports no-match rather than a false positive. Anti-vacuity: run this same match.json against control-identical/main.hlsl with --expect no-match. There, a real on-disk file byte-identical to the handler's served content sits at the resolved candidate path, so the container legitimately contains the marker (via the raw-disk re-read coincidentally reading the same bytes the handler already supplied) -- proving the harness, the byte-search and the API path all work, and that 'marker absent' in the primary repro is a real finding and not a broken instrument."
+}

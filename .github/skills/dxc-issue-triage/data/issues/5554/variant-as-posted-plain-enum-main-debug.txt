@@ -1,0 +1,36 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T21:09:36+00:00
+# cmd: -HV 202x -spirv -T cs_6_7 -E main -fspv-target-env=vulkan1.3 -Wno-c++11-extensions -enable-16bit-types variant-as-posted-integral-constant.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: as-posted-plain-enum (variant-as-posted-integral-constant.hlsl)
+# expect: no-match
+
+$ dxc -HV 202x -spirv -T cs_6_7 -E main -fspv-target-env=vulkan1.3 -Wno-c++11-extensions -enable-16bit-types variant-as-posted-integral-constant.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.6
+; Generator: Google spiregg; 0
+; Bound: 5
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main"
+               OpExecutionMode %main LocalSize 256 1 1
+               OpSource HLSL 670
+               OpName %main "main"
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %main = OpFunction %void None %3
+          %4 = OpLabel
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

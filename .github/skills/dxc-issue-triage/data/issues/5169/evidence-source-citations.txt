@@ -1,0 +1,161 @@
+Evidence for #5169, gathered by direct source citation (not a dxc compile probe).
+
+# compiler: main-debug
+# ground-truth commit (public upstream): 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+# main repo HEAD at time of citation: verified tree-identical to the above
+#   commit outside .github/skills/dxc-issue-triage (see method-notes.md)
+# All excerpts below are `git show HEAD:<path>` output, i.e. the committed
+# blob, not an edited working-tree file.
+
+================================================================================
+1. The vendored public header still lacks D3D_SVC_BIT_FIELD
+================================================================================
+File:   external/DirectX-Headers/include/directx/d3dcommon.h
+Command: git -C external/DirectX-Headers show HEAD:include/directx/d3dcommon.h
+Submodule pin recorded in main repo (git ls-tree HEAD -- external/DirectX-Headers):
+  160000 commit 980971e835876dc0cde415e8f9bc646e64667bf7  external/DirectX-Headers
+
+640: enum _D3D_SHADER_VARIABLE_CLASS
+641:     {
+642:         D3D_SVC_SCALAR	= 0,
+643:         D3D_SVC_VECTOR	= ( D3D_SVC_SCALAR + 1 ) ,
+644:         D3D_SVC_MATRIX_ROWS	= ( D3D_SVC_VECTOR + 1 ) ,
+645:         D3D_SVC_MATRIX_COLUMNS	= ( D3D_SVC_MATRIX_ROWS + 1 ) ,
+646:         D3D_SVC_OBJECT	= ( D3D_SVC_MATRIX_COLUMNS + 1 ) ,
+647:         D3D_SVC_STRUCT	= ( D3D_SVC_OBJECT + 1 ) ,
+648:         D3D_SVC_INTERFACE_CLASS	= ( D3D_SVC_STRUCT + 1 ) ,
+649:         D3D_SVC_INTERFACE_POINTER	= ( D3D_SVC_INTERFACE_CLASS + 1 ) ,
+650:         D3D10_SVC_SCALAR	= D3D_SVC_SCALAR,
+651:         D3D10_SVC_VECTOR	= D3D_SVC_VECTOR,
+652:         D3D10_SVC_MATRIX_ROWS	= D3D_SVC_MATRIX_ROWS,
+653:         D3D10_SVC_MATRIX_COLUMNS	= D3D_SVC_MATRIX_COLUMNS,
+654:         D3D10_SVC_OBJECT	= D3D_SVC_OBJECT,
+655:         D3D10_SVC_STRUCT	= D3D_SVC_STRUCT,
+656:         D3D11_SVC_INTERFACE_CLASS	= D3D_SVC_INTERFACE_CLASS,
+657:         D3D11_SVC_INTERFACE_POINTER	= D3D_SVC_INTERFACE_POINTER,
+658:         D3D_SVC_FORCE_DWORD	= 0x7fffffff
+659:     } 	D3D_SHADER_VARIABLE_CLASS;
+
+-> No D3D_SVC_BIT_FIELD member. The enum stops at D3D_SVC_INTERFACE_POINTER
+   (value 8), exactly as the issue describes.
+
+================================================================================
+2. DXC still synthesizes the value itself, unconditionally, with the FIXME
+   from PR #5142 still standing
+================================================================================
+File:   lib/HLSL/DxilContainerReflection.cpp
+Command: git show HEAD:lib/HLSL/DxilContainerReflection.cpp
+
+52: // Remove this workaround once newer version of d3dcommon.h can be compiled
+53: // against
+54: #define ADD_16_64_BIT_TYPES
+55: #define ADD_SVC_BIT_FIELD
+   ...
+114: #ifdef ADD_SVC_BIT_FIELD
+115: // Disable warning about value not being valid in enum
+116: #pragma warning(disable : 4063)
+117: // FIXME: remove the define once D3D_SVC_BIT_FIELD added into
+118: // D3D_SHADER_VARIABLE_CLASS.
+119: #define D3D_SVC_BIT_FIELD                                                      \
+120:   ((D3D_SHADER_VARIABLE_CLASS)(D3D_SVC_INTERFACE_POINTER + 1))
+121: #endif
+
+File:   lib/DxilContainer/D3DReflectionStrings.cpp
+Command: git show HEAD:lib/DxilContainer/D3DReflectionStrings.cpp
+
+16: // Remove this workaround once newer version of d3dcommon.h can be compiled
+17: // against
+18: #define ADD_16_64_BIT_TYPES
+19: #define ADD_SVC_BIT_FIELD
+   ...
+345: #ifdef ADD_SVC_BIT_FIELD
+346: // Disable warning about value not being valid in enum
+347: #pragma warning(disable : 4063)
+348: // FIXME: remove the define once D3D_SVC_BIT_FIELD added into
+349: // D3D_SHADER_VARIABLE_CLASS.
+350: #define D3D_SVC_BIT_FIELD                                                      \
+351:   ((D3D_SHADER_VARIABLE_CLASS)(D3D_SVC_INTERFACE_POINTER + 1))
+352: #endif
+353:
+354: LPCSTR ToString(D3D_SHADER_VARIABLE_CLASS Class) {
+355:   switch (Class) {
+   ...
+372:   case D3D_SVC_BIT_FIELD:
+373:     return "D3D_SVC_BIT_FIELD";
+
+-> `ADD_SVC_BIT_FIELD` is `#define`d unconditionally at the top of both files
+   (not gated on any detected header version), so the local synthetic value
+   `((D3D_SHADER_VARIABLE_CLASS)(D3D_SVC_INTERFACE_POINTER + 1))` == 9 is what
+   every build of DXC uses, matching the issue's own description: "DXC is
+   essentially casting an integer value to D3D_SHADER_VARIABLE_CLASS because
+   the D3D headers haven't been updated with the new value."
+
+================================================================================
+3. History: introduced by the PR the issue follows up on; never touched since
+================================================================================
+Command: git log --all --oneline -S"D3D_SVC_BIT_FIELD" -- \
+           lib/HLSL/DxilContainerReflection.cpp \
+           lib/DxilContainer/D3DReflectionStrings.cpp
+
+8a8b29f96 [spirv] AMD work graphs extension (#7353)      2025-06-03
+daf138616 [dxa] Add option to dump reflection (#5232)     2023-05-24
+5cadb2589 Fix reflection on bitfield. (#5142)              2023-05-05
+
+Three commits match the pickaxe search, but only one of them writes new
+FIXME/workaround text; the other two are path history, not edits:
+
+- `5cadb2589` (#5142) is where the FIXME first appears, in
+  `lib/HLSL/DxilContainerReflection.cpp` and in what was then
+  `tools/clang/unittests/HLSLTestLib/D3DReflectionStrings.cpp` (confirmed via
+  `git show --stat 5cadb2589`, and via `git show 5cadb2589:lib/HLSL/
+  DxilContainerReflection.cpp | Select-String -Pattern "FIXME: remove the
+  define" -Context 0,3`, which prints the identical FIXME text).
+- `daf138616` (#5232) is a pure rename of
+  `tools/clang/unittests/HLSLTestLib/D3DReflectionStrings.cpp` to
+  `lib/DxilContainer/D3DReflectionStrings.cpp` (`git show --stat daf138616
+  --find-renames` reports "0" insertions/deletions for that path, i.e. a
+  100%-similarity rename); it appears in the path-restricted pickaxe search
+  above only because restricting `git show` to specific new/old paths
+  suppresses rename detection and prints the moved content as a fresh "+"
+  addition. No wording changed.
+- `8a8b29f96` (#7353) is a single-parent, non-merge commit whose diff against
+  its immediate parent (`ae3e317fff...`) shows both
+  `lib/DxilContainer/D3DReflectionStrings.cpp` (693 lines) and
+  `lib/HLSL/DxilContainerReflection.cpp` (3093 lines) added in full — an
+  artifact of that parent commit predating these files on whatever branch
+  history #7353 was integrated from, not a rewrite of their contents.
+
+Byte-comparison of the FIXME block across these three commits and current
+HEAD (`git show <rev>:lib/DxilContainer/D3DReflectionStrings.cpp |
+Select-String -Pattern "FIXME: remove the define" -Context 0,3` for
+`daf138616`, `8a8b29f96`, `HEAD`) shows the same comment and the same
+`(D3D_SVC_INTERFACE_POINTER + 1)` cast throughout; only whitespace formatting
+of the `#define` line changed (a single-line form at `daf138616`, the current
+backslash-continued form from `8a8b29f96` onward), consistent with a
+clang-format pass rather than a content edit. The wording and semantics have
+not changed since #5142 (2023-05-05, thirteen days before this issue was
+filed on 2023-04-21 -- note the issue predates #5142's merge date recorded
+here; see caveat below).
+
+CAVEAT: this issue (#5169) was filed 2023-04-21, but PR #5142's merge commit
+`5cadb2589` is dated 2023-05-05 -- after the issue was filed. Per
+`gh api repos/microsoft/DirectXShaderCompiler/pulls/5142`, PR #5142 was
+opened 2023-04-12T02:33:19Z and merged 2023-05-06T00:56:33Z, so the issue was
+filed nine days into that PR's review, referencing its (not yet merged)
+changes -- matching the issue body's own wording, "D3D_SVC_BIT_FIELD is added
+as macro define in ...#5142" (present tense, about an open PR).
+
+================================================================================
+Why there is no dxc invocation/probe here
+================================================================================
+The existing test tools/clang/test/HLSLFileCheck/d3dreflect/bitfield-enum.hlsl
+already exercises DXC's bitfield reflection end-to-end and expects
+`Class: D3D_SVC_BIT_FIELD` in the D3DReflect dump -- but running it would only
+re-confirm that DXC's *behavior* (assigning the workaround value to bitfield
+members) is unchanged, which is not in dispute and is not what #5169 asks to
+change. It would also require building the `dxa`/D3DReflect test harness,
+which is not part of the registered `main-debug` (`dxc`-only) ground-truth
+build and would be a rebuild of shared build state outside this issue's
+directory -- out of scope for this session. The header excerpts above answer
+the only question #5169 poses (has D3D_SVC_BIT_FIELD been declared in
+D3D_SHADER_VARIABLE_CLASS) directly and conclusively.

@@ -1,0 +1,23 @@
+# compiler: v1.8.2403.2
+# exe: <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe
+# ran: 2026-08-19T21:32:36+00:00
+# cmd: -T as_6_6 -E taskMain repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T as_6_6 -E taskMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+repro.hlsl:7:5: error: For amplification shader with entry 'taskMain', payload size 4 is greater than declared size of 0 bytes.
+note: at 'call void @dx.op.dispatchMesh.struct.S(i32 173, i32 1, i32 1, i32 1, %struct.S* nonnull %1)' in block '#0' of function 'taskMain'.
+Validation failed.
+
+
+

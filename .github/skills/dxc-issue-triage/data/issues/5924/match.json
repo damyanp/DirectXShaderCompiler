@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "member reference base type '[^']*' is not a structure or union",
+  "note": "The reported symptom IS a diagnostic (a compile-time rejection of `t.xx` when `t`'s declared type is a template type parameter that gets substituted with a scalar type like `float`). Anchored on Clang/DXC's own Sema diagnostic text for member access on a non-aggregate type, which is what a broken swizzle-on-dependent-type produces. This is a diagnostic-quality issue: per SKILL.md step 6, a release/build emitting exactly this diagnostic is NOT an invalid-probe demotion candidate -- the diagnostic itself IS the symptom being tracked, quoted verbatim here so `quote_from`/marker-demotion logic (if it ever fires on this literal text) is suppressed intentionally. Confirmed emitted on the exact reporter repro on the ground-truth Debug build (exit 0x80004005 / E_FAIL, an ordinary diagnosed error, not an internal failure)."
+}

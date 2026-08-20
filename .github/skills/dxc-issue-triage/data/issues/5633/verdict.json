@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-08-31T12:49:49Z",
+  "godbolt_url": "https://godbolt.org/z/KG9b5j1f8",
+  "history": "always-repro'd across v1.5.2010..v1.9.2607 (v1.4.1907 invalid-probe: no SPIR-V codegen) and on main-debug",
+  "labels": "bug,enhancement,diagnostic",
+  "labels_now": "bug,enhancement,diagnostic",
+  "notes_path": "issues/5633/notes.md",
+  "number": 5633,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "dxc silently compiles a statically out-of-bounds constant array index (struct-member array of size 1, indexed then swizzled) with no warning/error on every probeable release and on main; DXC already has a related Sema check (err_hlsl_array_element_index_out_of_bounds) but two of its own exemptions (swizzle-wrapped subscripts, and size-1 struct-member arrays for the C89 flexible-array idiom) both apply to this exact shape.",
+  "title": "DXC should warn on statically checkable out-of-bounds",
+  "triaged_at": "2026-08-20T05:15:26+00:00",
+  "triaged_by": "GitHub Copilot CLI (model not self-identifiable)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5633"
+}

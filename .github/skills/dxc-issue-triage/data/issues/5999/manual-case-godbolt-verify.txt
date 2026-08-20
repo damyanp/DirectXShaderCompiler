@@ -1,0 +1,159 @@
+# Compiler Explorer panes for #5999, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E main
+# exit:     5
+
+<source>:15:1: error: 'template' is a reserved keyword in HLSL
+template<typename BufferType>
+^
+<source>:30:5: error: use of undeclared identifier 'TemplateFunction'
+    TemplateFunction(SomeBuffer);
+    ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main
+# exit:     0
+
+<source>:30:5: warning: implicit conversion from 'globallycoherent RWByteAddressBuffer' to 'RWByteAddressBuffer' loses globallycoherent annotation [-Wconversion]
+    TemplateFunction(SomeBuffer);
+    ^
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: d77129f1b221e3313acc391e9a62784a.pdb
+; shader hash: d77129f1b221e3313acc391e9a62784a
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+define void @main() {
+  ret void, !dbg !33 ; line:31 col:1
+}
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!18, !19}
+!llvm.ident = !{!20}
+!dx.source.contents = !{!21}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!22}
+!dx.source.args = !{!23}
+!dx.version = !{!24}
+!dx.valver = !{!25}
+!dx.shaderModel = !{!26}
+!dx.typeAnnotations = !{!27}
+!dx.entryPoints = !{!30}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !16)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4, !7, !13}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 27, type: !5, isLocal: false, isDefinition: true, scopeLine: 28, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !DISubprogram(name: "ExplicitFunction", linkageName: "\01?ExplicitFunction@@YAIURWByteAddressBuffer@@@Z", scope: !1, file: !1, line: 21, type: !8, isLocal: false, isDefinition: true, scopeLine: 22, flags: DIFlagPrototyped, isOptimized: false)
+!8 = !DISubroutineType(types: !9)
+!9 = !{!10, !12}
+!10 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 13, baseType: !11)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DICompositeType(tag: DW_TAG_structure_type, name: "RWByteAddressBuffer", file: !1, line: 13, size: 32, align: 32, elements: !2)
+!13 = !DISubprogram(name: "TemplateFunction<RWByteAddressBuffer>", linkageName: "\01??$TemplateFunction@URWByteAddressBuffer@@@@YAIURWByteAddressBuffer@@@Z", scope: !1, file: !1, line: 16, type: !8, isLocal: false, isDefinition: true, scopeLine: 17, flags: DIFlagPrototyped, isOptimized: false, templateParams: !14)
+!14 = !{!15}
+!15 = !DITemplateTypeParameter(name: "BufferType", type: !12)
+!16 = !{!17}
+!17 = !DIGlobalVariable(name: "SomeBuffer", linkageName: "\01?SomeBuffer@@3URWByteAddressBuffer@@A", scope: !0, file: !1, line: 13, type: !12, isLocal: false, isDefinition: true)
+!18 = !{i32 2, !"Dwarf Version", i32 4}
+!19 = !{i32 2, !"Debug Info Version", i32 3}
+!20 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!21 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: the `dxc_trunk` pane's warning on the `TemplateFunction(SomeBuffer)` call\0A// line -- \22implicit conversion from 'globallycoherent RWByteAddressBuffer' to\0A// 'RWByteAddressBuffer' loses globallycoherent annotation\22. That is the reported defect: the\0A// `globallycoherent` qualifier is dropped when the template parameter's type is deduced, even\0A// though the call to the explicitly-typed `ExplicitFunction` right above it produces no warning\0A// at all. The `dxc_1_6_2112` pane (CE's oldest DXC) fails for an unrelated reason -- it predates\0A// HLSL function templates entirely (\22'template' is a reserved keyword in HLSL\22) -- and is shown\0A// only to corroborate that the repro cannot be pushed further back than local release testing\0A// already found (v1.7.2308).\0A//==========================================================================//\0A\0Agloballycoherent RWByteAddressBuffer   SomeBuffer;\0A\0Atemplate<typename BufferType>\0Auint TemplateFunction(BufferType AutoParam)\0A{\0A    return AutoParam.Load(0);\0A}\0A\0Auint ExplicitFunction(globallycoherent RWByteAddressBuffer CoherentBuffer)\0A{\0A    return CoherentBuffer.Load(0);\0A}\0A\0A[numthreads(1, 1, 1)]\0Avoid main()\0A{\0A    ExplicitFunction(SomeBuffer);\0A    TemplateFunction(SomeBuffer);\0A}\0A"}
+!22 = !{!"/app/example.hlsl"}
+!23 = !{!"-E", !"main", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug"}
+!24 = !{i32 1, i32 0}
+!25 = !{i32 1, i32 10}
+!26 = !{!"cs", i32 6, i32 0}
+!27 = !{i32 1, void ()* @main, !28}
+!28 = !{!29}
+!29 = !{i32 1, !2, !2}
+!30 = !{void ()* @main, !"main", null, null, !31}
+!31 = !{i32 4, !32}
+!32 = !{i32 1, i32 1, i32 1}
+!33 = !DILocation(line: 31, column: 1, scope: !4)
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E main
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:13:1: [0m[0;1;31merror: [0m[1munknown type name 'globallycoherent'[0m
+   13 | globallycoherent RWByteAddressBuffer   SomeBuffer;[0m
+      | [0;1;32m^
+[0m[1m<source>:13:37: [0m[0;1;31merror: [0m[1mexpected ';' after top level declarator[0m
+   13 | globallycoherent RWByteAddressBuffer   SomeBuffer;[0m
+      | [0;1;32m                                    ^
+[0m      | [0;32m                                    ;
+[0m[1m<source>:21:23: [0m[0;1;31merror: [0m[1munknown type name 'globallycoherent'[0m
+   21 | uint ExplicitFunction(globallycoherent RWByteAddressBuffer CoherentBuffer)[0m
+      | [0;1;32m                      ^
+[0m[1m<source>:21:60: [0m[0;1;31merror: [0m[1mexpected ')'[0m
+   21 | uint ExplicitFunction(globallycoherent RWByteAddressBuffer CoherentBuffer)[0m
+      | [0;1;32m                                                           ^
+[0m[1m<source>:21:22: [0m[0;1;36mnote: [0mto match this '('[0m
+   21 | uint ExplicitFunction(globallycoherent RWByteAddressBuffer CoherentBuffer)[0m
+      | [0;1;32m                     ^
+[0m[1m<source>:23:12: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'CoherentBuffer'[0m
+   23 |     [0;34mreturn[0m CoherentBuffer.Load([0;32m0[0m);[0m
+      | [0;1;32m           ^~~~~~~~~~~~~~
+[0m[1m<source>:29:22: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'SomeBuffer'[0m
+   29 |     ExplicitFunction(SomeBuffer);[0m
+      | [0;1;32m                     ^~~~~~~~~~
+[0m[1m<source>:30:22: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'SomeBuffer'[0m
+   30 |     TemplateFunction(SomeBuffer);[0m
+      | [0;1;32m                     ^~~~~~~~~~
+[0m7 errors generated.
+<Compilation failed>

@@ -1,0 +1,22 @@
+# compiler: v1.7.2308
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+# ran: 2026-08-19T19:43:32+00:00
+# cmd: -spirv -Zi -fspv-reflect -E PS -T ps_6_7 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -spirv -Zi -fspv-reflect -E PS -T ps_6_7 repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+fatal error: generated SPIR-V is invalid: [VUID-StandaloneSpirv-UniformConstant-04655] UniformConstant OpVariable <id> '7[%gUav]' has illegal type.
+Variables identified with the UniformConstant storage class are used only as handles to refer to opaque resources. Such variables must be typed as OpTypeImage, OpTypeSampler, OpTypeSampledImage, OpTypeAccelerationStructureKHR, or an array of one of these types.
+  %gUav = OpVariable %_ptr_UniformConstant_RWTexture2DMS UniformConstant
+
+note: please file a bug report on https://github.com/Microsoft/DirectXShaderCompiler/issues with source code if possible
+
+

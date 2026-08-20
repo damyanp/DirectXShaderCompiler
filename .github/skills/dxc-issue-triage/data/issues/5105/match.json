@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains", "value": "usedTex" },
+    { "kind": "not_contains", "value": "unusedTex" }
+  ],
+  "note": "Symptom PRESENT means the issue is still open: the compile succeeded (anchor: 'usedTex', which is referenced and must survive every configuration, proves the Resource Bindings table was actually emitted and reflects a real compile rather than a failed/rejected one) AND the unreferenced, explicitly-registered 'unusedTex' resource is absent from that table (i.e. still stripped, matching the reporter's complaint that unused registers are kicked from reflection). A release/flag that keeps unusedTex visible scores no-match, i.e. the feature request is satisfied. The 'usedTex' anchor is required because an absence clause alone is satisfied for free by any failed/rejected compile (SKILL.md 'invalid-probe'/absence-predicate hazard) -- without it, a release that simply can't compile ps_6_0 at all would score as if the feature had been added."
+}

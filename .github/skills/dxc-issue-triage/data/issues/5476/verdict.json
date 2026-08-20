@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "medium",
+  "created_at": "2023-07-31T18:29:41Z",
+  "godbolt_url": "https://godbolt.org/z/vajbo9sxW",
+  "history": "unmeasurable -- platform-specific *nix locale bug; no compiler in this triage's toolkit (Windows main-debug; CE's Linux dxc_1_6_2112/dxc_trunk) has ever been observed to trigger the failure, including CE's oldest build which predates the candidate fix by ~4 years",
+  "labels": "bug,macos,usability",
+  "labels_now": "bug,macos,usability",
+  "notes_path": "issues/5476/notes.md",
+  "number": 5476,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Platform-specific (macOS/Linux console) Unicode-conversion bug in Unicode::UTF8BufferToWideBuffer's *nix emulation; cannot be run on Windows (real Win32 API, never buggy) or reproduced via Compiler Explorer's Linux panes (which never hit the failing locale condition, even on a 2021 build). A strong but unconfirmed fix candidate exists: commit 9bcce409b / PR #7506 (merged 2025-11-25), which rewrites the exact locale-handling and MultiByteToWideChar emulation code the issue describes. Needs re-testing on an actual macOS/Linux machine against a build containing that commit.",
+  "title": "[MacOS only] dxc dump nothing when -fcgl with root signature",
+  "triaged_at": "2026-08-20T05:15:23+00:00",
+  "triaged_by": "claude-opus-4.6",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5476"
+}

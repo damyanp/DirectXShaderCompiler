@@ -1,0 +1,8 @@
+What to look for: in both DXC panes, the disassembled function body for
+`MyHSMainPassthrough` contains four `call float @dx.op.loadInput.f32(...)`
+lines (one per float component of `POSITION`), and `!dx.entryPoints` names a
+real function pointer (`void ()* @MyHSMainPassthrough`), not `null`. That is
+the reported bug: SM5's control-point pass-through case (control point body
+is just `return input[id];`) is not recognized, so DXC still emits a normal
+control-point shader that manually copies every component instead of eliding
+the control-point invocation entirely.

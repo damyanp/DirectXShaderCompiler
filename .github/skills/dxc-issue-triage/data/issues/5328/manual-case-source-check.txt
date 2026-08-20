@@ -1,0 +1,53 @@
+# issue: 5328
+# ground-truth commit cited: 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+# purpose: verify the exact reported typo is still present, unchanged, at the exact location the issue names.
+
+$ git show HEAD:lib/HLSL/HLMatrixBitcastLowerPass.cpp
+exit: 0
+occurrences of literal 'IRBuilder<> Builder(LI);': [217, 244]
+--- context around line 217 ---
+206:         DXASSERT(GEP->user_empty(), "else lower matrix fail");
+207:         GEP->eraseFromParent();
+208:       } else {
+209:         DXASSERT(0, "invalid GEP for matrix");
+210:       }
+211:     } else if (BitCastInst *BCI = dyn_cast<BitCastInst>(U)) {
+212:       lowerMatrix(BCI, A);
+213:       DXASSERT(BCI->user_empty(), "else lower matrix fail");
+214:       BCI->eraseFromParent();
+215:     } else if (LoadInst *LI = dyn_cast<LoadInst>(U)) {
+216:       if (VectorType *Ty = dyn_cast<VectorType>(LI->getType())) {
+217:         IRBuilder<> Builder(LI);
+218:         Value *NewVec = nullptr;
+219:         unsigned VecSize = Ty->getVectorNumElements();
+220:         if (SupportsVectors && VecSize > 1) {
+--- context around line 244 ---
+233:             NewVec = Builder.CreateInsertElement(NewVec, Elt, i);
+234:           }
+235:         }
+236:         LI->replaceAllUsesWith(NewVec);
+237:         LI->eraseFromParent();
+238:       } else {
+239:         DXASSERT(0, "invalid load for matrix");
+240:       }
+241:     } else if (StoreInst *ST = dyn_cast<StoreInst>(U)) {
+242:       Value *V = ST->getValueOperand();
+243:       if (VectorType *Ty = dyn_cast<VectorType>(V->getType())) {
+244:         IRBuilder<> Builder(LI);
+245:         if (SupportsVectors && Ty->getVectorNumElements() > 1) {
+246:           // Create a replacement store using the vector pointer.
+247:           Instruction *NewSt = ST->clone();
+
+line 217: preceding ~20 lines contain dyn_cast<LoadInst> arm: True, dyn_cast<StoreInst> arm: False
+line 244: preceding ~20 lines contain dyn_cast<LoadInst> arm: False, dyn_cast<StoreInst> arm: True
+
+$ git blame -L 217,217 -- lib/HLSL/HLMatrixBitcastLowerPass.cpp
+exit: 0
+^8a8b29f96 (Dan Brown 2025-06-03 10:22:13 -0600 217)         IRBuilder<> Builder(LI);
+$ git blame -L 244,244 -- lib/HLSL/HLMatrixBitcastLowerPass.cpp
+exit: 0
+^8a8b29f96 (Dan Brown 2025-06-03 10:22:13 -0600 244)         IRBuilder<> Builder(LI);
+
+$ git diff --name-only HEAD 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+exit: 0
+files differing outside .github/skills/dxc-issue-triage/: 0

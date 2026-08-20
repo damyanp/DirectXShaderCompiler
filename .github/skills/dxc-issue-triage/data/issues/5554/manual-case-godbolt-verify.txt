@@ -1,0 +1,81 @@
+# Compiler Explorer panes for #5554, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -HV 2021 -T cs_6_0 -E main
+# exit:     5
+
+<source>:32:32: error: non-type template argument of type 'ENUM' is not an integral constant expression
+typedef integral_constant<ENUM,ENUM::TRUE> test_t;
+                               ^~~~~~~~~~
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -HV 2021 -T cs_6_0 -E main
+# exit:     5
+
+<source>:32:32: error: non-type template argument of type 'ENUM' is not an integral constant expression
+typedef integral_constant<ENUM,ENUM::TRUE> test_t;
+                               ^~~~~~~~~~
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -HV 2021 -T cs_6_0 -E main
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[0;1;35mwarning: [0m[1msupport for HLSL language version hlsl2021 is incomplete, recommend using hlsl202x instead[0m
+1 warning generated.
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+;
+; ModuleID = '/app/example.hlsl'
+source_filename = "/app/example.hlsl"
+target datalayout = "e-m:e-ve-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxilv1.0-unknown-shadermodel6.0-compute"
+
+; Function Attrs: noinline nounwind memory(none)
+define void @main() local_unnamed_addr #0 {
+  ret void
+}
+
+attributes #0 = { noinline nounwind memory(none) }
+
+!llvm.dbg.cu = !{!0}
+!dx.valver = !{!2}
+!dx.source.contents = !{!3}
+!dx.source.defines = !{!4}
+!dx.source.mainFileName = !{!5}
+!dx.source.args = !{!6}
+!llvm.ident = !{!7}
+!dx.shaderModel = !{!8}
+!dx.version = !{!9}
+!dx.entryPoints = !{!10}
+!llvm.module.flags = !{!13, !14, !15}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_HLSL, file: !1, producer: "clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{i32 1, i32 8}
+!3 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: the diagnostic at the `typedef integral_constant<ENUM,ENUM::TRUE>` line --\0A// \22non-type template argument of type 'ENUM' is not an integral constant expression\22. ENUM is a\0A// scoped enum (`enum class`); the exact same pattern with a plain `enum` compiles cleanly (see\0A// variant-unscoped-6706.hlsl in the issue directory, not uploaded here). Real C++ (gcc, -std=c++17)\0A// accepts this exact pattern -- see manual-case-cpp-control.txt -- so this is a DXC-specific gap,\0A// not a design choice. Both panes (DXC's oldest Compiler Explorer build, 1.6.2112, and dxc_trunk)\0A// show the identical error.\0A//==========================================================================//\0A\0A// Primary repro for #5554: an `enum class` enumerator used as a non-type template argument\0A// for an exactly-typed template parameter, via a generic `integral_constant<T, T val>`\0A// pattern. Minimal contrast pair distilled from the issue thread's own examples\0A// (https://godbolt.org/z/EGaesxvE1, filed on #5554) and its duplicate #6706\0A// (https://godbolt.org/z/hheGKo9vx vs https://godbolt.org/z/7rorK5qoW). The scoped/unscoped\0A// contrast is the load-bearing part: variant-unscoped-6706.hlsl is identical except for one\0A// token (`enum class` -> `enum`) and is the anti-vacuity control (must NOT match).\0Atemplate<typename T, T val>\0Astruct integral_constant\0A{\0A    static const T value = val;\0A};\0A\0A\0Aenum class ENUM : uint32_t\0A{\0A    TRUE = 0,\0A    FALSE = 1,\0A    INVALID = 0x45\0A};\0A\0Atypedef integral_constant<ENUM,ENUM::TRUE> test_t;\0A\0A[numthreads(1,1,1)]\0Avoid main()\0A{\0A}\0A"}
+!4 = !{}
+!5 = !{!"example.hlsl"}
+!6 = !{!"--driver-mode=dxc", !"-g", !"-Qembed_debug", !"-Fc", !"/app/output.s", !"-fcolor-diagnostics", !"-gen-reproducer=off", !"-std=hlsl2021", !"-T", !"cs_6_0", !"-hlsl-entry", !"main", !"/app/example.hlsl", !"-S", !"-O3"}
+!7 = !{!"clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)"}
+!8 = !{!"cs", i32 6, i32 0}
+!9 = !{i32 1, i32 0}
+!10 = !{ptr @main, !"main", null, null, !11}
+!11 = !{i32 4, !12}
+!12 = !{i32 1, i32 1, i32 1}
+!13 = !{i32 2, !"Dwarf Version", i32 4}
+!14 = !{i32 2, !"Debug Info Version", i32 3}
+!15 = !{i32 2, !"frame-pointer", i32 2}

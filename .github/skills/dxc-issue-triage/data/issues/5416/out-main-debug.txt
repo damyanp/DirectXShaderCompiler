@@ -1,0 +1,16 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T20:44:12+00:00
+# cmd: -T lib_6_7 -O3 -MD -MF repro.d -Fo repro.cso repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: unscored
+
+$ dxc -T lib_6_7 -O3 -MD -MF repro.d -Fo repro.cso repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

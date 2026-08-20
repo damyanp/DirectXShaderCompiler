@@ -1,0 +1,27 @@
+# compiler: main-debug-inc4805
+# exe: <triage>/issues/4805/run-handler4805.cmd
+# ran: 2026-08-19T18:59:26+00:00
+# cmd: -T cs_6_0 -E main -spirv -fspv-debug=vulkan-with-source control-identical\main.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: identical (control-identical\main.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main -spirv -fspv-debug=vulkan-with-source control-identical\main.hlsl
+[exe] <triage>/issues/4805/run-handler4805.cmd
+[exit] 0
+--- stdout ---
+# handler4805: #4805 custom include handler probe
+source: control-identical\main.hlsl
+marker: HANDLER4805_MARKER_f3c9a1
+handler4805: LoadSource candidate: .\control-identical\Includes\Uniforms.hlsl
+IDxcCompiler::Compile status -> 0x00000000 (S_OK)
+handler4805: LoadSource call count: 1
+container bytes: 3128
+marker-present-in-container: YES
+handler4805: RESULT-COMPLETE
+
+--- stderr ---
+

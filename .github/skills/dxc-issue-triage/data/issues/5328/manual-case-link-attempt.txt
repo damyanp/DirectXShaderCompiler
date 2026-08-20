@@ -1,0 +1,18 @@
+# issue: 5328
+# purpose: attempt to trigger the reported LI/ST typo in HLMatrixBitcastLowerPass.cpp via dxc -T lib_6_9 -link
+# outcome: no crash observed in any attempt (see notes.md)
+
+$ <repo>\build\Debug\bin\dxc.exe -T lib_6_9 link-a.hlsl -Fo link-a.obj
+exit: 0
+
+$ <repo>\build\Debug\bin\dxc.exe -T lib_6_9 link-b.hlsl -Fo link-b.obj
+exit: 0
+
+$ <repo>\build\Debug\bin\dxc.exe -T lib_6_9 -link link-a.obj;link-b.obj -Fc link-out-discard.ll
+exit: 0
+
+$ <repo>\build\Debug\bin\dxc.exe -T lib_6_9 -link link-a.obj;link-b.obj -Fc link-out-check.ll
+exit: 0
+final .ll contains 'bitcast ... to %class.matrix...*': False
+final .ll contains a surviving call to storeMat in main(): False
+interpretation: storeMat is fully inlined into main() by AlwaysInlinerPass (which runs immediately before MatrixBitcastLowerPass in DxilLinker::RunPreparePass) before the fake-matrix bitcast this pass targets can ever be constructed at the call boundary; SROA/mem2reg then resolves the inlined copy-in/copy-out entirely to <4 x float> loads and stores. No fake-matrix-typed StoreInst ever reaches HLMatrixBitcastLowerPass::lowerMatrix in this configuration.

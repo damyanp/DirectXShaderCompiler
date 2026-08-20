@@ -1,0 +1,10 @@
+{
+  "kind": "any_of",
+  "value": [
+    { "kind": "internal_failure" },
+    { "kind": "contains", "value": "generated SPIR-V is invalid" },
+    { "kind": "contains", "value": "unknown shader module: invalid" }
+  ],
+  "note": "SPIR-V codegen for RWTexture2DMS<T,N> hits an LLVM assert (Debug ground truth) inside clang::spirv::PreciseVisitor::isAccessingPrecise (tools/clang/lib/SPIRV/PreciseVisitor.cpp:72, 'assert(indexValue < fields.size())', then include/llvm/ADT/ArrayRef.h:197 'assert(Index < Length)') because the multisample resource's SPIR-V StructType has fewer fields than the visitor assumes. Both asserts arrive as the C++-exception form (0xE0000001), matching a plain (non-debugger) run's exit code -- a genuine crash, not merely an unimplemented-feature diagnostic. Continuing past both asserts with cdb 'gh' (emulating NDEBUG/Release) shows the underlying defect is not just the assert: the code proceeds to emit invalid SPIR-V and DXC's own embedded SPIRV-Tools validator then rejects it before any output is written ('fatal error: generated SPIR-V is invalid: [VUID-StandaloneSpirv-UniformConstant-04655] UniformConstant OpVariable ... has illegal type', exit 0x80004005/E_FAIL -- an ordinary diagnosed failure, NOT a crash, because the assert that would have caught it earlier is compiled out under NDEBUG). Every probeable stable release (v1.5.2010..v1.9.2607, which all ship Release/NDEBUG binaries) reproduces via this second, non-crashing signature: v1.6.2104-v1.6.2112 print the older SPIRV-Tools generic 'error: unknown shader module: invalid' (no VUID text yet), v1.7.2207 onward print the detailed VUID-StandaloneSpirv-UniformConstant-04655 message. A predicate scoped to internal_failure alone scores every one of those releases no-repro and manufactures a false 'never-repro'd-in-releases' -- see out-v1.6.2104.txt / out-v1.9.2607.txt in history, both exit 2147500037. Both text anchors were confirmed absent from a clean SPIR-V compile (variant-control-trivial-spirv-main-debug.txt, exit 0, no match) and from the DXIL control (variant-control-dxil-main-debug.txt, exit 0, no match; DXIL has no SPIR-V validator to print either string)."
+}
+

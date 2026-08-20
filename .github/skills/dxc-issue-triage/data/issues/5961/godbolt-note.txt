@@ -1,0 +1,14 @@
+Look at the -Wliteral-conversion warnings dxc prints for the five store() calls in main(),
+and compare the "from ... to ..." pair each warning states with the source-comment on the
+same line (which names the value the conversion actually produces).
+
+On any line whose literal carries an explicit unary minus (lines 1, 2 and 4 of the shader
+body), the printed pair has lost that minus sign on BOTH sides: it reports the same
+"from"/"to" magnitudes as if the literal had been positive, so the sign of the reported
+result is wrong whenever the true result is negative (line 1) or the true result should
+clamp toward the opposite end of the destination range (lines 2 and 4). The two lines
+whose literal has no unary minus (the "MaxPositive" cases) report the correct pair.
+
+DXC's own DXIL output for the same file constant-folds each conversion at compile time and
+disagrees with the warning on exactly those three lines -- the folded value matches the
+source comment, not the warning.

@@ -1,0 +1,23 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-04-23T05:16:11Z",
+  "expected_symptom": "Does IDxcIndex::ParseTranslationUnit have any mechanism, direct or indirect, to route #include resolution through caller-supplied logic the way IDxcCompiler::Compile's IDxcIncludeHandler does? repros = no such mechanism exists (only the static, exact-path IDxcUnsavedFile substitute); does-not-repro = a dynamic per-request handler now exists.",
+  "godbolt_skip": "pure COM/API-surface question; no HLSL input or CE compile pane can show a parameter's absence from a COM interface, and CE does not expose the IntelliSense/indexing API",
+  "history": "Not release-bisectable (no shader regression; API-surface interface gap). Source provenance instead: the disk-only implementation and its TODO comment are present in the project's original 2016-12-28 commit (confirmed ancestor of v1.4.1907, 2019-08-30, three-plus years before this issue was filed 2023-04-23) and unchanged through the pinned ground-truth commit 89e2f98e29c289ae8ad9e00dd310104fea9fd7df. bisect deliberately not run: there is no dxc.exe command line this claim can be tested against (see notes.md); godbolt deliberately skipped for the same reason.",
+  "labels": "enhancement",
+  "labels_add": "api",
+  "labels_now": "enhancement",
+  "notes_path": "issues/5172/notes.md",
+  "number": 5172,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "Confirmed still open on main (89e2f98e2, 1.9.0.5465). IDxcIndex::ParseTranslationUnit (dxcisense.h:802-808) has no IDxcIncludeHandler or other per-request VFS parameter; its only related parameter, IDxcUnsavedFile, requires content pre-declared under an exact path before the call. Implementation (dxcisenseimpl.cpp:973) binds unconditionally to a disk filesystem otherwise, with the original 'TODO: until an interface to file access is defined' comment. Harness (isense5172.cpp) against this build's dxcompiler.dll: file absent + no override -> file-not-found (1 diagnostic); file absent + pre-declared IDxcUnsavedFile -> resolves (0 diagnostics, static substitute works); IDxcCompiler::Compile, file absent, content served only via a custom IDxcIncludeHandler::LoadSource -> handler invoked once, content served with zero disk backing (dynamic callback genuinely works on Compile, on this same build). Behaviour traces to the project's original 2016-12-28 commit (confirmed ancestor of v1.4.1907, 2019-08-30, via upstream's deeper-fetched tag history -- the local shallow origin/main graft boundary at 2025-06-03 makes a direct ancestry check against it misleadingly negative; recorded as a CONTROL in manual-case-source-evidence.txt). Maintainer (llvm-beanz, 2023-07-13) already declined to prioritize and stated the longer-term direction is to retire the IntelliSense interface for upstream LSP tooling rather than extend it; nothing found contradicts that comment, no text-stale finding.",
+  "title": "IDxcIndex::ParseTranslationUnit has no mechanism to honor an IDxcIncludeHandler",
+  "triaged_at": "2026-08-20T05:15:17+00:00",
+  "triaged_by": "GitHub Copilot CLI",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5172"
+}

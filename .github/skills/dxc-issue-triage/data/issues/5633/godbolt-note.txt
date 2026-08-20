@@ -1,0 +1,8 @@
+What to look for: `_pad` is declared as `uint _pad[1]` (one element), but the shader
+indexes it with the compile-time literal `2000`. Every pane below compiles this to
+completion with an out-of-bounds index baked directly into the generated code (see the
+final index operand of the `OpAccessChain` / `OpInBoundsAccessChain` in each SPIR-V dump)
+and prints no warning or error about it. The DXC panes print nothing at all; the Clang
+pane's only diagnostic is an unrelated "argument unused" note about an unused compiler
+flag. Nothing here reports that `_pad`'s bound was violated by a constant that could have
+been checked at compile time.

@@ -1,0 +1,18 @@
+What to look for: this is a class template `Test<int ID>` with a NON-const
+`static int Num` member, defined out-of-class as `template<int ID> int
+Test<ID>::Num = 2;`. On DXC (dxc_1_6_2112, dxc_trunk) this is expected to
+compile like an ordinary global, matching the working non-templated and
+templated-const-static-member cases described in the linked issue.
+
+dxc_1_6_2112 predates HLSL template support entirely ("'template' is a
+reserved keyword in HLSL") -- it cannot exercise this code path at all and is
+not evidence either way.
+
+dxc_trunk instead fails with "LLVM ERROR: Broken module found, compilation
+aborted!". That is DXC's LLVM IR-verifier fatal-error path. Locally, on
+downloaded v1.7.2308 and v1.9.2607 release binaries, the same input produces
+the specific verifier diagnostic quoted in the issue itself, "Declaration may
+not be in a Comdat!", immediately before that abort -- see out-v1.7.2308.txt
+and out-v1.9.2607.txt in this issue's directory (not reproduced in this CE
+pane, which does not surface that particular verifier line, only the final
+abort message).

@@ -1,0 +1,8 @@
+What to look for: compare the two "Input signature:" tables in the disassembly
+(there are two -- the first, near the top, is the one with the "Used" column).
+On the COLOR row, the "Mask" column is "xyzw" (the parameter is declared and not
+eliminated) but the trailing "Used" column is blank -- nothing follows "float" on
+that line -- even though the shader body reads every component of Color via
+GetAttributeAtVertex(Color, 0) and writes it straight to SV_Target. Both the
+oldest DXC on Compiler Explorer (dxc_1_6_2112) and dxc_trunk show the same blank
+Used column, so this predates and survives to current main.

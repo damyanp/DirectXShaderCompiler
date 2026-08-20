@@ -1,0 +1,40 @@
+[
+    {
+        "id": 5351760,
+        "name": "microsoft-production-ruleset",
+        "target": "branch",
+        "source_type": "Organization",
+        "source": "microsoft",
+        "enforcement": "active",
+        "node_id": "RRS_lACkVXNlcs4AXenizgBRqVA",
+        "_links": {
+            "self": {
+                "href": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/rulesets/5351760"
+            },
+            "html": {
+                "href": "https://github.com/microsoft/DirectXShaderCompiler/rules/5351760"
+            }
+        },
+        "created_at": "2025-05-07T14:04:33.531-07:00",
+        "updated_at": "2025-05-07T14:04:33.531-07:00"
+    },
+    {
+        "id": 20001303,
+        "name": "Copilot review for default branch",
+        "target": "branch",
+        "source_type": "Repository",
+        "source": "microsoft/DirectXShaderCompiler",
+        "enforcement": "active",
+        "node_id": "RRS_lACqUmVwb3NpdG9yec4EhG6-zgExMhc",
+        "_links": {
+            "self": {
+                "href": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/rulesets/20001303"
+            },
+            "html": {
+                "href": "https://github.com/microsoft/DirectXShaderCompiler/rules/20001303"
+            }
+        },
+        "created_at": "2026-07-29T14:59:24.566-07:00",
+        "updated_at": "2026-07-30T09:57:56.316-07:00"
+    }
+]

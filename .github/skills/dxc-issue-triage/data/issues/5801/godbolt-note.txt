@@ -1,0 +1,7 @@
+The offset argument to T2D.Sample below, int2(12, -14), lies outside the DXIL-legal [-8, 7]
+range for an immediate texture-access offset. On the DXC panes compiled at ps_6_7, look for the
+*absence* of any diagnostic about that offset: a clean disassembly with the literal values 12
+and -14 embedded in the Sample op's offset operands is the bug. The same source recompiled at
+-T ps_6_6 (not shown on this link; see this repository's issues/5801/variant-control-sm66-*.txt
+for that local capture) is rejected with a range diagnostic naming that same -8..7 bound. CE's
+own oldest DXC (1.6.2112) predates SM 6.7, so it cannot show either side of the comparison.

@@ -1,0 +1,1 @@
+repro.cso: repro.hlsl

@@ -1,0 +1,18 @@
+# compiler: v1.6.2112
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+# ran: 2026-08-19T19:47:56+00:00
+# cmd: -T ps_6_0 -E main -MD -MF repro.d repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "Unknown argument", so this build did not reach the code under test
+
+$ dxc -T ps_6_0 -E main -MD -MF repro.d repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-MD'
+

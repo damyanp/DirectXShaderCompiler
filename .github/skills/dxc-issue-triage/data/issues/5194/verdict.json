@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-05-09T09:40:56Z",
+  "godbolt_url": "https://godbolt.org/z/9ajqv56xK",
+  "history": "always-repro'd",
+  "labels": "bug,hlsl-next",
+  "labels_now": "bug,hlsl-next",
+  "notes_path": "issues/5194/notes.md",
+  "number": 5194,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Templated operator() overload calls (t(5), t<uint>(5), t.operator()<uint>(5)) all still error on main (89e2f98e2); bisect shows always-repro'd from v1.6.2112 (the oldest release that can even parse -HV 2021) through v1.9.2607, so this predates the report and was never implemented, not a regression. The successor hlsl_clang_trunk front end already accepts the two C++-legal forms (t(5), t.operator()<uint>(5)) in isolation and only rejects t<uint>(5), which is not valid C++ syntax either -- matching real C++ overload rules on this input, though unshipped in a DXC release.",
+  "title": "Impossible to add template on operator() overload",
+  "triaged_at": "2026-08-20T05:15:18+00:00",
+  "triaged_by": "GitHub Copilot CLI",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5194"
+}

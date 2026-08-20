@@ -1,0 +1,113 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-19T19:22:26+00:00
+# cmd: -T cs_6_3 -ECSMain repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_3 -ECSMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; IOBuffer                              UAV    byte         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.RWByteAddressBuffer = type { i32 }
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+
+@"\01?IOBuffer@@3URWByteAddressBuffer@@A" = external constant %struct.RWByteAddressBuffer, align 4
+
+define void @CSMain() {
+  %IOBuffer_UAV_rawbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %RawBufferLoad = call %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32 139, %dx.types.Handle %IOBuffer_UAV_rawbuf, i32 0, i32 undef, i8 1, i32 4)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %1 = extractvalue %dx.types.ResRet.i32 %RawBufferLoad, 0
+  %2 = icmp eq i32 %1, 0
+  br i1 %2, label %._crit_edge, label %.lr.ph.preheader
+
+.lr.ph.preheader:                                 ; preds = %0
+  %3 = add i32 %1, -1
+  %4 = zext i32 %3 to i33
+  %5 = add i32 %1, -2
+  %6 = zext i32 %5 to i33
+  %7 = mul i33 %4, %6
+  %8 = lshr i33 %7, 1
+  %9 = trunc i33 %8 to i32
+  %10 = add i32 %1, %9
+  br label %._crit_edge
+
+._crit_edge:                                      ; preds = %.lr.ph.preheader, %0
+  %result.1 = phi i32 [ 1, %0 ], [ %10, %.lr.ph.preheader ]
+  call void @dx.op.rawBufferStore.i32(i32 140, %dx.types.Handle %IOBuffer_UAV_rawbuf, i32 1, i32 undef, i32 %result.1, i32 undef, i32 undef, i32 undef, i8 1, i32 4)  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32, %dx.types.Handle, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.rawBufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #0
+
+attributes #0 = { nounwind readonly }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!7, !10}
+!dx.entryPoints = !{!14}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 4}
+!3 = !{!"cs", i32 6, i32 3}
+!4 = !{null, !5, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %struct.RWByteAddressBuffer* undef, !"IOBuffer", i32 0, i32 0, i32 1, i32 11, i1 false, i1 false, i1 false, null}
+!7 = !{i32 0, %struct.RWByteAddressBuffer undef, !8}
+!8 = !{i32 4, !9}
+!9 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 4}
+!10 = !{i32 1, void ()* @CSMain, !11}
+!11 = !{!12}
+!12 = !{i32 0, !13, !13}
+!13 = !{}
+!14 = !{void ()* @CSMain, !"CSMain", null, !4, !15}
+!15 = !{i32 0, i64 16, i32 4, !16}
+!16 = !{i32 8, i32 8, i32 1}
+
+
+--- stderr ---
+

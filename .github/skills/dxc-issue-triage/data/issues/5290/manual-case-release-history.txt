@@ -1,0 +1,284 @@
+#5290 release history -- does dxr's -remove-unused-globals ever keep
+a struct declaration referenced only by the entry point's own unused
+parameter (ask 1) or by an unread local variable's cast (ask 2)?
+
+Produced by `python measure.py --history`. Each row drives THAT
+RELEASE's own rewriter: the ground-truth dxr.exe driver (89e2f98e2) is
+copied next to that release's dxcompiler.dll in a scratch directory
+under .cache/rw5290, so Windows loads the release rewriter and the
+release's own option table sees exactly the reporter's options and
+nothing else.
+
+triage.py bisect cannot produce this table and refuses to try: it
+would substitute each release's dxc.exe, which never enters the
+rewriter.
+
+SCORING for ask1/ask1-ctrl uses match.json; ask2/ask2-ctrl uses
+match-nested.json; both via triage.classify, imported from
+scripts/triage.py -- the same code that scores out-*.txt/variant-*.txt.
+
+PROBES (each is one dxr invocation against this release's rewriter)
+  ask1       repro.hlsl -remove-unused-functions -remove-unused-globals -E ps_main
+  ask1-ctrl  control-param-used.hlsl, same options, ps_main's
+             parameter IS read in the body.
+  ask2       repro2.hlsl, same options: local var Material mtl is
+             declared/cast but never read.
+  ask2-ctrl  control-local-used.hlsl, same options, mtl IS read
+             afterwards.
+  optcheck   `-unchanged repro.hlsl`: does this release accept the
+             rewriter option surface at all?
+  noopts     `repro.hlsl` alone: does this release's rewriter run at
+             all?
+
+  optcheck failing while noopts succeeds is what separates 'this
+  release predates the rewriter option set' from 'this release
+  rewrote it clean'.
+
+         release       ask1  ask1-ctrl       ask2  ask2-ctrl  optcheck  noopts  reading
+---------------- ---------- ---------- ---------- ---------- --------- -------  -------
+       v1.4.1907   no-repro   no-repro   no-repro   no-repro    exit 1      ok  ask1=invalid-probe ask2=invalid-probe  [rewriter runs, but this release's option table carries no rewriter options at all, so the repro cannot be expressed here]
+       v1.5.2010      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.6.2104      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.6.2106      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.6.2112      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.7.2207      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.7.2212      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+     v1.7.2212.1      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.7.2308      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.8.2403      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+     v1.8.2403.1      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+     v1.8.2403.2      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.8.2405      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.8.2407      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.8.2502      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.8.2505      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+     v1.8.2505.1      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.9.2602      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+    v1.9.2602.24      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+       v1.9.2607      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+dxr-5290-release      repro   no-repro      repro   no-repro        ok      ok  ask1=repro ask2=repro
+
+VERSION reported by each staged driver (`dxr.exe --version`),
+which is the DLL's own version string:
+
+  v1.4.1907        dxcompiler.dll: 1.5(2275-582a59e8) - 1.4.1907.0
+  v1.5.2010        dxcompiler.dll: 1.5(2823-b640fa4b) - 1.5.2010.6 (b640fa4ba)
+  v1.6.2104        dxcompiler.dll: 1.6(3086-e09a454e)(1.6.2104.52) - 1.6.2104.52 (e09a454eb)
+  v1.6.2106        dxcompiler.dll: 1.6(3194-dad1cfc3)(1.6.2106.3) - 1.6.2106.3 (dad1cfc30)
+  v1.6.2112        dxcompiler.dll: 1.6(3368-770ac0cc)(1.6.2112.12) - 1.6.2112.12 (770ac0cc1)
+  v1.7.2207        dxcompiler.dll: 1.7(3605-e9137cd1)(1.7.2207.3) - 1.7.2207.3 (e9137cd1d)
+  v1.7.2212        dxcompiler.dll: 1.7(3759-8c9d92be)(1.7.2212.12) - 1.7.2212.12 (8c9d92be7)
+  v1.7.2212.1      dxcompiler.dll: 1.7(3787-e043f4a1)(1.7.2212.40) - 1.7.2212.40 (e043f4a12)
+  v1.7.2308        dxcompiler.dll: 1.7(4006-69e54e29)(1.7.2308.7) - 1.7.2308.7 (69e54e290)
+  v1.8.2403        dxcompiler.dll: 1.8(4458-c9660a8c)(1.8.2403.34) - 1.8.2403.34 (c9660a8c0)
+  v1.8.2403.1      dxcompiler.dll: 1.8(4460-9c2b8287)(1.8.2403.36) - 1.8.2403.36 (9c2b82878)
+  v1.8.2403.2      dxcompiler.dll: 1.8(4461-11e1318c)(1.8.2403.37) - 1.8.2403.37 (11e1318c3)
+  v1.8.2405        dxcompiler.dll: 1.8(4597-fd7e54bc)(1.8.2405.15) - 1.8.2405.15 (fd7e54bcd)
+  v1.8.2407        dxcompiler.dll: 1.8(4662-416fab6b)(1.8.2407.7) - 1.8.2407.7 (416fab6b5)
+  v1.8.2502        dxcompiler.dll: 1.8(4789-b4711839)(1.8.2502.8) - 1.8.2502.8 (b4711839e)
+  v1.8.2505        dxcompiler.dll: 1.9(4946-9efbb6c3)(1.8.2505.28) - 1.8.2505.28 (9efbb6c32)
+  v1.8.2505.1      dxcompiler.dll: 1.9(4950-b106a961)(1.8.2505.32) - 1.8.2505.32 (b106a961d)
+  v1.9.2602        dxcompiler.dll: 1.9(5184-21d28f72)(1.9.2602.17) - 1.9.2602.17 (21d28f727)
+  v1.9.2602.24     dxcompiler.dll: 1.9(5191-d355aa83)(1.9.2602.24) - 1.9.2602.24 (d355aa836)
+  v1.9.2607        dxcompiler.dll: 1.9(5402-0d3ee6b5)(1.9.0.5402) - 1.9.0.5402 (0d3ee6b55-dirty)
+  dxr-5290-release dxcompiler.dll: 1.10(5440-677a02a1)(1.9.0.15438) - 1.9.0.15438 (main, 89e2f98e2)
+
+SKIPPED (not in the stable-release population)
+
+  v1.2.0-alpha                     (no build date) prerelease
+  v1.5.2003                        2020-03-25   prerelease
+  v1.8.2306-preview                2023-06-21   prerelease
+  v1.8.2405-mesh-nodes-preview     2024-07-17   prerelease
+  v1.10.2605.2                     2026-04-22   prerelease
+  v1.10.2605.24                    2026-05-22   prerelease
+
+#5290's text names no prerelease, so none opts in under
+release-policy.json.
+
+
+VERBATIM. The oldest release in the population, the first
+release, the newest release, and ground truth.
+
+=== v1.4.1907  probe: ask1 ===
+$ <cache>/rw5290/v1.4.1907/dxr.exe -remove-unused-functions -remove-unused-globals -E ps_main repro.hlsl
+[exit] 1
+[verdict] no-repro
+
+Compilation failed - error code 0x80070057.
+
+=== v1.4.1907  probe: ask2 ===
+$ <cache>/rw5290/v1.4.1907/dxr.exe -remove-unused-functions -remove-unused-globals -E ps_main repro2.hlsl
+[exit] 1
+[verdict] no-repro
+
+Compilation failed - error code 0x80070057.
+
+=== v1.4.1907  probe: optcheck ===
+$ <cache>/rw5290/v1.4.1907/dxr.exe -unchanged repro.hlsl
+[exit] 1
+
+
+Compilation failed - error code 0x80070057.
+
+=== v1.4.1907  probe: noopts ===
+$ <cache>/rw5290/v1.4.1907/dxr.exe repro.hlsl
+[exit] 0
+
+
+// Rewrite unchanged result:
+struct VS_OUTPUT {
+  float4 position : SV_Position;
+  float4 uv : TEXCOORD0;
+  float4 color : VC;
+};
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  return float4(0, 0, 0, 0);
+}
+
+=== v1.5.2010  probe: ask1 ===
+$ <cache>/rw5290/v1.5.2010/dxr.exe -remove-unused-functions -remove-unused-globals -E ps_main repro.hlsl
+[exit] 0
+[verdict] repro
+
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  return float4(0, 0, 0, 0);
+}
+
+=== v1.5.2010  probe: ask2 ===
+$ <cache>/rw5290/v1.5.2010/dxr.exe -remove-unused-functions -remove-unused-globals -E ps_main repro2.hlsl
+[exit] 0
+[verdict] repro
+
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  Material mtl = (Material)0;
+  return float4(0, 0, 0, 0);
+}
+
+=== v1.5.2010  probe: optcheck ===
+$ <cache>/rw5290/v1.5.2010/dxr.exe -unchanged repro.hlsl
+[exit] 0
+
+
+// Rewrite unchanged result:
+struct VS_OUTPUT {
+  float4 position : SV_Position;
+  float4 uv : TEXCOORD0;
+  float4 color : VC;
+};
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  return float4(0, 0, 0, 0);
+}
+
+=== v1.5.2010  probe: noopts ===
+$ <cache>/rw5290/v1.5.2010/dxr.exe repro.hlsl
+[exit] 0
+
+
+// Rewrite unchanged result:
+struct VS_OUTPUT {
+  float4 position : SV_Position;
+  float4 uv : TEXCOORD0;
+  float4 color : VC;
+};
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  return float4(0, 0, 0, 0);
+}
+
+=== v1.9.2607  probe: ask1 ===
+$ <cache>/rw5290/v1.9.2607/dxr.exe -remove-unused-functions -remove-unused-globals -E ps_main repro.hlsl
+[exit] 0
+[verdict] repro
+
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  return float4(0, 0, 0, 0);
+}
+
+=== v1.9.2607  probe: ask2 ===
+$ <cache>/rw5290/v1.9.2607/dxr.exe -remove-unused-functions -remove-unused-globals -E ps_main repro2.hlsl
+[exit] 0
+[verdict] repro
+
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  Material mtl = (Material)0;
+  return float4(0, 0, 0, 0);
+}
+
+=== v1.9.2607  probe: optcheck ===
+$ <cache>/rw5290/v1.9.2607/dxr.exe -unchanged repro.hlsl
+[exit] 0
+
+
+// Rewrite unchanged result:
+struct VS_OUTPUT {
+  float4 position : SV_Position;
+  float4 uv : TEXCOORD0;
+  float4 color : VC;
+};
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  return float4(0, 0, 0, 0);
+}
+
+=== v1.9.2607  probe: noopts ===
+$ <cache>/rw5290/v1.9.2607/dxr.exe repro.hlsl
+[exit] 0
+
+
+// Rewrite unchanged result:
+struct VS_OUTPUT {
+  float4 position : SV_Position;
+  float4 uv : TEXCOORD0;
+  float4 color : VC;
+};
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  return float4(0, 0, 0, 0);
+}
+
+=== dxr-5290-release  probe: ask1 ===
+$ <repo>/build/Release/bin/dxr.exe -remove-unused-functions -remove-unused-globals -E ps_main repro.hlsl
+[exit] 0
+[verdict] repro
+
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  return float4(0, 0, 0, 0);
+}
+
+=== dxr-5290-release  probe: ask2 ===
+$ <repo>/build/Release/bin/dxr.exe -remove-unused-functions -remove-unused-globals -E ps_main repro2.hlsl
+[exit] 0
+[verdict] repro
+
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  Material mtl = (Material)0;
+  return float4(0, 0, 0, 0);
+}
+
+=== dxr-5290-release  probe: optcheck ===
+$ <repo>/build/Release/bin/dxr.exe -unchanged repro.hlsl
+[exit] 0
+
+
+// Rewrite unchanged result:
+struct VS_OUTPUT {
+  float4 position : SV_Position;
+  float4 uv : TEXCOORD0;
+  float4 color : VC;
+};
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  return float4(0, 0, 0, 0);
+}
+
+=== dxr-5290-release  probe: noopts ===
+$ <repo>/build/Release/bin/dxr.exe repro.hlsl
+[exit] 0
+
+
+// Rewrite unchanged result:
+struct VS_OUTPUT {
+  float4 position : SV_Position;
+  float4 uv : TEXCOORD0;
+  float4 color : VC;
+};
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  return float4(0, 0, 0, 0);
+}
+

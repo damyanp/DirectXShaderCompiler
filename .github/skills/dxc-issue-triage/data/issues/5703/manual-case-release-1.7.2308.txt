@@ -1,0 +1,40 @@
+# manual-case-release-1.7.2308.txt -- #5703
+#
+# The reporter's own environment: "DXC version dxcompiler.dll: 1.7 -
+# 1.7.2308.7 (69e54e290); dxil.dll: 1.7(101.7.2308.12)". This tag is
+# catalogued locally (triage.db `releases` row for v1.7.2308) at:
+#   <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+# No stable release archive ships dxl.exe or dxa.exe (established for
+# #4168's manual-case-release-tools.txt); dxl is exercised the same way
+# link4168.py does it: `dxc.exe <args> -link`, which is exactly what
+# tools/clang/tools/dxl/dxl.cpp does under the hood.
+#
+# --- as-filed source, no fix ---
+# repro-as-filed.hlsl is the reporter's HLSL verbatim (numthreads only, no
+# [shader("compute")] attribute).
+#
+# $ dxc.exe -T lib_6_3 -O3 -Fo lib-1_7_2308.dxo repro-as-filed.hlsl
+#   (warning: attribute 'numthreads' ignored without accompanying shader
+#   attribute [-Wmisplaced-attributes] -- same warning current main gives)
+#   exit 0
+# lib-1_7_2308.dxo parts: SFI0(8) RDAT(224) STAT(1728) HASH(20) DXIL(1812)
+#
+# $ dxc.exe -T cs_6_3 -E main -O3 -Fo linked-1_7_2308.dxo lib-1_7_2308.dxo -link
+#   exit 0  (link succeeds at v1.7.2308 even without [shader("compute")] --
+#   see method-notes.md; current main's dxl.exe fails to find function
+#   "main" on the same as-filed source and needs the attribute added. That
+#   entry-point-resolution difference is a separate, unconfirmed finding
+#   and is NOT part of this issue's verdict -- it only affects whether the
+#   reporter's literal source links today, not whether RDAT survives
+#   linking once it does.)
+# linked-1_7_2308.dxo parts: SFI0(8) ISG1(8) OSG1(8) PSV0(120) ILDN(44)
+#   HASH(20) DXIL(1532)
+#
+# Result: identical shape to main-debug-link5703's ground-truth capture --
+# RDAT present in the unlinked library, absent from the linked/finalized
+# container, PSV0 present instead. This is the reporter's own build
+# reproducing its own reported "actual behavior" exactly, which is the
+# strongest evidence that nothing has changed since the report: the
+# container format's RDAT/PSV0 split has always worked this way for a
+# `Link(..., "cs_6_3", ...)` call, at least as far back as v1.7.2308
+# (2023-08-14, the exact build named in the issue).

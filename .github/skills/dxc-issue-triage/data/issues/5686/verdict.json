@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-11T16:58:31Z",
+  "godbolt_skip": "the reported divergence is between a direct as_6_6 compile and a two-invocation lib_6_x-then-link pipeline; CE compiles one command per pane and cannot produce or consume an intermediate .lib artifact, so it cannot express the -link step that is the whole subject of this issue",
+  "history": "always-repro'd across v1.6.2106..v1.9.2607, all 18 probeable releases, full linear scan, no gaps (v1.4.1907, v1.5.2010 and v1.6.2104 answer 'Unknown argument: -link', confirmed genuinely absent via --help rather than a spelling issue, and are invalid probes)",
+  "labels": "bug,shader-linking,validation",
+  "labels_now": "bug,shader-linking,validation",
+  "notes_path": "issues/5686/notes.md",
+  "number": 5686,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Amplification-shader payload validation still fails after -T lib_6_x + -link exactly as reported: 'payload size 8 is greater than declared size of 4 bytes', while a direct -T as_6_6 compile of the identical 4-byte-payload source validates clean (confirmed control, --expect no-match). Always-repro'd since -link first shipped (v1.6.2106) through v1.9.2607 and on main (89e2f98e2); three older releases reject -link outright and are invalid probes. Root cause identified by source read: ValidateAsIntrinsics in DxilValidation.cpp measures the DispatchMesh payload POINTER type, not the pointee struct (missing a getPointerElementType() the neighbouring mesh-shader check three lines above does have), so the check really tests declared-size against the DXIL pointer size, not the real payload. That is a constant 4 bytes for a direct compile (coincidentally equal to this payload, so it passes) but becomes 8 once linked, because DxilLinker.cpp's DxilLinkJob::Link never calls setDataLayout on the module it builds (git log -S DataLayout on that file: zero commits, ever) and the linked module falls back to LLVM's default 8-byte pointer -- confirmed directly by disassembling the linked module with -Vd and observing the target datalayout line is simply absent, versus present in the direct-compile disassembly. Same validator defect (pointer-vs-pointee) independently underlies already-triaged #5269 and #5668 in this batch, surfaced there via an empty-struct payload rather than linking; noted for collation in method-notes.md, not asserted here.",
+  "title": "Validation fails when linking to amplification shader target",
+  "triaged_at": "2026-08-20T05:15:27+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e2",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5686"
+}

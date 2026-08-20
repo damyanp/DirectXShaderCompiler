@@ -1,0 +1,27 @@
+# compiler: v1.8.2505.1
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe
+# ran: 2026-08-19T21:51:24+00:00
+# cmd: -T cs_6_6 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -T cs_6_6 -E main repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+warning: function 'RWByteAddressBuffer::Load<T, unsigned int>' has internal linkage but is not defined [-Wundefined-internal]
+repro.hlsl:9:20: note: used here
+  InterlockedMax(b.Load<T>(0).value, 1, original);
+                   ^
+note: Debug information is disabled which may impact diagnostic location accuracy. Re-run without -fdisable-loc-tracking to improve accuracy.
+
+error: cannot map resource to handle.
+repro.hlsl:9:3: error: Atomic operation targets must be groupshared, Node Record or UAV.
+  InterlockedMax(b.Load<T>(0).value, 1, original);
+  ^
+
+

@@ -1,0 +1,24 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T23:41:29+00:00
+# cmd: -T cs_6_8 -E main -spirv variant-primary-template-correct-used.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: primary-template-correct-used (variant-primary-template-correct-used.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc -T cs_6_8 -E main -spirv variant-primary-template-correct-used.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-primary-template-correct-used.hlsl:16:22: error: 'const' is not a valid modifier for a field
+template<typename T> const T MyClass<T>::array[2] = { 1, 2 };
+                     ^
+
+

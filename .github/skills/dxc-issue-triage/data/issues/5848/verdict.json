@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "medium",
+  "created_at": "2023-10-10T14:20:29Z",
+  "godbolt_url": "https://godbolt.org/z/d1a7E9Mxj",
+  "history": "never-repro'd-in-releases",
+  "labels": "bug",
+  "labels_add": "diagnostic, needs repro steps",
+  "labels_now": "bug",
+  "notes_path": "issues/5848/notes.md",
+  "number": 5848,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "inconclusive",
+  "suggested_action": "needs-repro-from-reporter",
+  "summary": "Best-effort reconstruction of the reported code (fields written in RaygenShader, TraceRay called via a helper function) produces zero -Wpayload-access-trace warnings on both current main (89e2f98e2) and the reporter's own v1.7.2308.7 build, so the described false positive could not be reproduced. Source reading of SemaDXR.cpp explains why: raygeneration shaders get a null Info.Payload, which gates off the entire write/read-tracking recursion needed to check a TraceRay call reached through a helper function -- confirmed empirically with a genuinely-broken control that also produces no warning through a helper, versus a directly-called TraceRay that correctly warns. This is a real but different defect (silently missing diagnostic coverage) from what was reported (a spurious warning), and it does not establish that the reporter's literal claim is false, only that it cannot be reconstructed from the snippet given. No minimal repro was ever supplied despite a maintainer request.",
+  "title": "DXC possibly emitting spurious [-Wpayload-access-trace] PAQ warnings in SM 6.7",
+  "triaged_at": "2026-08-20T05:15:31+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5848"
+}

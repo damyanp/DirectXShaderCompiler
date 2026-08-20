@@ -1,0 +1,24 @@
+# compiler: v1.6.2112
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+# ran: 2026-08-19T19:40:35+00:00
+# cmd: -T ps_6_6 -E main -Od -Zi repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_6 -E main -Od -Zi repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+warning: no output provided for debug - embedding PDB in shader container.  Use -Qembed_debug to silence this warning.
+error: validation errors
+
+repro.hlsl:3:12: error: Instructions must be of an allowed type.
+note: at '%10 = insertvalue %dx.types.fouri32 %5, i32 %9, 0' in block '#0' of function 'main'.
+Validation failed.
+
+
+

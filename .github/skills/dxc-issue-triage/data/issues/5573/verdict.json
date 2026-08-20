@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-08-20T18:27:21Z",
+  "godbolt_url": "https://godbolt.org/z/r6TGKo7sv",
+  "history": "always-repro'd",
+  "labels": "bug,dxil,correctness",
+  "labels_now": "bug,dxil,correctness",
+  "notes_path": "issues/5573/notes.md",
+  "number": 5573,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Repros verbatim on every release that can express it (v1.6.2104..v1.9.2607) and on main-debug (as an internal-failure signature of the same defect: DXASSERT(GV->user_empty()) in DxilCondenseResources.cpp UpdateResourceSymbols, compiled out under NDEBUG so release builds fall through to the reported validation error instead).",
+  "title": "\"External declaration [decl name] is unused\" after resource assignment",
+  "triaged_at": "2026-08-20T05:15:25+00:00",
+  "triaged_by": "claude-sonnet-4.6",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5573"
+}

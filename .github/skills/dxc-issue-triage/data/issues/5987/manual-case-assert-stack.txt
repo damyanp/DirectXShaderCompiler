@@ -1,0 +1,46 @@
+# cdb -c "g;kn 40;q" <repo>/build/Debug/bin/dxc.exe -T as_6_7 -E main repro.hlsl
+# Trimmed to header, assert message, and frames; ModLoad noise and NatVis
+# unload lines removed. Machine paths redacted to <repo> per this skill's
+# path-hygiene convention.
+
+CommandLine: "<repo>\build\Debug\bin\dxc.exe" -T as_6_7 -E main repro.hlsl
+
+(581c.3da0): Break instruction exception - code 80000003 (first chance)
+ntdll!LdrpDoDebuggerBreak+0x35:
+00007ffe`3fd3d7bd cc              int     3
+0:000> cdb: Reading initial command 'g;kn 40;q'
+Error: 	!(onlyUsedByLifetimeMarkers(BCI))
+File:
+<repo>\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(2630)
+Func:	`anonymous-namespace'::SROA_Helper::RewriteBitCast.
+	expected struct bitcast to only be used by lifetime intrinsics
+(581c.3da0): Break instruction exception - code 80000003 (first chance)
+ # Child-SP          RetAddr               Call Site
+00 0000004e`49784750 00007ffd`9ce20566     dxcompiler!`anonymous namespace'::SROA_Helper::RewriteBitCast+0x19c
+01 0000004e`49784be0 00007ffd`9ce1e520     dxcompiler!`anonymous namespace'::SROA_Helper::RewriteForScalarRepl+0x286
+02 0000004e`49784cd0 00007ffd`9ce2c8f8     dxcompiler!`anonymous namespace'::SROA_Helper::DoScalarReplacement+0xd20
+03 0000004e`49785200 00007ffd`9ce35317     dxcompiler!`anonymous namespace'::SROAGlobalAndAllocas+0xa48
+04 0000004e`49786070 00007ffd`9f3384a8     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::runOnModule+0x8a7
+05 0000004e`497865f0 00007ffd`9f3392e5     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+06 0000004e`497869a0 00007ffd`9f32fc2c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+07 0000004e`49786a50 00007ffd`9d044a26     dxcompiler!llvm::legacy::PassManager::run+0x2c
+08 0000004e`49786a90 00007ffd`9d041fb8     dxcompiler!`anonymous namespace'::EmitAssemblyHelper::EmitAssembly+0x616
+09 0000004e`49786c70 00007ffd`9d01a211     dxcompiler!clang::EmitBackendOutput+0x158
+0a 0000004e`497870c0 00007ffd`9e8ae7c8     dxcompiler!clang::BackendConsumer::HandleTranslationUnit+0x521
+0b 0000004e`497872e0 00007ffd`9d3d9e4e     dxcompiler!clang::ParseAST+0x608
+0c 0000004e`497875b0 00007ffd`9d013c65     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+0d 0000004e`49787610 00007ffd`9d3d98b8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+0e 0000004e`49787b60 00007ffd`9c5fb7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+0f 0000004e`49787bd0 00007ffd`9c5dbb80     dxcompiler!DxcCompiler::Compile+0x41a2
+10 0000004e`4978c410 00007ffd`9c5dd3d8     dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+11 0000004e`4978db20 00007ffd`9c5fec2e     dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+12 0000004e`4978dba0 00007ff6`fc09f65d     dxcompiler!hlsl::DxcCompilerAdapter::Compile+0xce
+13 0000004e`4978dc30 00007ff6`fc09a06e     dxc!DxcContext::Compile+0xe2d
+14 0000004e`4978e800 00007ff6`fc098ebc     dxc!dxc::main+0xa1e
+15 0000004e`4978f8d0 00007ff6`fc3a8ec9     dxc!wmain+0x1c
+16 0000004e`4978f900 00007ff6`fc3a8de2     dxc!invoke_main+0x39
+17 0000004e`4978f950 00007ff6`fc3a8c9e     dxc!__scrt_common_main_seh+0x132
+18 0000004e`4978f9c0 00007ff6`fc3a8f3e     dxc!__scrt_common_main+0xe
+19 0000004e`4978f9f0 00007ffe`3ecbe957     dxc!wmainCRTStartup+0xe
+1a 0000004e`4978fa20 00007ffe`3fccad6c     KERNEL32!BaseThreadInitThunk+0x17
+1b 0000004e`4978fa50 00000000`00000000     ntdll!RtlUserThreadStart+0x2c

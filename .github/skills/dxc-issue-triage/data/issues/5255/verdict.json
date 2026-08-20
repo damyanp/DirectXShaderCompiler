@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-05-31T11:41:30Z",
+  "godbolt_skip": "the bug lives in the standalone dxr.exe rewriter surface (IDxcRewriter2/RewriteUnused via -remove-unused-globals/-remove-unused-functions), which is not exposed by dxc.exe at all (dxc: 'Unknown argument: -remove-unused-functions', captured in variant-dxc-rejects-rewrite-flags-main-debug.txt) and is not one of the compile modes Compiler Explorer's DXC panes drive; there is no CE surface that can run this repro",
+  "history": "always-repro'd across every checkable release (v1.5.2010..v1.9.2607, 20 stable releases) and main (89e2f98e29c289ae8ad9e00dd310104fea9fd7df); v1.4.1907 is invalid-probe (predates the rewriter's -remove-unused-* option support)",
+  "labels": "",
+  "labels_add": "bug, rewriter, correctness",
+  "labels_now": "",
+  "notes_path": "issues/5255/notes.md",
+  "number": 5255,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "dxr -remove-unused-functions -remove-unused-globals removes a struct declaration still referenced as the element type of an array-typed cbuffer member, producing HLSL that references an undeclared type; root-caused to Type::getAsTagDecl() not unwrapping array types in VisitHLSLBufferDecl, and independently confirmed by PR #5265 (opened 2023-06-02, correct fix, built clean, never merged, auto-closed 2026-01-22 for inactivity).",
+  "title": "Rewriter removed struct declaration which used in constant buffer.",
+  "triaged_at": "2026-08-20T05:15:19+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5255"
+}

@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-09T13:02:18Z",
+  "fixed_in": "v1.8.2505",
+  "godbolt_url": "https://godbolt.org/z/vfcsj3ThG",
+  "history": "fixed",
+  "labels": "bug,crash,diagnostic,incorrect-code",
+  "labels_now": "bug,crash,diagnostic,incorrect-code",
+  "notes_path": "issues/5681/notes.md",
+  "number": 5681,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "does-not-repro",
+  "suggested_action": "close-fixed",
+  "summary": "Access violation on every release v1.6.2104..v1.8.2502 when InterlockedMax targets a field of a templated RWByteAddressBuffer::Load<T>() result; fixed in v1.8.2505, which now cleanly diagnoses 'Atomic operation targets must be groupshared, Node Record or UAV.' instead of crashing.",
+  "title": "Segmentation fault/ICE when attempting a particular (invalid) code pattern",
+  "triaged_at": "2026-08-20T05:15:26+00:00",
+  "triaged_by": "Copilot CLI (triage session)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5681"
+}

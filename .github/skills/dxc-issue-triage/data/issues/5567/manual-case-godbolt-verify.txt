@@ -1,0 +1,271 @@
+# Compiler Explorer panes for #5567, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_6 -Od
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 02abcebfd2f5f438dd376663349c255c.pdb
+; shader hash: 02abcebfd2f5f438dd376663349c255c
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+@dx.nothing.a = internal constant [1 x i32] zeroinitializer
+
+define void @main() {
+  %1 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !21 ; line:14 col:9
+  %2 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !22 ; line:15 col:1
+  ret void, !dbg !22 ; line:15 col:1
+}
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!7, !8}
+!llvm.ident = !{!9}
+!dx.source.contents = !{!10}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!11}
+!dx.source.args = !{!12}
+!dx.version = !{!13}
+!dx.valver = !{!13}
+!dx.shaderModel = !{!14}
+!dx.typeAnnotations = !{!15}
+!dx.entryPoints = !{!18}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 12, type: !5, isLocal: false, isDefinition: true, scopeLine: 13, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{i32 2, !"Dwarf Version", i32 4}
+!8 = !{i32 2, !"Debug Info Version", i32 3}
+!9 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!10 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Look at the stderr for each DXC pane. Neither should print any diagnostic at all: the\0A// shader compiles clean with no `-Wcomma-in-init` warning for `uint2 a = (1, 2) / 2;`,\0A// even though the comma pair is very likely a forgotten `uint2(...)` constructor call.\0A// Compare this with the Clang pane (the from-scratch HLSL front end being developed in\0A// upstream llvm-project, a different codebase from this DXC repository): check whether\0A// it diagnoses the nested comma expression here, since a maintainer comment on the issue\0A// says Clang currently warns \22in these cases\22.\0A//==========================================================================//\0A\0A[numthreads(1, 1, 1)]\0Avoid main()\0A{\0A  uint2 a = (1, 2) / 2;\0A}\0A"}
+!11 = !{!"/app/example.hlsl"}
+!12 = !{!"-E", !"main", !"-T", !"cs_6_6", !"-Zi", !"-Qembed_debug", !"-Od"}
+!13 = !{i32 1, i32 6}
+!14 = !{!"cs", i32 6, i32 6}
+!15 = !{i32 1, void ()* @main, !16}
+!16 = !{!17}
+!17 = !{i32 1, !2, !2}
+!18 = !{void ()* @main, !"main", null, null, !19}
+!19 = !{i32 0, i64 1, i32 4, !20}
+!20 = !{i32 1, i32 1, i32 1}
+!21 = !DILocation(line: 14, column: 9, scope: !4)
+!22 = !DILocation(line: 15, column: 1, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_6 -Od
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: d2a6c10f74af4e39f2fe103b8adad46a.pdb
+; shader hash: d2a6c10f74af4e39f2fe103b8adad46a
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+@dx.nothing.a = internal constant [1 x i32] zeroinitializer
+
+define void @main() {
+  %1 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !22 ; line:14 col:9
+  %2 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !23 ; line:15 col:1
+  ret void, !dbg !23 ; line:15 col:1
+}
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!7, !8}
+!llvm.ident = !{!9}
+!dx.source.contents = !{!10}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!11}
+!dx.source.args = !{!12}
+!dx.version = !{!13}
+!dx.valver = !{!14}
+!dx.shaderModel = !{!15}
+!dx.typeAnnotations = !{!16}
+!dx.entryPoints = !{!19}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 12, type: !5, isLocal: false, isDefinition: true, scopeLine: 13, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{i32 2, !"Dwarf Version", i32 4}
+!8 = !{i32 2, !"Debug Info Version", i32 3}
+!9 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!10 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Look at the stderr for each DXC pane. Neither should print any diagnostic at all: the\0A// shader compiles clean with no `-Wcomma-in-init` warning for `uint2 a = (1, 2) / 2;`,\0A// even though the comma pair is very likely a forgotten `uint2(...)` constructor call.\0A// Compare this with the Clang pane (the from-scratch HLSL front end being developed in\0A// upstream llvm-project, a different codebase from this DXC repository): check whether\0A// it diagnoses the nested comma expression here, since a maintainer comment on the issue\0A// says Clang currently warns \22in these cases\22.\0A//==========================================================================//\0A\0A[numthreads(1, 1, 1)]\0Avoid main()\0A{\0A  uint2 a = (1, 2) / 2;\0A}\0A"}
+!11 = !{!"/app/example.hlsl"}
+!12 = !{!"-E", !"main", !"-T", !"cs_6_6", !"-Zi", !"-Qembed_debug", !"-Od"}
+!13 = !{i32 1, i32 6}
+!14 = !{i32 1, i32 10}
+!15 = !{!"cs", i32 6, i32 6}
+!16 = !{i32 1, void ()* @main, !17}
+!17 = !{!18}
+!18 = !{i32 1, !2, !2}
+!19 = !{void ()* @main, !"main", null, null, !20}
+!20 = !{i32 0, i64 1, i32 4, !21}
+!21 = !{i32 1, i32 1, i32 1}
+!22 = !DILocation(line: 14, column: 9, scope: !4)
+!23 = !DILocation(line: 15, column: 1, scope: !4)
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_6 -Od
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:14:14: [0m[0;1;35mwarning: [0m[1mleft operand of comma operator has no effect [-Wunused-value][0m
+   14 |   uint2 a = ([0;32m1[0m, [0;32m2[0m) / [0;32m2[0m;[0m
+      | [0;1;32m             ^
+[0m1 warning generated.
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+;
+; ModuleID = '/app/example.hlsl'
+source_filename = "/app/example.hlsl"
+target datalayout = "e-m:e-ve-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxilv1.6-unknown-shadermodel6.6-compute"
+
+; Function Attrs: convergent noinline
+define void @main() #0 {
+  %1 = alloca [2 x i32], align 4
+  tail call void @llvm.dbg.declare(metadata ptr %1, metadata !17, metadata !DIExpression()), !dbg !31
+  %2 = getelementptr inbounds nuw [2 x i32], ptr %1, i32 0, i32 0
+  store i32 1, ptr %2, align 4, !dbg !31
+  %3 = getelementptr [2 x i32], ptr %1, i32 0, i32 1, !dbg !31
+  store i32 1, ptr %3, align 4, !dbg !31
+  ret void
+}
+
+; Function Attrs: nounwind memory(none)
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
+
+attributes #0 = { convergent noinline }
+attributes #1 = { nounwind memory(none) }
+
+!llvm.dbg.cu = !{!0}
+!dx.valver = !{!2}
+!dx.source.contents = !{!3}
+!dx.source.defines = !{!4}
+!dx.source.mainFileName = !{!5}
+!dx.source.args = !{!6}
+!llvm.ident = !{!7}
+!dx.shaderModel = !{!8}
+!dx.version = !{!9}
+!dx.entryPoints = !{!10}
+!llvm.module.flags = !{!13, !14, !15, !16}
+
+; DXIL: !0: additional data: !32
+!0 = distinct !DICompileUnit(language: DW_LANG_HLSL, file: !1, producer: "clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{i32 1, i32 8}
+!3 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// Look at the stderr for each DXC pane. Neither should print any diagnostic at all: the\0A// shader compiles clean with no `-Wcomma-in-init` warning for `uint2 a = (1, 2) / 2;`,\0A// even though the comma pair is very likely a forgotten `uint2(...)` constructor call.\0A// Compare this with the Clang pane (the from-scratch HLSL front end being developed in\0A// upstream llvm-project, a different codebase from this DXC repository): check whether\0A// it diagnoses the nested comma expression here, since a maintainer comment on the issue\0A// says Clang currently warns \22in these cases\22.\0A//==========================================================================//\0A\0A[numthreads(1, 1, 1)]\0Avoid main()\0A{\0A  uint2 a = (1, 2) / 2;\0A}\0A"}
+!4 = !{}
+!5 = !{!"example.hlsl"}
+!6 = !{!"--driver-mode=dxc", !"-g", !"-Qembed_debug", !"-Fc", !"/app/output.s", !"-fcolor-diagnostics", !"-gen-reproducer=off", !"-T", !"cs_6_6", !"-O0", !"/app/example.hlsl", !"-S"}
+!7 = !{!"clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)"}
+!8 = !{!"cs", i32 6, i32 6}
+!9 = !{i32 1, i32 6}
+!10 = !{ptr @main, !"main", null, null, !11}
+!11 = !{i32 0, i64 1, i32 4, !12}
+!12 = !{i32 1, i32 1, i32 1}
+!13 = !{i32 2, !"Dwarf Version", i32 4}
+!14 = !{i32 2, !"Debug Info Version", i32 3}
+!15 = !{i32 4, !"dx.disable_optimizations", i32 1}
+!16 = !{i32 2, !"frame-pointer", i32 2}
+!17 = !DILocalVariable(name: "a", scope: !18, file: !19, line: 14, type: !22)
+; DXIL: !18: to be replaced by: !33
+!18 = distinct !DISubprogram(name: "main", linkageName: "_Z4mainv", scope: !19, file: !19, line: 12, type: !20, scopeLine: 13, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !4)
+!19 = !DIFile(filename: "example.hlsl", directory: "/app")
+!20 = !DISubroutineType(types: !21)
+!21 = !{null}
+!22 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint2", scope: !24, file: !23, line: 69, baseType: !25)
+!23 = !DIFile(filename: "/cefs/ed/edec7da708b32073a16376f7_clang-trunk-20260818/lib/clang/24/include/hlsl/hlsl_basic_types.h", directory: "")
+!24 = !DINamespace(name: "hlsl", scope: null)
+!25 = !DIDerivedType(tag: DW_TAG_typedef, name: "vector<unsigned int, 2>", scope: !24, file: !19, baseType: !26)
+!26 = !DICompositeType(tag: DW_TAG_array_type, baseType: !27, size: 64, flags: DIFlagVector, elements: !29)
+!27 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", scope: !24, file: !23, line: 35, baseType: !28)
+!28 = !DIBasicType(name: "unsigned int", size: 32, encoding: DW_ATE_unsigned)
+!29 = !{!30}
+!30 = !DISubrange(count: 2)
+!31 = !DILocation(line: 14, column: 9, scope: !18)
+!32 = !{!18}
+!33 = !DISubprogram(name: "main", linkageName: "_Z4mainv", scope: !19, file: !19, line: 12, type: !20, scopeLine: 13, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !4)

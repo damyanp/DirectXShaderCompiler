@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "nonzero_exit", "invert": true },
+    { "kind": "not_contains", "value": "error" }
+  ],
+  "note": "The reported symptom is dxc silently reporting SUCCESS (exit 0, no diagnostic text on stderr) for a source it would otherwise reject, once -MD -MF is added to the command line. Both clauses are required: the inverted `nonzero_exit` anchors 'the process actually completed cleanly' (not merely 'produced no visible text', which a crash could also do); `not_contains error` anchors 'no diagnostic reached the console'. Anti-vacuity, both directions: (1) `control-parse-error.hlsl`, run with --label baseline-no-md via a separate match-baseline-error.json (regex on the literal diagnostic text), proves the primary repro.hlsl is genuinely rejected by dxc when -MD/-MF is absent -- so a match here reflects the flag suppressing a real diagnostic, not a source that was always clean. (2) `control-bad-include.hlsl`, run under the *same* -MD -MF flags and scored --expect no-match against this very file, proves -MD/-MF does not blanket-suppress every diagnostic: a preprocessor-level error (a missing #include) still reaches stderr and still exits non-zero. That pins the mechanism to the parser/Sema stage specifically (dxcompilerobj.cpp's DumpDependencies branch runs only clang::PreprocessOnlyAction and never invokes the parser), rather than a generic 'stderr goes nowhere under -MD' explanation, which would have made every -MD/-MF run match regardless of the input's validity."
+}

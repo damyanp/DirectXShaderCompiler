@@ -1,0 +1,6 @@
+Look for the DXIL validator diagnostic "Instructions must be of an allowed type" at the
+`insertvalue %dx.types.fouri32 ...` note (both DXC panes) -- this is the malformed IR the
+issue reports for `WaveMatch` on a vector argument under `-Od` (optimizations disabled).
+The Clang pane does not reach that code at all: it rejects the shader with
+"use of undeclared identifier 'WaveMatch'" -- Clang's HLSL front end has not implemented the
+intrinsic yet, so it cannot show whether it would scalarize the argument correctly.

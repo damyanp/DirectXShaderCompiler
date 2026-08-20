@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "expected member name or ';' after declaration specifiers",
+  "note": "dxc.exe half of the issue: -D float4=0 textually substitutes the token `float4` with `0` everywhere, including in `float4 position : SV_Position;`, which then reads as `0 position : SV_Position;` and fails to parse as a struct member. This is the exact diagnostic dxr_macro.hlsl (added by the unmerged fix PR #5424) FileChecks for on dxc.exe/dxr.exe -- 'error: expected member name or ';' after declaration specifiers' followed by the caret under `float4 position`. Present means the -D macro WAS expanded (expected/healthy dxc.exe behavior, matching the reporter's own claim); this predicate is only meaningful for dxc.exe -- see match-dxr.json note for why dxr.exe's half cannot be scored the same way without building dxr.exe."
+}

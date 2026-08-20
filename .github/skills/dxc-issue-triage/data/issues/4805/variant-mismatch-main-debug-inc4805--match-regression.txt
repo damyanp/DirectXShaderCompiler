@@ -1,0 +1,33 @@
+# compiler: main-debug-inc4805
+# exe: <triage>/issues/4805/run-handler4805.cmd
+# ran: 2026-08-19T18:59:35+00:00
+# cmd: -T cs_6_0 -E main -spirv -fspv-debug=vulkan-with-source control-mismatch\main.hlsl
+# exit: 2
+# timed_out: 0
+# match: match-regression.json
+# verdict: repro
+# variant: mismatch (control-mismatch\main.hlsl)
+# expect: match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc -T cs_6_0 -E main -spirv -fspv-debug=vulkan-with-source control-mismatch\main.hlsl
+[exe] <triage>/issues/4805/run-handler4805.cmd
+[exit] 2
+--- stdout ---
+# handler4805: #4805 custom include handler probe
+source: control-mismatch\main.hlsl
+marker: HANDLER4805_MARKER_f3c9a1
+handler4805: LoadSource candidate: .\control-mismatch\Includes\Uniforms.hlsl
+IDxcCompiler::Compile status -> 0x80004005 (E_FAIL)
+handler4805: LoadSource call count: 1
+compiler diagnostics:
+fatal error: generated SPIR-V is invalid: NonSemantic.Shader.DebugInfo.100 DebugTypeMember: operand Column End (41) is larger then Line 3 column length of 2 found in the DebugSource text
+  %50 = OpExtInst %void %1 DebugTypeMember %16 %49 %48 %uint_3 %uint_41 %uint_0 %uint_32 %uint_3
+
+note: please file a bug report on https://github.com/Microsoft/DirectXShaderCompiler/issues with source code if possible
+
+handler4805: WALK-INCOMPLETE: the shader did not compile; see diagnostics above
+
+--- stderr ---
+

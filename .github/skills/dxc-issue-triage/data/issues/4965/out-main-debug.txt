@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T18:36:52+00:00
+# cmd: -T ps_6_2 -E f repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# attempts: 10
+# hits: 0
+
+$ dxc -T ps_6_2 -E f repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:1:1: error: recursive functions are not allowed: function 'f' calls recursive function 'f'
+int f( int)
+^
+repro.hlsl:1:1: note: recursive function located here:
+
+

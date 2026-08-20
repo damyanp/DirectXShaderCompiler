@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "error: cannot convert from '[^']*' to 'SomeStructWithEnum'",
+  "note": "Example 2's reported symptom: dxc rejects `(SomeStructWithEnum)0` when the struct's first bit-field is enum-typed. Anchored on the struct name so this cannot be confused with example 1's unrelated 'cannot convert' diagnostic against a different struct pair."
+}

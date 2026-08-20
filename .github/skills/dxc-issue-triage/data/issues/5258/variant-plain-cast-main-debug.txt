@@ -1,0 +1,103 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T20:07:37+00:00
+# cmd: -T lib_6_6 -HV 2021 control-plain-cast.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: plain-cast (control-plain-cast.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_6 -HV 2021 control-plain-cast.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; shader hash: fa56ef19f4a36914c3ee456906135064
+;
+; Buffer Definitions:
+;
+; cbuffer $Globals
+; {
+;
+;   struct $Globals
+;   {
+;
+;       struct struct.StructWithUint2
+;       {
+;
+;           uint a;                                   ; Offset:    0
+;           uint b;                                   ; Offset:    4
+;       
+;       } cStructWithUint2;                           ; Offset:    0
+;
+;   
+;   } $Globals;                                       ; Offset:    0 Size:     8
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; $Globals                          cbuffer      NA          NA     CB0   cb4294967295     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResourceProperties = type { i32, i32 }
+%dx.types.CBufRet.i32 = type { i32, i32, i32, i32 }
+%"$Globals" = type { %struct.StructWithUint2 }
+%struct.StructWithUint2 = type { i32, i32 }
+
+@"$Globals" = external constant %dx.types.Handle
+
+; Function Attrs: nounwind readonly
+define i32 @"\01?SomeFuncCastingPlainStructs@@YAIXZ"() #0 {
+  %1 = load %dx.types.Handle, %dx.types.Handle* @"$Globals", align 4
+  %2 = call %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32 160, %dx.types.Handle %1)  ; CreateHandleForLib(Resource)
+  %3 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %2, %dx.types.ResourceProperties { i32 13, i32 8 })  ; AnnotateHandle(res,props)  resource: CBuffer
+  %4 = call %dx.types.CBufRet.i32 @dx.op.cbufferLoadLegacy.i32(i32 59, %dx.types.Handle %3, i32 0)  ; CBufferLoadLegacy(handle,regIndex)
+  %5 = extractvalue %dx.types.CBufRet.i32 %4, 1
+  ret i32 %5
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.i32 @dx.op.cbufferLoadLegacy.i32(i32, %dx.types.Handle, i32) #0
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @dx.op.annotateHandle(i32, %dx.types.Handle, %dx.types.ResourceProperties) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandleForLib.dx.types.Handle(i32, %dx.types.Handle) #0
+
+attributes #0 = { nounwind readonly }
+attributes #1 = { nounwind readnone }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!7}
+!dx.entryPoints = !{!12}
+
+!0 = !{!"dxc(private) 1.9.0.5465 (triage, 7665270b9)"}
+!1 = !{i32 1, i32 6}
+!2 = !{i32 1, i32 10}
+!3 = !{!"lib", i32 6, i32 6}
+!4 = !{null, null, !5, null}
+!5 = !{!6}
+!6 = !{i32 0, %"$Globals"* bitcast (%dx.types.Handle* @"$Globals" to %"$Globals"*), !"$Globals", i32 0, i32 -1, i32 1, i32 8, null}
+!7 = !{i32 1, i32 ()* @"\01?SomeFuncCastingPlainStructs@@YAIXZ", !8}
+!8 = !{!9}
+!9 = !{i32 1, !10, !11}
+!10 = !{i32 7, i32 5}
+!11 = !{}
+!12 = !{null, !"", null, !4, null}
+
+
+--- stderr ---
+

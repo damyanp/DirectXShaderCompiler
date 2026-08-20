@@ -1,0 +1,1 @@
+-spirv -HV 202x -T cs_6_7 -Zpr -enable-16bit-types -fvk-use-scalar-layout -Wno-c++11-extensions -Wno-c++1z-extensions -Wno-gnu-static-float-init -fspv-target-env=vulkan1.3 -fspv-debug=source -fspv-debug=tool repro.hlsl

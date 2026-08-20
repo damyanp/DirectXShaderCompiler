@@ -1,0 +1,49 @@
+# compiler: main-debug-dxr
+# exe: <triage>/issues/5268/harness.cmd
+# ran: 2026-08-19T20:12:20+00:00
+# cmd: -E VSMain -remove-unused-globals repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -E VSMain -remove-unused-globals repro.hlsl
+[exe] <triage>/issues/5268/harness.cmd
+[exit] 1
+--- stdout ---
+$ <repo>\build\Release\bin\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit: 0
+---- dxr (rewriter) output ----
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+
+
+
+
+$ <repo>\build\Debug\bin\dxc.exe -T vs_6_0 -E VSMain harness-rewritten.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+---- dxc (recompile of rewritten output) output ----
+harness-rewritten.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+harness-rewritten.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+harness-rewritten.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+
+
+--- stderr ---
+

@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "\\bto i33\\b",
+  "note": "This is the reported symptom exactly, per the issue body and both linked godbolt captures: SCEV widens the loop's overflow-guarded closed-form multiply ((input-1)*(input-2)/2) by one bit, and the disassembly shows the escape verbatim ('%N = zext i32 %M to i33', 'mul i33 ...', 'trunc i33 %N to i32'). Anchored on 'to i33' rather than a bare 'i33' substring so nothing incidental mentioning the number 33 can match. On main-debug plain `dxc -T cs_6_3 -ECSMain repro.hlsl` writes this disassembly straight to stdout on a successful compile -- no -Fc needed -- which is also why a failed compile (the DXIL validator now catching this and refusing to run) makes this predicate score no-repro even though the same illegal type is still produced internally (confirmed separately with -Vd, see notes.md). See match-caught.json for that second, newer signature; the two are bisected separately, not combined, because the reported (silent) shape and current (caught) shape are different observations about the same defect and collapsing them into one any_of would hide exactly when the validator started catching it."
+}

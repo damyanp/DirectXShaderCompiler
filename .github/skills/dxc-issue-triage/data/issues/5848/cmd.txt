@@ -1,0 +1,1 @@
+-T lib_6_7 repro.hlsl

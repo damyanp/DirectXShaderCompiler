@@ -1,0 +1,28 @@
+# compiler: dxr-5290-release
+# exe: <repo>/build/Release/bin/dxr.exe
+# ran: 2026-08-19T20:09:12+00:00
+# cmd: -remove-unused-functions -remove-unused-globals -E ps_main control-local-used.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-nested.json
+# verdict: no-repro
+# variant: local-used (control-local-used.hlsl)
+# expect: no-match
+
+$ dxc -remove-unused-functions -remove-unused-globals -E ps_main control-local-used.hlsl
+[exe] <repo>/build/Release/bin/dxr.exe
+[exit] 0
+--- stdout ---
+struct Material {
+  LayerColor colors[4];
+};
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  Material mtl = (Material)0;
+  return mtl.colors[0].r;
+}
+
+
+
+
+--- stderr ---
+

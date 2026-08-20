@@ -1,0 +1,26 @@
+# Compiler Explorer panes for #5258, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T lib_6_6 -HV 2021
+# exit:     5
+
+<source>:22:34: error: cannot convert from 'const StructWithUint' to 'SomeStructWithBitfields'
+    SomeStructWithBitfields bf = (SomeStructWithBitfields)cStructWithUint;
+                                 ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T lib_6_6 -HV 2021
+# exit:     5
+
+<source>:22:34: error: cannot convert from 'const StructWithUint' to 'SomeStructWithBitfields'
+    SomeStructWithBitfields bf = (SomeStructWithBitfields)cStructWithUint;
+                                 ^
+
+<Compilation failed>

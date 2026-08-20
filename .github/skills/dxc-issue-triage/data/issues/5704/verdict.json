@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-13T03:13:47Z",
+  "fixed_in": "v1.8.2403",
+  "godbolt_skip": "repro is a 3-step compile-lib -> link -> disassemble pipeline; Compiler Explorer has no linker step and cannot express IDxcLinker::Link, so no single CE pane can reproduce the reported symptom",
+  "history": "fixed-by-v1.8.2403-for-adapted-repro; literal-repro-invalid-probe-from-v1.8.2403 (unrelated linkage regression)",
+  "labels": "bug,reflection,shader-linking",
+  "notes_path": "issues/5704/notes.md",
+  "number": 5704,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "changed-behavior",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Reported strip_reflect resource-name leak across lib_6_3->linked cs_6_3 reproduced exactly as filed on v1.7.2308 and is fixed by v1.8.2403 when tested with a currently-valid equivalent (adding required [shader(compute)]); separately and in the same window the literal unattributed repro regressed into an unrelated link failure and can no longer be run as filed.",
+  "text_stale": "Title's claim no longer reproduces via the literal repro, which now fails to link for an unrelated reason from v1.8.2403 onward; the underlying stripping defect is independently confirmed fixed from v1.8.2403 via an equivalent repro using the currently-required [shader(compute)] entry attribute.",
+  "title": "Linker doesn't strip resource names when using -Qstrip_reflect",
+  "triaged_at": "2026-08-20T05:15:27+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5704"
+}

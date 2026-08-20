@@ -1,0 +1,273 @@
+$ git --no-pager show 89e2f98e29c289ae8ad9e00dd310104fea9fd7df:tools/clang/test/HLSLFileCheck/lit.local.cfg
+# cwd: <repo>
+# exit: 0
+# HLSL Change - Hide files in CodeGenHLSL directory - they are tested by existing
+# TAEF tests (CompilerTest, DxilContainerTest, LinkerTest)
+config.suffixes = []
+
+$ git --no-pager show 89e2f98e29c289ae8ad9e00dd310104fea9fd7df:tools/clang/test/DXILValidation/lit.local.cfg
+# cwd: <repo>
+# exit: 0
+# HLSL Change - Hide files in DxilValidation directory - they are tested by existing
+# TAEF tests (DxilValidation)
+config.suffixes = []
+
+$ git --no-pager log "--format=%H %ad %s" --date=short -- tools/clang/test/HLSLFileCheck/lit.local.cfg
+# cwd: <repo>
+# exit: 0
+b503da7084b4200909d2a3b7dcfc18e8d2944eec 2023-08-18 DXC Tests: Filter out unsupported test, add verbose option and improve output (#5537)
+f5442b1fb577e79829807b4ec0b8eee0d6e45b48 2022-11-29 Disable lit shtest suites (#4822)
+
+$ git --no-pager show b503da7084b4200909d2a3b7dcfc18e8d2944eec --stat
+# cwd: <repo>
+# exit: 0
+commit b503da7084b4200909d2a3b7dcfc18e8d2944eec
+Author: Helena Kotas <hekotas@microsoft.com>
+Date:   Fri Aug 18 10:56:52 2023 -0700
+
+    DXC Tests: Filter out unsupported test, add verbose option and improve output (#5537)
+    
+    Improve output of DXC test runs:
+    - Add `-lit-verbose` option to `hctbuild` to setup lit test runs with
+    verbose output (`hcttest` will list test names as they run)
+    - Hide tests that are never supported (there was over 10K of unsupported
+    tests found by LIT discovery)
+    - Show warnings about non-essential tools only in LIT debug mode
+    - Skip over file copying and non-LIT part of `hcttest.cmd` if all
+    requested tests have already been run
+    - CMD tests have been move under clang's lit tests; keep the `hcttest
+    cmd` option for running cmd tests separately
+    
+    Number of unsupported tests was reduced from 10452 to 1 if spir-v is
+    enabled, 39 if not. The number of tests that run did not change.
+
+ test/Analysis/Delinearization/lit.local.cfg            |  3 ++-
+ test/Analysis/Lint/lit.local.cfg                       |  3 ++-
+ test/Bitcode/lit.local.cfg                             |  3 ++-
+ test/MC/Markup/lit.local.cfg                           |  4 ++--
+ test/MC/lit.local.cfg                                  |  3 ++-
+ test/Object/lit.local.cfg                              |  5 +++--
+ test/Other/lit.local.cfg                               |  4 ++--
+ test/Transforms/EarlyCSE/AArch64/lit.local.cfg         |  3 ++-
+ test/Transforms/SimplifyCFG/AArch64/lit.local.cfg      |  3 ++-
+ test/lit.cfg                                           |  5 ++++-
+ test/tools/lit.local.cfg                               |  2 ++
+ test/tools/llvm-cov/lit.local.cfg                      |  5 +++--
+ test/tools/llvm-lit/lit.local.cfg                      |  2 ++
+ test/tools/llvm-profdata/lit.local.cfg                 |  5 +++--
+ tools/clang/test/CodeGenHLSL/lit.local.cfg             |  4 +++-
+ tools/clang/test/CodeGenSPIRV/lit.local.cfg            |  3 ++-
+ .../test/CodeGenSPIRV_Lit/unsupported/lit.local.cfg    |  1 +
+ tools/clang/test/DXILValidation/lit.local.cfg          |  4 +++-
+ tools/clang/test/Frontend/lit.local.cfg                |  5 +++--
+ tools/clang/test/HLSL/lit.local.cfg                    |  9 +++------
+ tools/clang/test/HLSLDisabled/lit.local.cfg            |  3 ++-
+ tools/clang/test/HLSLFileCheck/lit.local.cfg           |  4 +++-
+ tools/clang/test/Index/lit.local.cfg                   |  3 ++-
+ .../clang/test/Index/skip-parsed-bodies/lit.local.cfg  |  4 +++-
+ tools/clang/test/lit.cfg                               |  8 ++++++--
+ utils/hct/hctbuild.cmd                                 | 11 ++++++++++-
+ utils/hct/hcttest.cmd                                  | 18 +++++++++++-------
+ 27 files changed, 85 insertions(+), 42 deletions(-)
+
+$ python utils/lit/lit.py --show-tests --param=build_mode=Release build/tools/clang/test/HLSLFileCheck
+# cwd: <repo>
+# exit: 0
+-- Available Tests --
+# stderr:
+lit.py: discovery.py:226: warning: input 'build/tools/clang/test/HLSLFileCheck' contained no tests
+
+$ python utils/lit/lit.py --show-tests --param=build_mode=Release build/tools/clang/test/DXILValidation
+# cwd: <repo>
+# exit: 0
+-- Available Tests --
+# stderr:
+lit.py: discovery.py:226: warning: input 'build/tools/clang/test/DXILValidation' contained no tests
+
+$ python -c "from pathlib import Path; p = Path('tools/clang/test/HLSLFileCheckLit'); print(sorted(x.name for x in p.iterdir()))"
+# cwd: <repo>
+# exit: 0
+['hlsl', 'passes']
+
+$ git --no-pager log -1 "--format=%H %ad %s" --date=short -- tools/clang/test/HLSLFileCheck/validation/wavesize/max-too-large.ll
+# cwd: <repo>
+# exit: 0
+dcb618a2f1b7f4265fc2b77c12291f76eb334ae3 2024-01-22 Fix bad WaveSize non-range PSV0 and improve things (#6172)
+
+$ git --no-pager grep -n -A2 ManualFileCheckTest 89e2f98e29c289ae8ad9e00dd310104fea9fd7df -- utils/hct/hcttest.cmd
+# cwd: <repo>
+# exit: 0
+89e2f98e29c289ae8ad9e00dd310104fea9fd7df:utils/hct/hcttest.cmd:508:  call :runte ClangHLSLTests.dll /p:"HlslDataDir=%HLSL_SRC_DIR%\tools\clang\test\HLSL" /name:CompilerTest::ManualFileCheckTest /runIgnoredTests /p:"InputPath=%MANUAL_FILE_CHECK_PATH%"
+89e2f98e29c289ae8ad9e00dd310104fea9fd7df:utils/hct/hcttest.cmd-509-  set RES_EXEC=!ERRORLEVEL!
+89e2f98e29c289ae8ad9e00dd310104fea9fd7df:utils/hct/hcttest.cmd-510-)
+
+$ git --no-pager grep -c HLSLFileCheck 89e2f98e29c289ae8ad9e00dd310104fea9fd7df -- tools/clang/unittests/HLSL/ValidationTest.cpp
+# cwd: <repo>
+# exit: 1
+
+
+$ git --no-pager log --follow "--format=%H %ad %s" --date=short -- tools/clang/test/DXC/validate_1_8_2502.test
+# cwd: <repo>
+# exit: 0
+89e2f98e29c289ae8ad9e00dd310104fea9fd7df 2026-08-12 [HLSL] Add LinAlg descriptor I/O offset, stride and layout coverage (#8762)
+e7346acd9d4000035d8383c713ee966a5abdd7cb 2026-01-22 Fix dxc version printing and fix external validator testing (#8075)
+
+$ python utils/lit/lit.py --show-tests --param=build_mode=Release build/tools/clang/test/DXC
+# cwd: <repo>
+# exit: 0
+-- Available Tests --
+  Clang :: DXC/Environment.test
+  Clang :: DXC/FinishCodeGen/construct-global-array-of-struct.hlsl
+  Clang :: DXC/FinishCodeGen/construct-global.hlsl
+  Clang :: DXC/FinishCodeGen/unreachable-discard.hlsl
+  Clang :: DXC/NonUniform.hlsl
+  Clang :: DXC/Passes/DxilConditionalMem2Reg/precise-vector-alloca-followed-by-use.hlsl
+  Clang :: DXC/Passes/DxilFixConstArrayInitializer/negative-index.ll
+  Clang :: DXC/Passes/DxilGen/LowerAllocateRayQuery2.ll
+  Clang :: DXC/Passes/DxilGen/cb-col-matrix-subscript-dxilgen.ll
+  Clang :: DXC/Passes/DxilGen/clusterid_dxilgen.ll
+  Clang :: DXC/Passes/DxilGen/debugbreak.ll
+  Clang :: DXC/Passes/DxilGen/group-wave-index.ll
+  Clang :: DXC/Passes/DxilGen/hitobject_accessors_dxilgen.ll
+  Clang :: DXC/Passes/DxilGen/hitobject_attributes_dxilgen.ll
+  Clang :: DXC/Passes/DxilGen/hitobject_dxilgen.ll
+  Clang :: DXC/Passes/DxilGen/hitobject_fromrayquery_dxilgen.ll
+  Clang :: DXC/Passes/DxilGen/hitobject_traceinvoke_dxilgen.ll
+  Clang :: DXC/Passes/DxilGen/isdebuggingenabled.ll
+  Clang :: DXC/Passes/DxilGen/maybereorder_dxilgen.ll
+  Clang :: DXC/Passes/DxilGen/tracerayinline_cb_raydesc_dxilgen.ll
+  Clang :: DXC/Passes/DxilGen/tracerayinline_dxilgen.ll
+  Clang :: DXC/Passes/DxilGen/triangle_positions_dxilgen.ll
+  Clang :: DXC/Passes/DxilLoopDeletion/dxil-loop-deletion-phi-with-duplicate-preds.ll
+  Clang :: DXC/Passes/DxilRemoveDeadBlocks/switch-with-multiple-same-successor.hlsl
+  Clang :: DXC/Passes/DxilRemoveDeadBlocks/switch-with-multiple-same-successor.ll
+  Clang :: DXC/Passes/DxilRemoveUnstructuredLoopExits/struct_exit_wrap_value_iteration_bug.ll
+  Clang :: DXC/Passes/DxilSimplify/vectorreduce-const-fold.ll
+  Clang :: DXC/Passes/GVN/no-large-int-vector-coercion.ll
+  Clang :: DXC/Passes/HLMatrixLower/dont_crash_on_invalid_cast.ll
+  Clang :: DXC/Passes/InstructionCombining/instcombine-no-sadd-overflow-dxil.ll
+  Clang :: DXC/Passes/InstructionCombining/instcombine-no-umul-overflow-dxil.ll
+  Clang :: DXC/Passes/InstructionCombining/instcombine-opt-overflow-check-inserts-at-add.ll
+  Clang :: DXC/Passes/PIX/debugi25.ll
+  Clang :: DXC/Passes/PIX/validatorNoDowngrade.ll
+  Clang :: DXC/Passes/PIX/validatorUpgrade.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/hitobject_fromrayquery_scalarrepl.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/hitobject_make_scalarrepl.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/hitobject_traceinvoke_scalarrepl.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/scalarrepl-param-hlsl-const-to-local-and-back.hlsl
+  Clang :: DXC/Passes/ScalarReplHLSL/scalarrepl-param-hlsl-const-to-local-and-back.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/scalarrepl-param-hlsl-dyn-idx-gep-of-const-idx-gep.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/scalarrepl-param-hlsl-entry-replace-zero-recurse-to-float.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/scalarrepl-param-hlsl-entry-replace-zero-recurse-to-int.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/scalarrepl-param-hlsl-replace-zero-recurse-to-float.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/scalarrepl-param-hlsl-replace-zero-recurse-to-int.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/traceray_scalarrepl.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/tracerayinline_cb_raydesc_scalarrepl.ll
+  Clang :: DXC/Passes/ScalarReplHLSL/tracerayinline_scalarrepl.ll
+  Clang :: DXC/Passes/SimplifyCFG/simplifycfg-uaf-phi-condition.ll
+  Clang :: DXC/Passes/SimplifyCFG/simplifycfg-uaf-select-condition.ll
+  Clang :: DXC/Passes/reassociate/fp-common-factor-optimization.hlsl
+  Clang :: DXC/Passes/reassociate/pointer-collision-non-determinism.ll
+  Clang :: DXC/Passes/reassociate/reassociation-flag.hlsl
+  Clang :: DXC/Passes/reassociate/reassociation-flag.ll
+  Clang :: DXC/PipelineStage.hlsl
+  Clang :: DXC/TextVS.hlsl
+  Clang :: DXC/VersionMacro.hlsl
+  Clang :: DXC/ast_dump.test
+  Clang :: DXC/basic_smoke.test
+  Clang :: DXC/batch_compile.test
+  Clang :: DXC/binding_table.hlsl
+  Clang :: DXC/bom_test.test
+  Clang :: DXC/denorm.test
+  Clang :: DXC/deprecated-select-validator.hlsl
+  Clang :: DXC/deterministic_output_resource_array.hlsl
+  Clang :: DXC/diagnostic-verifier.hlsl
+  Clang :: DXC/disable_paq.hlsl
+  Clang :: DXC/dot4add_i8_u8_packed-types.hlsl
+  Clang :: DXC/dumpPSV_AS.hlsl
+  Clang :: DXC/dumpPSV_AS_GroupShared.hlsl
+  Clang :: DXC/dumpPSV_CS.hlsl
+  Clang :: DXC/dumpPSV_CS_NoGroupShared.hlsl
+  Clang :: DXC/dumpPSV_DS.hlsl
+  Clang :: DXC/dumpPSV_GS.hlsl
+  Clang :: DXC/dumpPSV_HS.hlsl
+  Clang :: DXC/dumpPSV_MS.hlsl
+  Clang :: DXC/dumpPSV_PS.hlsl
+  Clang :: DXC/dumpPSV_VS.hlsl
+  Clang :: DXC/dump_dependency.hlsl
+  Clang :: DXC/dxa_tests.test
+  Clang :: DXC/dxopt_test.test
+  Clang :: DXC/dxr_test.test
+  Clang :: DXC/embed_dbg.test
+  Clang :: DXC/enable_16_bits.test
+  Clang :: DXC/experimental-dxil-6-10-op.ll
+  Clang :: DXC/extra_output.test
+  Clang :: DXC/fd_strip_dbg.test
+  Clang :: DXC/fd_zs.test
+  Clang :: DXC/fdiagnostics-format.test
+  Clang :: DXC/force_root_sig_ver.test
+  Clang :: DXC/ftime-report.hlsl
+  Clang :: DXC/ftime-trace-granularity.hlsl
+  Clang :: DXC/ftime-trace.hlsl
+  Clang :: DXC/global_rs.hlsl
+  Clang :: DXC/help_text.test
+  Clang :: DXC/highlight-range-null-byte.test
+  Clang :: DXC/hlsl_ver.test
+  Clang :: DXC/include-main.hlsl
+  Clang :: DXC/lib_entry4.hlsl
+  Clang :: DXC/local_rs.hlsl
+  Clang :: DXC/loop_structurize_exit_inner_latch_regression.ll
+  Clang :: DXC/matrix_crash.ll
+  Clang :: DXC/matrix_mat_struct_align.ll
+  Clang :: DXC/metal.test
+  Clang :: DXC/min16vector_disabled.hlsl
+  Clang :: DXC/min16vector_enabled.hlsl
+  Clang :: DXC/no_legacy_cbuf_layout_warning.hlsl
+  Clang :: DXC/no_metal.test
+  Clang :: DXC/no_metal_disassembly.test
+  Clang :: DXC/no_spirv.test
+  Clang :: DXC/payload_qualifier_nested_method_call.hlsl
+  Clang :: DXC/preprocess.test
+  Clang :: DXC/print-passes.hlsl
+  Clang :: DXC/private_data.test
+  Clang :: DXC/recompile.test
+  Clang :: DXC/root_sig.test
+  Clang :: DXC/shader_model_update.test
+  Clang :: DXC/show-includes.hlsl
+  Clang :: DXC/specialization_with_fatal_error.hlsl
+  Clang :: DXC/spirv.test
+  Clang :: DXC/strip_dbg.test
+  Clang :: DXC/strip_reflect.test
+  Clang :: DXC/unreferenced_struct_selft_assignment_crash.hlsl
+  Clang :: DXC/validate_1_6_2112.test
+  Clang :: DXC/validate_1_7_2308.test
+  Clang :: DXC/validate_1_8_2502.test
+  Clang :: DXC/version_interface.test
+  Clang :: DXC/warning.test
+
+$ git --no-pager diff --name-only 7665270b9 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+# cwd: <repo>
+# exit: 0
+# summarised: 5315 total changed files; 0 outside .github/skills/dxc-issue-triage/
+# files outside the skill dir (all 0):
+
+$ git --no-pager diff --name-only v1.4.1907 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+# cwd: <repo>
+# exit: 0
+# summarised: 6992 total changed files; 6992 outside .github/skills/dxc-issue-triage/
+# files outside the skill dir (first 15 of 6992):
+.gitattributes
+.github/CODEOWNERS
+.github/ISSUE_TEMPLATE/bug_report.md
+.github/ISSUE_TEMPLATE/bug_report_spirv.md
+.github/ISSUE_TEMPLATE/feature_request.md
+.github/ISSUE_TEMPLATE/release.md
+.github/ISSUE_TEMPLATE/support.md
+.github/copilot-instructions.md
+.github/workflows/clang-format-checker.yml
+.github/workflows/coverage-gh-pages.yml
+.github/workflows/pr-description-checker.yml
+.gitignore
+.gitmodules
+.travis.yml
+.vs/launch.vs.json

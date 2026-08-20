@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2022-11-04T10:17:37Z",
+  "godbolt_skip": "not a compiler defect - no shader or dxc invocation exists; the ask is a CMake build-target configuration question (SHARED vs STATIC), which CE cannot express (it cannot configure a CMake build or produce a static archive). A CE link showing dxc compiling fine would be affirmatively misleading, inviting the reader to conclude the static-linking ask has been addressed when it has not.",
+  "history": "n/a - no shader/dxc invocation applies; source/build-config history only. add_clang_library(dxcompiler SHARED ...) at tools/clang/tools/dxcompiler/CMakeLists.txt:127 has been unconditionally hardcoded since the repository's first commit (6ee4074a4, 2016-12-28) and is unchanged at ground truth (89e2f98e2); the file's most recent touch (6ea7cf1c1, #8166) is an unrelated MacOS warning fix. dxildll (dxil.dll) has the identical pattern and has never been touched since it entered this repo via #6866 (2024-09-05, after this issue was filed).",
+  "labels": "build,api",
+  "labels_add": "enhancement",
+  "labels_now": "build,api",
+  "notes_path": "issues/4766/notes.md",
+  "number": 4766,
+  "repro_quality": "prose-only",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Still unaddressed on main: dxcompiler's and dxildll's CMake targets remain hardcoded SHARED (unchanged since 2016 and since dxildll entered this repo in 2024, respectively), and no PR or maintainer reply in this thread has accepted or declined the contributor's proposed STATIC option. Related issue #5985 cites this one directly and ties static linking to an unfinished DllMain/LoadLibraryA refactor that a maintainer asked about as recently as 2024-10-28 with no reply since.",
+  "title": "How can I build `dxil` and `dxcompiler` as a static library?",
+  "triaged_at": "2026-08-20T05:15:12+00:00",
+  "triaged_by": "Claude Sonnet 4.6 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4766"
+}

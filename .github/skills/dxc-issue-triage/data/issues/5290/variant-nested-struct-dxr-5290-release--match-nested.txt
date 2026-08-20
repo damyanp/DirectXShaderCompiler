@@ -1,0 +1,25 @@
+# compiler: dxr-5290-release
+# exe: <repo>/build/Release/bin/dxr.exe
+# ran: 2026-08-19T20:09:11+00:00
+# cmd: -remove-unused-functions -remove-unused-globals -E ps_main repro2.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-nested.json
+# verdict: repro
+# variant: nested-struct (repro2.hlsl)
+# expect: match
+
+$ dxc -remove-unused-functions -remove-unused-globals -E ps_main repro2.hlsl
+[exe] <repo>/build/Release/bin/dxr.exe
+[exit] 0
+--- stdout ---
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  Material mtl = (Material)0;
+  return float4(0, 0, 0, 0);
+}
+
+
+
+
+--- stderr ---
+

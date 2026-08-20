@@ -1,0 +1,31 @@
+# Compiler Explorer panes for #5674, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0
+# exit:     5
+
+<source>:1:10: error: template specialization requires 'template<>'
+float2x2 matrix;
+         ^~~~~~
+template<> 
+<source>:1:10: error: no variable template matches specialization
+<source>:4:1: error: HLSL requires a type specifier for all declarations
+main()
+^
+<source>:6:29: error: cannot refer to class template 'matrix' without a template argument list
+  Output[0] = float2(1,2) * matrix;
+                            ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>

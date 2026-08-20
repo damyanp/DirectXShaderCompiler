@@ -1,0 +1,51 @@
+# Compiler Explorer panes for #4888, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_6 -E main
+# exit:     5
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+error: validation errors
+error: All metadata must be used by dxil.!14 = !{i32 1}
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_6 -E main
+# exit:     5
+
+error: validation errors
+error: All metadata must be used by dxil.!15 = !{i32 1}
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_6 -E main
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:25:23: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'ResourceDescriptorHeap'[0m
+   25 |     Texture2D<float4>(ResourceDescriptorHeap[id1]),[0m
+      | [0;1;32m                      ^~~~~~~~~~~~~~~~~~~~~~
+[0m[1m<source>:26:23: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'ResourceDescriptorHeap'[0m
+   26 |     Texture2D<float4>(ResourceDescriptorHeap[id2])[0m
+      | [0;1;32m                      ^~~~~~~~~~~~~~~~~~~~~~
+[0m[1m<source>:34:53: [0m[0;1;31merror: [0m[1mno matching member function for call to 'Sample'[0m
+   34 |   output[[0;32m0[0m] = textures[NonUniformResourceIndex(id)].Sample(ss, float2([0;32m0[0m, [0;32m1[0m));[0m
+      | [0;1;32m              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+[0m[0;1;36mnote: [0mcandidate function not viable: 'this' argument has type 'const Texture2D<float4>' (aka 'const Texture2D<vector<float, 4>>'), but method is not marked const[0m
+[0;1;36mnote: [0mcandidate function not viable: requires 3 arguments, but 2 were provided[0m
+[0;1;36mnote: [0mcandidate function not viable: requires 4 arguments, but 2 were provided[0m
+3 errors generated.
+<Compilation failed>

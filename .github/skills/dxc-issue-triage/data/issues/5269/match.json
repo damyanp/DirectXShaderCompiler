@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "payload size \\d+ is greater than declared size of 0 bytes",
+  "note": "Present when: an amplification shader (`-T as_6_5`) whose payload struct has no members fails DXIL validation because the runtime-computed dispatchMesh payload size (rounded up to a nonzero minimum) exceeds the struct's declared size of 0. This is the reported bug: DXC should either allow a 0-byte payload through validation or accept an empty-struct payload as valid input entirely. The number before 'is greater than' is left as \\d+ rather than hardcoded '4' in case a future/older build rounds the minimum payload size differently; both the literal message and the DXIL validator source (lib/DxilValidation/DxilValidation.cpp, ValidateDispatchMeshPayload-style check) tie the failure to payload-size accounting, not to any specific numeric constant."
+}

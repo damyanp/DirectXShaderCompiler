@@ -1,0 +1,543 @@
+=== v1.4.1907 ===
+$ <cache>\rw4273\v1.4.1907\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000001
+Compilation failed - error code 0x80070057.
+# dxr itself failed -- invalid-probe (this release cannot express -remove-unused-globals on this input)
+
+=== v1.5.2003: no cached dxr.exe, skipped ===
+
+=== v1.5.2010 ===
+$ <cache>\rw4273\v1.5.2010\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.5.2010\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.5.2010.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.5.2010.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.5.2010.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.5.2010.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.6.2104 ===
+$ <cache>\rw4273\v1.6.2104\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.6.2104\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.6.2104.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.6.2104.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.6.2104.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.6.2104.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.6.2106 ===
+$ <cache>\rw4273\v1.6.2106\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.6.2106\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.6.2106.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.6.2106.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.6.2106.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.6.2106.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.6.2112 ===
+$ <cache>\rw4273\v1.6.2112\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.6.2112.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.6.2112.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.6.2112.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.6.2112.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.7.2207 ===
+$ <cache>\rw4273\v1.7.2207\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.7.2207\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.7.2207.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.7.2207.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.7.2207.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.7.2207.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.7.2212 ===
+$ <cache>\rw4273\v1.7.2212\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.7.2212\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.7.2212.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.7.2212.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.7.2212.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.7.2212.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.7.2212.1 ===
+$ <cache>\rw4273\v1.7.2212.1\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.7.2212.1\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.7.2212.1.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.7.2212.1.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.7.2212.1.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.7.2212.1.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.7.2308 ===
+$ <cache>\rw4273\v1.7.2308\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <repo>\build\tools\clang\test\dxc_releases\v1.7.2308\dxc_2023_08_14\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.7.2308.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.7.2308.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.7.2308.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.7.2308.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.8.2403 ===
+$ <cache>\rw4273\v1.8.2403\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.8.2403\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.8.2403.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.8.2403.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.8.2403.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.8.2403.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.8.2403.1 ===
+$ <cache>\rw4273\v1.8.2403.1\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.8.2403.1\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.8.2403.1.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.8.2403.1.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.8.2403.1.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.8.2403.1.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.8.2403.2 ===
+$ <cache>\rw4273\v1.8.2403.2\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.8.2403.2\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.8.2403.2.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.8.2403.2.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.8.2403.2.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.8.2403.2.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.8.2405 ===
+$ <cache>\rw4273\v1.8.2405\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.8.2405\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.8.2405.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.8.2405.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.8.2405.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.8.2405.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.8.2407 ===
+$ <cache>\rw4273\v1.8.2407\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.8.2407\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.8.2407.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.8.2407.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.8.2407.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.8.2407.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.8.2502 ===
+$ <cache>\rw4273\v1.8.2502\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <repo>\build\tools\clang\test\dxc_releases\v1.8.2502\dxc_2025_02_20\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.8.2502.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.8.2502.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.8.2502.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.8.2502.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.8.2505 ===
+$ <cache>\rw4273\v1.8.2505\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.8.2505\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.8.2505.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.8.2505.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.8.2505.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.8.2505.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.8.2505.1 ===
+$ <cache>\rw4273\v1.8.2505.1\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <repo>\build\tools\clang\test\dxc_releases\v1.8.2505.1\dxc_2025_07_14\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.8.2505.1.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.8.2505.1.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.8.2505.1.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.8.2505.1.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.9.2602 ===
+$ <cache>\rw4273\v1.9.2602\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.9.2602\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.9.2602.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.9.2602.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.9.2602.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.9.2602.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.9.2602.24 ===
+$ <cache>\rw4273\v1.9.2602.24\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.9.2602.24\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.9.2602.24.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.9.2602.24.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.9.2602.24.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.9.2602.24.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== v1.9.2607 ===
+$ <cache>\rw4273\v1.9.2607\dxr.exe -E VSMain -remove-unused-globals repro.hlsl
+# dxr exit-hex: 0x00000000
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+struct PSInput {
+  float4 position : POSITION;
+};
+PSInput VSMain(float3 position : POSITION) {
+  PSInput psInput;
+  psInput.position = float4(position, 1.F);
+  psInput.position.xyz *= POINT_SIZE_3;
+  return psInput;
+}
+$ <cache>\compilers\releases\v1.9.2607\bin\x64\dxc.exe -T vs_6_0 -E VSMain manual-rewritten-v1.9.2607.hlsl
+# dxc (recompile) exit-hex: 0x80004005
+# dxc (recompile) classification: diagnosed-error
+manual-rewritten-v1.9.2607.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                                                           ^~~~~~~~~~
+                                                           POINT_SIZE_3
+manual-rewritten-v1.9.2607.hlsl:1:21: note: 'POINT_SIZE_3' declared here
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ^
+manual-rewritten-v1.9.2607.hlsl:1:60: warning: variable 'POINT_SIZE_3' is uninitialized when used within its own initialization [-Wuninitialized]
+static const float3 POINT_SIZE_3 = float3(1.F, 1.F, 1.F) * POINT_SIZE;
+                    ~~~~~~~~~~~~                           ^~~~~~~~~~
+
+=== summary ===
+v1.4.1907      invalid-probe  Compilation failed - error code 0x80070057.
+v1.5.2003      no-dxr         -
+v1.5.2010      repro          manual-rewritten-v1.5.2010.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.6.2104      repro          manual-rewritten-v1.6.2104.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.6.2106      repro          manual-rewritten-v1.6.2106.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.6.2112      repro          manual-rewritten-v1.6.2112.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.7.2207      repro          manual-rewritten-v1.7.2207.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.7.2212      repro          manual-rewritten-v1.7.2212.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.7.2212.1    repro          manual-rewritten-v1.7.2212.1.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.7.2308      repro          manual-rewritten-v1.7.2308.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.8.2403      repro          manual-rewritten-v1.8.2403.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.8.2403.1    repro          manual-rewritten-v1.8.2403.1.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.8.2403.2    repro          manual-rewritten-v1.8.2403.2.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.8.2405      repro          manual-rewritten-v1.8.2405.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.8.2407      repro          manual-rewritten-v1.8.2407.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.8.2502      repro          manual-rewritten-v1.8.2502.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.8.2505      repro          manual-rewritten-v1.8.2505.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.8.2505.1    repro          manual-rewritten-v1.8.2505.1.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.9.2602      repro          manual-rewritten-v1.9.2602.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.9.2602.24   repro          manual-rewritten-v1.9.2602.24.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?
+v1.9.2607      repro          manual-rewritten-v1.9.2607.hlsl:1:60: error: use of undeclared identifier 'POINT_SIZE'; did you mean 'POINT_SIZE_3'?

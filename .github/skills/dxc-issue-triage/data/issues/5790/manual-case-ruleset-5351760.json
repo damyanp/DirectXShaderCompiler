@@ -1,0 +1,52 @@
+{
+    "id": 5351760,
+    "name": "microsoft-production-ruleset",
+    "target": "branch",
+    "source_type": "Organization",
+    "source": "microsoft",
+    "enforcement": "active",
+    "conditions": {
+        "ref_name": {
+            "exclude": [],
+            "include": [
+                "~DEFAULT_BRANCH"
+            ]
+        }
+    },
+    "rules": [
+        {
+            "type": "deletion"
+        },
+        {
+            "type": "non_fast_forward"
+        },
+        {
+            "type": "pull_request",
+            "parameters": {
+                "required_approving_review_count": 1,
+                "dismiss_stale_reviews_on_push": false,
+                "required_reviewers": [],
+                "require_code_owner_review": true,
+                "require_last_push_approval": true,
+                "required_review_thread_resolution": false,
+                "allowed_merge_methods": [
+                    "merge",
+                    "squash",
+                    "rebase"
+                ]
+            }
+        }
+    ],
+    "node_id": "RRS_lACkVXNlcs4AXenizgBRqVA",
+    "created_at": "2025-05-07T14:04:33.531-07:00",
+    "updated_at": "2025-05-07T14:04:33.531-07:00",
+    "current_user_can_bypass": "never",
+    "_links": {
+        "self": {
+            "href": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/rulesets/5351760"
+        },
+        "html": {
+            "href": "https://github.com/microsoft/DirectXShaderCompiler/rules/5351760"
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-06-05T09:29:05Z",
+  "godbolt_skip": "Defect is in the standalone dxr.exe rewriter's -remove-unused-globals pass, not in the dxc.exe compiler driver CE exposes; dxc.exe itself rejects the flag outright (dxc failed : Unknown argument: '-remove-unused-globals', verified locally), so no CE pane -- dxc or Clang -- can run the tool under test. Nothing to show.",
+  "history": "always-repro'd (v1.5.2010-v1.9.2607, all 19 remaining stable releases, plus main-debug 89e2f98e2); v1.4.1907 is an invalid-probe -- its dxr.exe cannot functionally run -remove-unused-globals at all (generic 0x80070057 on any input including a known-good rewriter test); v1.5.2003 excluded per standing prerelease policy",
+  "labels": "bug,rewriter",
+  "labels_now": "bug,rewriter",
+  "notes_path": "data/issues/5268/notes.md",
+  "number": 5268,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Rewriter's -remove-unused-globals drops a static global whose value is still referenced from a kept global's own initializer (a compound expression VarReferenceVisitor does not walk into), producing rewritten HLSL that fails to recompile. Confirmed on main-debug (89e2f98e2) and all 19 probeable stable releases; v1.4.1907 cannot run the flag at all.",
+  "title": "Rewriter remove used static global variable which is used for other static global variable definition used by entryPoint",
+  "triaged_at": "2026-08-20T05:15:19+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5268"
+}

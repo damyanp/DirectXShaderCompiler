@@ -1,0 +1,22 @@
+# compiler: dxr-5255-release
+# exe: <repo>/build/Release/bin/dxr.exe
+# ran: 2026-08-19T19:44:38+00:00
+# cmd: -remove-unused-functions -remove-unused-globals -E no_such_entry repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: entry-not-found (repro.hlsl)
+# expect: no-match
+
+$ dxc -remove-unused-functions -remove-unused-globals -E no_such_entry repro.hlsl
+[exe] <repo>/build/Release/bin/dxr.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+//found 0 globals as candidates for removal
+//found 2 functions as candidates for removal
+//entry point not found
+
+

@@ -1,0 +1,20 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T19:49:08+00:00
+# cmd: -remove-unused-functions -remove-unused-globals -E vs_main -T vs_6_0 repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "Unknown argument", so this build did not reach the code under test
+# variant: dxc-rejects-rewrite-flags (repro.hlsl)
+# expect: invalid-probe
+
+$ dxc -remove-unused-functions -remove-unused-globals -E vs_main -T vs_6_0 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-remove-unused-functions'
+

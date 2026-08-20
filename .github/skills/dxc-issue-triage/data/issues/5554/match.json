@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "non-type template argument of type '\\w+' is not an integral constant expression",
+  "note": "Present when DXC's Sema rejects an enum enumerator as a non-type template argument because it does not treat the enumerator as an integral constant expression. Anchored on the diagnostic text (not just 'error:') because this issue's own reported symptom IS a diagnostic-quality question (SKILL.md's diagnostic-marker caveat): the fixed/working case is a *different*, unrelated diagnostic-free compile, and an unanchored 'any error' predicate would also fire on template-syntax-unsupported invalid-probes from old releases. \\w+ (not a fixed enum name) so the same predicate also scores variant-ask-a-no-cast.hlsl and variant-ask-b-enum-template-param.hlsl, which name KEK instead of ENUM."
+}

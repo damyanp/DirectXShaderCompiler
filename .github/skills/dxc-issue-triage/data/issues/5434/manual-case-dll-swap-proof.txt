@@ -1,0 +1,36 @@
+# Positive control confirming the DLL-swap harness exercises whichever dxcompiler.dll sits beside dxv.exe:
+# with dxcompiler.dll present in the scratch dir (main-debug's), dxv.exe validates normally:
+$ <cache>/scratch5434/dxv.exe control-bufferupdatecounter-zero.ll
+# cwd: <cache>/scratch5434
+# exit: 1
+--- stdout+stderr ---
+Function: main: error: Instructions should not read uninitialized value.
+note: at '%1 = call i32 @dx.op.bufferUpdateCounter(i32 70, %dx.types.Handle zeroinitializer, i8 1)' in block '#0' of function 'main'.
+Function: main: error: BufferUpdateCounter valid only on UAV.
+note: at '%1 = call i32 @dx.op.bufferUpdateCounter(i32 70, %dx.types.Handle zeroinitializer, i8 1)' in block '#0' of function 'main'.
+Function: main: error: BufferUpdateCounter valid only on structured buffers.
+note: at '%1 = call i32 @dx.op.bufferUpdateCounter(i32 70, %dx.types.Handle zeroinitializer, i8 1)' in block '#0' of function 'main'.
+Function: main: error: BufferUpdateCounter valid only when HasCounter is true.
+note: at '%1 = call i32 @dx.op.bufferUpdateCounter(i32 70, %dx.types.Handle zeroinitializer, i8 1)' in block '#0' of function 'main'.
+Function: main: error: Instructions should not read uninitialized value.
+note: at '%2 = call i32 @dx.op.bufferUpdateCounter(i32 70, %dx.types.Handle undef, i8 1)' in block '#0' of function 'main'.
+Function: main: error: BufferUpdateCounter valid only on UAV.
+note: at '%2 = call i32 @dx.op.bufferUpdateCounter(i32 70, %dx.types.Handle undef, i8 1)' in block '#0' of function 'main'.
+Function: main: error: BufferUpdateCounter valid only on structured buffers.
+note: at '%2 = call i32 @dx.op.bufferUpdateCounter(i32 70, %dx.types.Handle undef, i8 1)' in block '#0' of function 'main'.
+Function: main: error: BufferUpdateCounter valid only when HasCounter is true.
+note: at '%2 = call i32 @dx.op.bufferUpdateCounter(i32 70, %dx.types.Handle undef, i8 1)' in block '#0' of function 'main'.
+error: Flags must match usage.
+note: Flags declared=8589934592, actual=0
+Validation failed.
+
+
+
+# with dxcompiler.dll renamed away, dxv.exe cannot start the validator at all:
+$ <cache>/scratch5434/dxv.exe control-bufferupdatecounter-zero.ll
+# cwd: <cache>/scratch5434
+# exit: 1
+--- stdout+stderr ---
+Validation failed - error code 0x8007007e.
+
+

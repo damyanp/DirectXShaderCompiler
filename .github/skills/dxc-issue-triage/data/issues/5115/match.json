@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "call to 'f' is ambiguous"
+    },
+    {
+      "kind": "regex",
+      "value": "candidate function[\\s\\S]*void f\\(unsigned int\\)"
+    },
+    {
+      "kind": "regex",
+      "value": "candidate function[\\s\\S]*void f\\(int\\)"
+    }
+  ],
+  "note": "The reported symptom is the diagnostic itself (this is a diagnostic-quality/overload-resolution issue, not a crash), so the exit code cannot discriminate it from an ordinary diagnosed error -- both are E_FAIL. Clause 1 anchors the specific message quoted in the issue body verbatim. Clauses 2-3 require BOTH candidate notes -- `void f(unsigned int)` and `void f(int)` -- to appear after a `candidate function` note, so the predicate cannot be satisfied by an unrelated ambiguous-call error naming some other function `f` or a different overload set. This is a presence finding (the diagnostic fires when it should not, per the reporter and the maintainer), so no anti-vacuity clause is needed the way an absence predicate would require one -- a failed/rejected compile cannot manufacture this specific three-part match for free. Control: control-unsigned-literal.hlsl is the identical program with the call site changed to `f(1u)` (an explicitly-unsigned literal); the issue reports this compiles with no diagnostic at all, so it is run with --expect no-match to confirm the predicate does not fire on every use of `f`, only on the reported ambiguous case."
+}

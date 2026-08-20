@@ -1,0 +1,13 @@
+# Build output. `bin\handler4805.exe` is reproducible from `handler4805.cpp` by
+# running `build-handler4805.cmd`, and a committed binary would be both large
+# and unverifiable. `run-handler4805.cmd` rebuilds it on demand, so a fresh
+# clone needs no extra step.
+bin/
+bin-build.log
+
+# Downloaded release archives/extractions used only for the manual
+# release-history check (see manual-case-release-history.txt and
+# measure-history.py). These are large, publicly re-downloadable GitHub
+# release assets, not authored evidence -- what is committed is the
+# generator script and its .txt output.
+scratch/

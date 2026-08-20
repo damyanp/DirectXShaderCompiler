@@ -1,0 +1,20 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-18T19:25:21Z",
+  "godbolt_skip": "two-invocation compile-then-link-a-.lib pipeline; CE is single-file and cannot pass an intermediate .lib container between two dxc invocations, so it cannot show the link step's broken -Fd output at all",
+  "history": "always-repro'd across v1.6.2106..v1.9.2607 (every stable release supporting -link; v1.4.1907/v1.5.2010/v1.6.2104 predate the -link CLI flag entirely and are invalid-probes)",
+  "labels": "bug,shader-linking,debug info",
+  "notes_path": "data\\issues\\5739\\notes.md",
+  "number": 5739,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Linker -Fd output (test.pdb) has never been a valid PDB since -link shipped in v1.6.2106: it is the raw DXIL/ILDB bitcode with no MSF7 wrapper, unlike the compile step's own -Fd output. Reproduces unchanged on main-debug. Two open PRs (#6833, #6834) target this but neither is merged.",
+  "title": "DXC linker debug output isn't a valid PDB (and doesn't work with PIX)",
+  "triaged_at": "2026-08-20T05:15:28+00:00",
+  "triaged_by": "Claude Sonnet 4.5 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5739"
+}

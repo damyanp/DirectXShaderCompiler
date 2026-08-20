@@ -1,0 +1,23 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-03-27T14:46:47Z",
+  "expected_symptom": "-MD/-MF (or -M) silences error output during a normal compile, forcing the reporter to compile twice.",
+  "godbolt_url": "https://godbolt.org/z/s4Mcsxj66",
+  "history": "always-repro'd",
+  "labels": "high-impact",
+  "labels_add": "bug, diagnostic",
+  "labels_now": "high-impact",
+  "notes_path": "issues/5117/notes.md",
+  "number": 5117,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces, and the mechanism is worse than reported: dxc doesn't just fail to print diagnostics under -M/-MD/-MF, it reports a successful compile (exit 0) for source that would otherwise be rejected. All three flags set the single opts.DumpDependencies bit (lib/DxcSupport/HLSLOptions.cpp), which routes DxcContext::Compile through clang::PreprocessOnlyAction (tools/clang/tools/dxcompiler/dxcompilerobj.cpp, DumpDependencies branch) instead of the normal compile action -- no Parser or Sema ever runs, so no parse/semantic diagnostic can be produced, and the unified hasErrorOccurred() check finds nothing. Preprocessor-level errors (missing #include) still surface, since the preprocessor is what actually runs; only parser/Sema diagnostics (undeclared identifiers, missing semicolons) are lost. Confirmed with three controls: same source without -MD/-MF is correctly rejected; a bad #include still fails under -MD/-MF; a pure syntax error (missing semicolon) also silently 'succeeds' under -MD/-MF. Always-repro's from v1.7.2207 through v1.9.2607 (the full probeable range); earlier releases correctly rejected -MD as an invalid-probe (option did not exist, introduced by #4017, merged 2021-12-21). CE corroborates: https://godbolt.org/z/s4Mcsxj66 shows the same source erroring on one pane and reporting <No output file> at exit 0 on the other.",
+  "title": "Dumping header dependencies to file prevents error output",
+  "triaged_at": "2026-08-20T05:15:17+00:00",
+  "triaged_by": "claude-sonnet-5",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5117"
+}

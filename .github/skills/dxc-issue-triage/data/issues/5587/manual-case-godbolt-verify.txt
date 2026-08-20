@@ -1,0 +1,184 @@
+# Compiler Explorer panes for #5587, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_6 -HV 2021 -E main
+# exit:     5
+
+<source>:33:24: error: cannot convert from 'literal int' to 'SomeBitfield'
+    SomeBitfield val = (SomeBitfield)0;
+                       ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_6 -HV 2021 -E main
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 88bbd0ddb958186a3b3e6f382f7d3a78.pdb
+; shader hash: 88bbd0ddb958186a3b3e6f382f7d3a78
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+; Resource bind info for g_Buffer
+; {
+;
+;   uint $Element;                                    ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; g_Buffer                              UAV  struct         r/w      U0             u1     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResBind = type { i32, i32, i32, i8 }
+%dx.types.ResourceProperties = type { i32, i32 }
+%"class.RWStructuredBuffer<unsigned int>" = type { i32 }
+
+define void @main() {
+  %g_Buffer_UAV_structbuf = call %dx.types.Handle @dx.op.createHandleFromBinding(i32 217, %dx.types.ResBind { i32 1, i32 1, i32 0, i8 1 }, i32 1, i1 false), !dbg !56 ; line:34 col:5  ; CreateHandleFromBinding(bind,index,nonUniformIndex)
+  call void @llvm.dbg.value(metadata i32 0, i64 0, metadata !57, metadata !63), !dbg !64 ; var:"val" !DIExpression() func:"main"
+  %1 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %g_Buffer_UAV_structbuf, %dx.types.ResourceProperties { i32 4108, i32 4 }), !dbg !56 ; line:34 col:5  ; AnnotateHandle(res,props)  resource: RWStructuredBuffer<stride=4>
+  call void @dx.op.rawBufferStore.i32(i32 140, %dx.types.Handle %1, i32 0, i32 0, i32 0, i32 undef, i32 undef, i32 undef, i8 1, i32 4), !dbg !65 ; line:34 col:17  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  ret void, !dbg !66 ; line:35 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.rawBufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @dx.op.annotateHandle(i32, %dx.types.Handle, %dx.types.ResourceProperties) #0
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @dx.op.createHandleFromBinding(i32, %dx.types.ResBind, i32, i1) #0
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!31, !32}
+!llvm.ident = !{!33}
+!dx.source.contents = !{!34}
+!dx.source.defines = !{!29}
+!dx.source.mainFileName = !{!35}
+!dx.source.args = !{!36}
+!dx.version = !{!37}
+!dx.valver = !{!38}
+!dx.shaderModel = !{!39}
+!dx.resources = !{!40}
+!dx.typeAnnotations = !{!44, !50}
+!dx.entryPoints = !{!53}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !9, subprograms: !12, globals: !26)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{!3}
+!3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "SomeEnum", file: !1, line: 15, size: 32, align: 32, elements: !4)
+!4 = !{!5, !6, !7, !8}
+!5 = !DIEnumerator(name: "SomeEnum_val0", value: 0)
+!6 = !DIEnumerator(name: "SomeEnum_val1", value: 1)
+!7 = !DIEnumerator(name: "SomeEnum_val2", value: 2)
+!8 = !DIEnumerator(name: "SomeEnum_val3", value: 3)
+!9 = !{!10}
+!10 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 34, baseType: !11)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !{!13}
+!13 = !DISubprogram(name: "main", scope: !1, file: !1, line: 31, type: !14, isLocal: false, isDefinition: true, scopeLine: 32, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!14 = !DISubroutineType(types: !15)
+!15 = !{null, !16}
+!16 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, baseType: !17)
+!17 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, size: 96, align: 32, elements: !18, templateParams: !22)
+!18 = !{!19, !20, !21}
+!19 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !17, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !17, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !17, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!22 = !{!23, !24}
+!23 = !DITemplateTypeParameter(name: "element", type: !11)
+!24 = !DITemplateValueParameter(name: "element_count", type: !25, value: i32 3)
+!25 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!26 = !{!27}
+!27 = !DIGlobalVariable(name: "g_Buffer", linkageName: "\01?g_Buffer@@3V?$RWStructuredBuffer@I@@A", scope: !0, file: !1, line: 13, type: !28, isLocal: false, isDefinition: true)
+!28 = !DICompositeType(tag: DW_TAG_class_type, name: "RWStructuredBuffer<unsigned int>", file: !1, line: 13, size: 32, align: 32, elements: !29, templateParams: !30)
+!29 = !{}
+!30 = !{!23}
+!31 = !{i32 2, !"Dwarf Version", i32 4}
+!32 = !{i32 2, !"Debug Info Version", i32 3}
+!33 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!34 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: this shader casts a bitfield struct (SomeEnum field1 : 2; uint32_t\0A// rest : 30;) from the integer literal 0. The dxc_1_6_2112 pane (CE's oldest DXC,\0A// predating the fix) rejects the cast with a type-conversion error at the\0A// `(SomeBitfield)0` line. dxc_trunk compiles the identical source cleanly, and its\0A// `rawBufferStore` call's first stored value operand is a concrete zero rather than\0A// `undef`, matching the requested zero-initialization. Compare the two panes' exit\0A// status and whether the conversion diagnostic appears at all; do not judge by whether\0A// the DXIL \22looks right\22 alone, since CE cannot show the v1.4.1907..v1.8.2502 window\0A// where dxc also rejected this cast.\0A//==========================================================================//\0A\0ARWStructuredBuffer<uint> g_Buffer : register(u1);\0A\0Aenum SomeEnum\0A{\0A    SomeEnum_val0,\0A    SomeEnum_val1,\0A    SomeEnum_val2,\0A    SomeEnum_val3\0A};\0A\0Astruct SomeBitfield\0A{\0A    SomeEnum field1 : 2;\0A    uint32_t rest : 30;\0A};\0A\0A[RootSignature(\22UAV(u1)\22)]\0A[numthreads(1, 1, 1)]\0Avoid main(uint3 DTid : SV_DispatchThreadID)\0A{\0A    SomeBitfield val = (SomeBitfield)0;\0A    g_Buffer[0] = (uint)val;\0A}\0A"}
+!35 = !{!"/app/example.hlsl"}
+!36 = !{!"-E", !"main", !"-T", !"cs_6_6", !"-Zi", !"-Qembed_debug", !"-HV", !"2021"}
+!37 = !{i32 1, i32 6}
+!38 = !{i32 1, i32 10}
+!39 = !{!"cs", i32 6, i32 6}
+!40 = !{null, !41, null, null}
+!41 = !{!42}
+!42 = !{i32 0, %"class.RWStructuredBuffer<unsigned int>"* undef, !"g_Buffer", i32 0, i32 1, i32 1, i32 12, i1 false, i1 false, i1 false, !43}
+!43 = !{i32 1, i32 4}
+!44 = !{i32 0, %"class.RWStructuredBuffer<unsigned int>" undef, !45}
+!45 = !{i32 4, !46, !47}
+!46 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 5}
+!47 = !{i32 0, !48}
+!48 = !{!49}
+!49 = !{i32 0, i32 undef}
+!50 = !{i32 1, void ()* @main, !51}
+!51 = !{!52}
+!52 = !{i32 0, !29, !29}
+!53 = !{void ()* @main, !"main", null, !40, !54}
+!54 = !{i32 0, i64 16, i32 4, !55}
+!55 = !{i32 1, i32 1, i32 1}
+!56 = !DILocation(line: 34, column: 5, scope: !13)
+!57 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "val", scope: !13, file: !1, line: 33, type: !58)
+!58 = !DICompositeType(tag: DW_TAG_structure_type, name: "SomeBitfield", file: !1, line: 23, size: 32, align: 32, elements: !59)
+!59 = !{!60, !61}
+!60 = !DIDerivedType(tag: DW_TAG_member, name: "field1", scope: !58, file: !1, line: 25, baseType: !3, size: 2, align: 32)
+!61 = !DIDerivedType(tag: DW_TAG_member, name: "rest", scope: !58, file: !1, line: 26, baseType: !62, size: 30, align: 32, offset: 2)
+!62 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint32_t", file: !1, line: 33, baseType: !11)
+!63 = !DIExpression()
+!64 = !DILocation(line: 33, column: 18, scope: !13)
+!65 = !DILocation(line: 34, column: 17, scope: !13)
+!66 = !DILocation(line: 35, column: 1, scope: !13)

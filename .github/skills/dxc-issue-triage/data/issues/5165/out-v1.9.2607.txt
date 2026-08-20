@@ -1,0 +1,23 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-19T19:54:31+00:00
+# cmd: -T cs_6_0 -E ShaderDomain_Cs repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E ShaderDomain_Cs repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+repro.hlsl:8:5: error: I8 can only be used as immediate value for intrinsic or as i8* via bitcast by lifetime intrinsics.
+note: at '%10 = trunc i32 %3 to i8' in block '#2' of function 'ShaderDomain_Cs'.
+Validation failed.
+
+
+

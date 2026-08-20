@@ -1,0 +1,16 @@
+{
+  "kind": "all_of",
+  "note": "Symptom = dxc accepts the shader cleanly (exit 0) despite an immediate texture-sample offset outside the DXIL-legal [-8,7] range, i.e. the 'Offsets to texture access operations must be between -8 and 7' diagnostic never appears in the combined output. The exit-0 clause is required: a compile that fails for an unrelated reason would also lack this exact string and must not count as reproducing a *missing*-diagnostic bug.",
+  "value": [
+    {
+      "kind": "nonzero_exit",
+      "invert": true,
+      "note": "compile must succeed -- an unrelated failure is not evidence the range check is silently skipped"
+    },
+    {
+      "kind": "not_contains",
+      "value": "Offsets to texture access operations must be between -8 and 7",
+      "note": "the HLSL-level / legalizer diagnostic emitted by DxilLegalizeSampleOffsetPass::FinalCheck for an out-of-range constant offset"
+    }
+  ]
+}

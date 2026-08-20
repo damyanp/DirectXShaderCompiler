@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "payload size \\d+ is greater than declared size of 0 bytes",
+  "note": "The reported symptom is a DXIL validation failure specifically about the empty-struct payload passed to DispatchMesh: the front end declares/records a 0-byte payload size for `struct S{}` while codegen's dispatchMesh call carries a non-zero actual struct size, and the validator rejects the mismatch (E_FAIL / 0x80004005, not an internal failure -- this is an ordinary diagnosed validation error, matching the 'DXIL validation failure -> no' row of the exit-code table). Anchored on 'declared size of 0 bytes' rather than the numeric mismatch amount (4 in the reporter's build and in main-debug) so a different struct-of-nothing lowering size on another release still matches the same defect. Negative control: control-nonempty-struct.hlsl declares a 4-byte struct S{ uint x; } and passes it to DispatchMesh with a *matching* declared size; it compiles clean (exit 0, full disassembly, no 'payload size' text anywhere in the output), proving the regex fires on the size mismatch and not merely on any DispatchMesh-with-struct-S call."
+}

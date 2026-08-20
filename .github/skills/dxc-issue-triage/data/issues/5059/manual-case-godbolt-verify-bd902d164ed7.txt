@@ -1,0 +1,178 @@
+# Compiler Explorer panes for #5059, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_3 -ECSMain
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: cdb7231439c76d2744dc6c517449d58d.pdb
+; shader hash: cdb7231439c76d2744dc6c517449d58d
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; IOBuffer                              UAV    byte         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%struct.RWByteAddressBuffer = type { i32 }
+
+define void @CSMain() {
+  %IOBuffer_UAV_rawbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !39 ; line:21 col:5  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %RawBufferLoad = call %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32 139, %dx.types.Handle %IOBuffer_UAV_rawbuf, i32 0, i32 undef, i8 1, i32 4), !dbg !40 ; line:11 col:22  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  call void @llvm.dbg.value(metadata %dx.types.ResRet.i32 %RawBufferLoad, i64 0, metadata !41, metadata !43), !dbg !44 ; var:"input" !DIExpression() func:"CSMain"
+  %1 = extractvalue %dx.types.ResRet.i32 %RawBufferLoad, 0, !dbg !40 ; line:11 col:22
+  call void @llvm.dbg.value(metadata i32 0, i64 0, metadata !45, metadata !43), !dbg !46 ; var:"processed" !DIExpression() func:"CSMain"
+  call void @llvm.dbg.value(metadata i32 1, i64 0, metadata !47, metadata !43), !dbg !48 ; var:"result" !DIExpression() func:"CSMain"
+  %2 = icmp eq i32 %1, 0, !dbg !49 ; line:15 col:22
+  br i1 %2, label %._crit_edge, label %.lr.ph.preheader, !dbg !50 ; line:15 col:5
+
+.lr.ph.preheader:                                 ; preds = %0
+  %3 = add i32 %1, -1, !dbg !48 ; line:13 col:10
+  %4 = zext i32 %3 to i33, !dbg !48 ; line:13 col:10
+  %5 = add i32 %1, -2, !dbg !48 ; line:13 col:10
+  %6 = zext i32 %5 to i33, !dbg !48 ; line:13 col:10
+  %7 = mul i33 %4, %6, !dbg !48 ; line:13 col:10
+  %8 = lshr i33 %7, 1, !dbg !48 ; line:13 col:10
+  %9 = trunc i33 %8 to i32, !dbg !48 ; line:13 col:10
+  %10 = add i32 %1, %9, !dbg !48 ; line:13 col:10
+  br label %._crit_edge, !dbg !48 ; line:13 col:10
+
+._crit_edge:                                      ; preds = %.lr.ph.preheader, %0
+  %result.1 = phi i32 [ 1, %0 ], [ %10, %.lr.ph.preheader ]
+  call void @llvm.dbg.value(metadata i32 %result.1, i64 0, metadata !47, metadata !43), !dbg !48 ; var:"result" !DIExpression() func:"CSMain"
+  call void @dx.op.rawBufferStore.i32(i32 140, %dx.types.Handle %IOBuffer_UAV_rawbuf, i32 1, i32 undef, i32 %result.1, i32 undef, i32 undef, i32 undef, i8 1, i32 4), !dbg !39 ; line:21 col:5  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  ret void, !dbg !51 ; line:22 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32, %dx.types.Handle, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.rawBufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8, i32) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!21, !22}
+!llvm.ident = !{!23}
+!dx.source.contents = !{!24}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!25}
+!dx.source.args = !{!26}
+!dx.version = !{!27}
+!dx.valver = !{!28}
+!dx.shaderModel = !{!29}
+!dx.resources = !{!30}
+!dx.typeAnnotations = !{!33}
+!dx.entryPoints = !{!36}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !18)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "CSMain", scope: !1, file: !1, line: 9, type: !5, isLocal: false, isDefinition: true, scopeLine: 10, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @CSMain)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, size: 96, align: 32, elements: !9, templateParams: !14)
+!9 = !{!10, !12, !13}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !{!15, !16}
+!15 = !DITemplateTypeParameter(name: "element", type: !11)
+!16 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !{!19}
+!19 = !DIGlobalVariable(name: "IOBuffer", linkageName: "\01?IOBuffer@@3URWByteAddressBuffer@@A", scope: !0, file: !1, line: 5, type: !20, isLocal: false, isDefinition: true)
+!20 = !DICompositeType(tag: DW_TAG_structure_type, name: "RWByteAddressBuffer", file: !1, line: 5, size: 32, align: 32, elements: !2)
+!21 = !{i32 2, !"Dwarf Version", i32 4}
+!22 = !{i32 2, !"Debug Info Version", i32 3}
+!23 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!24 = !{!"/app/example.hlsl", !"#define _RootSig \5C\0A\22RootFlags(0),\22\5C\0A\22DescriptorTable(UAV(u0, numDescriptors = 1))\22\0A\0ARWByteAddressBuffer IOBuffer  : register(u0);\0A\0A[RootSignature(_RootSig)]\0A[numthreads(8, 8, 1)]\0Avoid CSMain(uint3 globalID : SV_DispatchThreadID)\0A{\0A    uint input     = IOBuffer.Load(0);\0A    uint processed = 0;\0A    uint result    = 1;\0A \0A    while (processed != input)\0A    {\0A        result   += processed;\0A        processed++;\0A    }\0A    \0A    IOBuffer.Store(1, result);\0A}"}
+!25 = !{!"/app/example.hlsl"}
+!26 = !{!"-E", !"CSMain", !"-T", !"cs_6_3", !"-Zi", !"-Qembed_debug"}
+!27 = !{i32 1, i32 3}
+!28 = !{i32 1, i32 6}
+!29 = !{!"cs", i32 6, i32 3}
+!30 = !{null, !31, null, null}
+!31 = !{!32}
+!32 = !{i32 0, %struct.RWByteAddressBuffer* undef, !"IOBuffer", i32 0, i32 0, i32 1, i32 11, i1 false, i1 false, i1 false, null}
+!33 = !{i32 1, void ()* @CSMain, !34}
+!34 = !{!35}
+!35 = !{i32 0, !2, !2}
+!36 = !{void ()* @CSMain, !"CSMain", null, !30, !37}
+!37 = !{i32 0, i64 16, i32 4, !38}
+!38 = !{i32 8, i32 8, i32 1}
+!39 = !DILocation(line: 21, column: 5, scope: !4)
+!40 = !DILocation(line: 11, column: 22, scope: !4)
+!41 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "input", scope: !4, file: !1, line: 11, type: !42)
+!42 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 11, baseType: !11)
+!43 = !DIExpression()
+!44 = !DILocation(line: 11, column: 10, scope: !4)
+!45 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "processed", scope: !4, file: !1, line: 12, type: !42)
+!46 = !DILocation(line: 12, column: 10, scope: !4)
+!47 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "result", scope: !4, file: !1, line: 13, type: !42)
+!48 = !DILocation(line: 13, column: 10, scope: !4)
+!49 = !DILocation(line: 15, column: 22, scope: !4)
+!50 = !DILocation(line: 15, column: 5, scope: !4)
+!51 = !DILocation(line: 22, column: 1, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_3 -ECSMain
+# exit:     5
+
+error: validation errors
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+Validation failed.
+
+
+<Compilation failed>

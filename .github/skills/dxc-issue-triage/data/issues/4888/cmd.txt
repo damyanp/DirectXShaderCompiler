@@ -1,0 +1,4 @@
+# exactly as filed: -T ps_6_6 -E PSMain, no other flags. This is the pixel shader from the
+# issue body (dynamic resources / SM6.6: a static const array of ResourceDescriptorHeap-backed
+# Texture2D objects, indexed with NonUniformResourceIndex).
+-T ps_6_6 -E PSMain repro.hlsl

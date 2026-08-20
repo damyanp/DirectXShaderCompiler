@@ -1,0 +1,7 @@
+What to look for: in the "Resource Bindings" comment table near the top of the
+DXC disassembly, only `samp` (s0) and `usedTex` (t0) are listed. `unusedTex`,
+declared at `register(t1)` but never read by `main`, has no row at all --
+which is the DCE-driven reflection instability #5105 reports. Compare the
+Compiler Explorer options field for the DXC pane: no such option as
+`-keep-all-resources` or `-fhlsl-unused-resource-bindings=reserve-all`
+(both proposed in still-open, unmerged PRs #7643/#7734) is available here.

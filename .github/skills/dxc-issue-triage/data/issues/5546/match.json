@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "note": "Symptom-under-test (not a crash/regression -- a structural fact about how 'discard' compiles): in repro.hlsl, 'discard' sits inside an 'if' and is followed by an unconditional RWStructuredBuffer write (buf[0]=42) and the SV_Target export. Present means: the DXIL 'discard' op is followed, with no intervening conditional branch ('br i1'), by the buffer store -- i.e. the store is reached unconditionally regardless of the discard condition, so 'discard' does not skip/early-exit out of subsequent statements the way a genuine flow-control exit (return) does. Clause 1 requires the discard op to be textually followed by the bufferStore op (ordering exists at all). Clause 2 (not_regex) requires no further conditional branch appears between them, which is what distinguishes 'falls through unconditionally' from 'guarded by another branch'. control-return.hlsl (variant-return-control-*.txt) has no dx.op.discard at all -- there clause 1 cannot match, giving the required no-match control -- and its own single 'br i1' instead skips the equivalent store outright on the early-return arm (see notes.md).",
+  "value": [
+    { "kind": "regex", "value": "dx\\.op\\.discard\\(i32 82[\\s\\S]*?dx\\.op\\.bufferStore" },
+    { "kind": "not_regex", "value": "dx\\.op\\.discard\\(i32 82[\\s\\S]*?br i1[\\s\\S]*?dx\\.op\\.bufferStore" }
+  ]
+}

@@ -1,0 +1,95 @@
+#5072 release history -- '-Fh' default identifier on library profiles
+
+Produced by `python release-matrix.py`. Each row runs THAT
+RELEASE's own dxc.exe end-to-end (the -Fh header-writing code is
+in the dxc.exe driver, tools/clang/tools/dxclib/dxc.cpp, not in
+dxcompiler.dll -- unlike #3237's reflection bug there is no DLL to
+swap under a fixed harness; the whole release binary has to run).
+
+`triage.py bisect` refuses this issue because its ground truth is
+the `main-debug-fh` harness, not dxc (see refuse_harness_bisect in
+scripts/triage.py).
+
+CASES
+  library (repro)         -T lib_6_3 -Fh <out> repro.hlsl
+  non-library (control)   -T cs_6_0 -E CSMain -Fh <out> repro.hlsl
+
+--- case: library (repro) ---
+
+         release  identifier            verdict
+----------------  --------------------  -------
+       v1.4.1907  g_lib.no::entry       repro
+       v1.5.2003  g_lib.no::entry       repro
+       v1.5.2010  g_lib.no::entry       repro
+       v1.6.2104  g_lib.no::entry       repro
+       v1.6.2106  g_lib.no::entry       repro
+       v1.6.2112  g_lib.no::entry       repro
+       v1.7.2207  g_lib.no::entry       repro
+       v1.7.2212  g_lib.no::entry       repro
+     v1.7.2212.1  g_lib.no::entry       repro
+       v1.7.2308  g_lib.no::entry       repro
+       v1.8.2403  g_lib.no::entry       repro
+     v1.8.2403.1  g_lib.no::entry       repro
+     v1.8.2403.2  g_lib.no::entry       repro
+       v1.8.2405  g_lib.no::entry       repro
+       v1.8.2407  g_lib.no::entry       repro
+       v1.8.2502  g_lib.no::entry       repro
+       v1.8.2505  g_lib.no::entry       repro
+     v1.8.2505.1  g_lib.no::entry       repro
+       v1.9.2602  g_lib.no::entry       repro
+    v1.9.2602.24  g_lib.no::entry       repro
+       v1.9.2607  g_lib.no::entry       repro
+      main-debug  g_lib.no::entry       repro
+
+--- case: non-library (control) ---
+
+         release  identifier            verdict
+----------------  --------------------  -------
+       v1.4.1907  g_CSMain              no-repro
+       v1.5.2003  g_CSMain              no-repro
+       v1.5.2010  g_CSMain              no-repro
+       v1.6.2104  g_CSMain              no-repro
+       v1.6.2106  g_CSMain              no-repro
+       v1.6.2112  g_CSMain              no-repro
+       v1.7.2207  g_CSMain              no-repro
+       v1.7.2212  g_CSMain              no-repro
+     v1.7.2212.1  g_CSMain              no-repro
+       v1.7.2308  g_CSMain              no-repro
+       v1.8.2403  g_CSMain              no-repro
+     v1.8.2403.1  g_CSMain              no-repro
+     v1.8.2403.2  g_CSMain              no-repro
+       v1.8.2405  g_CSMain              no-repro
+       v1.8.2407  g_CSMain              no-repro
+       v1.8.2502  g_CSMain              no-repro
+       v1.8.2505  g_CSMain              no-repro
+     v1.8.2505.1  g_CSMain              no-repro
+       v1.9.2602  g_CSMain              no-repro
+    v1.9.2602.24  g_CSMain              no-repro
+       v1.9.2607  g_CSMain              no-repro
+      main-debug  g_CSMain              no-repro
+
+
+VERBATIM. The oldest probeable release, the newest
+release, and ground truth, in full, for the library case.
+Command lines are reconstructed with subprocess.list2cmdline
+from the argv that actually ran; paths are collapsed to
+<cache>/<triage>/<repo> placeholders.
+
+--- v1.4.1907 ---
+$ <cache>/compilers/releases/v1.4.1907/dxc.exe -T lib_6_3 -Fh scratch-v1.4.1907-library_repro.h repro.hlsl
+[exit] 0
+--- stdout ---
+--- stderr ---
+
+--- v1.9.2607 ---
+$ <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.9.2607-library_repro.h repro.hlsl
+[exit] 0
+--- stdout ---
+--- stderr ---
+
+--- main-debug ---
+$ <repo>/build/Debug/bin/dxc.exe -T lib_6_3 -Fh scratch-main-debug-library_repro.h repro.hlsl
+[exit] 0
+--- stdout ---
+--- stderr ---
+

@@ -1,0 +1,7 @@
+$ git show 89e2f98e29c289ae8ad9e00dd310104fea9fd7df:cmake/modules/HandleLLVMOptions.cmake
+# ground-truth commit: 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+  553:       append("-fsanitize=undefined -fno-sanitize=vptr,function,alignment -fno-sanitize-recover=all"
+  561:       append("-fsanitize=address,undefined -fno-sanitize=vptr,function,alignment -fno-sanitize-recover=all"
+
+$ git merge-base --is-ancestor 89e2f98e29c289ae8ad9e00dd310104fea9fd7df HEAD; echo exit=$LASTEXITCODE
+exit=0

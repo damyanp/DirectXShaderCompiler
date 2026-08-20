@@ -1,0 +1,7 @@
+Both DXC panes reject this valid-looking shader with `error: cannot convert from 'unsigned
+int' to 'E'` on the `E::A << 1u` line. `E` is declared `enum E : uint { ... }` -- an
+explicitly-typed, non-`class` (unscoped) enum -- which in C++ implicitly converts to its
+underlying integer type for expressions like this. Compare with the same enum used with `|`
+instead of `<<`, which compiles cleanly (see this issue's control-bitor.hlsl): the defect is
+specific to how HLSL's overload resolution picks a candidate for the shift operator, not a
+missing enum-to-int conversion in general.

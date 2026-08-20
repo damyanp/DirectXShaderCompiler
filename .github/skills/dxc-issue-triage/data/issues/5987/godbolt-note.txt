@@ -1,0 +1,7 @@
+What to look for: the dxc_trunk pane. Compiling this amplification shader crashes with
+"cast<X>() argument of incompatible type!" (Linux CE builds omit the "llvm::" prefix that
+Windows prints; both name the same DXC_E_LLVM_CAST_ERROR internal failure) as soon as the
+whole-struct value `blah` is assigned into `payload.data`, a member of the groupshared
+DispatchMesh payload. The dxc_1_6_2112 pane instead rejects the `as_6_7` profile outright
+(amplification-shader profile support postdates that release), which is expected and not
+part of the bug -- it is not evidence of a fix.

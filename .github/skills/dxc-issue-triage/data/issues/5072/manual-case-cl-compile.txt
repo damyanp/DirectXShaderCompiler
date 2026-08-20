@@ -1,0 +1,54 @@
+# cl.exe: C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.16.27023\bin\HostX64\x64\cl.exe
+
+## repro (no -Vn, from out-header.h): out-header.h
+
+### as C (/TC)
+$ "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.16.27023\bin\HostX64\x64\cl.exe" /nologo /c /TC /Fo<repo>\.github\skills\dxc-issue-triage\data\issues\5072\bin\ <repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header.h
+[exit] 2
+--- stdout ---
+out-header.h
+<repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header.h(78): error C2143: syntax error: missing '{' before '.'
+<repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header.h(78): error C2059: syntax error: '.'
+
+--- stderr ---
+
+[C result] FAILS: exit 2
+
+### as C++ (/TP)
+$ "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.16.27023\bin\HostX64\x64\cl.exe" /nologo /c /TP /Fo<repo>\.github\skills\dxc-issue-triage\data\issues\5072\bin\ <repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header.h
+[exit] 2
+--- stdout ---
+out-header.h
+<repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header.h(78): error C3927: '->': trailing return type is not allowed after a non-function declarator
+<repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header.h(78): error C3484: syntax error: expected '->' before the return type
+<repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header.h(78): error C2653: 'no': is not a class or namespace name
+<repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header.h(78): error C3613: missing return type after '->' ('int' assumed)
+<repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header.h(78): error C2734: 'g_lib': 'const' object must be initialized if not 'extern'
+<repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header.h(78): error C2146: syntax error: missing ';' before identifier 'entry'
+<repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header.h(78): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+
+--- stderr ---
+
+[C++ result] FAILS: exit 2
+
+## -Vn workaround control (from out-header-vn.h): out-header-vn.h
+
+### as C (/TC)
+$ "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.16.27023\bin\HostX64\x64\cl.exe" /nologo /c /TC /Fo<repo>\.github\skills\dxc-issue-triage\data\issues\5072\bin\ <repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header-vn.h
+[exit] 0
+--- stdout ---
+out-header-vn.h
+
+--- stderr ---
+
+[C result] COMPILES
+
+### as C++ (/TP)
+$ "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.16.27023\bin\HostX64\x64\cl.exe" /nologo /c /TP /Fo<repo>\.github\skills\dxc-issue-triage\data\issues\5072\bin\ <repo>\.github\skills\dxc-issue-triage\data\issues\5072\out-header-vn.h
+[exit] 0
+--- stdout ---
+out-header-vn.h
+
+--- stderr ---
+
+[C++ result] COMPILES

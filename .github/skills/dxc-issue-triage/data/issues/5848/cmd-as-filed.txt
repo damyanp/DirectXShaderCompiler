@@ -1,0 +1,1 @@
+RaytracingShaderAO.hlsl -T lib_6_7 -Zi -Vn g_RaytracingShaderAO -Fd Shaders\PDB\RaytracingShaderAO.pdb -Fh Shaders\RaytracingShaderAO.hlsl.h

@@ -1,0 +1,15 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "define void @MyHSMainPassthrough\\(\\)\\s*\\{",
+      "note": "anti-vacuity anchor: confirms the control-point entry actually reached codegen and its body is emitted, so a failed/invalid probe cannot vacuously satisfy the primary clause below."
+    },
+    {
+      "kind": "regex",
+      "value": "call float @dx\\.op\\.loadInput\\.f32",
+      "note": "primary symptom from the issue: DXC still emits per-component dx.op.loadInput calls in the control-point function body instead of recognizing the SM5 pass-through case (input[id] copied straight through) and eliding the copy with a null entry. Presence means the reported behavior (no pass-through optimization) still holds."
+    }
+  ]
+}

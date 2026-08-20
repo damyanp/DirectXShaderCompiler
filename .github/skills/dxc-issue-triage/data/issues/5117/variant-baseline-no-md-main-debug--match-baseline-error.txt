@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T19:46:59+00:00
+# cmd: -T ps_6_0 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-baseline-error.json
+# verdict: repro
+# variant: baseline-no-md (repro.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:3:10: error: use of undeclared identifier 'badIdentifierNotDeclared'
+  return badIdentifierNotDeclared;
+         ^
+
+

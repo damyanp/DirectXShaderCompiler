@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "call\\s+\\S+\\s+@dx\\.op\\.waveReadLaneFirst\\.\\S+\\([^\\n]*\\)[^\\n]*\\n\\s*ret void",
+  "note": "Presence predicate: the symptom is that the wave-intrinsic call ('waveReadLaneFirst', the only wave op this repro calls) survives in the final DXIL even though its result is discarded. In this minimal repro the function body is exactly {loadInput, waveReadLaneFirst, ret void}, so 'the wave-op call line is immediately followed by ret void with nothing in between' is a structural (register-name-independent) proof that nothing consumes the call's result -- not merely that the call text appears somewhere. `re.MULTILINE` does not let `.` cross lines, so the gap between the call and `ret void` is spanned with `[^\\n]*` (rest of the call's own line, e.g. a trailing '; WaveReadLaneFirst(value)' comment) plus a literal newline, not with `[\\s\\S]*`, so the pattern cannot skip over an intervening instruction that does consume the result -- that is exactly what `control-used.hlsl` (--expect no-match) exercises."
+}

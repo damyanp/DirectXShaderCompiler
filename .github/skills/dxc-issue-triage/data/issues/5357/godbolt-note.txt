@@ -1,0 +1,6 @@
+What to look for: dxc_1_6_2112 (CE's oldest DXC) rejects the profile outright with
+"error: invalid profile lib_6_8" -- lib_6_8 / Work Graphs did not exist yet, so this pane is
+not evidence the bug is absent, only that the feature is unavailable there. dxc_trunk is the
+one that answers the question: it should compile this node shader, but instead exits 139
+(SIGSEGV) with no diagnostic at all. That crash, not any printed message, is the reported
+missing-type-annotation defect (#5357) still reproducing on the current compiler.

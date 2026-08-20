@@ -1,0 +1,580 @@
+# Compiler Explorer panes for #5389, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_6 -E main
+# exit:     5
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+error: validation errors
+error: Module bitcode is invalid.
+error: Call parameter type does not match function signature!
+i64 123
+ i32  call void @dx.op.rawBufferStore.i32(i32 140, %dx.types.Handle %3, i32 0, i32 undef, i64 123, i64 123, i32 undef, i32 undef, i8 3, i32 4)
+
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_6 -E main
+# exit:     5
+
+error: validation errors
+Invalid record
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_6 -E main -HV 2021
+# exit:     5
+
+error: validation errors
+Invalid record
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_6 -E main -HV 202x
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 282515e79d9cc2709765020ae37e61c4.pdb
+; shader hash: 282515e79d9cc2709765020ae37e61c4
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; sb                                    UAV    byte         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResBind = type { i32, i32, i32, i8 }
+%dx.types.ResourceProperties = type { i32, i32 }
+%struct.RWByteAddressBuffer = type { i32 }
+
+define void @main() {
+  %sb_UAV_rawbuf = call %dx.types.Handle @dx.op.createHandleFromBinding(i32 217, %dx.types.ResBind { i32 0, i32 0, i32 0, i8 1 }, i32 0, i1 false), !dbg !38 ; line:19 col:3  ; CreateHandleFromBinding(bind,index,nonUniformIndex)
+  %1 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %sb_UAV_rawbuf, %dx.types.ResourceProperties { i32 4107, i32 0 }), !dbg !38 ; line:19 col:3  ; AnnotateHandle(res,props)  resource: RWByteAddressBuffer
+  call void @dx.op.rawBufferStore.i32(i32 140, %dx.types.Handle %1, i32 0, i32 undef, i32 123, i32 123, i32 undef, i32 undef, i8 3, i32 4), !dbg !38 ; line:19 col:3  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  %2 = call %dx.types.Handle @dx.op.annotateHandle(i32 216, %dx.types.Handle %sb_UAV_rawbuf, %dx.types.ResourceProperties { i32 4107, i32 0 }), !dbg !39 ; line:20 col:3  ; AnnotateHandle(res,props)  resource: RWByteAddressBuffer
+  call void @dx.op.rawBufferStore.i32(i32 140, %dx.types.Handle %2, i32 0, i32 undef, i32 123, i32 123, i32 undef, i32 undef, i8 3, i32 4), !dbg !39 ; line:20 col:3  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  ret void, !dbg !40 ; line:21 col:1
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.rawBufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @dx.op.annotateHandle(i32, %dx.types.Handle, %dx.types.ResourceProperties) #1
+
+; Function Attrs: nounwind readnone
+declare %dx.types.Handle @dx.op.createHandleFromBinding(i32, %dx.types.ResBind, i32, i1) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!20, !21}
+!llvm.ident = !{!22}
+!dx.source.contents = !{!23}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!24}
+!dx.source.args = !{!25}
+!dx.version = !{!26}
+!dx.valver = !{!27}
+!dx.shaderModel = !{!28}
+!dx.resources = !{!29}
+!dx.typeAnnotations = !{!32}
+!dx.entryPoints = !{!35}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !13, globals: !17)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "int2", file: !1, line: 19, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<int, 2>", file: !1, line: 19, size: 64, align: 32, elements: !6, templateParams: !10)
+!6 = !{!7, !9}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, line: 19, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, line: 19, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !{!11, !12}
+!11 = !DITemplateTypeParameter(name: "element", type: !8)
+!12 = !DITemplateValueParameter(name: "element_count", type: !8, value: i32 2)
+!13 = !{!14}
+!14 = !DISubprogram(name: "main", scope: !1, file: !1, line: 18, type: !15, isLocal: false, isDefinition: true, scopeLine: 18, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!15 = !DISubroutineType(types: !16)
+!16 = !{null}
+!17 = !{!18}
+!18 = !DIGlobalVariable(name: "sb", linkageName: "\01?sb@@3URWByteAddressBuffer@@A", scope: !0, file: !1, line: 16, type: !19, isLocal: false, isDefinition: true)
+!19 = !DICompositeType(tag: DW_TAG_structure_type, name: "RWByteAddressBuffer", file: !1, line: 16, size: 32, align: 32, elements: !2)
+!20 = !{i32 2, !"Dwarf Version", i32 4}
+!21 = !{i32 2, !"Debug Info Version", i32 3}
+!22 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!23 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: this file has two dx.op.rawBufferStore.i32/f32 calls. The FIRST\0A// (asuint(int2(123, 123)), an explicitly int32-typed literal) is fine on every pane. The\0A// SECOND (asuint((123).xx), a bare unsuffixed integer literal swizzled to a vector) is\0A// where DXC's own literal-typing rules (in the pre-HLSL-2021 default language mode) keep\0A// the literal 64-bit through the swizzle, so the asuint bitcast is applied to a 64-bit\0A// value instead of the 32-bit value the DXIL op expects. Look for the exit code (5 =\0A// E_FAIL) and the \22error: validation errors\22 / \22Invalid record\22 (or, on this Linux build,\0A// \22Call parameter type does not match function signature!\22) text -- that is DXIL\0A// validation catching the malformed module the front end produced, not a clean compile.\0A// Compare the \22-HV 2021\22 pane (still fails) against the \22-HV 202x\22 pane (compiles clean):\0A// the officially released HLSL 2021 language mode does NOT fix this; only the newer,\0A// still-experimental \22202x\22 preview mode does.\0A//==========================================================================//\0A\0ARWByteAddressBuffer sb : register(u0);\0A[numthreads(1, 1, 1)]\0Avoid main() {\0A  sb.Store(0, asuint(int2(123, 123))); // Okay\0A  sb.Store(0, asuint((123).xx)); // Boom\0A}\0A"}
+!24 = !{!"/app/example.hlsl"}
+!25 = !{!"-E", !"main", !"-T", !"cs_6_6", !"-Zi", !"-Qembed_debug", !"-HV", !"202x"}
+!26 = !{i32 1, i32 6}
+!27 = !{i32 1, i32 10}
+!28 = !{!"cs", i32 6, i32 6}
+!29 = !{null, !30, null, null}
+!30 = !{!31}
+!31 = !{i32 0, %struct.RWByteAddressBuffer* undef, !"sb", i32 0, i32 0, i32 1, i32 11, i1 false, i1 false, i1 false, null}
+!32 = !{i32 1, void ()* @main, !33}
+!33 = !{!34}
+!34 = !{i32 1, !2, !2}
+!35 = !{void ()* @main, !"main", null, !29, !36}
+!36 = !{i32 0, i64 16, i32 4, !37}
+!37 = !{i32 1, i32 1, i32 1}
+!38 = !DILocation(line: 19, column: 3, scope: !14)
+!39 = !DILocation(line: 20, column: 3, scope: !14)
+!40 = !DILocation(line: 21, column: 1, scope: !14)
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_6 -E main -fcgl
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+; ModuleID = '/app/example.hlsl'
+source_filename = "/app/example.hlsl"
+target datalayout = "e-m:e-ve-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxilv1.6-unknown-shadermodel6.6-compute"
+
+%"class.hlsl::RWByteAddressBuffer" = type { target("dx.RawBuffer", i8, 1, 0) }
+
+@_ZL2sb = internal global %"class.hlsl::RWByteAddressBuffer" poison, align 4, !dbg !0
+@.str = private unnamed_addr constant [3 x i8] c"sb\00", align 1
+
+; Function Attrs: alwaysinline convergent nounwind
+define internal void @__cxx_global_var_init() #0 !dbg !127 {
+  %1 = call token @llvm.experimental.convergence.entry()
+  call void @_ZN4hlsl19RWByteAddressBuffer19__createFromBindingEjjijPKc(ptr dead_on_unwind writable sret(%"class.hlsl::RWByteAddressBuffer") align 4 @_ZL2sb, i32 noundef 0, i32 noundef 0, i32 noundef 1, i32 noundef 0, ptr noundef @.str) #6 [ "convergencectrl"(token %1) ], !dbg !130
+  ret void, !dbg !130
+}
+
+; Function Attrs: convergent nocallback nofree nosync nounwind willreturn memory(none)
+declare token @llvm.experimental.convergence.entry() #1
+
+; Function Attrs: alwaysinline convergent mustprogress norecurse nounwind
+define linkonce_odr hidden void @_ZN4hlsl19RWByteAddressBuffer19__createFromBindingEjjijPKc(ptr dead_on_unwind noalias writable sret(%"class.hlsl::RWByteAddressBuffer") align 4 %0, i32 noundef %1, i32 noundef %2, i32 noundef %3, i32 noundef %4, ptr noundef %5) #2 align 2 !dbg !131 {
+  %7 = call token @llvm.experimental.convergence.entry()
+  %8 = alloca i32, align 4
+  %9 = alloca i32, align 4
+  %10 = alloca i32, align 4
+  %11 = alloca i32, align 4
+  %12 = alloca ptr, align 4
+  %13 = alloca %"class.hlsl::RWByteAddressBuffer", align 4
+  store i32 %1, ptr %8, align 4, !tbaa !139
+    #dbg_declare(ptr %8, !133, !DIExpression(), !140)
+  store i32 %2, ptr %9, align 4, !tbaa !139
+    #dbg_declare(ptr %9, !134, !DIExpression(), !140)
+  store i32 %3, ptr %10, align 4, !tbaa !139
+    #dbg_declare(ptr %10, !135, !DIExpression(), !140)
+  store i32 %4, ptr %11, align 4, !tbaa !139
+    #dbg_declare(ptr %11, !136, !DIExpression(), !140)
+  store ptr %5, ptr %12, align 4, !tbaa !141
+    #dbg_declare(ptr %12, !137, !DIExpression(), !140)
+  call void @llvm.lifetime.start.p0(ptr %13) #7, !dbg !144
+    #dbg_declare(ptr %13, !138, !DIExpression(), !140)
+  %14 = load i32, ptr %8, align 4, !dbg !145, !tbaa !139
+  %15 = load i32, ptr %9, align 4, !dbg !145, !tbaa !139
+  %16 = load i32, ptr %10, align 4, !dbg !145, !tbaa !139
+  %17 = load i32, ptr %11, align 4, !dbg !145, !tbaa !139
+  %18 = load ptr, ptr %12, align 4, !dbg !145, !tbaa !141
+  %19 = call target("dx.RawBuffer", i8, 1, 0) @llvm.dx.resource.handlefrombinding.tdx.RawBuffer_i8_1_0t(i32 %15, i32 %14, i32 %16, i32 %17, ptr %18), !dbg !145
+  %20 = getelementptr inbounds nuw %"class.hlsl::RWByteAddressBuffer", ptr %13, i32 0, i32 0, !dbg !145
+  store target("dx.RawBuffer", i8, 1, 0) %19, ptr %20, align 4, !dbg !145, !tbaa !146
+  call void @_ZN4hlsl19RWByteAddressBufferC2ERKS0_(ptr noundef nonnull align 4 dereferenceable(4) %0, ptr noundef nonnull align 4 dereferenceable(4) %13) #6 [ "convergencectrl"(token %7) ], !dbg !145
+  call void @llvm.lifetime.end.p0(ptr %13) #7, !dbg !145
+  ret void, !dbg !144
+}
+
+; Function Attrs: alwaysinline convergent mustprogress norecurse nounwind
+define internal void @_Z4mainv() #2 !dbg !148 {
+  %1 = call token @llvm.experimental.convergence.entry()
+  %2 = alloca <1 x i32>, align 4
+  %3 = call noundef <2 x i32> @_ZN4hlsl6asuintIiLi2EEEDvT0__jDvT0__T_(<2 x i32> noundef splat (i32 123)) #6 [ "convergencectrl"(token %1) ], !dbg !149
+  call void @_ZN4hlsl19RWByteAddressBuffer5StoreIDv2_jEEvjT_(ptr noundef nonnull align 4 dereferenceable(4) @_ZL2sb, i32 noundef 0, <2 x i32> noundef %3) #6 [ "convergencectrl"(token %1) ], !dbg !150
+  store <1 x i32> splat (i32 123), ptr %2, align 4, !dbg !151
+  %4 = load <1 x i32>, ptr %2, align 4, !dbg !151
+  %5 = shufflevector <1 x i32> %4, <1 x i32> poison, <2 x i32> zeroinitializer, !dbg !151
+  %6 = call noundef <2 x i32> @_ZN4hlsl6asuintIiLi2EEEDvT0__jDvT0__T_(<2 x i32> noundef %5) #6 [ "convergencectrl"(token %1) ], !dbg !152
+  call void @_ZN4hlsl19RWByteAddressBuffer5StoreIDv2_jEEvjT_(ptr noundef nonnull align 4 dereferenceable(4) @_ZL2sb, i32 noundef 0, <2 x i32> noundef %6) #6 [ "convergencectrl"(token %1) ], !dbg !153
+  ret void, !dbg !154
+}
+
+; Function Attrs: convergent noinline norecurse
+define void @main() #3 {
+  %1 = call token @llvm.experimental.convergence.entry()
+  call void @_GLOBAL__sub_I_example.hlsl() [ "convergencectrl"(token %1) ]
+  call void @_Z4mainv() [ "convergencectrl"(token %1) ]
+  ret void
+}
+
+; Function Attrs: alwaysinline convergent mustprogress norecurse nounwind
+define linkonce_odr hidden void @_ZN4hlsl19RWByteAddressBuffer5StoreIDv2_jEEvjT_(ptr noundef nonnull align 4 dereferenceable(4) %0, i32 noundef %1, <2 x i32> noundef %2) #2 align 2 !dbg !155 {
+  %4 = call token @llvm.experimental.convergence.entry()
+  %5 = alloca ptr, align 4
+  %6 = alloca i32, align 4
+  %7 = alloca <2 x i32>, align 4
+  store ptr %0, ptr %5, align 4, !tbaa !163
+    #dbg_declare(ptr %5, !160, !DIExpression(), !165)
+  store i32 %1, ptr %6, align 4, !tbaa !139
+    #dbg_declare(ptr %6, !161, !DIExpression(), !166)
+  store <2 x i32> %2, ptr %7, align 4, !tbaa !167
+    #dbg_declare(ptr %7, !162, !DIExpression(), !166)
+  %8 = load ptr, ptr %5, align 4
+  %9 = load <2 x i32>, ptr %7, align 4, !dbg !165, !tbaa !167
+  %10 = getelementptr inbounds nuw %"class.hlsl::RWByteAddressBuffer", ptr %8, i32 0, i32 0, !dbg !165
+  %11 = load target("dx.RawBuffer", i8, 1, 0), ptr %10, align 4, !dbg !165, !tbaa !146
+  %12 = load i32, ptr %6, align 4, !dbg !165, !tbaa !139
+  %13 = call ptr @llvm.dx.resource.getpointer.p0.tdx.RawBuffer_i8_1_0t.i32(target("dx.RawBuffer", i8, 1, 0) %11, i32 %12) [ "convergencectrl"(token %4) ], !dbg !165
+  store <2 x i32> %9, ptr %13, align 4, !dbg !165, !tbaa !167
+  ret void, !dbg !168
+}
+
+; Function Attrs: alwaysinline convergent mustprogress norecurse nounwind
+define linkonce_odr hidden noundef <2 x i32> @_ZN4hlsl6asuintIiLi2EEEDvT0__jDvT0__T_(<2 x i32> noundef %0) #2 !dbg !171 {
+  %2 = call token @llvm.experimental.convergence.entry()
+  %3 = alloca <2 x i32>, align 4
+  store <2 x i32> %0, ptr %3, align 4, !tbaa !167
+    #dbg_declare(ptr %3, !179, !DIExpression(), !183)
+  %4 = load <2 x i32>, ptr %3, align 4, !dbg !184, !tbaa !167
+  %5 = call noundef <2 x i32> @_ZN4hlsl8__detail8bit_castIjiLi2EEENS0_9enable_ifIXeqstT_stT0_EDvT1__S3_E4TypeEDvT1__S4_(<2 x i32> noundef %4) #6 [ "convergencectrl"(token %2) ], !dbg !185
+  ret <2 x i32> %5, !dbg !186
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #4
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(none)
+declare target("dx.RawBuffer", i8, 1, 0) @llvm.dx.resource.handlefrombinding.tdx.RawBuffer_i8_1_0t(i32, i32, i32, i32, ptr) #5
+
+; Function Attrs: alwaysinline convergent mustprogress norecurse nounwind
+define linkonce_odr hidden void @_ZN4hlsl19RWByteAddressBufferC2ERKS0_(ptr noundef nonnull align 4 dereferenceable(4) %0, ptr noundef nonnull align 4 dereferenceable(4) %1) unnamed_addr #2 align 2 !dbg !187 {
+  %3 = call token @llvm.experimental.convergence.entry()
+  %4 = alloca ptr, align 4
+  %5 = alloca ptr, align 4
+  store ptr %0, ptr %4, align 4, !tbaa !163
+    #dbg_declare(ptr %4, !189, !DIExpression(), !191)
+  store ptr %1, ptr %5, align 4, !tbaa !163
+    #dbg_declare(ptr %5, !190, !DIExpression(), !192)
+  %6 = load ptr, ptr %4, align 4
+  %7 = load ptr, ptr %5, align 4, !dbg !193, !tbaa !163, !nonnull !118, !align !195
+  %8 = getelementptr inbounds nuw %"class.hlsl::RWByteAddressBuffer", ptr %7, i32 0, i32 0, !dbg !193
+  %9 = load target("dx.RawBuffer", i8, 1, 0), ptr %8, align 4, !dbg !193, !tbaa !146
+  %10 = getelementptr inbounds nuw %"class.hlsl::RWByteAddressBuffer", ptr %6, i32 0, i32 0, !dbg !193
+  store target("dx.RawBuffer", i8, 1, 0) %9, ptr %10, align 4, !dbg !193, !tbaa !146
+  ret void, !dbg !196
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #4
+
+; Function Attrs: alwaysinline convergent mustprogress norecurse nounwind
+define linkonce_odr hidden noundef <2 x i32> @_ZN4hlsl8__detail8bit_castIjiLi2EEENS0_9enable_ifIXeqstT_stT0_EDvT1__S3_E4TypeEDvT1__S4_(<2 x i32> noundef %0) #2 !dbg !197 {
+  %2 = call token @llvm.experimental.convergence.entry()
+  %3 = alloca <2 x i32>, align 4
+  store <2 x i32> %0, ptr %3, align 4, !tbaa !167
+    #dbg_declare(ptr %3, !209, !DIExpression(), !212)
+  %4 = load <2 x i32>, ptr %3, align 4, !dbg !213, !tbaa !167
+  ret <2 x i32> %4, !dbg !214
+}
+
+; Function Attrs: convergent nocallback nofree nosync nounwind willreturn memory(none)
+declare ptr @llvm.dx.resource.getpointer.p0.tdx.RawBuffer_i8_1_0t.i32(target("dx.RawBuffer", i8, 1, 0), i32) #1
+
+; Function Attrs: alwaysinline convergent nounwind
+define internal void @_GLOBAL__sub_I_example.hlsl() #0 !dbg !215 {
+  %1 = call token @llvm.experimental.convergence.entry()
+  call void @__cxx_global_var_init() [ "convergencectrl"(token %1) ], !dbg !217
+  ret void
+}
+
+attributes #0 = { alwaysinline convergent nounwind "frame-pointer"="all" "no-signed-zeros-fp-math"="true" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { convergent nocallback nofree nosync nounwind willreturn memory(none) }
+attributes #2 = { alwaysinline convergent mustprogress norecurse nounwind "frame-pointer"="all" "no-signed-zeros-fp-math"="true" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #3 = { convergent noinline norecurse "frame-pointer"="all" "hlsl.numthreads"="1,1,1" "hlsl.shader"="compute" "no-signed-zeros-fp-math"="true" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #4 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #5 = { nocallback nofree nosync nounwind willreturn memory(none) }
+attributes #6 = { convergent }
+attributes #7 = { nounwind }
+
+!llvm.dbg.cu = !{!2}
+!llvm.module.flags = !{!113, !114, !115}
+!dx.valver = !{!116}
+!dx.source.contents = !{!117}
+!dx.source.defines = !{!118}
+!dx.source.mainFileName = !{!119}
+!dx.source.args = !{!120}
+!llvm.ident = !{!121}
+!llvm.errno.tbaa = !{!122}
+
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "sb", linkageName: "_ZL2sb", scope: !2, file: !9, line: 16, type: !18, isLocal: true, isDefinition: true)
+!2 = distinct !DICompileUnit(language: DW_LANG_HLSL, file: !3, producer: "clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, retainedTypes: !4, globals: !112, splitDebugInlining: false, nameTableKind: None)
+!3 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!4 = !{!5, !14, !17, !18}
+!5 = !DIDerivedType(tag: DW_TAG_typedef, name: "int2", scope: !7, file: !6, line: 65, baseType: !8)
+!6 = !DIFile(filename: "/cefs/ed/edec7da708b32073a16376f7_clang-trunk-20260818/lib/clang/24/include/hlsl/hlsl_basic_types.h", directory: "")
+!7 = !DINamespace(name: "hlsl", scope: null)
+!8 = !DIDerivedType(tag: DW_TAG_typedef, name: "vector<int, 2>", scope: !7, file: !9, baseType: !10)
+!9 = !DIFile(filename: "example.hlsl", directory: "/app")
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 64, flags: DIFlagVector, elements: !12)
+!11 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
+!12 = !{!13}
+!13 = !DISubrange(count: 2)
+!14 = !DIDerivedType(tag: DW_TAG_typedef, name: "vector<unsigned int, 2>", scope: !7, file: !9, baseType: !15)
+!15 = !DICompositeType(tag: DW_TAG_array_type, baseType: !16, size: 64, flags: DIFlagVector, elements: !12)
+!16 = !DIBasicType(name: "unsigned int", size: 32, encoding: DW_ATE_unsigned)
+!17 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !15, size: 32)
+!18 = distinct !DICompositeType(tag: DW_TAG_class_type, name: "RWByteAddressBuffer", scope: !7, size: 32, flags: DIFlagTypePassByValue | DIFlagNonTrivial, elements: !19)
+!19 = !{!20, !23, !27, !32, !36, !42, !43, !47, !52, !55, !58, !64, !67, !73, !76, !79, !82, !85, !88, !89, !92, !93, !94, !95, !96, !100, !105, !106, !107, !108, !109}
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "__handle", scope: !18, file: !9, line: 21, baseType: !21, size: 32)
+!21 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !22, size: 32)
+!22 = !DICompositeType(tag: DW_TAG_structure_type, name: "__hlsl_resource_t", file: !3, flags: DIFlagFwdDecl)
+!23 = !DISubprogram(name: "RWByteAddressBuffer", linkageName: "_ZN4hlsl19RWByteAddressBufferC4Ev", scope: !18, file: !9, type: !24, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!24 = !DISubroutineType(types: !25)
+!25 = !{null, !26}
+!26 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !18, size: 32, flags: DIFlagArtificial | DIFlagObjectPointer)
+!27 = !DISubprogram(name: "RWByteAddressBuffer", linkageName: "_ZN4hlsl19RWByteAddressBufferC4ERKS0_", scope: !18, file: !9, type: !28, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!28 = !DISubroutineType(types: !29)
+!29 = !{null, !26, !30}
+!30 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !31, size: 32)
+!31 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !18)
+!32 = !DISubprogram(name: "operator=", linkageName: "_ZN4hlsl19RWByteAddressBufferaSERKS0_", scope: !18, file: !9, type: !33, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!33 = !DISubroutineType(types: !34)
+!34 = !{!35, !26, !30}
+!35 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !18, size: 32)
+!36 = !DISubprogram(name: "__createFromBinding", linkageName: "_ZN4hlsl19RWByteAddressBuffer19__createFromBindingEjjijPKc", scope: !18, file: !9, type: !37, flags: DIFlagPublic | DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!37 = !DISubroutineType(types: !38)
+!38 = !{!18, !16, !16, !11, !16, !39}
+!39 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !40, size: 32)
+!40 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !41)
+!41 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_signed_char)
+!42 = !DISubprogram(name: "__createFromImplicitBinding", linkageName: "_ZN4hlsl19RWByteAddressBuffer27__createFromImplicitBindingEjjijPKc", scope: !18, file: !9, type: !37, flags: DIFlagPublic | DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!43 = !DISubprogram(name: "Load", linkageName: "_ZNK4hlsl19RWByteAddressBuffer4LoadEj", scope: !18, file: !9, type: !44, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!44 = !DISubroutineType(types: !45)
+!45 = !{!16, !46, !16}
+!46 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !31, size: 32, flags: DIFlagArtificial | DIFlagObjectPointer)
+!47 = !DISubprogram(name: "Load", linkageName: "_ZNK4hlsl19RWByteAddressBuffer4LoadEjRj", scope: !18, file: !9, type: !48, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!48 = !DISubroutineType(types: !49)
+!49 = !{!16, !46, !16, !50}
+!50 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !51)
+!51 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !16, size: 32)
+!52 = !DISubprogram(name: "Load2", linkageName: "_ZNK4hlsl19RWByteAddressBuffer5Load2Ej", scope: !18, file: !9, type: !53, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!53 = !DISubroutineType(types: !54)
+!54 = !{!15, !46, !16}
+!55 = !DISubprogram(name: "Load2", linkageName: "_ZNK4hlsl19RWByteAddressBuffer5Load2EjRj", scope: !18, file: !9, type: !56, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!56 = !DISubroutineType(types: !57)
+!57 = !{!15, !46, !16, !50}
+!58 = !DISubprogram(name: "Load3", linkageName: "_ZNK4hlsl19RWByteAddressBuffer5Load3Ej", scope: !18, file: !9, type: !59, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!59 = !DISubroutineType(types: !60)
+!60 = !{!61, !46, !16}
+!61 = !DICompositeType(tag: DW_TAG_array_type, baseType: !16, size: 96, flags: DIFlagVector, elements: !62)
+!62 = !{!63}
+!63 = !DISubrange(count: 3)
+!64 = !DISubprogram(name: "Load3", linkageName: "_ZNK4hlsl19RWByteAddressBuffer5Load3EjRj", scope: !18, file: !9, type: !65, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!65 = !DISubroutineType(types: !66)
+!66 = !{!61, !46, !16, !50}
+!67 = !DISubprogram(name: "Load4", linkageName: "_ZNK4hlsl19RWByteAddressBuffer5Load4Ej", scope: !18, file: !9, type: !68, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!68 = !DISubroutineType(types: !69)
+!69 = !{!70, !46, !16}
+!70 = !DICompositeType(tag: DW_TAG_array_type, baseType: !16, size: 128, flags: DIFlagVector, elements: !71)
+!71 = !{!72}
+!72 = !DISubrange(count: 4)
+!73 = !DISubprogram(name: "Load4", linkageName: "_ZNK4hlsl19RWByteAddressBuffer5Load4EjRj", scope: !18, file: !9, type: !74, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!74 = !DISubroutineType(types: !75)
+!75 = !{!70, !46, !16, !50}
+!76 = !DISubprogram(name: "Store", linkageName: "_ZN4hlsl19RWByteAddressBuffer5StoreEjj", scope: !18, file: !9, type: !77, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!77 = !DISubroutineType(types: !78)
+!78 = !{null, !26, !16, !16}
+!79 = !DISubprogram(name: "Store2", linkageName: "_ZN4hlsl19RWByteAddressBuffer6Store2EjDv2_j", scope: !18, file: !9, type: !80, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!80 = !DISubroutineType(types: !81)
+!81 = !{null, !26, !16, !15}
+!82 = !DISubprogram(name: "Store3", linkageName: "_ZN4hlsl19RWByteAddressBuffer6Store3EjDv3_j", scope: !18, file: !9, type: !83, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!83 = !DISubroutineType(types: !84)
+!84 = !{null, !26, !16, !61}
+!85 = !DISubprogram(name: "Store4", linkageName: "_ZN4hlsl19RWByteAddressBuffer6Store4EjDv4_j", scope: !18, file: !9, type: !86, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!86 = !DISubroutineType(types: !87)
+!87 = !{null, !26, !16, !70}
+!88 = !DISubprogram(name: "InterlockedAdd", linkageName: "_ZN4hlsl19RWByteAddressBuffer14InterlockedAddEjj", scope: !18, file: !9, type: !77, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!89 = !DISubprogram(name: "InterlockedAdd", linkageName: "_ZN4hlsl19RWByteAddressBuffer14InterlockedAddEjjRj", scope: !18, file: !9, type: !90, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!90 = !DISubroutineType(types: !91)
+!91 = !{null, !26, !16, !16, !50}
+!92 = !DISubprogram(name: "InterlockedOr", linkageName: "_ZN4hlsl19RWByteAddressBuffer13InterlockedOrEjj", scope: !18, file: !9, type: !77, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!93 = !DISubprogram(name: "InterlockedOr", linkageName: "_ZN4hlsl19RWByteAddressBuffer13InterlockedOrEjjRj", scope: !18, file: !9, type: !90, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!94 = !DISubprogram(name: "InterlockedXor", linkageName: "_ZN4hlsl19RWByteAddressBuffer14InterlockedXorEjj", scope: !18, file: !9, type: !77, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!95 = !DISubprogram(name: "InterlockedXor", linkageName: "_ZN4hlsl19RWByteAddressBuffer14InterlockedXorEjjRj", scope: !18, file: !9, type: !90, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!96 = !DISubprogram(name: "InterlockedAdd64", linkageName: "_ZN4hlsl19RWByteAddressBuffer16InterlockedAdd64Ejm", scope: !18, file: !9, type: !97, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!97 = !DISubroutineType(types: !98)
+!98 = !{null, !26, !16, !99}
+!99 = !DIBasicType(name: "unsigned long", size: 64, encoding: DW_ATE_unsigned)
+!100 = !DISubprogram(name: "InterlockedAdd64", linkageName: "_ZN4hlsl19RWByteAddressBuffer16InterlockedAdd64EjmRm", scope: !18, file: !9, type: !101, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!101 = !DISubroutineType(types: !102)
+!102 = !{null, !26, !16, !99, !103}
+!103 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !104)
+!104 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !99, size: 32)
+!105 = !DISubprogram(name: "InterlockedOr64", linkageName: "_ZN4hlsl19RWByteAddressBuffer15InterlockedOr64Ejm", scope: !18, file: !9, type: !97, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!106 = !DISubprogram(name: "InterlockedOr64", linkageName: "_ZN4hlsl19RWByteAddressBuffer15InterlockedOr64EjmRm", scope: !18, file: !9, type: !101, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!107 = !DISubprogram(name: "InterlockedXor64", linkageName: "_ZN4hlsl19RWByteAddressBuffer16InterlockedXor64Ejm", scope: !18, file: !9, type: !97, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!108 = !DISubprogram(name: "InterlockedXor64", linkageName: "_ZN4hlsl19RWByteAddressBuffer16InterlockedXor64EjmRm", scope: !18, file: !9, type: !101, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!109 = !DISubprogram(name: "GetDimensions", linkageName: "_ZN4hlsl19RWByteAddressBuffer13GetDimensionsERj", scope: !18, file: !9, type: !110, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!110 = !DISubroutineType(types: !111)
+!111 = !{null, !26, !50}
+!112 = !{!0}
+!113 = !{i32 7, !"Dwarf Version", i32 4}
+!114 = !{i32 2, !"Debug Info Version", i32 3}
+!115 = !{i32 7, !"frame-pointer", i32 2}
+!116 = !{i32 1, i32 8}
+!117 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: this file has two dx.op.rawBufferStore.i32/f32 calls. The FIRST\0A// (asuint(int2(123, 123)), an explicitly int32-typed literal) is fine on every pane. The\0A// SECOND (asuint((123).xx), a bare unsuffixed integer literal swizzled to a vector) is\0A// where DXC's own literal-typing rules (in the pre-HLSL-2021 default language mode) keep\0A// the literal 64-bit through the swizzle, so the asuint bitcast is applied to a 64-bit\0A// value instead of the 32-bit value the DXIL op expects. Look for the exit code (5 =\0A// E_FAIL) and the \22error: validation errors\22 / \22Invalid record\22 (or, on this Linux build,\0A// \22Call parameter type does not match function signature!\22) text -- that is DXIL\0A// validation catching the malformed module the front end produced, not a clean compile.\0A// Compare the \22-HV 2021\22 pane (still fails) against the \22-HV 202x\22 pane (compiles clean):\0A// the officially released HLSL 2021 language mode does NOT fix this; only the newer,\0A// still-experimental \22202x\22 preview mode does.\0A//==========================================================================//\0A\0ARWByteAddressBuffer sb : register(u0);\0A[numthreads(1, 1, 1)]\0Avoid main() {\0A  sb.Store(0, asuint(int2(123, 123))); // Okay\0A  sb.Store(0, asuint((123).xx)); // Boom\0A}\0A"}
+!118 = !{}
+!119 = !{!"example.hlsl"}
+!120 = !{!"--driver-mode=dxc", !"-g", !"-Qembed_debug", !"-Fc", !"/app/output.s", !"-fcolor-diagnostics", !"-gen-reproducer=off", !"-T", !"cs_6_6", !"-hlsl-entry", !"main", !"-emit-llvm", !"-disable-llvm-passes", !"/app/example.hlsl", !"-S", !"-O3"}
+!121 = !{!"clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)"}
+!122 = !{!123, !124, i64 0}
+!123 = !{!"__libc_errno", !124, i64 0}
+!124 = !{!"int", !125, i64 0}
+!125 = !{!"omnipotent char", !126, i64 0}
+!126 = !{!"Simple C++ TBAA"}
+!127 = distinct !DISubprogram(name: "__cxx_global_var_init", scope: !9, file: !9, type: !128, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !2)
+!128 = !DISubroutineType(types: !129)
+!129 = !{null}
+!130 = !DILocation(line: 0, scope: !127)
+!131 = distinct !DISubprogram(name: "__createFromBinding", linkageName: "_ZN4hlsl19RWByteAddressBuffer19__createFromBindingEjjijPKc", scope: !18, file: !9, line: 21, type: !37, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !2, declaration: !36, retainedNodes: !132)
+!132 = !{!133, !134, !135, !136, !137, !138}
+!133 = !DILocalVariable(name: "registerNo", arg: 1, scope: !131, file: !9, type: !16)
+!134 = !DILocalVariable(name: "spaceNo", arg: 2, scope: !131, file: !9, type: !16)
+!135 = !DILocalVariable(name: "range", arg: 3, scope: !131, file: !9, type: !11)
+!136 = !DILocalVariable(name: "index", arg: 4, scope: !131, file: !9, type: !16)
+!137 = !DILocalVariable(name: "name", arg: 5, scope: !131, file: !9, type: !39)
+!138 = !DILocalVariable(name: "tmp", scope: !131, file: !9, type: !18)
+!139 = !{!124, !124, i64 0}
+!140 = !DILocation(line: 0, column: 1, scope: !131)
+!141 = !{!142, !142, i64 0}
+!142 = !{!"p1 omnipotent char", !143, i64 0}
+!143 = !{!"any pointer", !125, i64 0}
+!144 = !DILocation(line: 21, column: 1, scope: !131)
+!145 = !DILocation(line: 0, scope: !131)
+!146 = !{!147, !125, i64 0}
+!147 = !{!"_ZTSN4hlsl19RWByteAddressBufferE", !125, i64 0}
+!148 = distinct !DISubprogram(name: "main", linkageName: "_Z4mainv", scope: !9, file: !9, line: 18, type: !128, scopeLine: 18, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !2)
+!149 = !DILocation(line: 19, column: 15, scope: !148)
+!150 = !DILocation(line: 19, column: 6, scope: !148)
+!151 = !DILocation(line: 20, column: 22, scope: !148)
+!152 = !DILocation(line: 20, column: 15, scope: !148)
+!153 = !DILocation(line: 20, column: 6, scope: !148)
+!154 = !DILocation(line: 21, column: 1, scope: !148)
+!155 = distinct !DISubprogram(name: "Store<vector<unsigned int, 2> >", linkageName: "_ZN4hlsl19RWByteAddressBuffer5StoreIDv2_jEEvjT_", scope: !18, file: !9, line: 45, type: !80, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !2, templateParams: !157, declaration: !156, retainedNodes: !159)
+!156 = !DISubprogram(name: "Store<vector<unsigned int, 2> >", linkageName: "_ZN4hlsl19RWByteAddressBuffer5StoreIDv2_jEEvjT_", scope: !18, file: !9, type: !80, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized, templateParams: !157)
+!157 = !{!158}
+!158 = !DITemplateTypeParameter(name: "element_type", type: !15)
+!159 = !{!160, !161, !162}
+!160 = !DILocalVariable(name: "this", arg: 1, scope: !155, type: !35, flags: DIFlagArtificial | DIFlagObjectPointer)
+!161 = !DILocalVariable(name: "Index", arg: 2, scope: !155, file: !9, type: !16)
+!162 = !DILocalVariable(name: "Value", arg: 3, scope: !155, file: !9, type: !15)
+!163 = !{!164, !164, i64 0}
+!164 = !{!"p1 _ZTSN4hlsl19RWByteAddressBufferE", !143, i64 0}
+!165 = !DILocation(line: 0, scope: !155)
+!166 = !DILocation(line: 0, column: 1, scope: !155)
+!167 = !{!125, !125, i64 0}
+!168 = !DILocation(line: 45, column: 1, scope: !169)
+!169 = !DILexicalBlockFile(scope: !155, file: !170, discriminator: 0)
+!170 = !DIFile(filename: "/cefs/ed/edec7da708b32073a16376f7_clang-trunk-20260818/lib/clang/24/include/hlsl/hlsl_detail.h", directory: "")
+!171 = distinct !DISubprogram(name: "asuint<int, 2>", linkageName: "_ZN4hlsl6asuintIiLi2EEEDvT0__jDvT0__T_", scope: !7, file: !172, line: 104, type: !173, scopeLine: 104, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !2, templateParams: !180, retainedNodes: !178)
+!172 = !DIFile(filename: "/cefs/ed/edec7da708b32073a16376f7_clang-trunk-20260818/lib/clang/24/include/hlsl/hlsl_intrinsics.h", directory: "")
+!173 = !DISubroutineType(types: !174)
+!174 = !{!175, !8}
+!175 = !DIDerivedType(tag: DW_TAG_typedef, name: "vector<unsigned int, 2>", scope: !7, file: !9, baseType: !176)
+!176 = !DICompositeType(tag: DW_TAG_array_type, baseType: !177, size: 64, flags: DIFlagVector, elements: !12)
+!177 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", scope: !7, file: !6, line: 35, baseType: !16)
+!178 = !{!179}
+!179 = !DILocalVariable(name: "V", arg: 1, scope: !171, file: !172, line: 104, type: !8)
+!180 = !{!181, !182}
+!181 = !DITemplateTypeParameter(name: "T", type: !11)
+!182 = !DITemplateValueParameter(name: "N", type: !11, value: i32 2)
+!183 = !DILocation(line: 104, column: 76, scope: !171)
+!184 = !DILocation(line: 105, column: 41, scope: !171)
+!185 = !DILocation(line: 105, column: 10, scope: !171)
+!186 = !DILocation(line: 105, column: 3, scope: !171)
+!187 = distinct !DISubprogram(name: "RWByteAddressBuffer", linkageName: "_ZN4hlsl19RWByteAddressBufferC2ERKS0_", scope: !18, file: !9, line: 21, type: !28, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !2, declaration: !27, retainedNodes: !188)
+!188 = !{!189, !190}
+!189 = !DILocalVariable(name: "this", arg: 1, scope: !187, type: !35, flags: DIFlagArtificial | DIFlagObjectPointer)
+!190 = !DILocalVariable(name: "other", arg: 2, scope: !187, file: !9, type: !30)
+!191 = !DILocation(line: 0, scope: !187)
+!192 = !DILocation(line: 0, column: 1, scope: !187)
+!193 = !DILocation(line: 0, scope: !194)
+!194 = distinct !DILexicalBlock(scope: !187, file: !9, line: 21, column: 1)
+!195 = !{i64 4}
+!196 = !DILocation(line: 21, column: 1, scope: !187)
+!197 = distinct !DISubprogram(name: "bit_cast<unsigned int, int, 2>", linkageName: "_ZN4hlsl8__detail8bit_castIjiLi2EEENS0_9enable_ifIXeqstT_stT0_EDvT1__S3_E4TypeEDvT1__S4_", scope: !198, file: !170, line: 43, type: !199, scopeLine: 43, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !2, templateParams: !210, retainedNodes: !208)
+!198 = !DINamespace(name: "__detail", scope: !7)
+!199 = !DISubroutineType(types: !200)
+!200 = !{!201, !8}
+!201 = !DIDerivedType(tag: DW_TAG_typedef, name: "enable_if_t<sizeof(unsigned int) == sizeof(int), vector<unsigned int, 2> >", scope: !198, file: !170, line: 33, baseType: !202)
+!202 = !DIDerivedType(tag: DW_TAG_typedef, name: "Type", scope: !203, file: !170, line: 29, baseType: !15)
+!203 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "enable_if<true, vector<unsigned int, 2> >", scope: !198, file: !170, line: 28, size: 8, flags: DIFlagTypePassByReference | DIFlagNonTrivial, elements: !118, templateParams: !204)
+!204 = !{!205, !207}
+!205 = !DITemplateValueParameter(name: "B", type: !206, value: i32 1)
+!206 = !DIBasicType(name: "bool", size: 32, encoding: DW_ATE_boolean)
+!207 = !DITemplateTypeParameter(name: "T", type: !15)
+!208 = !{!209}
+!209 = !DILocalVariable(name: "V", arg: 1, scope: !197, file: !170, line: 43, type: !8)
+!210 = !{!211, !181, !182}
+!211 = !DITemplateTypeParameter(name: "U", type: !16)
+!212 = !DILocation(line: 43, column: 23, scope: !197)
+!213 = !DILocation(line: 44, column: 10, scope: !197)
+!214 = !DILocation(line: 44, column: 3, scope: !197)
+!215 = distinct !DISubprogram(linkageName: "_GLOBAL__sub_I_example.hlsl", scope: !9, file: !9, type: !216, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !2)
+!216 = !DISubroutineType(types: !118)
+!217 = !DILocation(line: 0, scope: !215)

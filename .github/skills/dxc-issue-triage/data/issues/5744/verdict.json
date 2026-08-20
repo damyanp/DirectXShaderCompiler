@@ -1,0 +1,20 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-18T23:40:29Z",
+  "godbolt_url": "https://godbolt.org/z/vrMMYWr31",
+  "history": "fixed-in main (28d9915fa0 / PR #8707, merged 2026-07-31, an ancestor of ground-truth main-debug 89e2f98e); always-repro'd in every probeable stable release v1.6.2104..v1.9.2607 (newest, built 2026-07-29, 2 days before the fix); v1.4.1907/v1.5.2010 invalid-probe (predate SM 6.6)",
+  "labels": "bug,correctness",
+  "notes_path": "data/issues/5744/notes.md",
+  "number": 5744,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "does-not-repro",
+  "suggested_action": "duplicate-of #8001",
+  "summary": "Derivative ops (DerivCoarseX/Y, DerivFineX/Y) lacked the LLVM convergent attribute, letting the optimizer sink calls into conditional branches, exactly as reported. Fixed on main by 28d9915fa0 (PR #8707, 2026-07-31), which was recorded against later duplicate #8001, not this issue -- no shipped release yet contains the fix. Always reproduced on every stable release able to run the repro (v1.6.2104..v1.9.2607).",
+  "title": "Intrinsics ddx_fine/ddy_fine should not be allowed to sink into flow control",
+  "triaged_at": "2026-08-20T05:15:28+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5744"
+}

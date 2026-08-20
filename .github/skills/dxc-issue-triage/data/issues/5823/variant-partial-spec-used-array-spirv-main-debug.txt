@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T23:36:30+00:00
+# cmd: -HV 202x -T ps_6_7 -E PSMain -spirv variant-partial-spec-used-array.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: partial-spec-used-array-spirv (variant-partial-spec-used-array.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: refuted
+
+$ dxc -HV 202x -T ps_6_7 -E PSMain -spirv variant-partial-spec-used-array.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: casting to type 'void' unimplemented
+
+

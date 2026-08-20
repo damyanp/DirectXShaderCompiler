@@ -1,0 +1,32 @@
+# compiler: v1.5.2010
+# exe: <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+# ran: 2026-08-19T20:15:10+00:00
+# cmd: -T vs_6_0 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-diagnostic.json
+# verdict: repro
+
+$ dxc -T vs_6_0 repro.hlsl
+[exe] <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+Function: main: error: Function main with parameter is not permitted, it should be inlined. Use /Zi for source location.
+Function: main: error: Function 'main' contains invalid attribute 'disable-tail-calls' with value 'false'. Use /Zi for source location.
+Function: main: error: Function 'main' contains invalid attribute 'less-precise-fpmad' with value 'false'. Use /Zi for source location.
+Function: main: error: Function 'main' contains invalid attribute 'no-frame-pointer-elim' with value 'false'. Use /Zi for source location.
+Function: main: error: Function 'main' contains invalid attribute 'no-infs-fp-math' with value 'false'. Use /Zi for source location.
+Function: main: error: Function 'main' contains invalid attribute 'no-nans-fp-math' with value 'false'. Use /Zi for source location.
+Function: main: error: Function 'main' contains invalid attribute 'no-realign-stack' with value '<null>'. Use /Zi for source location.
+Function: main: error: Function 'main' contains invalid attribute 'stack-protector-buffer-size' with value '0'. Use /Zi for source location.
+Function: main: error: Function 'main' contains invalid attribute 'unsafe-fp-math' with value 'false'. Use /Zi for source location.
+Function: main: error: Function 'main' contains invalid attribute 'use-soft-float' with value 'false'. Use /Zi for source location.
+Function: main: error: Not all elements of output SV_ClipDistance were written. Use /Zi for source location.
+Validation failed.
+
+
+

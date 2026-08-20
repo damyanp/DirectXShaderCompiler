@@ -1,0 +1,40 @@
+# cdb stack for the Debug-only DXASSERT trip on the repro
+#
+# Command:
+#   cdb.exe -c "g;kn 40;q" <repo>/build/Debug/bin/dxc.exe -T cs_6_6 -E CSMain repro.hlsl
+#
+# Compiler: main-debug (89e2f98e29c289ae8ad9e00dd310104fea9fd7df / self-reports fork-local
+# merge ab5400907, tree-identical to upstream 13730886e outside this skill dir; commit
+# 89e2f98e29c289ae8ad9e00dd310104fea9fd7df is the recorded ground truth for this batch)
+#
+# Trimmed to the assert header and the frames that identify the failing pass.
+
+Error: 	!(GV->user_empty())
+File:
+<repo>\lib\HLSL\DxilCondenseResources.cpp(1984)
+
+ # Child-SP          RetAddr               Call Site
+00 000000c5`5d586250 00007ffd`9ca4153b     dxcompiler!<lambda_544bc7e939c8ea03ecdc3ce91b1f2484>::operator()+0x7a
+01 000000c5`5d5862a0 00007ffd`9ca40fb2     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::UpdateResourceSymbols+0x1ab
+02 000000c5`5d586370 00007ffd`9f3384a8     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::runOnModule+0x542
+03 (see cdb-raw.txt)  llvm::legacy::PassManager / EmitAssembly / clang::ParseAST / DxcCompiler::Compile / dxc::main / wmain
+
+# Source (lib/HLSL/DxilCondenseResources.cpp, function UpdateResourceSymbols):
+#
+#   auto UpdateResourceSymbol = [](DxilResourceBase *res) {
+#     if (GlobalVariable *GV = dyn_cast<GlobalVariable>(res->GetGlobalSymbol())) {
+#       GV->removeDeadConstantUsers();
+#       DXASSERT(GV->user_empty(), "else resource not lowered");
+#       res->SetGlobalSymbol(UndefValue::get(GV->getType()));
+#       if (GV->user_empty())
+#         GV->eraseFromParent();
+#     }
+#   };
+#
+# Under NDEBUG (every shipped release binary) the DXASSERT compiles out and execution
+# falls through: GV keeps its real user (the first buffer.Store, which runs before the
+# dynamic ResourceDescriptorHeap handle gets created/hoisted), so GV is NOT erased, but its
+# DxilResourceBase symbol IS replaced with undef -- leaving a stale, metadata-unreferenced
+# global for the validator to flag as "External declaration ... is unused". That is exactly
+# the issue's reported symptom. Under a Debug build the assert traps first and the validator
+# never runs, so ground truth observes an internal compiler error instead of that text.

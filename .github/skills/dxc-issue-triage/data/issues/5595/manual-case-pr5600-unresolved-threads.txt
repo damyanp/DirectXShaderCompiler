@@ -1,0 +1,60 @@
+$ gh api graphql -f "query=query { repository(owner:\"microsoft\", name:\"DirectXShaderCompiler\") { pullRequest(number:5600) { reviewThreads(first:50) { totalCount nodes { isResolved comments(first:10) { nodes { author { login } createdAt body } } } } } } }"
+total review threads: 34, unresolved: 3
+
+=== unresolved thread ===
+pow2clk 2023-08-29T20:09:50Z
+This adds a bit more than just strip_reflect. Nonetheless I don't think the chances of this failing are sufficient to warrent a separate compile check
+--
+pow2clk 2023-08-29T20:10:15Z
+Why does it strip reflection? Does it speed compilation? hash extraction?
+--
+python3kgae 2023-08-29T23:16:01Z
+Not sure, this is from the taef test.
+--
+
+=== unresolved thread ===
+llvm-beanz 2023-09-05T16:53:59Z
+I feel like the user interface here is still really awkward, but we can address that in a follow up change.
+
+
+
+I think a better approach would be to have the `-p` option be optional and have it default to `os.path.dirname(os.path.abspath(__file__))`. Then we could add `#!/usr/bin/env python3` to the top of the script, mark it executable, and have a build step that copies it into the `bin` folder during the build process. That would make for a nice development experience.
+--
+
+=== unresolved thread ===
+llvm-beanz 2023-09-05T17:50:21Z
+This didn't work the way I thought it did, and I'm actually a bit concerned about it after our discussion in the morning meeting.
+
+
+
+I assumed that this was traversing using the normal shell-test flow and respecting the lit local configs. It does not. I think that is wrong.
+--
+python3kgae 2023-09-06T02:12:59Z
+Updated.
+
+Caught 2 hash mismatch
+
+    tools\clang\test\HLSLFileCheck\hlsl\control_flow\return\lifetime-markers.hlsl
+
+    and
+
+    tools\clang\test\HLSLFileCheck\hlsl\objects\Cbuffer\retCBV3.hlsl
+
+
+
+Disabled these tests for now, should fix in later PR.
+--
+llvm-beanz 2023-09-06T02:33:33Z
+The HLSLFileCheck directory has no test suffixes enabled. So those tests shouldn't be running if you're loading the local config.
+--
+python3kgae 2023-09-06T12:56:52Z
+It does fail.
+
+If cannot find local config file, it will use local config from parent directory.
+
+The root is using local config send from getTestsInDirectory.
+--
+python3kgae 2023-09-06T16:17:14Z
+HashStability has its own suffix check, it will ignore suffix in the local config.
+--
+

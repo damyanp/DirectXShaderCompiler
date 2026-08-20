@@ -1,0 +1,442 @@
+[
+  {
+    "label": "v1.4.1907",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.4.1907/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.4.1907/dxc.exe -T lib_6_3 -Fh scratch-v1.4.1907-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.5.2003",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.5.2003-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.5.2010",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.5.2010-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.6.2104",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.6.2104-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.6.2106",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.6.2106-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.6.2112",
+    "case": "library (repro)",
+    "dxc": "<repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe",
+    "cmd": "<repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.6.2112-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.7.2207",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.7.2207/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.7.2207/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.7.2207-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.7.2212",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.7.2212-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.7.2212.1",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.7.2212.1-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.7.2308",
+    "case": "library (repro)",
+    "dxc": "<repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe",
+    "cmd": "<repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.7.2308-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.8.2403",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.8.2403-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.8.2403.1",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.8.2403.1/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2403.1/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.8.2403.1-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.8.2403.2",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.8.2403.2-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.8.2405",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.8.2405-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.8.2407",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.8.2407-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.8.2502",
+    "case": "library (repro)",
+    "dxc": "<repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe",
+    "cmd": "<repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.8.2502-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.8.2505",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.8.2505-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.8.2505.1",
+    "case": "library (repro)",
+    "dxc": "<repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe",
+    "cmd": "<repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.8.2505.1-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.9.2602",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.9.2602-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.9.2602.24",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.9.2602.24-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.9.2607",
+    "case": "library (repro)",
+    "dxc": "<cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe -T lib_6_3 -Fh scratch-v1.9.2607-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "main-debug",
+    "case": "library (repro)",
+    "dxc": "<repo>/build/Debug/bin/dxc.exe",
+    "cmd": "<repo>/build/Debug/bin/dxc.exe -T lib_6_3 -Fh scratch-main-debug-library_repro.h repro.hlsl",
+    "exit": 0,
+    "status": "invalid",
+    "name": "g_lib.no::entry",
+    "verdict": "repro"
+  },
+  {
+    "label": "v1.4.1907",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.4.1907/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.4.1907/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.4.1907-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.5.2003",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.5.2003/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.5.2003-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.5.2010",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.5.2010-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.6.2104",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.6.2104-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.6.2106",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.6.2106-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.6.2112",
+    "case": "non-library (control)",
+    "dxc": "<repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe",
+    "cmd": "<repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.6.2112-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.7.2207",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.7.2207/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.7.2207/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.7.2207-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.7.2212",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.7.2212-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.7.2212.1",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.7.2212.1-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.7.2308",
+    "case": "non-library (control)",
+    "dxc": "<repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe",
+    "cmd": "<repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.7.2308-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.8.2403",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.8.2403-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.8.2403.1",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.8.2403.1/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2403.1/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.8.2403.1-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.8.2403.2",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.8.2403.2-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.8.2405",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.8.2405-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.8.2407",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.8.2407-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.8.2502",
+    "case": "non-library (control)",
+    "dxc": "<repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe",
+    "cmd": "<repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.8.2502-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.8.2505",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.8.2505-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.8.2505.1",
+    "case": "non-library (control)",
+    "dxc": "<repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe",
+    "cmd": "<repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.8.2505.1-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.9.2602",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.9.2602-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.9.2602.24",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.9.2602.24-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "v1.9.2607",
+    "case": "non-library (control)",
+    "dxc": "<cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe",
+    "cmd": "<cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-v1.9.2607-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  },
+  {
+    "label": "main-debug",
+    "case": "non-library (control)",
+    "dxc": "<repo>/build/Debug/bin/dxc.exe",
+    "cmd": "<repo>/build/Debug/bin/dxc.exe -T cs_6_0 -E CSMain -Fh scratch-main-debug-non-library_control.h repro.hlsl",
+    "exit": 0,
+    "status": "valid",
+    "name": "g_CSMain",
+    "verdict": "no-repro"
+  }
+]

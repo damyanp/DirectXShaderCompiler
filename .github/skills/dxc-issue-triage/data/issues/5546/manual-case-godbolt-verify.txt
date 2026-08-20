@@ -1,0 +1,413 @@
+# Compiler Explorer panes for #5546, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E main
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   x   
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader debug name: 377d23414af1864803ad403f29f69470.pdb
+; shader hash: 377d23414af1864803ad403f29f69470
+;
+; Pipeline Runtime Information: 
+;
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+; Resource bind info for buf
+; {
+;
+;   uint $Element;                                    ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; buf                                   UAV  struct         r/w      U0             u0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 4, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWStructuredBuffer<unsigned int>" = type { i32 }
+
+define void @main() {
+  %buf_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !56 ; line:20 col:5  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 undef), !dbg !57 ; line:14 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !58, metadata !59), !dbg !57 ; var:"pos" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !58, metadata !59), !dbg !57 ; var:"pos" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  %2 = fcmp fast olt float %1, 0.000000e+00, !dbg !60 ; line:16 col:15
+  br i1 %2, label %3, label %4, !dbg !62 ; line:16 col:9
+
+; <label>:3                                       ; preds = %0
+  call void @dx.op.discard(i32 82, i1 true), !dbg !63 ; line:17 col:5  ; Discard(condition)
+  br label %4, !dbg !64 ; line:19 col:5
+
+; <label>:4                                       ; preds = %3, %0
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %buf_UAV_structbuf, i32 0, i32 0, i32 42, i32 undef, i32 undef, i32 undef, i8 1), !dbg !66 ; line:20 col:12  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float 1.000000e+00), !dbg !67 ; line:21 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float 1.000000e+00), !dbg !67 ; line:21 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float 1.000000e+00), !dbg !67 ; line:21 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float 1.000000e+00), !dbg !67 ; line:21 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !67 ; line:21 col:5
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.discard(i32, i1) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!26, !27}
+!llvm.ident = !{!28}
+!dx.source.contents = !{!29}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!30}
+!dx.source.args = !{!31}
+!dx.version = !{!32}
+!dx.valver = !{!33}
+!dx.shaderModel = !{!34}
+!dx.resources = !{!35}
+!dx.typeAnnotations = !{!39, !42}
+!dx.viewIdState = !{!45}
+!dx.entryPoints = !{!46}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !16, globals: !20)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, size: 128, align: 32, elements: !6, templateParams: !12)
+!6 = !{!7, !9, !10, !11}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !5, file: !1, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!12 = !{!13, !14}
+!13 = !DITemplateTypeParameter(name: "element", type: !8)
+!14 = !DITemplateValueParameter(name: "element_count", type: !15, value: i32 4)
+!15 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!16 = !{!17}
+!17 = !DISubprogram(name: "main", scope: !1, file: !1, line: 14, type: !18, isLocal: false, isDefinition: true, scopeLine: 15, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!18 = !DISubroutineType(types: !19)
+!19 = !{!4, !4}
+!20 = !{!21}
+!21 = !DIGlobalVariable(name: "buf", linkageName: "\01?buf@@3V?$RWStructuredBuffer@I@@A", scope: !0, file: !1, line: 12, type: !22, isLocal: false, isDefinition: true)
+!22 = !DICompositeType(tag: DW_TAG_class_type, name: "RWStructuredBuffer<unsigned int>", file: !1, line: 12, size: 32, align: 32, elements: !2, templateParams: !23)
+!23 = !{!24}
+!24 = !DITemplateTypeParameter(name: "element", type: !25)
+!25 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!26 = !{i32 2, !"Dwarf Version", i32 4}
+!27 = !{i32 2, !"Debug Info Version", i32 3}
+!28 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!29 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: in each DXC pane's disassembly, the RWStructuredBuffer write and every\0A// SV_Target component store sit in the merge block reached from *both* arms of the branch that\0A// tests `pos.x < 0` -- they execute unconditionally, whether or not the discard fires. There is\0A// no further conditional branch guarding them after the discard call. That is the structural\0A// evidence that `discard` does not skip/branch past subsequent statements the way an early\0A// `return` does (compare locally against control-return.hlsl in this issue's directory, where\0A// the equivalent write sits in a block reached from only one branch arm and is skipped on the\0A// early-return path).\0A//==========================================================================//\0A\0ARWStructuredBuffer<uint> buf : register(u0);\0A\0Afloat4 main(float4 pos : SV_Position) : SV_Target\0A{\0A    if (pos.x < 0)\0A    {\0A        discard;\0A    }\0A    buf[0] = 42;\0A    return float4(1,1,1,1);\0A}"}
+!30 = !{!"/app/example.hlsl"}
+!31 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug"}
+!32 = !{i32 1, i32 0}
+!33 = !{i32 1, i32 6}
+!34 = !{!"ps", i32 6, i32 0}
+!35 = !{null, !36, null, null}
+!36 = !{!37}
+!37 = !{i32 0, %"class.RWStructuredBuffer<unsigned int>"* undef, !"buf", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !38}
+!38 = !{i32 1, i32 4}
+!39 = !{i32 0, %"class.RWStructuredBuffer<unsigned int>" undef, !40}
+!40 = !{i32 4, !41}
+!41 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 5}
+!42 = !{i32 1, void ()* @main, !43}
+!43 = !{!44}
+!44 = !{i32 0, !2, !2}
+!45 = !{[6 x i32] [i32 4, i32 4, i32 0, i32 0, i32 0, i32 0]}
+!46 = !{void ()* @main, !"main", !47, !35, !55}
+!47 = !{!48, !52, null}
+!48 = !{!49}
+!49 = !{i32 0, !"SV_Position", i8 9, i8 3, !50, i8 4, i32 1, i8 4, i32 0, i8 0, !51}
+!50 = !{i32 0}
+!51 = !{i32 3, i32 1}
+!52 = !{!53}
+!53 = !{i32 0, !"SV_Target", i8 9, i8 16, !50, i8 0, i32 1, i8 4, i32 0, i8 0, !54}
+!54 = !{i32 3, i32 15}
+!55 = !{i32 0, i64 16}
+!56 = !DILocation(line: 20, column: 5, scope: !17)
+!57 = !DILocation(line: 14, column: 20, scope: !17)
+!58 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "pos", arg: 1, scope: !17, file: !1, line: 14, type: !4)
+!59 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!60 = !DILocation(line: 16, column: 15, scope: !61)
+!61 = distinct !DILexicalBlock(scope: !17, file: !1, line: 16, column: 9)
+!62 = !DILocation(line: 16, column: 9, scope: !17)
+!63 = !DILocation(line: 17, column: 5, scope: !61)
+!64 = !DILocation(line: 19, column: 5, scope: !65)
+!65 = distinct !DILexicalBlock(scope: !61, file: !1, line: 17, column: 5)
+!66 = !DILocation(line: 20, column: 12, scope: !17)
+!67 = !DILocation(line: 21, column: 5, scope: !17)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Position              0   xyzw        0      POS   float   x   
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader debug name: 802e288b015ac23e6ea69c9df5a67c8a.pdb
+; shader hash: 802e288b015ac23e6ea69c9df5a67c8a
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 1
+; SigOutputElements: 1
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 1
+; SigOutputVectors[0]: 1
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Position              0          noperspective       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+; Resource bind info for buf
+; {
+;
+;   uint $Element;                                    ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; buf                                   UAV  struct         r/w      U0             u0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 4, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWStructuredBuffer<unsigned int>" = type { i32 }
+
+define void @main() {
+  %buf_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !56 ; line:20 col:5  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 undef), !dbg !57 ; line:14 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !58, metadata !59), !dbg !57 ; var:"pos" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  %2 = fcmp fast olt float %1, 0.000000e+00, !dbg !60 ; line:16 col:15
+  br i1 %2, label %3, label %4, !dbg !62 ; line:16 col:9
+
+; <label>:3                                       ; preds = %0
+  call void @dx.op.discard(i32 82, i1 true), !dbg !63 ; line:17 col:5  ; Discard(condition)
+  br label %4, !dbg !64 ; line:19 col:5
+
+; <label>:4                                       ; preds = %3, %0
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %buf_UAV_structbuf, i32 0, i32 0, i32 42, i32 undef, i32 undef, i32 undef, i8 1), !dbg !66 ; line:20 col:12  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float 1.000000e+00), !dbg !67 ; line:21 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float 1.000000e+00), !dbg !67 ; line:21 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float 1.000000e+00), !dbg !67 ; line:21 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float 1.000000e+00), !dbg !67 ; line:21 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !67 ; line:21 col:5
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.discard(i32, i1) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!26, !27}
+!llvm.ident = !{!28}
+!dx.source.contents = !{!29}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!30}
+!dx.source.args = !{!31}
+!dx.version = !{!32}
+!dx.valver = !{!33}
+!dx.shaderModel = !{!34}
+!dx.resources = !{!35}
+!dx.typeAnnotations = !{!39, !42}
+!dx.viewIdState = !{!45}
+!dx.entryPoints = !{!46}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !3, subprograms: !16, globals: !20)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, baseType: !5)
+!5 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, size: 128, align: 32, elements: !6, templateParams: !12)
+!6 = !{!7, !9, !10, !11}
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !1, baseType: !8, size: 32, align: 32, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !5, file: !1, baseType: !8, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !5, file: !1, baseType: !8, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!11 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !5, file: !1, baseType: !8, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!12 = !{!13, !14}
+!13 = !DITemplateTypeParameter(name: "element", type: !8)
+!14 = !DITemplateValueParameter(name: "element_count", type: !15, value: i32 4)
+!15 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!16 = !{!17}
+!17 = !DISubprogram(name: "main", scope: !1, file: !1, line: 14, type: !18, isLocal: false, isDefinition: true, scopeLine: 15, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!18 = !DISubroutineType(types: !19)
+!19 = !{!4, !4}
+!20 = !{!21}
+!21 = !DIGlobalVariable(name: "buf", linkageName: "\01?buf@@3V?$RWStructuredBuffer@I@@A", scope: !0, file: !1, line: 12, type: !22, isLocal: false, isDefinition: true)
+!22 = !DICompositeType(tag: DW_TAG_class_type, name: "RWStructuredBuffer<unsigned int>", file: !1, line: 12, size: 32, align: 32, elements: !2, templateParams: !23)
+!23 = !{!24}
+!24 = !DITemplateTypeParameter(name: "element", type: !25)
+!25 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!26 = !{i32 2, !"Dwarf Version", i32 4}
+!27 = !{i32 2, !"Debug Info Version", i32 3}
+!28 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!29 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: in each DXC pane's disassembly, the RWStructuredBuffer write and every\0A// SV_Target component store sit in the merge block reached from *both* arms of the branch that\0A// tests `pos.x < 0` -- they execute unconditionally, whether or not the discard fires. There is\0A// no further conditional branch guarding them after the discard call. That is the structural\0A// evidence that `discard` does not skip/branch past subsequent statements the way an early\0A// `return` does (compare locally against control-return.hlsl in this issue's directory, where\0A// the equivalent write sits in a block reached from only one branch arm and is skipped on the\0A// early-return path).\0A//==========================================================================//\0A\0ARWStructuredBuffer<uint> buf : register(u0);\0A\0Afloat4 main(float4 pos : SV_Position) : SV_Target\0A{\0A    if (pos.x < 0)\0A    {\0A        discard;\0A    }\0A    buf[0] = 42;\0A    return float4(1,1,1,1);\0A}"}
+!30 = !{!"/app/example.hlsl"}
+!31 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug"}
+!32 = !{i32 1, i32 0}
+!33 = !{i32 1, i32 10}
+!34 = !{!"ps", i32 6, i32 0}
+!35 = !{null, !36, null, null}
+!36 = !{!37}
+!37 = !{i32 0, %"class.RWStructuredBuffer<unsigned int>"* undef, !"buf", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !38}
+!38 = !{i32 1, i32 4}
+!39 = !{i32 0, %"class.RWStructuredBuffer<unsigned int>" undef, !40}
+!40 = !{i32 4, !41}
+!41 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 5}
+!42 = !{i32 1, void ()* @main, !43}
+!43 = !{!44}
+!44 = !{i32 0, !2, !2}
+!45 = !{[6 x i32] [i32 4, i32 4, i32 0, i32 0, i32 0, i32 0]}
+!46 = !{void ()* @main, !"main", !47, !35, !55}
+!47 = !{!48, !52, null}
+!48 = !{!49}
+!49 = !{i32 0, !"SV_Position", i8 9, i8 3, !50, i8 4, i32 1, i8 4, i32 0, i8 0, !51}
+!50 = !{i32 0}
+!51 = !{i32 3, i32 1}
+!52 = !{!53}
+!53 = !{i32 0, !"SV_Target", i8 9, i8 16, !50, i8 0, i32 1, i8 4, i32 0, i8 0, !54}
+!54 = !{i32 3, i32 15}
+!55 = !{i32 0, i64 16}
+!56 = !DILocation(line: 20, column: 5, scope: !17)
+!57 = !DILocation(line: 14, column: 20, scope: !17)
+!58 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "pos", arg: 1, scope: !17, file: !1, line: 14, type: !4)
+!59 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!60 = !DILocation(line: 16, column: 15, scope: !61)
+!61 = distinct !DILexicalBlock(scope: !17, file: !1, line: 16, column: 9)
+!62 = !DILocation(line: 16, column: 9, scope: !17)
+!63 = !DILocation(line: 17, column: 5, scope: !61)
+!64 = !DILocation(line: 19, column: 5, scope: !65)
+!65 = distinct !DILexicalBlock(scope: !61, file: !1, line: 17, column: 5)
+!66 = !DILocation(line: 20, column: 12, scope: !17)
+!67 = !DILocation(line: 21, column: 5, scope: !17)

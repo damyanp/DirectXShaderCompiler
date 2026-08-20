@@ -1,0 +1,7 @@
+What to look for: both panes exit 5 (an ordinary diagnosed E_FAIL, not a crash) and both print
+identical text: "error: validation errors" followed by "error: SV_VertexID must be uint."
+dxc_1_6_2112 additionally warns that its CE image has no packaged DXIL.dll signer, which is a
+CE packaging limit unrelated to this bug -- the built-in validator still runs and produces the
+same diagnostic. The failure happens at the DXIL-validation stage, after DXIL has already been
+emitted, not as a compile-time (Sema) diagnostic. That stage is exactly what the issue asks to
+change: the type mismatch should be caught before validation, as an ordinary front-end error.

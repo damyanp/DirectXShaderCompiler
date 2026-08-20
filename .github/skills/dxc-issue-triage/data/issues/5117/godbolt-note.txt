@@ -1,0 +1,9 @@
+What to look for: this file has a use of an identifier that was never declared, so dxc must
+reject it. Compare the two panes below, which compile the exact same source.
+
+Pane 1 (plain compile) does reject it: exit 5, one error diagnostic naming the bad identifier.
+
+Pane 2 (identical command plus -MD -MF, which asks dxc to also write a header-dependency file)
+reports "<No output file>" -- no diagnostic at all, and an exit code of 0, as if the same
+source had compiled cleanly. Nothing about the shader changed between the two panes; only the
+dependency-dumping flags were added.

@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-07-05T14:27:12Z",
+  "godbolt_url": "https://godbolt.org/z/Y45Yhd3P5",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (all 20 probeable stable releases, linear scan, no invalid probes); corroborated today on Compiler Explorer dxc_trunk. -HV 2021 does NOT fix it (refuted hypothesis); only the experimental -HV 202x preview mode does. Same underlying defect as the earlier-filed and since-closed #5082.",
+  "labels": "bug,correctness",
+  "labels_add": "crash, type-system, hlsl-next, up-for-grabs",
+  "labels_now": "bug,correctness",
+  "notes_path": "issues/5389/notes.md",
+  "number": 5389,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "A bare, unsuffixed integer literal swizzled to a vector (e.g. (123).xx) stays 64-bit through the swizzle in DXC's default/pre-HLSL2021 language mode; feeding it to asuint/asint/asfloat produces a type-mismatched call that trips an assert in Debug builds and fails DXIL validation (Invalid record / Validation failed.) in Release builds. Always-repro'd across all 20 probeable stable releases and on current Compiler Explorer trunk. -HV 2021 does not fix it; only the newer, still-experimental -HV 202x preview mode does. Maintainer (damyanp) marked the issue dormant: fixed only by the HLSL 202x language change, would review a targeted codegen fix. The same defect closed #5082 (an earlier, related report) as resolved under identical HLSL-202x reasoning.",
+  "title": "`as` casts on integer constant swizzles result in invalid module bitcode (or assert in debug)",
+  "triaged_at": "2026-08-20T05:15:22+00:00",
+  "triaged_by": "claude-sonnet-4.6",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5389"
+}

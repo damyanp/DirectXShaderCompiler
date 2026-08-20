@@ -1,0 +1,23 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-10-25T09:21:32Z",
+  "godbolt_url": "https://godbolt.org/z/h5q7acrv9",
+  "history": "always-repro'd",
+  "labels": "bug,hlsl2021,tech-debt,check-in-clang",
+  "labels_add": "type-system",
+  "labels_now": "bug,hlsl2021,tech-debt,check-in-clang",
+  "labels_remove": "check-in-clang",
+  "notes_path": "data/issues/5924/notes.md",
+  "number": 5924,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Swizzle (.xx) on a template type parameter that resolves to a scalar fails with 'member reference base type is not a structure or union'; the same swizzle compiles fine when the parameter is declared as a literal scalar type or outside any template. Always-repro'd across every release with template support (v1.7.2308..v1.9.2607) and on main; templates did not exist before that. hlsl_clang_trunk (the new Clang-based HLSL frontend) compiles the exact repro cleanly, corroborating a prior maintainer comment that it works in clang.",
+  "title": "Cannot do swizzle operations with floating type when it's a typename",
+  "triaged_at": "2026-08-20T05:15:31+00:00",
+  "triaged_by": "claude-sonnet-4.6",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5924"
+}

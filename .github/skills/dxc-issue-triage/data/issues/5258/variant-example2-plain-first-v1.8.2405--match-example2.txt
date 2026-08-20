@@ -1,0 +1,58 @@
+# compiler: v1.8.2405
+# exe: <cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe
+# ran: 2026-08-19T20:11:27+00:00
+# cmd: -T lib_6_6 -HV 2021 control-example2-plain-first.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-example2.json
+# verdict: no-repro
+# variant: example2-plain-first (control-example2-plain-first.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc -T lib_6_6 -HV 2021 control-example2-plain-first.hlsl
+[exe] <cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+; shader hash: 23c6e8fe2750e69b9551ade2d3f29d49
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+; Function Attrs: nounwind readnone
+define i32 @"\01?SomeFuncUsingEnum@@YAHXZ"() #0 {
+  ret i32 0
+}
+
+attributes #0 = { nounwind readnone }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.typeAnnotations = !{!4}
+!dx.entryPoints = !{!9}
+
+!0 = !{!"dxcoob 1.8.2405.15 (fd7e54bcd)"}
+!1 = !{i32 1, i32 6}
+!2 = !{i32 1, i32 8}
+!3 = !{!"lib", i32 6, i32 6}
+!4 = !{i32 1, i32 ()* @"\01?SomeFuncUsingEnum@@YAHXZ", !5}
+!5 = !{!6}
+!6 = !{i32 1, !7, !8}
+!7 = !{i32 7, i32 4}
+!8 = !{}
+!9 = !{null, !"", null, null, null}
+
+
+--- stderr ---
+

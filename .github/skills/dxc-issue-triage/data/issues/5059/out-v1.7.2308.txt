@@ -1,0 +1,106 @@
+# compiler: v1.7.2308
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+# ran: 2026-08-19T19:22:28+00:00
+# cmd: -T cs_6_3 -ECSMain repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_3 -ECSMain repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: 493a4d4038add1a0e724b32c342ebe86
+;
+; Pipeline Runtime Information: 
+;
+; Compute Shader
+; NumThreads=(8,8,1)
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; IOBuffer                              UAV    byte         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%struct.RWByteAddressBuffer = type { i32 }
+
+define void @CSMain() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32 139, %dx.types.Handle %1, i32 0, i32 undef, i8 1, i32 4)  ; RawBufferLoad(srv,index,elementOffset,mask,alignment)
+  %3 = extractvalue %dx.types.ResRet.i32 %2, 0
+  %4 = icmp eq i32 %3, 0
+  br i1 %4, label %14, label %5
+
+; <label>:5                                       ; preds = %0
+  %6 = add i32 %3, -1
+  %7 = zext i32 %6 to i33
+  %8 = add i32 %3, -2
+  %9 = zext i32 %8 to i33
+  %10 = mul i33 %7, %9
+  %11 = lshr i33 %10, 1
+  %12 = trunc i33 %11 to i32
+  %13 = add i32 %3, %12
+  br label %14
+
+; <label>:14                                      ; preds = %5, %0
+  %15 = phi i32 [ 1, %0 ], [ %13, %5 ]
+  call void @dx.op.rawBufferStore.i32(i32 140, %dx.types.Handle %1, i32 1, i32 undef, i32 %15, i32 undef, i32 undef, i32 undef, i8 1, i32 4)  ; RawBufferStore(uav,index,elementOffset,value0,value1,value2,value3,mask,alignment)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.rawBufferLoad.i32(i32, %dx.types.Handle, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.rawBufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #0
+
+attributes #0 = { nounwind readonly }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!7}
+
+!0 = !{!"dxcoob 1.7.2308.7 (69e54e290)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 7}
+!3 = !{!"cs", i32 6, i32 3}
+!4 = !{null, !5, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %struct.RWByteAddressBuffer* undef, !"", i32 0, i32 0, i32 1, i32 11, i1 false, i1 false, i1 false, null}
+!7 = !{void ()* @CSMain, !"CSMain", null, !4, !8}
+!8 = !{i32 0, i64 16, i32 4, !9}
+!9 = !{i32 8, i32 8, i32 1}
+
+
+--- stderr ---
+

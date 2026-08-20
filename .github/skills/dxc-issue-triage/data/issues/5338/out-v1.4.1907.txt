@@ -1,0 +1,16 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-19T20:07:49+00:00
+# cmd: -T vs_6_0 repro.hlsl
+# exit: 0
+# timed_out: 1
+# match: match.json
+# verdict: repro
+
+$ dxc -T vs_6_0 repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] TIMEOUT
+--- stdout ---
+
+--- stderr ---
+

@@ -1,0 +1,19 @@
+# compiler: main-debug-fh
+# exe: <triage>/issues/5072/fh-header-check.cmd
+# ran: 2026-08-19T19:20:33+00:00
+# cmd: -T cs_6_0 -E CSMain -Fh out-header-cs.h repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: non-library-control (repro.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E CSMain -Fh out-header-cs.h repro.hlsl
+[exe] <triage>/issues/5072/fh-header-check.cmd
+[exit] 0
+--- stdout ---
+FH-HARNESS: IDENTIFIER-VALID name='g_CSMain'
+
+--- stderr ---
+

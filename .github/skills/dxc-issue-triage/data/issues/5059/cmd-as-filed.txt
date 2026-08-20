@@ -1,0 +1,1 @@
+-T lib_6_3 repro.hlsl -Fc i33.dxil.txt

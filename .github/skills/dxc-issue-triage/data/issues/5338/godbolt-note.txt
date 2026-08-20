@@ -1,0 +1,14 @@
+What to look for: this shader casts an `out float4[2]` parameter to `float[8]`
+inside an [unroll] loop. FXC (fxc_10_0_19041 pane) accepts it silently -- that
+is the reporter's whole complaint, that legacy HLSL compilers took this
+without a type-cast error. The dxc_1_6_2112 pane is CE's oldest available DXC
+and sits inside this issue's transient "no crash" release window
+(v1.5.2010..v1.6.2112, see notes.md): it does NOT crash, but it also does not
+compile cleanly -- look for "error: validation errors" /
+"Not all elements of output SV_ClipDistance were written". The dxc_trunk pane
+is expected to reproduce the reporter's crash text verbatim,
+"llvm::cast<X>() argument of incompatible type!" (Release build; the
+project's local Debug ground truth instead traps a RewriteBitCast assertion,
+which CE cannot show because CE ships Release builds only). Do not read a
+clean-looking dxc_1_6_2112 pane as "fixed" -- it is a different failure, not
+success.

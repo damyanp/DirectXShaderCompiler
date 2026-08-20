@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "cannot compile this aggregate expression yet",
+  "note": "Exact diagnostic quoted verbatim in the issue body. Emitted by AggExprEmitter::VisitStmt's generic fallback (tools/clang/lib/CodeGen/CGExprAgg.cpp), which calls CGF.ErrorUnsupported(S, \"aggregate expression\") -> CodeGenModule.cpp's format string \"cannot compile this %0 yet\". CGExprAgg.cpp has no VisitCXXThisExpr override (unlike CGExprScalar.cpp, which does), so a struct-typed `this` used as a whole aggregate (returned by value or assigned by value) falls through to VisitStmt. This is an ordinary Clang diagnostic delivered through the normal error path (ExitCode E_FAIL, 0x80004005) -- not a crash/assert -- so `contains` is the right predicate kind, not internal_failure. Control: control-this-member.hlsl exercises `this.value` member access (already-working per the issue and the maintainer's comment) and must NOT match."
+}

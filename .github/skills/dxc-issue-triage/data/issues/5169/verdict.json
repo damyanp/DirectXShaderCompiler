@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-04-21T16:27:44Z",
+  "expected_symptom": "external/DirectX-Headers d3dcommon.h has no D3D_SVC_BIT_FIELD member and DXC's #define ADD_SVC_BIT_FIELD workaround (with its FIXME) is still present unconditionally in lib/HLSL/DxilContainerReflection.cpp and lib/DxilContainer/D3DReflectionStrings.cpp",
+  "godbolt_skip": "no HLSL repro applies: this is a request to add D3D_SVC_BIT_FIELD to the vendored D3D_SHADER_VARIABLE_CLASS header enum, not a compiler-behavior issue. DXC already synthesizes the same reflection value via a local #define regardless of the header, so a shader compiled on Compiler Explorer would show identical output whether or not the header is fixed -- nothing to see. See expected.md and notes.md.",
+  "history": "always-repro'd",
+  "labels": "bug,hlsl2021,reflection",
+  "labels_now": "bug,hlsl2021,reflection",
+  "notes_path": "issues\\5169\\notes.md",
+  "number": 5169,
+  "repro_quality": "none",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "D3D_SVC_BIT_FIELD is still absent from D3D_SHADER_VARIABLE_CLASS in the vendored external/DirectX-Headers d3dcommon.h; DXC still synthesizes it via an unconditional #define with the original FIXME from #5142, unchanged since that PR merged (2023-05-05) through main-debug@89e2f98e.",
+  "title": "Add D3D_SVC_BIT_FIELD to D3D_SHADER_VARIABLE_CLASS",
+  "triaged_at": "2026-08-20T05:15:17+00:00",
+  "triaged_by": "claude-sonnet-4.6",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5169"
+}

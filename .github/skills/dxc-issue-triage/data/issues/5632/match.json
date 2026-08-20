@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Issue #5632 / ask A: maintainer-confirmed 'DXC crashes when generating DXIL for this code' (llvm-beanz, 2023-08-31). Use internal_failure (exit-status based, not message text) per the skill's crash-classification guidance, since the same defect can surface as a trapped assert on a Debug build or an access violation / llvm_unreachable on a Release build."
+}

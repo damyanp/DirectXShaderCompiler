@@ -1,0 +1,10 @@
+What to look for: this source is compiled four times -- `vs_6_0` on two DXC versions, then
+`ps_6_0` on the same two versions, with the same waterfall-loop body (WaveReadLaneFirst +
+conditional break around a resource load).
+
+In the `ps_6_0` panes, the loop keeps a phi-based accumulator and the resource load stays
+inside the loop, guarded by an extra branch fed from a module-level internal constant array
+declared just before `define void @main()`. In the `vs_6_0` panes there is no such constant,
+no extra guard branch, and no accumulator phi: the resource load and its dependent input load
+are hoisted out of the loop into a single straight-line pass. Same source, same optimizer,
+different shader stage -- only the stage changes which shape comes out.

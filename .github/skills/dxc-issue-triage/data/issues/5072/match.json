@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "FH-HARNESS: IDENTIFIER-INVALID",
+  "note": "Scored against fh-header-check.py's stdout, not dxc's own stdout/stderr directly: -Fh writes its header only to a file, so no plain dxc output predicate could see the identifier at all (SKILL.md step 3). The harness runs the real dxc with cmd.txt's exact arguments, reads back whatever file -Fh named, and prints IDENTIFIER-INVALID only when it found a 'const unsigned char <name>[] =' declaration whose name fails ^[A-Za-z_][A-Za-z0-9_]*$ -- i.e. only when the header was actually produced and its declared name is genuinely not a legal C/C++ identifier. If the reader cannot find any declaration line, it prints a distinct 'no-declaration' self-test-failure line that satisfies neither this clause nor its negation, so a broken reader cannot manufacture either a false match or a false clean run. The -Vn control (label vn-control, --expect no-match) exercises the same reader's IDENTIFIER-VALID branch and proves it can report a clean result when the identifier problem is worked around, exactly as the issue describes."
+}

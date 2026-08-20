@@ -1,0 +1,1 @@
+-T ps_6_1 -E VCMain -DUSE_GET_ATTRIBUTE_AT_VERTEX repro.hlsl

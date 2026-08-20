@@ -1,0 +1,24 @@
+# Compiler Explorer panes for #6016, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T hs_6_0 -E Hull
+# exit:     5
+
+<source>:19:1: error: Failed to allocate all input signature elements in available space.
+ControlPoint Hull(InputPatch<ControlPoint, 1> v,
+^
+<source>:19:1: error: Failed to allocate all output signature elements in available space.
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T hs_6_0 -E Hull
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>

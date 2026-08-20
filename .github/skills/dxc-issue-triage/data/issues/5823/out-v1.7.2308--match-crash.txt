@@ -1,0 +1,18 @@
+# compiler: v1.7.2308
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+# ran: 2026-08-19T23:34:07+00:00
+# cmd: -HV 202x -T ps_6_7 -E PSMain -spirv repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-crash.json
+# verdict: no-repro
+
+$ dxc -HV 202x -T ps_6_7 -E PSMain -spirv repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: casting to type 'void' unimplemented
+
+

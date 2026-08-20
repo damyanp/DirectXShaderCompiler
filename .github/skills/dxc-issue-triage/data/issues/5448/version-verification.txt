@@ -1,0 +1,31 @@
+# Ground-truth provenance verification for issue 5448
+
+Registered compiler: main-debug
+Registry: .cache/compilers/main-debug.json (via 'triage.py compiler')
+Executable: build\Debug\bin\dxc.exe
+dxc --version output: dxcompiler.dll: 1.10(5465-7665270b)(1.9.0.5465) - 1.9.0.5465 (triage, 7665270b9)
+
+Local HEAD: ced72eee367189d37543579a6315b9a50f70af5d
+Cited public upstream commit: 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+
+## Tree-equivalence check (the check that matters, not the self-reported SHA)
+
+git diff --name-only 89e2f98e29c289ae8ad9e00dd310104fea9fd7df HEAD -- .   (excluding .github/skills/dxc-issue-triage/)
+  -> files outside the skill dir: 0
+  
+
+CONTROL -- same query against the ground-truth commit's own parent, which must
+show a real difference (proves the diff command can detect one):
+
+git diff --name-only 89e2f98e29c289ae8ad9e00dd310104fea9fd7df^ HEAD -- .   (excluding .github/skills/dxc-issue-triage/)
+  -> files outside the skill dir:
+  tools/clang/unittests/HLSLExec/LinAlgTests.cpp
+  (this is exactly the one file 89e2f98e2 itself touched --
+   tools/clang/unittests/HLSLExec/LinAlgTests.cpp -- confirming the query is
+   sensitive and the zero-diff result above is not a broken query)
+
+Conclusion: main-debug's source tree is identical to public upstream
+89e2f98e29c289ae8ad9e00dd310104fea9fd7df outside this skill directory. The binary self-reports a
+fork-local merge commit (7665270b9 above), which resolves for nobody else;
+89e2f98e29c289ae8ad9e00dd310104fea9fd7df is the upstream commit the source corresponds to and is
+what is cited throughout this issue's artifacts.

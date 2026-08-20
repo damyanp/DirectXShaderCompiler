@@ -1,0 +1,1 @@
+-T cs_6_6 -HV 2021 -E main repro.hlsl

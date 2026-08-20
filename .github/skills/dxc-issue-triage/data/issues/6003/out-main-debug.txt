@@ -1,0 +1,20 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-20T00:31:26+00:00
+# cmd: -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -O0 -Zi repro.hlsl -Fo shader.spv
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -O0 -Zi repro.hlsl -Fo shader.spv
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:6:5: warning: ignoring return value of function that only reads data [-Wunused-value]
+    texture_.SampleLevel(sampler_, float2(0.3f, 0.4f), 0);
+    ^~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+

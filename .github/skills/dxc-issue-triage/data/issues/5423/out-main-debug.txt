@@ -1,0 +1,35 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T20:44:27+00:00
+# cmd: -T ps_6_0 -E PSMain -D float4=0 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E PSMain -D float4=0 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:3:5: error: expected member name or ';' after declaration specifiers
+    float4 position : SV_Position;
+    ^
+<built-in>:66:16: note: expanded from here
+#define float4 0
+               ^
+repro.hlsl:4:5: error: expected member name or ';' after declaration specifiers
+    float4 color    : COLOR0;
+    ^
+<built-in>:66:16: note: expanded from here
+#define float4 0
+               ^
+repro.hlsl:7:1: error: expected unqualified-id
+float4 PSMain(PSInput input) : SV_Target0
+^
+<built-in>:66:16: note: expanded from here
+#define float4 0
+               ^
+
+

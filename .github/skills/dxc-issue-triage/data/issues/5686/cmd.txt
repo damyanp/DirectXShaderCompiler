@@ -1,0 +1,2 @@
+-T lib_6_x -Fo as.lib repro.hlsl
+-T as_6_6 -link as.lib

@@ -1,0 +1,1 @@
+-remove-unused-functions -remove-unused-globals -E ps_main repro.hlsl

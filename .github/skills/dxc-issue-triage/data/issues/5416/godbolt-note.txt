@@ -1,0 +1,9 @@
+What to look for: this compiles a completely ordinary, valid lib_6_7 shader
+with "-MD -MF repro.d -Fo repro.cso". A correct compile with -Fo should
+produce an object file and Compiler Explorer's DXC pane would then show its
+disassembly. Instead, on dxc_trunk the pane reads "<No output file>" at exit
+0 -- no diagnostic, no disassembly, nothing -- because requesting the
+dependency file makes dxc skip compilation entirely and return success before
+ever reaching the -Fo write. dxc_1_6_2112 instead rejects -MD as an unknown
+argument, because that release predates the flag; it is shown for contrast,
+not as a second instance of the bug.

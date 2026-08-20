@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T23:14:35+00:00
+# cmd: -T ps_6_0 -E PSMain control-badconv.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: badconv (control-badconv.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E PSMain control-badconv.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-badconv.hlsl:7:7: error: cannot initialize a variable of type 'E' with an rvalue of type 'literal int'
+    E e = 5;
+      ^   ~
+
+

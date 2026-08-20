@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "DXIL container does not contain the given part",
+  "note": "Verbatim error text quoted in the issue body. This is a driver-reported error (`dxc failed : ...`, exit 1 / E_FAIL) from the link step, not a crash -- so this uses `contains`, not `internal_failure`. Because the symptom text IS the quoted diagnostic and the predicate carries no absence clause, `classify`'s unsupported-diagnostic demotion (SKILL.md's #3055/#1627 rule) does not apply here regardless of polarity. Control: the same two-step build WITHOUT -Qstrip_debug on the link line must not match (see variant-no-strip-debug), proving the failure is specific to combining -Fd with -Qstrip_debug rather than to linking in general."
+}

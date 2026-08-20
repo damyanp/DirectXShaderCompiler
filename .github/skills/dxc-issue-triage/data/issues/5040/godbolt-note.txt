@@ -1,0 +1,6 @@
+What to look for: in every pane's disassembly, the `dx.op.bufferLoad.i32` call for
+`b.Load(X)` has BOTH coordinate operands set to the undef placeholder -- the load index
+itself was never given a value. No pane emits any diagnostic (warning or error) about the
+uninitialized local that feeds that index; the only text in the older-DXC pane is an
+unrelated signing notice. Compare against an initialized-index build (not shown here): its
+first coordinate operand is a concrete constant instead.

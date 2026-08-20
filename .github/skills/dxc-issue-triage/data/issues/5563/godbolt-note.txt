@@ -1,0 +1,5 @@
+What to look for: compare exit status, not just the first line. dxc 1.6.2112
+(CE's oldest) fails the exact filed command with a nonzero exit and a fatal
+diagnostic pointing at the partially-specialized template's PARAM1 parameter
+declaration. dxc_trunk exits 0 and emits a complete SPIR-V module for PSMain,
+ending in OpFunctionEnd, with no diagnostic at all.

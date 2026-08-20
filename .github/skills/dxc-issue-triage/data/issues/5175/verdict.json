@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-04-25T12:11:09Z",
+  "godbolt_skip": "IDxcCursor is a COM intellisense interface with no dxc.exe CLI surface and no CE-exposed pane; CE compiles source and shows diagnostics/IR, it cannot walk cursors. repro.hlsl compiles cleanly (variant-valid-template-source-main-debug.txt), so a CE pane would only show that, not the API-surface gap.",
+  "history": "always-repro'd since IDxcCursor's introduction (first commit) through main (89e2f98e29c289ae8ad9e00dd310104fea9fd7df); confirmed by source inspection, not release bisection -- IDxcCursor is a COM interface with no dxc.exe CLI surface to probe across releases",
+  "labels": "enhancement",
+  "labels_add": "api, up-for-grabs",
+  "labels_now": "enhancement",
+  "notes_path": "issues/5175/notes.md",
+  "number": 5175,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "IDxcCursor (include/dxc/dxcisense.h) still has no GetNumTemplateArguments/GetTemplateArgumentKind/GetTemplateArgumentValue-style methods; only generic GetNumArguments/GetArgumentAt (wrapping clang_Cursor_getNumArguments/getArgument) and a name-formatting flag exist. The underlying clang_Cursor_getNumTemplateArguments family already exists in this fork's libclang (CXCursor.cpp) but is still the pre-D134416 form gated to CXCursor_FunctionDecl via FunctionTemplateSpecializationInfo, so it would not by itself serve a class-template cursor like the reporter's Foo<float,-2,3> even if wired to IDxcCursor. git log of both dxcisense.h and CXCursor.cpp shows no template-argument-querying change was ever made. Matches maintainer llvm-beanz's 2023-07-13 comment: low priority, patches welcome.",
+  "title": "IDxcCursor does not support template parameter and template argument querying",
+  "triaged_at": "2026-08-20T05:15:18+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5175"
+}

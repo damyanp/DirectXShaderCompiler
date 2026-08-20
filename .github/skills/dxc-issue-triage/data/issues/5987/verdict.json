@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-11-08T11:38:58Z",
+  "godbolt_url": "https://godbolt.org/z/YoavsEvns",
+  "history": "always-repro'd across every release able to compile the as_6_7 profile (v1.7.2207..v1.9.2607); older releases reject the profile itself (invalid-probe), so this is unmeasurable before, always-crashing after",
+  "labels": "bug,dxil,crash",
+  "labels_now": "bug,dxil,crash",
+  "notes_path": "issues/5987/notes.md",
+  "number": 5987,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Assigning a whole struct value into a member (itself a nested struct) of a groupshared amplification-shader payload crashes dxc: Debug main-debug (89e2f98e2) traps an assert in SROA_Helper::RewriteBitCast (ScalarReplAggregatesHLSL.cpp:2630, identical file/line/message to #5338's assert -- flagged for collation, not asserted as duplicate here); Release-style builds hit the reporter's exact 'error: llvm::cast<X>() argument of incompatible type!' verbatim, reproduced from v1.7.2207 (oldest release able to compile as_6_7) through v1.9.2607 and on Compiler Explorer trunk today. Both of the reporter's own workarounds (comment out the assignment; unwrap the struct) were re-verified as clean negative controls.",
+  "title": "Error assigning struct into amplification payload",
+  "triaged_at": "2026-08-20T05:15:32+00:00",
+  "triaged_by": "GitHub Copilot CLI (model not self-identifiable)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5987"
+}

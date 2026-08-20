@@ -1,0 +1,38 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T23:41:29+00:00
+# cmd: -T cs_6_8 -E main -spirv variant-primary-template-fix-test.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-crash.json
+# verdict: no-repro
+# variant: primary-template-illegal-static-unused (variant-primary-template-fix-test.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc -T cs_6_8 -E main -spirv variant-primary-template-fix-test.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 5
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main"
+               OpExecutionMode %main LocalSize 1 1 1
+               OpSource HLSL 680
+               OpName %main "main"
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %main = OpFunction %void None %3
+          %4 = OpLabel
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

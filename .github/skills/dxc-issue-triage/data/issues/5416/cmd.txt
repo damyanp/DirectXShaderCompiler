@@ -1,0 +1,1 @@
+-T lib_6_7 -O3 -MD -MF repro.d -Fo repro.cso repro.hlsl

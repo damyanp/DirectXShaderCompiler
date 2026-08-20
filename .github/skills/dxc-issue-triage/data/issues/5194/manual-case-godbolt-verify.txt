@@ -1,0 +1,54 @@
+# Compiler Explorer panes for #5194, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -spirv -HV 2021 -T cs_6_2 -E main
+# exit:     5
+
+<source>:21:5: error: no matching function for call to object of type 'Test'
+    t(5);
+    ^
+<source>:22:7: error: unexpected type name 'uint': expected expression
+    t<uint>(5);
+      ^
+<source>:23:7: error: no matching member function for call to 'operator()'
+    t.operator()<uint>(5);
+    ~~^~~~~~~~~~~~~~~~
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -spirv -HV 2021 -T cs_6_2 -E main
+# exit:     5
+
+<source>:21:5: error: no matching function for call to object of type 'Test'
+    t(5);
+    ^
+<source>:22:7: error: unexpected type name 'uint': expected expression
+    t<uint>(5);
+      ^
+<source>:23:7: error: no matching member function for call to 'operator()'
+    t.operator()<uint>(5);
+    ~~^~~~~~~~~~~~~~~~
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -spirv -HV 2021 -T cs_6_2 -E main
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[0;1;35mwarning: [0m[1msupport for HLSL language version hlsl2021 is incomplete, recommend using hlsl202x instead[0m
+[1m<source>:22:5: [0m[0;1;31merror: [0m[1m't' does not name a template but is followed by template arguments[0m
+   22 |     t<uint>([0;32m5[0m);[0m
+      | [0;1;32m    ^~~~~~~
+[0m[1m<source>:20:10: [0m[0;1;36mnote: [0mnon-template declaration found by name lookup[0m
+   20 |     Test t;[0m
+      | [0;1;32m         ^
+[0m1 warning and 1 error generated.
+<Compilation failed>

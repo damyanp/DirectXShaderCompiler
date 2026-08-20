@@ -1,0 +1,7 @@
+What to look for: dxc_1_6_2112 (CE's oldest DXC, Linux Release) terminates with signal
+SIGSEGV (CE-reported exit 139) compiling this source with -T ps_6_2 -E f -- the Linux face of
+the crash the issue reports (Windows access violation / bad-cast text, all classified as
+internal_failure). dxc_trunk instead prints a clean front-end diagnostic, "error: recursive
+functions are not allowed: function 'f' calls recursive function 'f'", and stops before
+reaching the code that used to crash. That diagnostic, not any absence of output, is the
+signal that this is now rejected rather than crashed on.

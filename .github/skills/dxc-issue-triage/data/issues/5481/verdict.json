@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-07-31T22:37:36Z",
+  "godbolt_skip": "pure build/CI infrastructure request; no shader or dxc.exe command line applies -- CE cannot exercise a Windows cmake/CI coverage pipeline",
+  "history": "not-attempted -- no dxc.exe command line applies; build/CI infrastructure request only",
+  "labels": "enhancement,build",
+  "labels_add": "ci",
+  "labels_now": "enhancement,build",
+  "notes_path": "data\\issues\\5481\\notes.md",
+  "number": 5481,
+  "repro_quality": "none",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Windows clang Source-Based Code Coverage remains unimplemented at ground truth: the only coverage CI job (coverage-gh-pages.yml) and its cache script (PredefinedParams.cmake) are Linux-only, and closed PR #5510's matching Windows fix (single-quoted -fprofile-instr-generate flag, Python3_EXECUTABLE vs PYTHON_EXECUTABLE) was never merged -- all three of its target lines are unchanged on main.",
+  "title": "[Build] enable clang Source Based Code Coverage on windows",
+  "triaged_at": "2026-08-20T05:15:24+00:00",
+  "triaged_by": "Claude Sonnet 4.6 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5481"
+}

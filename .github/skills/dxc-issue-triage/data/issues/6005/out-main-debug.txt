@@ -1,0 +1,17 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-20T00:27:54+00:00
+# cmd: -spirv -HV 202x -T cs_6_7 -Zpr -enable-16bit-types -fvk-use-scalar-layout -Wno-c++11-extensions -Wno-c++1z-extensions -Wno-gnu-static-float-init -fspv-target-env=vulkan1.3 -fspv-debug=source -fspv-debug=tool repro.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -spirv -HV 202x -T cs_6_7 -Zpr -enable-16bit-types -fvk-use-scalar-layout -Wno-c++11-extensions -Wno-c++1z-extensions -Wno-gnu-static-float-init -fspv-target-env=vulkan1.3 -fspv-debug=source -fspv-debug=tool repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

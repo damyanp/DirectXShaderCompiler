@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "cannot convert from 'unsigned int' to 'E'",
+  "note": "Verbatim diagnostic text from the issue: E is an explicitly-typed, non-`class` (unscoped) enum, and `E::A << 1u` is misdiagnosed as a failed conversion of the shift result back to E. The reported symptom IS a diagnostic, so this predicate quotes it verbatim (see SKILL.md 'The markers break down on an issue whose reported symptom IS a diagnostic' -- classify() only suppresses the invalid-probe demotion for markers that a positive clause of match.json quotes verbatim, so an old release rejecting this shader for an unrelated reason, e.g. because it does not parse unscoped enums with an explicit underlying type at all, must NOT be conflated with this specific misdiagnosis)."
+}

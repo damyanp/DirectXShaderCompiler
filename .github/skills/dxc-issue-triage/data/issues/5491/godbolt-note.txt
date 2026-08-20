@@ -1,0 +1,4 @@
+Discarded wave-intrinsic result. The call to WaveReadLaneFirst (dx.op.waveReadLaneFirst) is
+kept in the emitted DXIL even though its result is never used -- look at the `define void
+@main()` body: the wave-op call is immediately followed by `ret void`, with nothing consuming
+its return value. Reported as unexpected because the compiler otherwise removes dead code.

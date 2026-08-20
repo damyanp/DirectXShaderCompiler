@@ -1110,6 +1110,7 @@ UNSUPPORTED_MARKER_RE = (
     r"(?i)invalid profile|unsupported profile|unrecognized (?:argument|option)|"
     r"unknown argument|unknown HLSL version(?::\s*[^\r\n]+)?|"
     r"unknown SPIR-V debug info control parameter(?::\s*[^\r\n]+)?|"
+    r"unknown SPIR-V target environment(?:\s+'[^'\r\n]*')?|"
     r"requires shader model|"
     r"is not supported (?:for|on|in|with) "
     r"(?:the current |this |target )*(?:target|profile|shader model|stage)|"
@@ -1379,8 +1380,15 @@ def _tree_hashes(root):
     return result
 
 
-def _local_file_token(root, token):
-    """Resolve a command-line file token only when it is inside the issue."""
+def _local_file_token(root, token, require_exists=True):
+    """Resolve a command-line file token only when it is inside the issue.
+
+    `require_exists=False` resolves the same relative path even when nothing
+    is there yet -- used to name a declared *output* before it has been
+    written, so it normalises identically to an existing input's path and
+    the two are safely comparable as plain strings (see
+    `declared_output_tokens`).
+    """
     if token.startswith("@"):
         token = token[1:]
     path = token if os.path.isabs(token) else os.path.join(root, token)
@@ -1390,7 +1398,9 @@ def _local_file_token(root, token):
             return None
     except ValueError:
         return None
-    return os.path.relpath(path, root) if os.path.isfile(path) else None
+    if require_exists and not os.path.isfile(path):
+        return None
+    return os.path.relpath(path, root)
 
 
 def probe_input_paths(root, cmds):
@@ -1429,6 +1439,45 @@ def _sync_probe_outputs(source, scratch, before, after, protected):
         shutil.copy2(src, dst)
 
 
+def declared_output_tokens(root, cmds):
+    """Files this command list both writes as an output AND reads again
+    elsewhere -- the shape a later line depends on an earlier one's artifact.
+
+    Deliberately narrower than "every output flag's value": a file that is
+    named only once, as one line's own output, is exactly what a
+    spelling-retry probe pre-arms to test whether an old release's parser
+    treats its mere presence differently (see the `-P`/`-Fi` regression
+    test) -- clearing it would defeat that test's premise and is not the
+    hazard this function exists for. The hazard is a *pipeline*: one line
+    produces a file another line consumes, so its role must be established
+    from the whole command list, not from a single occurrence. Not requiring
+    the file to already exist (unlike `probe_input_paths`) is what lets this
+    run before anything has been produced yet; the same `_local_file_token`
+    normalisation keeps both sets comparable as plain strings.
+    """
+    outputs, consumed = set(), set()
+    for line in cmds:
+        toks, _ = command_token_roles(line)
+        i = 0
+        while i < len(toks):
+            arity = option_arity(toks[i])
+            key = option_key(toks[i])
+            for j in range(1, arity + 1):
+                if i + j >= len(toks):
+                    break
+                rel = _local_file_token(root, toks[i + j],
+                                        require_exists=False)
+                if not rel:
+                    continue
+                (outputs if key in OUTPUT_VALUE_FLAGS else consumed).add(rel)
+            if arity == 0:
+                rel = _local_file_token(root, toks[i], require_exists=False)
+                if rel:
+                    consumed.add(rel)
+            i += 1 + arity
+    return outputs & consumed
+
+
 def _run_probe_command_list(exe, d, cmds, protect_cmds=None,
                             sync_outputs=False):
     """Run one probe in an isolated copy and reject input mutation.
@@ -1438,6 +1487,23 @@ def _run_probe_command_list(exe, d, cmds, protect_cmds=None,
     zero. Every attempt now runs in a fresh copy, and every file named as an
     input by the requested command is hashed before and after. Only generated
     outputs are copied back after a safe run.
+
+    A multi-line `cmd.txt` can chain steps through an intermediate file --
+    compile to a container, link it, then read the link's output. Every
+    release probed in one `bisect`/`run` sweep shares this same issue
+    directory as its scratch seed, and dxc only rewrites a `-Fo`-style target
+    on success. So a release whose own earlier line fails leaves nothing to
+    say so: the next line silently reads whatever a *different* release's
+    successful probe already left behind, and a well-formed read of stale
+    data scores exactly like a reproduction. Measured on #5704: two releases
+    captured in the same sweep, one with a failed `-link`, produced
+    byte-identical `-dumpbin` output -- including the older release's own
+    embedded validator-version metadata -- because the newer one disassembled
+    the older one's leftover `linked.bc` instead of its own (never-produced)
+    one. Clearing every file this command list declares as an output before
+    running closes that: a failure to regenerate it is then a genuine
+    absence for the next line to react to, not a silent reuse of a stranger's
+    artifact.
     """
     scratch_root = os.path.join(CACHE_ROOT, "scratch")
     os.makedirs(scratch_root, exist_ok=True)
@@ -1446,6 +1512,10 @@ def _run_probe_command_list(exe, d, cmds, protect_cmds=None,
         f"probe-{os.path.basename(d)}-{os.getpid()}-{time.time_ns()}")
     protected = probe_input_paths(d, protect_cmds or cmds)
     shutil.copytree(d, scratch)
+    for rel in declared_output_tokens(d, cmds) - protected:
+        stale = os.path.join(scratch, rel)
+        if os.path.isfile(stale):
+            os.remove(stale)
     before = _tree_hashes(scratch)
     try:
         rc, timed_out, text, observations = _run_command_list(exe, scratch, cmds)
@@ -2050,6 +2120,47 @@ def mid_history_window_warning(issue_data, release_rows, first_tag, last_tag,
     return None
 
 
+def describe_linear_result(usable, skipped, excluded_note):
+    """Turn a `--linear` scan's per-release results into the result line.
+
+    Pure and side-effect-free so it can be tested without a real release
+    catalog or compiler: `usable` is `[(tag, bool), ...]` in release order.
+
+    A run of length 2 (exactly one transition) is an ordinary regression or
+    fix, not real oscillation -- #4871 measured this being reported as
+    "non-monotonic history", which reads like a fix-then-revert that never
+    happened. Name it the same way binary search does instead, and reserve
+    "non-monotonic" for a run of length 3 or more, where more than one
+    transition actually occurred.
+    """
+    runs, run_indices = [usable[0]], [0]
+    for i, (tag, v) in enumerate(usable[1:], start=1):
+        if v != runs[-1][1]:
+            runs.append((tag, v))
+            run_indices.append(i)
+    note_bits = []
+    if skipped:
+        note_bits.append(
+            f"{skipped} release(s) in the search skipped as unprobeable")
+    if excluded_note:
+        note_bits.append(excluded_note)
+    note = f" ({'; '.join(note_bits)})" if note_bits else ""
+    if len(runs) == 1:
+        state = f"{'always' if runs[0][1] else 'never'}-repro'd"
+        return f"result: {state} across {usable[0][0]}..{usable[-1][0]}{note}", state
+    if len(runs) == 2:
+        boundary_tag, boundary_val = runs[1]
+        prior_tag = usable[run_indices[1] - 1][0]
+        if boundary_val:
+            return (f"result: regressed-in {boundary_tag} "
+                    f"(last good: {prior_tag}{note})", None)
+        return (f"result: fixed-in {boundary_tag} "
+                f"(last repro: {prior_tag}{note})", None)
+    return ("result: non-monotonic history" + note + ", transitions at " +
+            ", ".join(f"{t} -> {'repro' if v else 'no-repro'}"
+                      for t, v in runs[1:]), None)
+
+
 def cmd_bisect(a):
     """Binary-search the release sequence for the behaviour transition.
 
@@ -2120,25 +2231,10 @@ def cmd_bisect(a):
             sys.exit("no release could run this repro; retarget it at a "
                      "profile/flag set the releases support")
         skipped = len(seq) - len(usable)
-        runs = [usable[0]]
-        for tag, v in usable[1:]:
-            if v != runs[-1][1]:
-                runs.append((tag, v))
-        note_bits = []
-        if skipped:
-            note_bits.append(
-                f"{skipped} release(s) in the search skipped as unprobeable")
-        if excluded_note:
-            note_bits.append(excluded_note)
-        note = f" ({'; '.join(note_bits)})" if note_bits else ""
-        if len(runs) == 1:
-            state = f"{'always' if runs[0][1] else 'never'}-repro'd"
-            print(f"\nresult: {state} across {usable[0][0]}..{usable[-1][0]}{note}")
-            warn_release_blind(a.issue, state)
-        else:
-            print("\nresult: non-monotonic history" + note + ", transitions at " +
-                  ", ".join(f"{t} -> {'repro' if v else 'no-repro'}"
-                            for t, v in runs[1:]))
+        line, blind_state = describe_linear_result(usable, skipped, excluded_note)
+        print("\n" + line)
+        if blind_state:
+            warn_release_blind(a.issue, blind_state)
         return
 
     # Trim unprobeable releases off each end rather than aborting: an old build

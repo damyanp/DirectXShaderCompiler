@@ -1,0 +1,18 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-20T00:29:22+00:00
+# cmd: -spirv -HV 202x -T cs_6_7 -Zpr -enable-16bit-types -fvk-use-scalar-layout -Wno-c++11-extensions -Wno-c++1z-extensions -Wno-gnu-static-float-init -fspv-target-env=vulkan1.3 -fspv-debug=source -fspv-debug=tool repro.hlsl
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "Unknown argument", so this build did not reach the code under test
+
+$ dxc -spirv -HV 202x -T cs_6_7 -Zpr -enable-16bit-types -fvk-use-scalar-layout -Wno-c++11-extensions -Wno-c++1z-extensions -Wno-gnu-static-float-init -fspv-target-env=vulkan1.3 -fspv-debug=source -fspv-debug=tool repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-Wno-c++11-extensions'
+

@@ -1,0 +1,16 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "; Input signature:",
+      "note": "anti-vacuity: compilation must have actually produced a disassembled input-signature table, not merely failed to diagnose anything."
+    },
+    {
+      "kind": "regex",
+      "value": "^; COLOR\\s+0\\s+xyzw\\s+0\\s+NONE\\s+float\\s*$",
+      "note": "The symptom is that the COLOR row's trailing 'Used' column is blank when the only read is through GetAttributeAtVertex. The row still exists (Mask column is 'xyzw', proving the parameter is declared and not eliminated), but nothing follows 'float' before end-of-line. re.MULTILINE anchors the row; \\s* absorbs the column's trailing spaces that pad the fixed-width table."
+    }
+  ],
+  "note": "Presence = the bug: GetAttributeAtVertex reads are not counted toward the signature's Used mask. A control compiled from the same source without -DUSE_GET_ATTRIBUTE_AT_VERTEX (ordinary `return Color;`) has 'xyzw' after 'float' on the COLOR row and must NOT match this regex -- see variant-no-define captures with --expect no-match."
+}

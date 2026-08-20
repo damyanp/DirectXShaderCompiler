@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Secondary signature reported only in comment 2 (@Keenuts): compiling the compute-shader restatement (variant-cs-array.hlsl) with '-spirv' added trips 'include/llvm/Support/Casting.h:96: ... Assertion `Val && \"isa<> used on a null pointer\"' failed. Aborted' -- a Debug assert / abort, distinct in shape from the DXIL-path validation error match.json tests. Scored with internal_failure rather than a text match per SKILL.md guidance: the same defect can present as a trapped assert (Debug) or an access violation / structured exception (Release), and matching the assert message text would score a Release build clean. Only probed against the -spirv variant of variant-cs-array.hlsl, since the issue body's own ps_6_6 repro was never reported with -spirv."
+}

@@ -1,0 +1,47 @@
+# Compiler Explorer panes for #5184, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_6 -E main -Od -Zi
+# exit:     5
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+error: validation errors
+<source>:3:12: error: Instructions must be of an allowed type.
+note: at '%10 = insertvalue %dx.types.fouri32 %5, i32 %9, 0' in block '#0' of function 'main'.
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_6 -E main -Od -Zi
+# exit:     5
+
+error: validation errors
+<source>:3:12: error: Instructions must be of an allowed type.
+note: at '%10 = insertvalue %dx.types.fouri32 %5, i32 %9, 0' in block '#0' of function 'main'.
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T ps_6_6 -E main -Od -Zi
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:1:30: [0m[0;1;31merror: [0m[1mattribute 'SV_Target' only applies to a field or parameter of type 'float/float1/float2/float3/float4'[0m
+    1 | uint4 main(uint4 val : IN) : SV_Target[0m
+      | [0;1;32m                             ^
+[0m[1m<source>:3:12: [0m[0;1;31merror: [0m[1muse of undeclared identifier 'WaveMatch'[0m
+    3 |     [0;34mreturn[0m WaveMatch(val);[0m
+      | [0;1;32m           ^~~~~~~~~
+[0m2 errors generated.
+<Compilation failed>

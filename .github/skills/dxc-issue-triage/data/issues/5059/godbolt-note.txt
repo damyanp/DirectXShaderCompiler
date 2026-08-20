@@ -1,0 +1,20 @@
+Look at dxc_trunk vs dxc_1_6_2112 (an old release) side by side.
+
+dxc_1_6_2112 (old): compiles cleanly. The disassembly it emits contains
+`zext i32 %N to i33` / `mul i33 ...` / `trunc i33 %N to i32` -- SCEV has
+widened the loop's overflow-guarded closed-form multiply
+((input-1)*(input-2))/2 by one bit, past DXIL's supported integer widths
+(i1/i8/i16/i32/i64). The extra bit is silently baked into the module; only
+the disassembly text gives it away.
+
+dxc_trunk (current): fails with `error: Int type 'i33' has an invalid
+width.`. The same SCEV widening still happens internally (confirmed
+locally with -Vd, which skips validation) -- what changed is that the
+DXIL validator's Types.IntWidth rule now catches it and refuses to run
+instead of letting it through.
+
+So this is not fixed: the root defect (the illegal i33 induction-variable
+type) is present on every dxc release tested, from v1.4.1907 through
+current main. What changed recently (between the v1.9.2602.24 and
+v1.9.2607 releases) is that the validator started rejecting it, turning a
+previously-silent correctness bug into a hard compile failure.

@@ -1,0 +1,1 @@
+-HV 202x -T ps_6_7 -E PSMain -spirv repro.hlsl

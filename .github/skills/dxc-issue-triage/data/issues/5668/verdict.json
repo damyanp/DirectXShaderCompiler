@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-07T08:07:18Z",
+  "godbolt_url": "https://godbolt.org/z/rqTqed5s8",
+  "history": "always-repro'd across v1.6.2104..v1.9.2607 (18 stable releases, linear scan; v1.4.1907 and v1.5.2010 answer 'invalid profile as_6_6' and are invalid probes)",
+  "labels": "bug",
+  "labels_add": "validation",
+  "labels_now": "bug",
+  "notes_path": "issues/5668/notes.md",
+  "number": 5668,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Empty-struct amplification-shader payload (struct S{}; DispatchMesh(1,1,1,s)) still fails DXIL validation on main (89e2f98e2) exactly as reported: 'payload size 4 is greater than declared size of 0 bytes'. Always-repro'd since as_6_6 shipped (v1.6.2104) through v1.9.2607 and on main; v1.4.1907/v1.5.2010 predate as_6_6. Root cause identified by source read: ValidateAsIntrinsics in DxilValidation.cpp measures the payload POINTER's DataLayout alloc size (constant 4 on DXIL's 32-bit-pointer datalayout) instead of the pointee struct's size, so the check only fires when the real struct size is below 4 bytes -- i.e. only for an empty struct. Confirmed with two controls: a 4-byte payload compiles clean, and -Vd on the empty payload also compiles clean while emitting a declared size of 0 in DXIL metadata, isolating the defect to this one validator comparison. Same defect independently identified in #5269 (filed three months earlier) with a matching source-level finding.",
+  "title": "DispatchMesh fails when given an emtpy struct",
+  "triaged_at": "2026-08-20T05:15:26+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e2",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5668"
+}

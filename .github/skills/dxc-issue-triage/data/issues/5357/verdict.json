@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-06-28T22:50:36Z",
+  "godbolt_url": "https://godbolt.org/z/eqjMv4v5Y",
+  "history": "always-repro'd",
+  "labels": "tech-debt",
+  "labels_add": "bug, crash",
+  "labels_now": "tech-debt",
+  "notes_path": "issues/5357/notes.md",
+  "number": 5357,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (89e2f98e2): OutputArray[1].GetThreadNodeOutputRecords(2).OutputComplete(), chained with no intermediate local, asserts in AddOpcodeParamForIntrinsic (pAnno null -- missing type annotation) on Debug, access-violates on every catalogued stable release supporting lib_6_8 (v1.8.2403..v1.9.2607), and SIGSEGVs on CE dxc_trunk. Binding the result to a local first (the documented workaround) compiles cleanly. PR #6227 (Fixes: #5357) has been open/draft and untested since 2024-01 and is unmerged.",
+  "title": "Ensure type annotations are added for reference returning intrinsics/operators",
+  "triaged_at": "2026-08-20T05:15:21+00:00",
+  "triaged_by": "GitHub Copilot CLI (model not self-identifiable)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5357"
+}

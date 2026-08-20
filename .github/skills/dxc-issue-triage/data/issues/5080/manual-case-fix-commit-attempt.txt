@@ -1,0 +1,68 @@
+# Attempted build-and-test of the candidate fix commit for #5080
+
+Per the skill's guidance ("if the exact commit matters, build it"), an attempt was made to
+build the candidate fix commit and its first parent from detached worktrees and run the
+issue's repro against both, to confirm the parent fails and the commit does not.
+
+## Candidate
+
+`git log --oneline v1.8.2403.2..v1.8.2405 -- tools/clang/lib/SPIRV/LowerTypeVisitor.cpp`
+returns 4 commits; one of them,
+`1e59ce9185485535011e1f706d1ab3c1b349eac1` ("[SPIR-V] Fix debug instruction with cbuffer +
+FXC (#6531)"), removes exactly the assert quoted in the issue body:
+
+```
+- assert(isa<SpirvDebugGlobalVariable>(debugInstruction) &&
+-        isa<HybridType>(debugSpirvType));
++ assert(isa<SpirvDebugGlobalVariable>(debugInstruction));
++ if (isa<HybridType>(debugSpirvType)) { ... } else {
++   debugInstruction->setDebugSpirvType(debugSpirvType);
++ }
+```
+
+and its commit message explains the trigger as "the requested constant buffer layout is
+DX" -- i.e. `-fvk-use-dx-layout`, which matches s-perron's own comment ("the test case
+passes if you remove -fvk-use-dx-layout"). Its parent is `690ec7cd7d8d2bc685c8ded6e5f2f932b4a88909`.
+Both commits' `external/` submodule tree is identical
+(`git ls-tree <sha> external` is `33596a7559cc3f4406c5c8c56ca1cd0097b794f3` for both), so the
+only source difference between the two arms is this commit's own 3-file diff.
+
+## What was tried, and why it was abandoned
+
+Two detached worktrees were created outside this repository
+(`<repo>\..\dxc-5080-parent`, `<repo>\..\dxc-5080-fix`), each initialising its own submodules
+from the same pinned commits, per the skill's "outside the repository working tree and in
+separate build directories" instruction. Neither touched the shared `main-debug` build
+directory or its ground-truth target.
+
+Configuring either worktree with the machine's only available CMake (4.3.1, bundled with
+Visual Studio 18) failed immediately: `CMakeLists.txt:26`'s
+`cmake_policy(SET CMP0051 OLD)` errors with "this version of CMake no longer supports it."
+The *current* `main` tree (registered as `main-debug`) no longer contains that
+`if (POLICY CMP0051) ... endif()` block at all -- so `main` has already independently made
+the same forward-compatibility change this verification needed. Removing the identical
+4-line block from both worktrees' `CMakeLists.txt` (a build-system-only policy directive,
+not compiler logic, applied identically to both arms) let configuration succeed.
+
+Building then failed on a second, unrelated toolchain-drift problem: dozens of translation
+units in `external/SPIRV-Tools` and `lib/Transforms/*` failed under `/WX` with
+`warning C5285: cannot declare a specialization for 'std::is_nothrow_constructible':
+Specializing this standard library template is forbidden by N5014 [meta.rqmts]/4`, raised
+from `include/llvm/ADT/StringRef.h` against the installed MSVC 14.51 standard library. This
+is a compiler/standard-library version mismatch between the ~18-month-old commit and today's
+toolchain, unrelated to the defect under test, and it recurs across enough files that
+suppressing it safely (rather than silently disabling `/WX` wholesale, which could mask a
+real warning) was judged not to be a small, targeted, identically-applied fix like the CMake
+policy change was.
+
+Continuing down this path would mean carrying a second, larger, less obviously-neutral patch
+into both build arms purely to satisfy modern-toolchain drift. Given the cost was no longer
+"cheap next to the claim," the attempt was abandoned in favour of the release-level bisection
+(v1.8.2403.2 crashes, v1.8.2405 clean -- see `out-v1.8.2403.2.txt`, `out-v1.8.2405.txt`) plus
+the literal source-diff match above. Both worktrees were removed
+(`git worktree remove --force`) without being built to completion; no artifact from this
+attempt was published, and nothing outside `data/issues/5080/` was touched.
+
+**Conclusion:** the fix attribution to `1e59ce9185485535011e1f706d1ab3c1b349eac1` is
+*strong, not certain* -- based on an exact quoted-assert match in the diff and a two-release
+bisection window, not on a direct built-binary before/after comparison.

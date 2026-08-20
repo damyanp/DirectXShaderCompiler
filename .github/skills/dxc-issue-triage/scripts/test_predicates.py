@@ -271,6 +271,15 @@ for desc, text, want in [
     ("an unknown SPIR-V debug-info mode is an invalid probe",
      "dxc failed : unknown SPIR-V debug info control parameter: "
      "vulkan-with-source", True),
+    # #5080: the same trap, a different flag -- a release parses
+    # -fspv-target-env but rejects the specific value the repro asks for.
+    ("an unknown SPIR-V target-env value is an invalid probe",
+     "error: unknown SPIR-V target environment 'vulkan1.3'", True),
+    # ...but anchored to the unknown-value diagnostic specifically: a real,
+    # correctly-parsed target environment mentioned in ordinary output must
+    # not be demoted just because both phrases share "target environment".
+    ("a plain mention of a valid target environment is NOT an invalid probe",
+     "note: allowed options are:\n vulkan1.0\n vulkan1.1\n vulkan1.2", False),
     # ...but the marker is anchored: an ordinary diagnostic that merely contains
     # the word "parameter" must not be demoted.
     ("an ordinary parameter diagnostic is NOT an invalid probe",
@@ -712,6 +721,36 @@ check("bisect stub mirrors execute()'s signature",
       str(_inspect.signature(fake_runs([])[0])),
       str(_inspect.signature(triage.execute)))
 
+# #4871: a `--linear` scan with exactly one transition is an ordinary
+# regression or fix, not real oscillation. Reserve "non-monotonic" for a run
+# of length 3+, where more than one transition actually happened.
+_line, _state = triage.describe_linear_result(
+    [("v1", False), ("v2", False), ("v3", True), ("v4", True)], 0, "")
+check("a single clean regression is named, not called non-monotonic",
+      "regressed-in v3 (last good: v2)" in _line, True)
+check("non-monotonic is not claimed for one transition",
+      "non-monotonic" in _line, False)
+
+_line, _state = triage.describe_linear_result(
+    [("v1", True), ("v2", True), ("v3", False)], 0, "")
+check("a single clean fix is named, not called non-monotonic",
+      "fixed-in v3 (last repro: v2)" in _line, True)
+
+_line, _state = triage.describe_linear_result(
+    [("v1", False), ("v2", True), ("v3", False), ("v4", True)], 0, "")
+check("two transitions is genuinely non-monotonic",
+      _line.startswith("result: non-monotonic history"), True)
+check("non-monotonic still names every transition",
+      "v2 -> repro" in _line and "v3 -> no-repro" in _line and "v4 -> repro" in _line,
+      True)
+
+_line, _state = triage.describe_linear_result(
+    [("v1", True), ("v2", True)], 0, "")
+check("no transition at all is still always/never-repro'd, not one-off-named",
+      _line.startswith("result: always-repro'd across v1..v2"), True)
+check("only the always/never-repro'd branch triggers the blind-check reminder",
+      _state, "always-repro'd")
+
 
 # --- cmd.txt is a Windows command line, not a POSIX one --------------------
 # `shlex.split` is POSIX-mode, where `\` escapes the next character. Every DXC
@@ -837,6 +876,73 @@ try:
 finally:
     triage.subprocess.run = _old_run
     triage.CACHE_ROOT = _old_cache_root
+
+# #5704: a multi-line cmd.txt chains an intermediate file (compile -> link ->
+# dumpbin) through an *ordinary* sweep probe, not a spelling retry. Every
+# release in one bisect/run sweep shares the same issue directory as its
+# scratch seed, and dxc only rewrites a `-Fo`-style target on success -- so a
+# release whose own `-link` step fails leaves an *earlier* release's
+# `linked.bc` sitting there, and the following `-dumpbin linked.bc` line
+# silently disassembles that stale file instead of reporting the failure.
+_link_hazard = _tf.mkdtemp()
+_link_hazard_cache = _tf.mkdtemp()
+_old_cache_root2 = triage.CACHE_ROOT
+_old_run2 = triage.subprocess.run
+triage.CACHE_ROOT = _link_hazard_cache
+_os.makedirs(triage.CACHE_ROOT, exist_ok=True)
+with open(_os.path.join(_link_hazard, "repro.hlsl"), "w", encoding="utf-8") as f:
+    f.write("REPRO\n")
+_link_cmds = [
+    "-T lib_6_3 -Fo lib.bc repro.hlsl",
+    "-link lib.bc -T cs_6_3 -Fo linked.bc",
+    "-dumpbin linked.bc",
+]
+
+
+def _fake_release_pipeline(argv, cwd=None, **_kwargs):
+    exe, rest = argv[0], argv[1:]
+    if "-link" in rest:
+        if exe == "release-that-links":
+            with open(_os.path.join(cwd, "linked.bc"), "w",
+                       encoding="utf-8") as f:
+                f.write("FRESH-LINK-FROM-" + exe + "\n")
+            return subprocess.CompletedProcess(argv, 0, "", "")
+        return subprocess.CompletedProcess(
+            argv, 1, "Link failed:\nerror: Cannot find definition of "
+                     "function main\n", "")
+    if "-dumpbin" in rest:
+        target = _os.path.join(cwd, "linked.bc")
+        if _os.path.isfile(target):
+            return subprocess.CompletedProcess(
+                argv, 0, open(target, encoding="utf-8").read(), "")
+        return subprocess.CompletedProcess(
+            argv, 1, "", "dxc failed : Could not open input file 'linked.bc'")
+    # the compile step: always succeeds and writes lib.bc
+    with open(_os.path.join(cwd, "lib.bc"), "w", encoding="utf-8") as f:
+        f.write("lib\n")
+    return subprocess.CompletedProcess(argv, 0, "", "")
+
+
+triage.subprocess.run = _fake_release_pipeline
+try:
+    _older = triage._run_probe_command_list(
+        "release-that-links", _link_hazard, _link_cmds, sync_outputs=True)
+    check("older release's own dumpbin sees its own fresh link",
+          "FRESH-LINK-FROM-release-that-links" in _older["text"], True)
+    check("older release's linked.bc was synced back to the issue dir",
+          _os.path.isfile(_os.path.join(_link_hazard, "linked.bc")), True)
+
+    _newer = triage._run_probe_command_list(
+        "release-whose-link-fails", _link_hazard, _link_cmds,
+        sync_outputs=True)
+    check("a release whose own link fails does not disassemble a stale "
+          "linked.bc left by an earlier release in the same sweep",
+          "FRESH-LINK-FROM-release-that-links" in _newer["text"], False)
+    check("...and instead reports the file it never produced as missing",
+          "Could not open input file" in _newer["text"], True)
+finally:
+    triage.subprocess.run = _old_run2
+    triage.CACHE_ROOT = _old_cache_root2
 
 # Opposite acceptance directions from #3044 and #3439. A silently ignored `/`
 # spelling is indistinguishable from deleting the flag and must be rejected.

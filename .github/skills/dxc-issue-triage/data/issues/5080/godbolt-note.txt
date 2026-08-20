@@ -1,0 +1,9 @@
+What to look for: the oldest published DXC pane (1.6.2112) crashes with SIGSEGV compiling a
+shader whose only content is a cbuffer plus an empty entry point, using
+-fspv-debug=vulkan-with-source together with -fvk-use-dx-layout. Its target-env argument was
+substituted from the reporter's vulkan1.3 to vulkan1.0 (the oldest value that release
+recognises) purely so the pane can even parse the command; local testing (main-debug and the
+stable-release archive) confirms both values hit the same crash on releases that support
+them. The current trunk pane compiles cleanly and emits a NonSemantic.Shader.DebugInfo.100
+block with a DebugTypeComposite for the cbuffer, exactly the record the assert quoted in the
+issue used to prevent DXC from producing.

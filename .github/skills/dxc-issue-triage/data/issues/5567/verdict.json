@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-08-18T17:09:23Z",
+  "godbolt_url": "https://godbolt.org/z/dPM8vnz5b",
+  "history": "always-repro'd v1.6.2104..v1.9.2607 (v1.4.1907/v1.5.2010 invalid-probe: cs_6_6 unsupported); unchanged since before oldest probeable release per source dating",
+  "labels": "enhancement,diagnostic",
+  "labels_now": "enhancement,diagnostic",
+  "notes_path": "issues/5567/notes.md",
+  "number": 5567,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "uint2 a = (1, 2) / 2; still gets no -Wcomma-in-init warning on main-debug (89e2f98e2), while the bare uint2 a = (1, 2); still does on the same build (control). IsExpressionBinaryComma only checks the initializer expression itself, not a comma expr nested inside a larger one; unchanged since before v1.4.1907. hlsl_clang_trunk on Compiler Explorer already flags this shape via -Wunused-value, confirming damyanp's comment.",
+  "title": "-Wcomma-in-init should maybe be more aggressive?",
+  "triaged_at": "2026-08-20T05:15:25+00:00",
+  "triaged_by": "GitHub Copilot CLI (model not self-identifiable)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5567"
+}

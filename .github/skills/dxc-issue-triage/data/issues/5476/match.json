@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "!dx\\.rootSignature = !\\{",
+  "note": "This is NOT a predicate for the reported macOS symptom -- it cannot be, because the symptom is platform-specific console output corruption that no compiler available to this triage (Windows main-debug, Compiler Explorer's Linux dxc_1_6_2112/dxc_trunk) has ever been observed to exhibit for this repro (see notes.md). It is used only as a sanity/control anchor proving that every probe actually produced a *complete* -fcgl dump (i.e. reached the point of serializing the root signature into '!dx.rootSignature' metadata) rather than failing or truncating for an unrelated reason. A missing match here would mean the probe itself is invalid, not that the macOS bug reproduced or did not."
+}

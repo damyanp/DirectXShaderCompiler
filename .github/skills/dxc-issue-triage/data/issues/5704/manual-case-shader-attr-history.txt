@@ -1,0 +1,686 @@
+=== v1.6.2106 (<cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe) ===
+$ dxc -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro-shader-attr.hlsl
+[exit] 0
+[lib.bc written] True
+$ dxc -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc
+[exit] 0
+[linked.bc written] True
+$ dxc -dumpbin linked.bc
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       64 UAV slots
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 7023918e6966b36ebde405470921951d.pdb
+; shader hash: 7023918e6966b36ebde405470921951d
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; texResource                       texture     u32          2d      T0           t900     1
+; rwTexResource                         UAV     u32          2d      U0   u0,space2400unbounded
+;
+target triple = "dxil-ms-dx"
+
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%dx.types.Handle = type { i8* }
+%"class.Texture2D<unsigned int>" = type { i32, %"class.Texture2D<unsigned int>::mips_type" }
+%"class.Texture2D<unsigned int>::mips_type" = type { i32 }
+%"class.RWTexture2D<unsigned int>" = type { i32 }
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.textureStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32, i8) #2
+
+define void @main() {
+  %texResource_texture_2d = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 900, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 1)  ; ThreadId(component)
+  %3 = call i32 @dx.op.threadId.i32(i32 93, i32 2)  ; ThreadId(component)
+  %4 = call %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32 66, %dx.types.Handle %texResource_texture_2d, i32 %3, i32 %1, i32 %2, i32 undef, i32 undef, i32 undef, i32 undef)  ; TextureLoad(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)
+  %5 = extractvalue %dx.types.ResRet.i32 %4, 0
+  %rwTexResource_UAV_2d = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @dx.op.textureStore.i32(i32 67, %dx.types.Handle %rwTexResource_UAV_2d, i32 %1, i32 %2, i32 undef, i32 %5, i32 %5, i32 %5, i32 %5, i8 15)  ; TextureStore(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!10}
+!dx.entryPoints = !{!14}
+
+!0 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 6}
+!3 = !{!"cs", i32 6, i32 3}
+!4 = !{!5, !8, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.Texture2D<unsigned int>"* undef, !"texResource", i32 0, i32 900, i32 1, i32 2, i32 0, !7}
+!7 = !{i32 0, i32 5}
+!8 = !{!9}
+!9 = !{i32 0, [0 x %"class.RWTexture2D<unsigned int>"]* undef, !"rwTexResource", i32 2400, i32 0, i32 -1, i32 2, i1 false, i1 false, i1 false, !7}
+!10 = !{i32 1, void ()* @main, !11}
+!11 = !{!12}
+!12 = !{i32 0, !13, !13}
+!13 = !{}
+!14 = !{void ()* @main, !"main", null, !4, !15}
+!15 = !{i32 0, i64 32768, i32 4, !16}
+!16 = !{i32 8, i32 8, i32 1}
+
+
+VERDICT: repro (names leaked through -Qstrip_reflect)
+
+=== v1.7.2308 (<repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe) ===
+$ dxc -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro-shader-attr.hlsl
+[exit] 0
+[lib.bc written] True
+$ dxc -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc
+[exit] 0
+[linked.bc written] True
+$ dxc -dumpbin linked.bc
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       64 UAV slots
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: fbc86aec166e67648d91b624c7a8ef3d.pdb
+; shader hash: fbc86aec166e67648d91b624c7a8ef3d
+;
+; Pipeline Runtime Information: 
+;
+; Compute Shader
+; NumThreads=(8,8,1)
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; texResource                       texture     u32          2d      T0           t900     1
+; rwTexResource                         UAV     u32          2d      U0   u0,space2400unbounded
+;
+target triple = "dxil-ms-dx"
+
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%dx.types.Handle = type { i8* }
+%"class.Texture2D<unsigned int>" = type { i32, %"class.Texture2D<unsigned int>::mips_type" }
+%"class.Texture2D<unsigned int>::mips_type" = type { i32 }
+%"class.RWTexture2D<unsigned int>" = type { i32 }
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.textureStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32, i8) #2
+
+define void @main() {
+  %texResource_texture_2d = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 900, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 1)  ; ThreadId(component)
+  %3 = call i32 @dx.op.threadId.i32(i32 93, i32 2)  ; ThreadId(component)
+  %4 = call %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32 66, %dx.types.Handle %texResource_texture_2d, i32 %3, i32 %1, i32 %2, i32 undef, i32 undef, i32 undef, i32 undef)  ; TextureLoad(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)
+  %5 = extractvalue %dx.types.ResRet.i32 %4, 0
+  %rwTexResource_UAV_2d = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @dx.op.textureStore.i32(i32 67, %dx.types.Handle %rwTexResource_UAV_2d, i32 %1, i32 %2, i32 undef, i32 %5, i32 %5, i32 %5, i32 %5, i8 15)  ; TextureStore(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!10}
+!dx.entryPoints = !{!14}
+
+!0 = !{!"dxcoob 1.7.2308.7 (69e54e290)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 7}
+!3 = !{!"cs", i32 6, i32 3}
+!4 = !{!5, !8, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.Texture2D<unsigned int>"* undef, !"texResource", i32 0, i32 900, i32 1, i32 2, i32 0, !7}
+!7 = !{i32 0, i32 5}
+!8 = !{!9}
+!9 = !{i32 0, [0 x %"class.RWTexture2D<unsigned int>"]* undef, !"rwTexResource", i32 2400, i32 0, i32 -1, i32 2, i1 false, i1 false, i1 false, !7}
+!10 = !{i32 1, void ()* @main, !11}
+!11 = !{!12}
+!12 = !{i32 0, !13, !13}
+!13 = !{}
+!14 = !{void ()* @main, !"main", null, !4, !15}
+!15 = !{i32 0, i64 32768, i32 4, !16}
+!16 = !{i32 8, i32 8, i32 1}
+
+
+VERDICT: repro (names leaked through -Qstrip_reflect)
+
+=== v1.8.2403 (<cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe) ===
+$ dxc -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro-shader-attr.hlsl
+[exit] 0
+[lib.bc written] True
+$ dxc -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc
+[exit] 0
+[linked.bc written] True
+$ dxc -dumpbin linked.bc
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       64 UAV slots
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: f67aa6d2904c735047544a1599c9403c.pdb
+; shader hash: f67aa6d2904c735047544a1599c9403c
+;
+; Pipeline Runtime Information: 
+;
+; Compute Shader
+; NumThreads=(8,8,1)
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;                                   texture     u32          2d      T0           t900     1
+;                                       UAV     u32          2d      U0   u0,space2400unbounded
+;
+target triple = "dxil-ms-dx"
+
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%dx.types.Handle = type { i8* }
+%"class.Texture2D<unsigned int>" = type { i32, %"class.Texture2D<unsigned int>::mips_type" }
+%"class.Texture2D<unsigned int>::mips_type" = type { i32 }
+%"class.RWTexture2D<unsigned int>" = type { i32 }
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.textureStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32, i8) #2
+
+define void @main() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 900, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %3 = call i32 @dx.op.threadId.i32(i32 93, i32 1)  ; ThreadId(component)
+  %4 = call i32 @dx.op.threadId.i32(i32 93, i32 2)  ; ThreadId(component)
+  %5 = call %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32 66, %dx.types.Handle %1, i32 %4, i32 %2, i32 %3, i32 undef, i32 undef, i32 undef, i32 undef)  ; TextureLoad(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)
+  %6 = extractvalue %dx.types.ResRet.i32 %5, 0
+  %7 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @dx.op.textureStore.i32(i32 67, %dx.types.Handle %7, i32 %2, i32 %3, i32 undef, i32 %6, i32 %6, i32 %6, i32 %6, i8 15)  ; TextureStore(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!10}
+
+!0 = !{!"dxcoob 1.8.2403.34 (c9660a8c0)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 8}
+!3 = !{!"cs", i32 6, i32 3}
+!4 = !{!5, !8, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.Texture2D<unsigned int>"* undef, !"", i32 0, i32 900, i32 1, i32 2, i32 0, !7}
+!7 = !{i32 0, i32 5}
+!8 = !{!9}
+!9 = !{i32 0, [0 x %"class.RWTexture2D<unsigned int>"]* undef, !"", i32 2400, i32 0, i32 -1, i32 2, i1 false, i1 false, i1 false, !7}
+!10 = !{void ()* @main, !"main", null, !4, !11}
+!11 = !{i32 0, i64 32768, i32 4, !12}
+!12 = !{i32 8, i32 8, i32 1}
+
+
+VERDICT: no-repro (names stripped)
+
+=== v1.8.2505 (<cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe) ===
+$ dxc -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro-shader-attr.hlsl
+[exit] 0
+[lib.bc written] True
+$ dxc -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc
+[exit] 0
+[linked.bc written] True
+$ dxc -dumpbin linked.bc
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       64 UAV slots
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: a488497579a3f15e3d627d74b6b6e7ea.pdb
+; shader hash: a488497579a3f15e3d627d74b6b6e7ea
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,8,1)
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;                                   texture     u32          2d      T0           t900     1
+;                                       UAV     u32          2d      U0   u0,space2400unbounded
+;
+target triple = "dxil-ms-dx"
+
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%dx.types.Handle = type { i8* }
+%"class.Texture2D<unsigned int>" = type { i32, %"class.Texture2D<unsigned int>::mips_type" }
+%"class.Texture2D<unsigned int>::mips_type" = type { i32 }
+%"class.RWTexture2D<unsigned int>" = type { i32 }
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.textureStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32, i8) #2
+
+define void @main() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 900, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %3 = call i32 @dx.op.threadId.i32(i32 93, i32 1)  ; ThreadId(component)
+  %4 = call i32 @dx.op.threadId.i32(i32 93, i32 2)  ; ThreadId(component)
+  %5 = call %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32 66, %dx.types.Handle %1, i32 %4, i32 %2, i32 %3, i32 undef, i32 undef, i32 undef, i32 undef)  ; TextureLoad(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)
+  %6 = extractvalue %dx.types.ResRet.i32 %5, 0
+  %7 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @dx.op.textureStore.i32(i32 67, %dx.types.Handle %7, i32 %2, i32 %3, i32 undef, i32 %6, i32 %6, i32 %6, i32 %6, i8 15)  ; TextureStore(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!10}
+
+!0 = !{!"dxcoob 1.8.2505.28 (9efbb6c32)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 9}
+!3 = !{!"cs", i32 6, i32 3}
+!4 = !{!5, !8, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.Texture2D<unsigned int>"* undef, !"", i32 0, i32 900, i32 1, i32 2, i32 0, !7}
+!7 = !{i32 0, i32 5}
+!8 = !{!9}
+!9 = !{i32 0, [0 x %"class.RWTexture2D<unsigned int>"]* undef, !"", i32 2400, i32 0, i32 -1, i32 2, i1 false, i1 false, i1 false, !7}
+!10 = !{void ()* @main, !"main", null, !4, !11}
+!11 = !{i32 0, i64 32768, i32 4, !12}
+!12 = !{i32 8, i32 8, i32 1}
+
+
+VERDICT: no-repro (names stripped)
+
+=== v1.9.2607 (<cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe) ===
+$ dxc -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro-shader-attr.hlsl
+[exit] 0
+[lib.bc written] True
+$ dxc -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc
+[exit] 0
+[linked.bc written] True
+$ dxc -dumpbin linked.bc
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       64 UAV slots
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: b4f43dfaa08af94023b03b91694e024c.pdb
+; shader hash: b4f43dfaa08af94023b03b91694e024c
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,8,1)
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;                                   texture     u32          2d      T0           t900     1
+;                                       UAV     u32          2d      U0   u0,space2400unbounded
+;
+target triple = "dxil-ms-dx"
+
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%dx.types.Handle = type { i8* }
+%"class.Texture2D<unsigned int>" = type { i32, %"class.Texture2D<unsigned int>::mips_type" }
+%"class.Texture2D<unsigned int>::mips_type" = type { i32 }
+%"class.RWTexture2D<unsigned int>" = type { i32 }
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.textureStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32, i8) #2
+
+define void @main() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 900, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %3 = call i32 @dx.op.threadId.i32(i32 93, i32 1)  ; ThreadId(component)
+  %4 = call i32 @dx.op.threadId.i32(i32 93, i32 2)  ; ThreadId(component)
+  %5 = call %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32 66, %dx.types.Handle %1, i32 %4, i32 %2, i32 %3, i32 undef, i32 undef, i32 undef, i32 undef)  ; TextureLoad(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)
+  %6 = extractvalue %dx.types.ResRet.i32 %5, 0
+  %7 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @dx.op.textureStore.i32(i32 67, %dx.types.Handle %7, i32 %2, i32 %3, i32 undef, i32 %6, i32 %6, i32 %6, i32 %6, i8 15)  ; TextureStore(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!10}
+
+!0 = !{!"dxc(private) 1.9.0.5402 (0d3ee6b55-dirty)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 9}
+!3 = !{!"cs", i32 6, i32 3}
+!4 = !{!5, !8, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.Texture2D<unsigned int>"* undef, !"", i32 0, i32 900, i32 1, i32 2, i32 0, !7}
+!7 = !{i32 0, i32 5}
+!8 = !{!9}
+!9 = !{i32 0, [0 x %"class.RWTexture2D<unsigned int>"]* undef, !"", i32 2400, i32 0, i32 -1, i32 2, i1 false, i1 false, i1 false, !7}
+!10 = !{void ()* @main, !"main", null, !4, !11}
+!11 = !{i32 0, i64 32768, i32 4, !12}
+!12 = !{i32 8, i32 8, i32 1}
+
+
+VERDICT: no-repro (names stripped)
+
+=== main-debug (<repo>/build/Debug/bin/dxc.exe) ===
+$ dxc -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro-shader-attr.hlsl
+[exit] 0
+[lib.bc written] True
+$ dxc -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc
+[exit] 0
+[linked.bc written] True
+$ dxc -dumpbin linked.bc
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       64 UAV slots
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: bccb824491424807338e2e71aa15b6d5.pdb
+; shader hash: bccb824491424807338e2e71aa15b6d5
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,8,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;                                   texture     u32          2d      T0           t900     1
+;                                       UAV     u32          2d      U0   u0,space2400unbounded
+;
+target triple = "dxil-ms-dx"
+
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%dx.types.Handle = type { i8* }
+%"class.Texture2D<unsigned int>" = type { i32, %"class.Texture2D<unsigned int>::mips_type" }
+%"class.Texture2D<unsigned int>::mips_type" = type { i32 }
+%"class.RWTexture2D<unsigned int>" = type { i32 }
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.textureStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32, i8) #2
+
+define void @main() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 900, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %3 = call i32 @dx.op.threadId.i32(i32 93, i32 1)  ; ThreadId(component)
+  %4 = call i32 @dx.op.threadId.i32(i32 93, i32 2)  ; ThreadId(component)
+  %5 = call %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32 66, %dx.types.Handle %1, i32 %4, i32 %2, i32 %3, i32 undef, i32 undef, i32 undef, i32 undef)  ; TextureLoad(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)
+  %6 = extractvalue %dx.types.ResRet.i32 %5, 0
+  %7 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @dx.op.textureStore.i32(i32 67, %dx.types.Handle %7, i32 %2, i32 %3, i32 undef, i32 %6, i32 %6, i32 %6, i32 %6, i8 15)  ; TextureStore(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!10}
+
+!0 = !{!"dxc(private) 1.9.0.5465 (triage, 7665270b9)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 10}
+!3 = !{!"cs", i32 6, i32 3}
+!4 = !{!5, !8, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.Texture2D<unsigned int>"* undef, !"", i32 0, i32 900, i32 1, i32 2, i32 0, !7}
+!7 = !{i32 0, i32 5}
+!8 = !{!9}
+!9 = !{i32 0, [0 x %"class.RWTexture2D<unsigned int>"]* undef, !"", i32 2400, i32 0, i32 -1, i32 2, i1 false, i1 false, i1 false, !7}
+!10 = !{void ()* @main, !"main", null, !4, !11}
+!11 = !{i32 0, i64 32768, i32 4, !12}
+!12 = !{i32 8, i32 8, i32 1}
+
+
+VERDICT: no-repro (names stripped)
+
+
+=== SUMMARY ===
+v1.6.2106: repro (names leaked through -Qstrip_reflect)
+v1.7.2308: repro (names leaked through -Qstrip_reflect)
+v1.8.2403: no-repro (names stripped)
+v1.8.2505: no-repro (names stripped)
+v1.9.2607: no-repro (names stripped)
+main-debug: no-repro (names stripped)

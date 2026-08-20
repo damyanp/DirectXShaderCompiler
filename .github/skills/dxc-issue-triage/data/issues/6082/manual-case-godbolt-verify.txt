@@ -1,0 +1,232 @@
+# Compiler Explorer panes for #6082, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T lib_6_6
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+; shader debug name: 4341b4440224ed05f46a05e80d910223.pdb
+; shader hash: 4341b4440224ed05f46a05e80d910223
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.MyPayload = type { %class.matrix.bool.1.2, i32 }
+%class.matrix.bool.1.2 = type { [1 x <2 x i1>] }
+
+; Function Attrs: nounwind
+define void @"\01?OuterCallable@@YAXUMyPayload@@@Z"(%struct.MyPayload* noalias nocapture %payload) #0 {
+  call void @llvm.dbg.declare(metadata %struct.MyPayload* %payload, metadata !44, metadata !45), !dbg !46 ; var:"payload" !DIExpression() func:"OuterCallable"
+  %1 = getelementptr inbounds %struct.MyPayload, %struct.MyPayload* %payload, i32 0, i32 0, !dbg !47 ; line:20 col:29
+  %2 = bitcast %class.matrix.bool.1.2* %1 to <2 x i32>*, !dbg !48 ; line:20 col:21
+  %3 = load <2 x i32>, <2 x i32>* %2, align 4, !dbg !48 ; line:20 col:21
+  %4 = extractelement <2 x i32> %3, i32 1, !dbg !48 ; line:20 col:21
+  %5 = icmp ne i32 %4, 0, !dbg !48 ; line:20 col:21
+  %6 = zext i1 %5 to i32, !dbg !48 ; line:20 col:21
+  %7 = getelementptr inbounds %struct.MyPayload, %struct.MyPayload* %payload, i32 0, i32 1, !dbg !49 ; line:20 col:12
+  store i32 %6, i32* %7, align 4, !dbg !50, !tbaa !51 ; line:20 col:19
+  ret void, !dbg !55 ; line:21 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!23, !24}
+!llvm.ident = !{!25}
+!dx.source.contents = !{!26}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!27}
+!dx.source.args = !{!28}
+!dx.version = !{!29}
+!dx.valver = !{!29}
+!dx.shaderModel = !{!30}
+!dx.typeAnnotations = !{!31, !36}
+!dx.entryPoints = !{!40, !41}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "OuterCallable", linkageName: "\01?OuterCallable@@YAXUMyPayload@@@Z", scope: !1, file: !1, line: 18, type: !5, isLocal: false, isDefinition: true, scopeLine: 19, flags: DIFlagPrototyped, isOptimized: false, function: void (%struct.MyPayload*)* @"\01?OuterCallable@@YAXUMyPayload@@@Z")
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7}
+!7 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_structure_type, name: "MyPayload", file: !1, line: 11, size: 96, align: 32, elements: !9)
+!9 = !{!10, !22}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "input", scope: !8, file: !1, line: 13, baseType: !11, size: 64, align: 32)
+!11 = !DIDerivedType(tag: DW_TAG_typedef, name: "bool1x2", file: !1, baseType: !12)
+!12 = !DICompositeType(tag: DW_TAG_class_type, name: "matrix<bool, 1, 2>", file: !1, size: 64, align: 32, elements: !13, templateParams: !17)
+!13 = !{!14, !16}
+!14 = !DIDerivedType(tag: DW_TAG_member, name: "_11", scope: !12, file: !1, baseType: !15, size: 32, align: 32, flags: DIFlagPublic)
+!15 = !DIBasicType(name: "bool", size: 32, align: 32, encoding: DW_ATE_boolean)
+!16 = !DIDerivedType(tag: DW_TAG_member, name: "_12", scope: !12, file: !1, baseType: !15, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!17 = !{!18, !19, !21}
+!18 = !DITemplateTypeParameter(name: "element", type: !15)
+!19 = !DITemplateValueParameter(name: "row_count", type: !20, value: i32 1)
+!20 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!21 = !DITemplateValueParameter(name: "col_count", type: !20, value: i32 2)
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "output", scope: !8, file: !1, line: 14, baseType: !20, size: 32, align: 32, offset: 64)
+!23 = !{i32 2, !"Dwarf Version", i32 4}
+!24 = !{i32 2, !"Debug Info Version", i32 3}
+!25 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!26 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: in the DXC pane(s), find the payload struct's bool-matrix field access.\0A// The compiler emits a pointer bitcast from the bool-matrix-backed field to a pointer of a\0A// 32-bit-per-lane integer vector of the same lane count, then loads through that wider-vector\0A// pointer and compares each extracted lane against zero. Compare this to what you'd expect if\0A// the same field held individual scalar bools packed one bit apart (as the LLVM vector data\0A// layout used here specifies): the load reads lanes 32 bits apart, not 1 bit apart. This shape\0A// is unchanged between DXC's oldest lib_6_6-capable release and current trunk.\0A//==========================================================================//\0A\0Astruct MyPayload\0A{\0A    bool1x2 input;\0A    int     output;\0A};\0A\0A[shader(\22callable\22)]\0Avoid OuterCallable(inout MyPayload payload)\0A{\0A   payload.output = payload.input[0][1];\0A}\0A"}
+!27 = !{!"/app/example.hlsl"}
+!28 = !{!"-E", !"lib.no::entry", !"-T", !"lib_6_6", !"-Zi", !"-Qembed_debug"}
+!29 = !{i32 1, i32 6}
+!30 = !{!"lib", i32 6, i32 6}
+!31 = !{i32 0, %struct.MyPayload undef, !32}
+!32 = !{i32 24, !33, !35}
+!33 = !{i32 6, !"input", i32 2, !34, i32 3, i32 0, i32 7, i32 1}
+!34 = !{i32 1, i32 2, i32 2}
+!35 = !{i32 6, !"output", i32 3, i32 20, i32 7, i32 4}
+!36 = !{i32 1, void (%struct.MyPayload*)* @"\01?OuterCallable@@YAXUMyPayload@@@Z", !37}
+!37 = !{!38, !39}
+!38 = !{i32 1, !2, !2}
+!39 = !{i32 2, !2, !2}
+!40 = !{null, !"", null, null, null}
+!41 = !{void (%struct.MyPayload*)* @"\01?OuterCallable@@YAXUMyPayload@@@Z", !"\01?OuterCallable@@YAXUMyPayload@@@Z", null, null, !42}
+!42 = !{i32 8, i32 12, i32 6, i32 12, i32 5, !43}
+!43 = !{i32 0}
+!44 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "payload", arg: 1, scope: !4, file: !1, line: 18, type: !8)
+!45 = !DIExpression()
+!46 = !DILocation(line: 18, column: 36, scope: !4)
+!47 = !DILocation(line: 20, column: 29, scope: !4)
+!48 = !DILocation(line: 20, column: 21, scope: !4)
+!49 = !DILocation(line: 20, column: 12, scope: !4)
+!50 = !DILocation(line: 20, column: 19, scope: !4)
+!51 = !{!52, !52, i64 0}
+!52 = !{!"int", !53, i64 0}
+!53 = !{!"omnipotent char", !54, i64 0}
+!54 = !{!"Simple C/C++ TBAA"}
+!55 = !DILocation(line: 21, column: 1, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T lib_6_6
+# exit:     0
+
+; shader debug name: 36f2bd4f5a882784982668a9cfda00c1.pdb
+; shader hash: 36f2bd4f5a882784982668a9cfda00c1
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.MyPayload = type { %class.matrix.bool.1.2, i32 }
+%class.matrix.bool.1.2 = type { [1 x <2 x i1>] }
+
+; Function Attrs: nounwind
+define void @"\01?OuterCallable@@YAXUMyPayload@@@Z"(%struct.MyPayload* noalias nocapture %payload) #0 {
+  call void @llvm.dbg.declare(metadata %struct.MyPayload* %payload, metadata !45, metadata !46), !dbg !47 ; var:"payload" !DIExpression() func:"OuterCallable"
+  %1 = getelementptr inbounds %struct.MyPayload, %struct.MyPayload* %payload, i32 0, i32 0, !dbg !48 ; line:20 col:29
+  %2 = bitcast %class.matrix.bool.1.2* %1 to <2 x i32>*, !dbg !49 ; line:20 col:21
+  %3 = load <2 x i32>, <2 x i32>* %2, align 4, !dbg !49 ; line:20 col:21
+  %4 = extractelement <2 x i32> %3, i32 1, !dbg !49 ; line:20 col:21
+  %5 = icmp ne i32 %4, 0, !dbg !49 ; line:20 col:21
+  %6 = zext i1 %5 to i32, !dbg !49 ; line:20 col:21
+  %7 = getelementptr inbounds %struct.MyPayload, %struct.MyPayload* %payload, i32 0, i32 1, !dbg !50 ; line:20 col:12
+  store i32 %6, i32* %7, align 4, !dbg !51, !tbaa !52 ; line:20 col:19
+  ret void, !dbg !56 ; line:21 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!23, !24}
+!llvm.ident = !{!25}
+!dx.source.contents = !{!26}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!27}
+!dx.source.args = !{!28}
+!dx.version = !{!29}
+!dx.valver = !{!30}
+!dx.shaderModel = !{!31}
+!dx.typeAnnotations = !{!32, !37}
+!dx.entryPoints = !{!41, !42}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "OuterCallable", linkageName: "\01?OuterCallable@@YAXUMyPayload@@@Z", scope: !1, file: !1, line: 18, type: !5, isLocal: false, isDefinition: true, scopeLine: 19, flags: DIFlagPrototyped, isOptimized: false, function: void (%struct.MyPayload*)* @"\01?OuterCallable@@YAXUMyPayload@@@Z")
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7}
+!7 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_structure_type, name: "MyPayload", file: !1, line: 11, size: 96, align: 32, elements: !9)
+!9 = !{!10, !22}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "input", scope: !8, file: !1, line: 13, baseType: !11, size: 64, align: 32)
+!11 = !DIDerivedType(tag: DW_TAG_typedef, name: "bool1x2", file: !1, baseType: !12)
+!12 = !DICompositeType(tag: DW_TAG_class_type, name: "matrix<bool, 1, 2>", file: !1, size: 64, align: 32, elements: !13, templateParams: !17)
+!13 = !{!14, !16}
+!14 = !DIDerivedType(tag: DW_TAG_member, name: "_11", scope: !12, file: !1, baseType: !15, size: 32, align: 32, flags: DIFlagPublic)
+!15 = !DIBasicType(name: "bool", size: 32, align: 32, encoding: DW_ATE_boolean)
+!16 = !DIDerivedType(tag: DW_TAG_member, name: "_12", scope: !12, file: !1, baseType: !15, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!17 = !{!18, !19, !21}
+!18 = !DITemplateTypeParameter(name: "element", type: !15)
+!19 = !DITemplateValueParameter(name: "row_count", type: !20, value: i32 1)
+!20 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!21 = !DITemplateValueParameter(name: "col_count", type: !20, value: i32 2)
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "output", scope: !8, file: !1, line: 14, baseType: !20, size: 32, align: 32, offset: 64)
+!23 = !{i32 2, !"Dwarf Version", i32 4}
+!24 = !{i32 2, !"Debug Info Version", i32 3}
+!25 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!26 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: in the DXC pane(s), find the payload struct's bool-matrix field access.\0A// The compiler emits a pointer bitcast from the bool-matrix-backed field to a pointer of a\0A// 32-bit-per-lane integer vector of the same lane count, then loads through that wider-vector\0A// pointer and compares each extracted lane against zero. Compare this to what you'd expect if\0A// the same field held individual scalar bools packed one bit apart (as the LLVM vector data\0A// layout used here specifies): the load reads lanes 32 bits apart, not 1 bit apart. This shape\0A// is unchanged between DXC's oldest lib_6_6-capable release and current trunk.\0A//==========================================================================//\0A\0Astruct MyPayload\0A{\0A    bool1x2 input;\0A    int     output;\0A};\0A\0A[shader(\22callable\22)]\0Avoid OuterCallable(inout MyPayload payload)\0A{\0A   payload.output = payload.input[0][1];\0A}\0A"}
+!27 = !{!"/app/example.hlsl"}
+!28 = !{!"-E", !"lib.no::entry", !"-T", !"lib_6_6", !"-Zi", !"-Qembed_debug"}
+!29 = !{i32 1, i32 6}
+!30 = !{i32 1, i32 10}
+!31 = !{!"lib", i32 6, i32 6}
+!32 = !{i32 0, %struct.MyPayload undef, !33}
+!33 = !{i32 24, !34, !36}
+!34 = !{i32 6, !"input", i32 2, !35, i32 3, i32 0, i32 7, i32 1}
+!35 = !{i32 1, i32 2, i32 2}
+!36 = !{i32 6, !"output", i32 3, i32 20, i32 7, i32 4}
+!37 = !{i32 1, void (%struct.MyPayload*)* @"\01?OuterCallable@@YAXUMyPayload@@@Z", !38}
+!38 = !{!39, !40}
+!39 = !{i32 1, !2, !2}
+!40 = !{i32 2, !2, !2}
+!41 = !{null, !"", null, null, null}
+!42 = !{void (%struct.MyPayload*)* @"\01?OuterCallable@@YAXUMyPayload@@@Z", !"\01?OuterCallable@@YAXUMyPayload@@@Z", null, null, !43}
+!43 = !{i32 8, i32 12, i32 6, i32 12, i32 5, !44}
+!44 = !{i32 0}
+!45 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "payload", arg: 1, scope: !4, file: !1, line: 18, type: !8)
+!46 = !DIExpression()
+!47 = !DILocation(line: 18, column: 36, scope: !4)
+!48 = !DILocation(line: 20, column: 29, scope: !4)
+!49 = !DILocation(line: 20, column: 21, scope: !4)
+!50 = !DILocation(line: 20, column: 12, scope: !4)
+!51 = !DILocation(line: 20, column: 19, scope: !4)
+!52 = !{!53, !53, i64 0}
+!53 = !{!"int", !54, i64 0}
+!54 = !{!"omnipotent char", !55, i64 0}
+!55 = !{!"Simple C/C++ TBAA"}
+!56 = !DILocation(line: 21, column: 1, scope: !4)

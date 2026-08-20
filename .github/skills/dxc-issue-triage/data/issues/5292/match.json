@@ -1,0 +1,16 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "not_regex",
+      "value": "struct\\s+PSOutput\\s*\\{",
+      "note": "struct PSOutput's definition must be gone from the rewritten output -- this is dxr's own removal engaging, the precondition for the defect, not the defect itself."
+    },
+    {
+      "kind": "regex",
+      "value": "typedef\\s+PSOutput\\s+PSPointOutput",
+      "note": "the typedef aliasing the now-undeclared struct must still be present in the output -- this is the reported defect: a TypedefDecl is never added to unusedGlobals/unusedFunctions/unusedTypes in CollectRewriteHelper (tools/clang/tools/libclang/dxcrewriteunused.cpp), so it is never considered for removal regardless of whether the type it names survives."
+    }
+  ],
+  "note": "Structural predicate, not exit-code-based: RewriteWithOptions returns S_OK/GetStatus=0 for this case (silent wrong-output, no diagnostic). Applied by measure-rewrite.py's classify() against the raw rewritten text, not through triage.py run/bisect -- this symptom is not a dxc.exe invocation (dxr's RewriteOption-flagged arguments are rejected by dxc.exe's own driver; see method-notes.md), so triage.py's standard run/bisect/reindex machinery cannot drive or re-score it. The equivalent per-release sweep is manual-case-release-history.txt, produced by `measure-rewrite.py --history`, which iterates every release's dxcompiler.dll read (read-only) from triage.py's own releases table. Engagement/self-test controls proving this predicate discriminates correctly (not merely always-negative) are control-no-typedef.hlsl (struct alone, unused, cleanly removed with no dangling typedef -- present=False/False) and control-typedef-engaged.hlsl (PSPointOutput genuinely referenced via a DeclRefExpr to a global, so PSOutput is correctly retained -- present=True/True)."
+}

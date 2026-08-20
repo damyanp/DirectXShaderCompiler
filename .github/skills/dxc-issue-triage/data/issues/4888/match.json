@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "All metadata must be used by dxil",
+  "note": "Reported symptom is DXC's own DXIL-validator complaint about an unused metadata operand ('All metadata must be used by dxil.!55 = !{i32 1}'). The trailing '!<N> = !{i32 <M>}' is a specific metadata slot/value and is not anchored on, since the slot number is an artifact of exact IR shape and can shift between builds without the underlying defect changing. This is an ordinary diagnosed validation failure (E_FAIL), not a crash -- see match-crash.json for the separate SPIR-V assertion Keenuts reported. CONTROL: control-ok.hlsl uses the pattern tex3d's comment says is already supported (NonUniformResourceIndex wrapping the immediate ResourceDescriptorHeap index, no intermediate array of resource objects) and must compile cleanly, i.e. score no-match."
+}

@@ -1,0 +1,23 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-01-21T00:04:46Z",
+  "expected_symptom": "Access-violation/assert internal_failure compiling hs_6_6 with two unreferenced module-scope globals (arithmetic float3x3 const, static Texture2D<float4> array); DXIL-only per the one maintainer comment.",
+  "godbolt_url": "https://godbolt.org/z/zdcvTzcd7",
+  "history": "regressed-in v1.6.2106 (last good: v1.6.2104, oldest release expressing hs_6_6); reproduces in every stable release through v1.9.2607 (newest catalogued) and on main-debug",
+  "labels": "bug,dxil,crash",
+  "labels_now": "bug,dxil,crash",
+  "notes_path": "issues\\4958\\notes.md",
+  "number": 4958,
+  "regressed_in": "v1.6.2106",
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still reproduces on main-debug (89e2f98e29c289ae8ad9e00dd310104fea9fd7df): compiling the filed hs_6_6 hull shader traps assert(Index < Length) in llvm::ArrayRef<Value*>::operator[], called from StoreVectorOrStructArray during HLSL SROA (SROA_Helper::RewriteForStore), rewriting a store into the unused Texture2D array global before it is eliminated as dead -- confirms and pins down Keenuts 2023-01-26 comment. Continuing past the trap (gh) hits an access violation in the same chain, so Debug-assert and Release-AV are one defect. DXIL-only: identical -spirv compile is clean. bisect: v1.6.2104 clean (oldest release expressing hs_6_6), regressed-in v1.6.2106 (exact stderr/address match to the reporter v1.7.2212 quote), reproduces through v1.9.2607 (newest stable) and CE dxc_trunk (cast<X> E_FAIL form). Re-testing the reporter ARRAY_SIZE table as hypotheses: only size 0 is clean today; size 2, which the report called ok, now crashes like every other non-empty size -- a broader form of the same bug, not a weaker one.",
+  "title": "Compiling hull shader with unused globals causes internal compiler error",
+  "triaged_at": "2026-08-20T05:15:14+00:00",
+  "triaged_by": "GitHub Copilot CLI (model not self-identifiable)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4958"
+}

@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "bitcast\\s+%class\\.matrix\\.bool\\.\\d+\\.\\d+\\*\\s+%\\d+\\s+to\\s+<(\\d+)\\s+x\\s+i32>\\*[\\s\\S]{0,80}?load\\s+<\\1\\s+x\\s+i32>,\\s*<\\1\\s+x\\s+i32>\\*\\s+%\\d+",
+  "note": "Presence predicate for #6082: DXC's IR for a bool-matrix ray/callable-payload field bitcasts the %class.matrix.bool.<R>.<C>* (an array of <N x i1> row vectors) to <N x i32>* and loads through that wider-vector pointer, rather than loading the <N x i1> vector directly or representing the row as i32 lanes to begin with. Anchored on the literal type name 'class.matrix.bool' (DXC's own mangling for bool matrices) plus the bitcast->load pair with matching vector width N, so it cannot be satisfied by a failed compile (no such type/instruction text would exist) or by DXC's bool-*vector* lowering, which the reporter says already avoids this by using an i32 representation instead of <N x i1> -- confirmed by control-boolvector.hlsl (--expect no-match) below. This predicate only asks whether the reported code SHAPE is still emitted; it takes no position on the maintainers' disputed claim about whether that shape is valid DXIL (see expected.md)."
+}

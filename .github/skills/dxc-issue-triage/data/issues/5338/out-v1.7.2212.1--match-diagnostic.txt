@@ -1,0 +1,21 @@
+# compiler: v1.7.2212.1
+# exe: <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe
+# ran: 2026-08-19T20:15:12+00:00
+# cmd: -T vs_6_0 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-diagnostic.json
+# verdict: invalid-probe
+# invalid-probe-reason: the probe failed internally, so it measured nothing about the reported symptom
+
+$ dxc -T vs_6_0 repro.hlsl
+[exe] <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: llvm::cast<X>() argument of incompatible type!
+
+
+
+

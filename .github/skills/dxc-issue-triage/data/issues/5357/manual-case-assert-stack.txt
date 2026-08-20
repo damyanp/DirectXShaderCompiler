@@ -1,0 +1,34 @@
+$ "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe" -c "g;kn 40;q" <repo>\build\Debug\bin\dxc.exe -T lib_6_8 repro.hlsl
+Error: assert(pAnno != nullptr && pAnno->GetNumTemplateArgs() == 1 && "otherwise the node record template is not declared properly")
+File:
+<repo>\tools\clang\lib\CodeGen\CGHLSLMSFinishCodeGen.cpp(1071)
+Func:	`anonymous-namespace'::AddOpcodeParamForIntrinsic
+(8b18.5c30): Unknown exception - code e0000001 (first chance)
+(8b18.5c30): Unknown exception - code e0000001 (!!! second chance !!!)
+    KERNELBASE!RaiseException+0x8a
+    dxcompiler!llvm_assert+0x51
+    dxcompiler!`anonymous namespace'::AddOpcodeParamForIntrinsic+0x1b79
+    dxcompiler!`anonymous namespace'::AddOpcodeParamForIntrinsics+0xf6
+    dxcompiler!CGHLSLMSHelper::FinishIntrinsics+0x46
+    dxcompiler!`anonymous namespace'::CGMSHLSLRuntime::FinishCodeGen+0x8e
+    dxcompiler!clang::CodeGen::CodeGenModule::FinishCodeGen+0x39
+    dxcompiler!clang::CodeGen::CodeGenModule::Release+0x792
+    dxcompiler!`anonymous namespace'::CodeGeneratorImpl::HandleTranslationUnit+0x24f
+    dxcompiler!clang::BackendConsumer::HandleTranslationUnit+0xc1
+    dxcompiler!clang::ParseAST+0x608
+    dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+    dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+    dxcompiler!clang::FrontendAction::Execute+0xa8
+    dxcompiler!DxcCompiler::Compile+0x41a2
+    dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+    dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+    dxcompiler!hlsl::DxcCompilerAdapter::Compile+0xce
+    dxc!DxcContext::Compile+0xe2d
+    dxc!dxc::main+0xa1e
+    dxc!wmain+0x1c
+    dxc!invoke_main+0x39
+    dxc!__scrt_common_main_seh+0x132
+    dxc!__scrt_common_main+0xe
+    dxc!wmainCRTStartup+0xe
+    KERNEL32!BaseThreadInitThunk+0x17
+    ntdll!RtlUserThreadStart+0x2c

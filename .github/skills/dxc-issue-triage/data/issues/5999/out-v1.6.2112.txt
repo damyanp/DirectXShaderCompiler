@@ -1,0 +1,24 @@
+# compiler: v1.6.2112
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+# ran: 2026-08-20T00:19:42+00:00
+# cmd: -T cs_6_0 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "use of undeclared identifier", so this build did not reach the code under test
+
+$ dxc -T cs_6_0 -E main repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:3:1: error: 'template' is a reserved keyword in HLSL
+template<typename BufferType>
+^
+repro.hlsl:18:5: error: use of undeclared identifier 'TemplateFunction'
+    TemplateFunction(SomeBuffer);
+    ^
+
+

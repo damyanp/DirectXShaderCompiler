@@ -1,0 +1,12 @@
+Compiled as a library target (-T lib_6_3), which is what triggers the bug:
+the entry function `main` is `[shader("hull")]` and never touches groupshared
+`gs` itself; only its patch-constant function `HSPatch` does.
+
+- `dxc_1_6_2112` (CE's oldest DXC): exits 0 and prints a full DXIL module --
+  the groupshared read inside HSPatch (`addrspace(3)` loads of `gs`) reaches
+  final DXIL and is never flagged, even though the shader is not a compute
+  shader and TGSM access is illegal there. This is the reported bug.
+- `dxc_trunk`: fails with "validation errors" / "Thread Group Shared Memory
+  not supported from non-compute entry points", attributing the error to the
+  `HSPatch` function specifically -- the validator now checks the
+  patch-constant function too, not only the [shader("hull")] entry point.

@@ -1,0 +1,28 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-19T21:51:11+00:00
+# cmd: -T cs_6_0 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -T cs_6_0 repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:1:10: error: template specialization requires 'template<>'
+float2x2 matrix;
+         ^~~~~~
+template<> 
+repro.hlsl:1:10: error: no variable template matches specialization
+repro.hlsl:4:1: error: HLSL requires a type specifier for all declarations
+main()
+^
+repro.hlsl:6:29: error: cannot refer to class template 'matrix' without a template argument list
+  Output[0] = float2(1,2) * matrix;
+                            ^
+
+

@@ -1,0 +1,1 @@
+dxc_trunk:-T ps_6_0 -E main repro.hlsl,dxc_trunk:-T ps_6_0 -E main -MD -MF repro.d repro.hlsl

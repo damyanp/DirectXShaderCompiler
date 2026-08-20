@@ -1,0 +1,8 @@
+{
+  "kind": "any_of",
+  "value": [
+    { "kind": "timeout" },
+    { "kind": "internal_failure" }
+  ],
+  "note": "The reported symptom is a single defect with two build-dependent signatures, same pattern as #3873: SROA's HLSLExprEmit/ScalarReplAggregatesHLSL RewriteCall cannot flatten a templated `ByteAddressBuffer::Load<RayDesc>` through the builtin RayDesc struct. On the reporter's original build (assertions disabled) this manifests as an unbounded hang (2023-06-01); on an assertions-enabled build the same code path instead trips `assert(false && \"cannot flatten hlsl intrinsic.\")` in ScalarReplAggregatesHLSL.cpp:2761 (confirmed by llvm-beanz 2023-06-30, and by the reporter on a later build 2023-07-11 and again 2023-11-17). Our ground truth is a Debug (assertions-enabled) build, so `internal_failure` (0x80000003 trap) is the expected arm, but `timeout` is kept in the predicate so a future Release-shaped probe or an older/differently-configured release build is scored correctly rather than reporting a false `does-not-repro` merely because it hung instead of trapping. Message text is not used, per the documented rule that assert/crash text is not portable across builds."
+}

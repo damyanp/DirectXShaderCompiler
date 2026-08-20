@@ -1,0 +1,1 @@
+dxc_1_6_2112:-spirv -fspv-target-env=vulkan1.0 -T ps_6_2 -E ps_main -fvk-use-dx-layout -fspv-debug=vulkan-with-source,dxc_trunk

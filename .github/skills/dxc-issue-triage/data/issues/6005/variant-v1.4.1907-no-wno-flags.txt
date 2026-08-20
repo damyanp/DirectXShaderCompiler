@@ -1,0 +1,9 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# purpose: control -- confirm -HV 202x alone (without -Wno-c++11-extensions/-Wno-c++1z-extensions/-Wno-gnu-static-float-init) is what makes v1.4.1907 unprobeable, per method note about verifying an unrelated-option warning before accepting a bisect exclusion
+# cmd: -spirv -HV 202x -T cs_6_7 -Zpr -enable-16bit-types -fvk-use-scalar-layout -fspv-target-env=vulkan1.3 -fspv-debug=source -fspv-debug=tool repro.hlsl
+# exit: 1
+# expect: no-match (still rejects, proving the -Wno-* flags are not load-bearing for the exclusion)
+
+dxc failed : Unknown HLSL version: 202
+

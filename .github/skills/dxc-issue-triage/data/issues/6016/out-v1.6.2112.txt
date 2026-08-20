@@ -1,0 +1,21 @@
+# compiler: v1.6.2112
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+# ran: 2026-08-20T00:37:57+00:00
+# cmd: -T hs_6_0 -E Hull repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -T hs_6_0 -E Hull repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:19:1: error: Failed to allocate all input signature elements in available space.
+ControlPoint Hull(InputPatch<ControlPoint, 1> v,
+^
+repro.hlsl:19:1: error: Failed to allocate all output signature elements in available space.
+
+

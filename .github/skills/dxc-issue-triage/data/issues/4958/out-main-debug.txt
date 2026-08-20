@@ -1,0 +1,17 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T18:37:01+00:00
+# cmd: -T hs_6_6 -E mainHS -Fo output.dxil repro.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T hs_6_6 -E mainHS -Fo output.dxil repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

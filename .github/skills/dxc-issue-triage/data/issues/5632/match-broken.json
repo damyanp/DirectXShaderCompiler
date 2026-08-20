@@ -1,0 +1,8 @@
+{
+  "kind": "any_of",
+  "value": [
+    { "kind": "internal_failure" },
+    { "kind": "contains", "value": "Invalid record" }
+  ],
+  "note": "Issue #5632, secondary predicate: 'the input is never correctly and successfully compiled', not just 'dxc crashes'. Added after the primary internal_failure predicate scored v1.5.2010 as no-repro even though that release also fails on this input -- it emits genuinely malformed DXIL that its own bitstream reader rejects post-hoc with 'error: Invalid record' (confirmed to persist with -Vd, so it is not merely the separate DXIL validator's opinion; see variant-v1.5.2010-vd-v1.5.2010.txt). Confirmed release-general-clean, not a v1.5.2010-wide defect, via variant-v1.5.2010-control-trivial-v1.5.2010.txt (same release, unrelated trivial shader, exit 0). Every other probeable release (v1.4.1907, v1.6.2104..v1.9.2607) and main-debug fail this same input outright as an internal_failure, so the composed predicate reads as 'always-repro'd' with no exceptions -- the v1.5.2010 gap under the primary predicate is a difference in failure SHAPE, not evidence of a fix."
+}

@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-19T09:16:17Z",
+  "godbolt_url": "https://godbolt.org/z/daqY8a3x8",
+  "history": "fixed-in v1.9.2607",
+  "labels": "bug,shader-linking,diagnostic,validation",
+  "labels_now": "bug,shader-linking,diagnostic,validation",
+  "notes_path": "data\\issues\\5748\\notes.md",
+  "number": 5748,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "does-not-repro",
+  "suggested_action": "close-fixed",
+  "summary": "Fixed on main-debug (89e2f98e2): compiling a lib-target hull shader whose groupshared use is only in the patch-constant function now correctly fails validation, naming the patch-constant function (HSPatch). Release-binary bisection: reproduces on every stable release v1.4.1907-v1.9.2602.24, fixed starting v1.9.2607. PR 5749 (reporter's own proposed fix) was closed unmerged by an inactivity sweep; the shipped fix instead appears to be an incidental effect of PR 8140 (GroupSharedLimit for Mesh/Amp/Node shaders), which added the missing IsPatchConstantShader check to the same validation loop -- strong but not build-confirmed attribution, since its 2026-02-13 merge predates the still-reproducing v1.9.2602.24 release build.",
+  "title": "Groupshared memory used through patch constant function allowed in hull shaders ",
+  "triaged_at": "2026-08-20T05:15:29+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5748"
+}

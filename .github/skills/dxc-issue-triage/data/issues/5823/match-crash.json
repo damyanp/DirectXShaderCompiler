@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Original 2023-10-03 report: this exact repro (out-of-line static-const array member definition of a template partial specialization, illegally repeating `static`) SIGSEGVs under -spirv. internal_failure covers the crash-shaped signature only (0xC0000005/0xC00000FD/0x80000003/etc, and POSIX 139 for CE's Linux DXC). It deliberately does NOT match the E_FAIL 'casting to type void unimplemented' / ''const' is not a valid modifier for a field' diagnosed-error shape now observed on main and on CE dxc_trunk -- that is a separate, still-open defect scored by match.json, and conflating the two would hide that the crash and the diagnosed error are different points on the same defect's history."
+}

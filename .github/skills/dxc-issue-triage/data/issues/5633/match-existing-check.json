@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "array index \\d+ is out of bounds",
+  "note": "Secondary predicate, NOT the primary symptom of #5633. Tests whether DXC's *existing* Sema diagnostic (err_hlsl_array_element_index_out_of_bounds, exercised by tools/clang/test/SemaHLSL/array-index-out-of-bounds.hlsl) fires for a given shader. Used only against labelled control-existing-check-*.hlsl variants to characterise exactly which syntactic contexts silence that existing check -- never scored against the primary repro.hlsl."
+}

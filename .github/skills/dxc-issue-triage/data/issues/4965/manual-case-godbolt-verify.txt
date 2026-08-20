@@ -1,0 +1,24 @@
+# Compiler Explorer panes for #4965, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_2 -E f
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_2 -E f
+# exit:     5
+
+<source>:11:1: error: recursive functions are not allowed: function 'f' calls recursive function 'f'
+int f( int)
+^
+<source>:11:1: note: recursive function located here:
+
+<Compilation failed>

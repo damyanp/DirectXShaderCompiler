@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "error: cannot convert from 'const StructWithUint' to 'SomeStructWithBitfields'",
+  "note": "Example 1's reported symptom: dxc rejects the struct-to-struct cast between a plain-uint struct and a bit-field struct whose bit-fields also total one uint32_t storage unit. The literal diagnostic text is quoted from the issue body itself, so this predicate is anchored to what the reporter actually saw rather than a generalisation over 'cannot convert' (which dxc also emits for genuinely incompatible casts)."
+}

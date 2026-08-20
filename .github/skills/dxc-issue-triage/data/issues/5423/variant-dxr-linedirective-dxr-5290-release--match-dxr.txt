@@ -1,0 +1,30 @@
+# compiler: dxr-5290-release
+# exe: <repo>/build/Release/bin/dxr.exe
+# ran: 2026-08-19T20:51:40+00:00
+# cmd: -line-directive -D float4=0 -E PSMain repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-dxr.json
+# verdict: repro
+# variant: dxr-linedirective (repro.hlsl)
+# expect: match
+
+$ dxc -line-directive -D float4=0 -E PSMain repro.hlsl
+[exe] <repo>/build/Release/bin/dxr.exe
+[exit] 0
+--- stdout ---
+#line 1 "repro.hlsl"
+struct PSInput
+{
+    float4 position : SV_Position;
+    float4 color : COLOR0;
+};
+
+float4 PSMain(PSInput input) : SV_Target0
+{
+    return input.color * input.color;
+}
+
+
+--- stderr ---
+

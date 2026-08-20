@@ -1,0 +1,167 @@
+# Source evidence for #5175 (IDxcCursor template argument querying)
+
+All commands run from the repository root at HEAD (`ced72eee3`), whose tree matches public
+upstream `89e2f98e29c289ae8ad9e00dd310104fea9fd7df` outside this skill directory (see
+`version-verification.txt`).
+
+## 1. `IDxcCursor` has cursor *kinds* for templates, but no argument accessors
+
+Command:
+  git grep -n "GetNumArguments\|GetArgumentAt\|Template" -- include/dxc/dxcisense.h
+
+    include/dxc/dxcisense.h:227:  DxcCursor_TemplateTypeParameter = 27,    // A C++ template type parameter.
+    include/dxc/dxcisense.h:228:  DxcCursor_NonTypeTemplateParameter = 28, // A C++ non-type template parameter.
+    include/dxc/dxcisense.h:229:  DxcCursor_TemplateTemplateParameter =
+    include/dxc/dxcisense.h:231:  DxcCursor_FunctionTemplate = 30, // A C++ function template.
+    include/dxc/dxcisense.h:232:  DxcCursor_ClassTemplate = 31,    // A C++ class template.
+    include/dxc/dxcisense.h:233:  DxcCursor_ClassTemplatePartialSpecialization =
+    include/dxc/dxcisense.h:268:  DxcCursor_TemplateRef =
+    include/dxc/dxcisense.h:680:  virtual HRESULT STDMETHODCALLTYPE GetNumArguments(_Out_ int *pResult) = 0;
+    include/dxc/dxcisense.h:681:  virtual HRESULT STDMETHODCALLTYPE GetArgumentAt(
+    include/dxc/dxcisense.h:713:      BOOL includeTemplateArgs, _Outptr_result_maybenull_ BSTR *pResult) = 0;
+
+`IDxcCursor` can classify a cursor as `DxcCursor_ClassTemplate` / `_TemplateRef` / etc, but the
+only per-argument accessors on the interface are `GetNumArguments`/`GetArgumentAt`, which (see
+#3 below) are generic function-call-argument accessors, not template-argument accessors. Line
+713 is `GetQualifiedName`'s `includeTemplateArgs` flag (see #2) -- a formatting bit, not a
+structured accessor. There is no `GetNumTemplateArguments`, `GetTemplateArgumentKind`,
+`GetTemplateArgumentValue` or `GetTemplateArgumentUnsignedValue` anywhere in the interface.
+
+## 2. `GetQualifiedName`/`GetFormattedName` only render a display STRING
+
+Command:
+  git grep -n -A5 "DxcCursor::GetQualifiedName" -- tools/clang/tools/libclang/dxcisenseimpl.cpp
+
+    tools/clang/tools/libclang/dxcisenseimpl.cpp:653:HRESULT DxcCursor::GetQualifiedName(BOOL includeTemplateArgs, BSTR *pResult) {
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-654-  if (pResult == nullptr)
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-655-    return E_POINTER;
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-656-  DxcThreadMalloc TM(m_pMalloc);
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-657-  return GetCursorQualifiedName(m_cursor, includeTemplateArgs, pResult);
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-658-}
+
+`GetQualifiedName`/`GetFormattedName` return one formatted `BSTR` (e.g. `"Foo<float, -2, 3>"`).
+There is no way to get the argument count, per-argument kind, or per-argument value/type as
+structured data -- only by parsing the rendered string, which is exactly the gap the issue
+reports (no programmatic way to recover the `float` type argument or the `-2`/`3` values other
+than as opaque child expression cursors, per the reporter's AST dump).
+
+## 3. `IDxcCursor::GetNumArguments`/`GetArgumentAt` wrap the *generic* argument API, not the
+   template-argument API
+
+Command:
+  git grep -n -A4 "HRESULT DxcCursor::GetNumArguments\|HRESULT DxcCursor::GetArgumentAt" -- tools/clang/tools/libclang/dxcisenseimpl.cpp
+
+    tools/clang/tools/libclang/dxcisenseimpl.cpp:558:HRESULT DxcCursor::GetNumArguments(int *pResult) {
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-559-  if (pResult == nullptr)
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-560-    return E_POINTER;
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-561-  *pResult = clang_Cursor_getNumArguments(m_cursor);
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-562-  return S_OK;
+    tools/clang/tools/libclang/dxcisenseimpl.cpp:565:HRESULT DxcCursor::GetArgumentAt(int index, IDxcCursor **pResult) {
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-566-  DxcThreadMalloc TM(m_pMalloc);
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-567-  return DxcCursor::Create(clang_Cursor_getArgument(m_cursor, index), pResult);
+    tools/clang/tools/libclang/dxcisenseimpl.cpp-568-}
+
+`IDxcCursor` is a thin COM wrapper around libclang's `CXCursor` C API (`clang_Cursor_*`). This
+is exactly the pattern a fix would follow (the reporter says they "made a modest attempt at
+porting" it): add `GetNumTemplateArguments`/`GetTemplateArgumentKind`/`GetTemplateArgumentValue`/
+`GetTemplateArgumentUnsignedValue` to `IDxcCursor`, each forwarding to the matching
+`clang_Cursor_getNumTemplateArguments`/`clang_Cursor_getTemplateArgumentKind`/... call. That
+forwarding is not present anywhere in `dxcisenseimpl.cpp`/`dxcisenseimpl.h`.
+
+## 4. The underlying libclang functions exist in this fork -- but are frozen at the PRE-2022
+   upstream form the issue's linked CR (D134416) superseded
+
+Command:
+  git grep -n "clang_Cursor_getNumTemplateArguments\|clang_Cursor_getTemplateArgumentKind\|clang_Cursor_getTemplateArgumentValue\|clang_Cursor_getTemplateArgumentUnsignedValue" -- tools/clang/tools/libclang/CXCursor.cpp tools/clang/tools/libclang/libclang.exports
+
+    tools/clang/tools/libclang/CXCursor.cpp:int clang_Cursor_getNumTemplateArguments(CXCursor C) {
+    tools/clang/tools/libclang/CXCursor.cpp:enum CXTemplateArgumentKind clang_Cursor_getTemplateArgumentKind(CXCursor C, ...
+    tools/clang/tools/libclang/CXCursor.cpp:long long clang_Cursor_getTemplateArgumentValue(CXCursor C, unsigned I) {
+    tools/clang/tools/libclang/CXCursor.cpp:unsigned long long clang_Cursor_getTemplateArgumentUnsignedValue(CXCursor C, ...
+    tools/clang/tools/libclang/libclang.exports:clang_Cursor_getNumTemplateArguments
+    tools/clang/tools/libclang/libclang.exports:clang_Cursor_getTemplateArgumentKind
+    tools/clang/tools/libclang/libclang.exports:clang_Cursor_getTemplateArgumentValue
+    tools/clang/tools/libclang/libclang.exports:clang_Cursor_getTemplateArgumentUnsignedValue
+
+But `CXCursor.cpp` (lines 1094-1155, quoted in full below) gates every one of these on
+`clang_getCursorKind(C) == CXCursor_FunctionDecl`:
+
+    int clang_Cursor_getNumTemplateArguments(CXCursor C) {
+      if (clang_getCursorKind(C) != CXCursor_FunctionDecl) {
+        return -1;
+      }
+      const FunctionDecl *FD = llvm::dyn_cast_or_null<clang::FunctionDecl>(getCursorDecl(C));
+      if (!FD) { return -1; }
+      const FunctionTemplateSpecializationInfo* SpecInfo = FD->getTemplateSpecializationInfo();
+      if (!SpecInfo) { return -1; }
+      return SpecInfo->TemplateArguments->size();
+    }
+
+    static int clang_Cursor_getTemplateArgument(CXCursor C, unsigned I, TemplateArgument *TA) {
+      if (clang_getCursorKind(C) != CXCursor_FunctionDecl) {
+        return CXGetTemplateArgumentStatus_CursorNotFunctionDecl;
+      }
+      ... (same FunctionDecl/FunctionTemplateSpecializationInfo-only path)
+    }
+
+This is precisely the pre-Sept-2022 upstream `libclang` behaviour: function templates only,
+via `FunctionTemplateSpecializationInfo`. The issue's own linked CR
+(https://reviews.llvm.org/D134416) is the upstream change that extended this family to class
+templates and partial specializations; it was never applied here. So even if `IDxcCursor` were
+wired up to call these functions (per #3), a `DxcCursor_ClassTemplate`/`_TemplateRef` cursor
+like the reporter's `Foo`/`Foo<float, -2, 3>` would still get `-1`/`Invalid` from every one of
+them, because they only recognize `CXCursor_FunctionDecl`.
+
+Command (full history of this file -- confirms no template-related change was ever made):
+  git log --oneline --all -- tools/clang/tools/libclang/CXCursor.cpp
+
+    8a8b29f96 [spirv] AMD work graphs extension (#7353)
+    ccbb0ec11 [linux-port] Add missing case statements (#1346)
+    f805233b4 Revert license text in banner comments to original llvm verbage (#33)
+    6ee4074a4 first commit
+
+None of these four commits (the file's entire history since the original clang import) touch
+template-argument handling; the functions and their `FunctionDecl`-only gate are original to
+the `first commit` import.
+
+## 5. `IDxcCursor`'s own history has never added template-argument accessors
+
+Command:
+  git log --oneline --all -- include/dxc/dxcisense.h
+
+    8a8b29f96 [spirv] AMD work graphs extension (#7353)
+    37ed61386 [NFC] Clang-format DXC sources (#5602)
+    d751bd863 Correct WinAdapter path assumptions in public headers (#5003)
+    00da3abfc Correct WinAdapter path assumptions in public headers (#5003)
+    eaf2d736d Fix dxcisense.h includes (#4852) (#4853)
+    12515e884 Fix dxcisense.h includes (#4852)
+    af14220b4 [linux-port] Support full IID comparison on GCC (#3062)
+    7e0f44fa6 Cleanup part of compiling warnings (#2903)
+    75e5f76a5 Update CLSID scope (#2420)
+    1ad10b616 Add IDxcSourceLocation::GetPresumedLocation (#2240)
+    9d31464b5 Expose code completion API (#2222)
+    a292aedba [linux-port] Enable intellisense classes for Unix (#1430)
+    9337fd2ef [linux-port] Enable cross-platform interfaces. (#1377)
+    4799c6ce5 [linux-port] Enable some code. Disable some code. (#1372)
+    180ea63ba [linux-port] Introduce Windows "adapter" headers (#1314)
+    af6b2a552 fixes #37 - License cleanup.
+    6ee4074a4 first commit
+
+Every commit touching this header, from the original import through the most recent
+(2025-06-03), is a build-portability, licensing, formatting or unrelated-API-addition change
+(code completion, source-location presumed-location). None adds template-argument querying.
+This confirms `always-repro'd`: the gap the issue reports has existed unchanged since the
+interface's introduction and still exists at HEAD/`89e2f98e29c289ae8ad9e00dd310104fea9fd7df`.
+
+## 6. No test coverage exists for template-argument cursor querying
+
+Command:
+  git grep -n "Template" -- tools/clang/unittests/HLSL/DXIsenseTest.cpp
+
+(no output -- zero matches, obtained via `git grep`, which is unaffected by the ripgrep
+dot-directory-skipping trap noted in SKILL.md; `tools/clang/unittests` is not under a
+dot-directory in any case)
+
+This is consistent with (and does not by itself prove) the interface never having gained the
+capability: the existing intellisense unit tests exercise `GetNumArguments`/argument cursors,
+diagnostics, tokens, and formatted names, but nothing about template arguments.

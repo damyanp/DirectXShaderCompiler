@@ -1,0 +1,18 @@
+{
+  "kind": "any_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "error: no matching function for call to object of type 'Test'"
+    },
+    {
+      "kind": "regex",
+      "value": "error: unexpected type name 'uint': expected expression"
+    },
+    {
+      "kind": "regex",
+      "value": "error: no matching member function for call to 'operator\\(\\)'"
+    }
+  ],
+  "note": "Symptom present when ANY of the reporter's three call forms against the templated operator() still errors: (1) t(5) -- implicit template-argument deduction on a call to the overloaded call operator, 'no matching function for call to object of type'; (2) t<uint>(5) -- explicit template-id call syntax, which DXC's parser does not recognise as a template-id at all and instead reads '<' as less-than, producing 'unexpected type name uint: expected expression'; (3) t.operator()<uint>(5) -- explicit member-call syntax, 'no matching member function for call to operator()'. This is a diagnostic-quality issue (SKILL.md 'the reported symptom IS a diagnostic'): the bug is that all three legal-looking call forms are rejected, so any one surviving is enough to call it reproduced; the issue is resolved only once all three compile cleanly. Not an internal_failure predicate -- dxc runs to completion and diagnoses a Sema-level error (E_FAIL, 0x80004005) each time, verified by exit code in the primary capture. Control: control-non-template.hlsl replaces the templated operator() with an ordinary (non-template) one and calls it the same way (t(5)); that must NOT match, which is what shows the predicate is keyed to template-on-operator() overload resolution specifically and not to operator() calls, or Test-shaped structs, in general."
+}

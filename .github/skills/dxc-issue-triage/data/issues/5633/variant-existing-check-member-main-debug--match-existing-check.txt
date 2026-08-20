@@ -1,0 +1,58 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T21:41:19+00:00
+# cmd: -T ps_6_0 -E main -spirv control-existing-check-member.hlsl
+# exit: 0
+# timed_out: 0
+# match: match-existing-check.json
+# verdict: no-repro
+# variant: existing-check-member (control-existing-check-member.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main -spirv control-existing-check-member.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 23
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %out_var_SV_TARGET
+               OpExecutionMode %main OriginUpperLeft
+               OpSource HLSL 600
+               OpName %out_var_SV_TARGET "out.var.SV_TARGET"
+               OpName %main "main"
+               OpDecorate %out_var_SV_TARGET Location 0
+      %float = OpTypeFloat 32
+    %float_0 = OpConstant %float 0
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+   %int_2000 = OpConstant %int 2000
+    %v4float = OpTypeVector %float 4
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %11 = OpTypeFunction %void
+       %uint = OpTypeInt 32 0
+     %uint_1 = OpConstant %uint 1
+%_arr_float_uint_1 = OpTypeArray %float %uint_1
+%_ptr_Function__arr_float_uint_1 = OpTypePointer Function %_arr_float_uint_1
+%_ptr_Function_float = OpTypePointer Function %float
+%out_var_SV_TARGET = OpVariable %_ptr_Output_v4float Output
+       %main = OpFunction %void None %11
+         %17 = OpLabel
+         %18 = OpVariable %_ptr_Function__arr_float_uint_1 Function
+         %19 = OpAccessChain %_ptr_Function_float %18 %int_0
+               OpStore %19 %float_0
+         %20 = OpAccessChain %_ptr_Function_float %18 %int_2000
+         %21 = OpLoad %float %20
+         %22 = OpCompositeConstruct %v4float %21 %21 %21 %21
+               OpStore %out_var_SV_TARGET %22
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T21:09:36+00:00
+# cmd: -T cs_6_0 -E main variant-index-only.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: index-only-no-template (variant-index-only.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main variant-index-only.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-index-only.hlsl:18:22: error: array subscript is not an integer
+    buf[1] = partiboi[KEK::WAIT];
+                     ^~~~~~~~~~
+
+

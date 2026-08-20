@@ -1,0 +1,32 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T22:44:30+00:00
+# cmd: -T lib_6_3 -Zi -Qstrip_reflect -Qembed_debug -Fd testc.pdb -Fo test.lib repro-as-filed.hlsl ; -link -T lib_6_3 -Zi -Qstrip_reflect -Qstrip_debug -Fd test.pdb -Fo test.bin test.lib
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: as-filed (repro-as-filed.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 -Zi -Qstrip_reflect -Qembed_debug -Fd testc.pdb -Fo test.lib repro-as-filed.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+repro-as-filed.hlsl:3:2: warning: attribute 'numthreads' ignored without accompanying shader attribute [-Wmisplaced-attributes]
+[numthreads(8, 8, 1)]
+ ^
+
+
+
+$ dxc -link -T lib_6_3 -Zi -Qstrip_reflect -Qstrip_debug -Fd test.pdb -Fo test.bin test.lib
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 1
+--- stdout ---
+Link failed:
+error: Library has no functions to export
+
+--- stderr ---
+

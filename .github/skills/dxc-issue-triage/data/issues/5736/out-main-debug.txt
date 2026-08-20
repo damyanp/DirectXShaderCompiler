@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T22:23:12+00:00
+# cmd: -T cs_6_3 -Fo test.bin repro.hlsl ; -link -T cs_6_3 -Fo test2.bin test.bin
+# exit: 3221225477
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_3 -Fo test.bin repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -link -T cs_6_3 -Fo test2.bin test.bin
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3221225477
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: access violation. Attempted to read from address 0x0000000000000000
+

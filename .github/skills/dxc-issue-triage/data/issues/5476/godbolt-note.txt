@@ -1,0 +1,23 @@
+This shader is a minimal, complete reproduction of DXC issue #5476: a compute
+shader with a [RootSignature(...)] attribute on its entry point, compiled with
+`-fcgl` (dump unoptimized codegen).
+
+What to check in each pane: the `!dx.rootSignature = !{...}` metadata near the
+end, and the byte-array constant a few lines above it (a `[92 x i8] c"..."`
+string holding the *serialized* root signature blob). Both panes here should
+compile cleanly (exit 0) and print the *complete* IR text, including that
+byte array.
+
+That is expected and does NOT resolve the issue. #5476 is reported only on
+macOS/Linux consoles: dxc's cross-platform "write UTF-8 text to the console"
+helper round-trips through Unicode::UTF8BufferToWideBuffer, which on
+non-Windows platforms calls the C library's mbstowcs() after trying to switch
+the process locale to a UTF-8 one -- and the reporter's Actual Behavior is
+that this conversion silently fails on their machine, so nothing is printed
+at all. Compiler Explorer's Linux build environment apparently always has a
+working UTF-8 locale available, so it can never show the failure regardless
+of whether the underlying bug is fixed -- a clean pane here is a property of
+CE's environment, not evidence about the reported machine's environment or
+about whether the fix (main commit 9bcce409b, PR #7506, merged 2025-11-25)
+actually resolves it there. See notes.md for the full reasoning and its
+limits.

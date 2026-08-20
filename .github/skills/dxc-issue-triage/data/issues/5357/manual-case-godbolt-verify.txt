@@ -1,0 +1,21 @@
+# Compiler Explorer panes for #5357, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T lib_6_8
+# exit:     5
+
+error: invalid profile lib_6_8
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T lib_6_8
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>

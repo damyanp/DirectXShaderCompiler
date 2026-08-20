@@ -1,0 +1,4 @@
+# Build output. `bin\isense5172.exe` is reproducible from `isense5172.cpp` by
+# running `build-isense5172.cmd`, and a committed binary would be both large
+# and unverifiable. A fresh clone rebuilds it on demand; no extra step needed.
+bin/

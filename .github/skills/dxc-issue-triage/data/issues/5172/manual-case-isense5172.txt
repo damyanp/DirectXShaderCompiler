@@ -1,0 +1,33 @@
+# manual-case: #5172 ParseTranslationUnit vs IDxcIncludeHandler
+# compiler: main-debug
+# generator: measure-5172.py
+# command: <triage>\data\issues\5172\bin\isense5172.exe
+# cwd: <triage>\data\issues\5172
+# env DXC_5172_DLL: <repo>\build\Debug\bin\dxcompiler.dll
+# exit: 0
+#
+# isense5172: #5172 ParseTranslationUnit vs IDxcIncludeHandler
+dll: <repo>\build\Debug\bin\dxcompiler.dll
+
+[pti-disk] ParseTranslationUnit, myinclude.hlsli ON DISK, no unsaved files
+  call returned              0x00000000 (S_OK)
+  diagnostic count           1
+  diagnostic[0]              "./myinclude.hlsli:1: DISK_CONTENT_MARKER"
+
+[pti-absent] ParseTranslationUnit, myinclude.hlsli REMOVED, no unsaved files
+  call returned              0x00000000 (S_OK)
+  diagnostic count           1
+  diagnostic[0]              "repro.hlsl:1: 'myinclude.hlsli' file not found"
+
+[pti-unsaved] ParseTranslationUnit, myinclude.hlsli REMOVED, pre-declared as unsaved file "./myinclude.hlsli"
+  call returned              0x00000000 (S_OK)
+  diagnostic count           0
+
+[compile-handler] IDxcCompiler::Compile, myinclude.hlsli REMOVED, content from a custom IDxcIncludeHandler only
+  call returned              0x00000000 (S_OK)
+  handler LoadSource calls   1
+  handler matched request    yes
+  result status              0x80004005 (E_FAIL)
+  errors                     "In file included from repro.hlsl:1: \n ./myinclude.hlsli:1:2: error: HANDLER_CONTENT_MARKER \n #error HANDLER_CONTENT_MARKER \n  ^"
+
+isense5172: all four cases ran to completion

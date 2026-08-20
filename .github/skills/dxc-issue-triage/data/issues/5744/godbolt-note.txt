@@ -1,0 +1,8 @@
+Look at the LLVM IR pane for dxc. `DerivCoarseX(value)` (the ddx call) is
+computed from `value`, which does not depend on the branch condition at all.
+Check whether the `call float @dx.op.unary.f32(i32 83, ...)` line that names
+DerivCoarseX appears BEFORE the `br i1` (correct: computed once, for every
+lane, before the branch) or AFTER it, inside the conditional successor block
+(the bug: the compiler moved/"sank" the call into the branch, so only lanes
+that take it ever execute the derivative -- which corrupts the value, since
+a quad/wave derivative needs every lane in the group to run it together).

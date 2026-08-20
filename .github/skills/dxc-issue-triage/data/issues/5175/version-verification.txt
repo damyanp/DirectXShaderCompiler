@@ -1,0 +1,80 @@
+# Ground-truth build provenance for main-debug
+
+Requested ground truth: public upstream `89e2f98e29c289ae8ad9e00dd310104fea9fd7df`.
+
+## Registered compiler
+
+`.cache/compilers/main-debug.json` (shared cache, not committed, read but not modified by this
+issue's triage):
+
+    exe_path:  <repo>/build/Debug/bin/dxc.exe
+    git_commit: 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+    version:    dxcompiler.dll: 1.10(5465-7665270b)(1.9.0.5465) - 1.9.0.5465 (triage, 7665270b9)
+    config:     Debug
+
+`dxc --version` self-reports commit fingerprint `7665270b9`, not `89e2f98e2` directly -- the
+binary's version header was generated from a local/fork-local branch state and is not a public
+identifier (matches SKILL.md's documented "verify by tree, not by SHA" hazard). The repo's HEAD
+tree hash is confirmed to equal that fingerprint:
+
+    > git rev-parse HEAD^{tree}
+    7665270b990f4c21253b42414d4e1bfe1702dad5
+
+## Tree-equivalence check (the check that actually matters)
+
+Repo HEAD at triage time: `ced72eee3` (2026-08-18). Confirmed ancestor of the requested SHA's
+descendant chain:
+
+    > git merge-base --is-ancestor 89e2f98e29c289ae8ad9e00dd310104fea9fd7df HEAD
+    exit 0 (is an ancestor)
+
+Diff between HEAD and the requested public SHA, excluding this skill's own data directory
+(where per-batch triage artifacts legitimately differ):
+
+    > git diff --name-only 89e2f98e29c289ae8ad9e00dd310104fea9fd7df HEAD -- . ":(exclude).github/skills/dxc-issue-triage"
+    (empty output)
+
+No file outside `.github/skills/dxc-issue-triage/` differs between HEAD and the requested
+public commit `89e2f98e29c289ae8ad9e00dd310104fea9fd7df`. The Debug `dxc.exe`/`dxcompiler.dll`
+registered as `main-debug` were built from this source tree (`built_at` in the registry:
+2026-08-19T03:37:12Z, after HEAD's 2026-08-18 commit), so its *compiler source* is
+`89e2f98e29c289ae8ad9e00dd310104fea9fd7df`, independent of what its self-reported version
+string says.
+
+## Control: an older commit DOES show a non-empty diff (proves the check can discriminate)
+
+    > git rev-list upstream/main | select -Skip 300 -First 1
+    62208ca7c966c2c861b937028780e6b5acc3471e  (2026-01-05)
+    > git diff --name-only 62208ca7c966c2c861b937028780e6b5acc3471e HEAD -- . ":(exclude).github/skills/dxc-issue-triage"
+    .github/ISSUE_TEMPLATE/release.md
+    .github/copilot-instructions.md
+    .github/workflows/clang-format-checker.yml
+    .gitignore
+    AIToolPolicy.md
+    CONTRIBUTING.md
+    README.md
+    azure-pipelines.yml
+    ... (truncated; non-empty, as expected)
+
+This confirms the empty diff against the requested SHA is a real equivalence and not an
+inert/no-op comparison.
+
+## Independent corroboration: a second, differently-built binary self-reports the SHA directly
+
+`build\Release\bin\dxr.exe --help` (a Release build from the same working tree, not registered
+as `main-debug` and not used for any capture in this issue):
+
+    OVERVIEW: HLSL Rewriter
+    Version: dxcompiler.dll: 1.10(5440-677a02a1)(1.9.0.15438) - 1.9.0.15438 (main, 89e2f98e2)
+
+This binary's own version-header generation *did* pick up the branch name `main` and the
+short SHA `89e2f98e2` directly, giving an independent confirmation (from a different build
+directory/config) that the working tree is at the requested commit.
+
+## Conclusion
+
+`main-debug` (Debug `dxc.exe`, `git_commit` already recorded in the registry as
+`89e2f98e29c289ae8ad9e00dd310104fea9fd7df`) is confirmed, by tree equivalence rather than by
+trusting its self-reported string, to correspond to public upstream
+`89e2f98e29c289ae8ad9e00dd310104fea9fd7df`. This registry entry was not modified by this
+issue's triage (no shared-state writes were made).

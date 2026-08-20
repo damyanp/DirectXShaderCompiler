@@ -1,0 +1,4 @@
+# Build output from gen-cl-compile-check.py's cl.exe invocations. The .obj
+# is not evidence -- the compile's exit status and diagnostics (captured in
+# manual-case-cl-compile.txt) are. Regenerated on demand, not committed.
+bin/

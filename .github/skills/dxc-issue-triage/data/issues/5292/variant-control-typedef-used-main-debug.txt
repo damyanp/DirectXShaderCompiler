@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxcompiler.dll
+# ran: 2026-08-20T05:00:22+00:00
+# cmd: dxr.exe -remove-unused-functions -remove-unused-globals -E ps_main control-typedef-used.hlsl
+# harness: measure-rewrite.py (IDxcRewriter2::RewriteWithOptions; not a dxc.exe invocation -- see notes.md)
+# call-hr: 0x00000000
+# exit: 0
+# timed_out: 0
+# struct-present: False
+# typedef-present: True
+# match: match.json
+# verdict: repro
+# variant: control-typedef-used (control-typedef-used.hlsl)
+# expect: match
+
+typedef PSOutput PSPointOutput;
+float4 ps_main(VSOutput psIn) {
+  PSPointOutput unused_local;
+  return float4(0.F, 0.F, 0.F, 1.F);
+}
+
+

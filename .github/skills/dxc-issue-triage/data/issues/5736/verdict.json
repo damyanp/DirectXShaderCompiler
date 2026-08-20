@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-15T20:41:40Z",
+  "godbolt_skip": "repro is inherently a two-stage pipeline (compile to a DXIL container, then -link that container); Compiler Explorer runs one dxc invocation per pane against pasted HLSL source and cannot feed a compiled container into a second invocation, so the crash cannot be expressed on CE",
+  "history": "always-repro'd across v1.6.2106..v1.9.2607 (for the entire lifetime of -link; v1.4.1907..v1.6.2104 reject -link as an unknown argument, before the feature existed) and on main-debug (89e2f98e2)",
+  "labels": "bug,crash,shader-linking,incorrect-code",
+  "labels_now": "bug,crash,shader-linking,incorrect-code",
+  "notes_path": "issues\\5736\\notes.md",
+  "number": 5736,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Access violation (0xC0000005, read of address 0) still crashes dxc -link when the input container was compiled as an ordinary (non-library) cs_6_3 shader, identical to the 2023 report; reproduces on every stable release since -link was introduced (v1.6.2106) through v1.9.2607 and on main (89e2f98e2). Linking the same shader compiled as a lib_6_3 library target instead does not crash, corroborating the reporter's theory that the defect is specific to non-library (createHandle) input to the linker.",
+  "title": "Internal compiler error when attempting to link a non-library input",
+  "triaged_at": "2026-08-20T05:15:28+00:00",
+  "triaged_by": "claude-sonnet-4.6 (via GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5736"
+}

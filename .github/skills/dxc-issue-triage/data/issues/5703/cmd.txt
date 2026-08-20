@@ -1,0 +1,1 @@
+--entry main --lib-profile lib_6_3 --link-profile cs_6_3 -O3 repro.hlsl

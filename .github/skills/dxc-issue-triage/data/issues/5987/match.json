@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Reported symptom is 'error: llvm::cast<X>() argument of incompatible type!' on a Release-style dxc (exit E_FAIL, indistinguishable by status alone -- see is_internal_failure's text-marker fallback for DXC_E_LLVM_CAST_ERROR), and the reporter says a Debug build hits an assert instead. internal_failure is exit-code-first and covers both shapes (assert trap 0x80000003 / 0xE0000001 on Debug, E_FAIL+text on Release) without depending on message wording, per this skill's guidance to always use internal_failure for crash/assert issues."
+}

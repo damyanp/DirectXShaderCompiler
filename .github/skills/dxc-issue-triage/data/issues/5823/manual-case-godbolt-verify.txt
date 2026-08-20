@@ -1,0 +1,21 @@
+# Compiler Explorer panes for #5823, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -HV 202x -T ps_6_7 -E PSMain -spirv
+# exit:     1
+
+dxc failed : Unknown HLSL version: 202. Valid versions: 2016, 2017, 2018, 2021
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -HV 202x -T ps_6_7 -E PSMain -spirv
+# exit:     5
+
+error: casting to type 'void' unimplemented
+
+<Compilation failed>

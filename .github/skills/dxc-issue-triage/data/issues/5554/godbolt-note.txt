@@ -1,0 +1,7 @@
+What to look for: the diagnostic at the `typedef integral_constant<ENUM,ENUM::TRUE>` line --
+"non-type template argument of type 'ENUM' is not an integral constant expression". ENUM is a
+scoped enum (`enum class`); the exact same pattern with a plain `enum` compiles cleanly (see
+variant-unscoped-6706.hlsl in the issue directory, not uploaded here). Real C++ (gcc, -std=c++17)
+accepts this exact pattern -- see manual-case-cpp-control.txt -- so this is a DXC-specific gap,
+not a design choice. Both panes (DXC's oldest Compiler Explorer build, 1.6.2112, and dxc_trunk)
+show the identical error.

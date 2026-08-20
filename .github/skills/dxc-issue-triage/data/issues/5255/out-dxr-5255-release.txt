@@ -1,0 +1,37 @@
+# compiler: dxr-5255-release
+# exe: <repo>/build/Release/bin/dxr.exe
+# ran: 2026-08-19T19:44:09+00:00
+# cmd: -remove-unused-functions -remove-unused-globals -E vs_main repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -remove-unused-functions -remove-unused-globals -E vs_main repro.hlsl
+[exe] <repo>/build/Release/bin/dxr.exe
+[exit] 0
+--- stdout ---
+cbuffer InstanceData {
+  const InstanceDataStructType mData[2];
+}
+;
+cbuffer InstanceDataNotUsed {
+  const InstanceDataStructType mDataNotUsed[2];
+}
+;
+struct VS_OUTPUT {
+  float4 position : SV_Position;
+  float4 uv : TEXCOORD0;
+  float4 color : VC;
+};
+VS_OUTPUT vs_main(VS_INPUT input, uint instanceID : SV_InstanceID) {
+  VS_OUTPUT output = (VS_OUTPUT)0;
+  output.position += mData[0].data;
+  return output;
+}
+
+
+
+
+--- stderr ---
+

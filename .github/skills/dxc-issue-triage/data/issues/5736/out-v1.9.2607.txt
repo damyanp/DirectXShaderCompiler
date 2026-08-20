@@ -1,0 +1,25 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-19T22:25:08+00:00
+# cmd: -T cs_6_3 -Fo test.bin repro.hlsl ; -link -T cs_6_3 -Fo test2.bin test.bin
+# exit: 3221225477
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_3 -Fo test.bin repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -link -T cs_6_3 -Fo test2.bin test.bin
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 3221225477
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: access violation. Attempted to read from address 0x0000000000000000
+

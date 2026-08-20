@@ -1,0 +1,17 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T19:43:23+00:00
+# cmd: -spirv -Zi -fspv-reflect -E PS -T ps_6_7 repro.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -spirv -Zi -fspv-reflect -E PS -T ps_6_7 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

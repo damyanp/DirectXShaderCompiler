@@ -1,0 +1,26 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T21:50:06+00:00
+# cmd: -T cs_6_0 control-no-shadow.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: no-shadow (control-no-shadow.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 control-no-shadow.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-no-shadow.hlsl:4:1: error: HLSL requires a type specifier for all declarations
+main()
+^
+control-no-shadow.hlsl:4:1: error: compute entry point must have a valid numthreads attribute
+control-no-shadow.hlsl:6:29: error: cannot convert from 'float2x2' to 'float2'
+  Output[0] = float2(1,2) * mymatrix;
+                            ^
+
+

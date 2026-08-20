@@ -1,0 +1,18 @@
+# generator: measure.py --dxcompiler <repo>\build\Debug\bin\dxcompiler.dll --label main-debug --source control-numthreads.hlsl --prefix variant
+# command: <repo>\.github\skills\dxc-issue-triage\.cache\scratch\5173\isense_probe.exe <repo>\build\Debug\bin\dxcompiler.dll <repo>\.github\skills\dxc-issue-triage\data\issues\5173\control-numthreads.hlsl
+# process-exit-code: 0
+# variant: main-debug (control-numthreads.hlsl)
+# expect: attribute-cursor-for-numthreads-present-none-for-semantic
+# stdout:
+# harness: isense_probe
+# dxcompiler: <repo>\build\Debug\bin\dxcompiler.dll
+# source: <repo>\.github\skills\dxc-issue-triage\data\issues\5173\control-numthreads.hlsl
+# diagnostics: 0
+# cursor tree:
+kind=300(TranslationUnit) spelling="source.hlsl" display="source.hlsl"
+  kind=8(FunctionDecl) spelling="main" display="main(uint3)"
+    kind=400(UnexposedAttr) [ATTR] spelling="" display=""
+    kind=10(ParmDecl) spelling="id" display="id"
+      kind=43(TypeRef) spelling="uint3" display="uint3"
+    kind=202(CompoundStmt) spelling="" display=""
+# exit: 0

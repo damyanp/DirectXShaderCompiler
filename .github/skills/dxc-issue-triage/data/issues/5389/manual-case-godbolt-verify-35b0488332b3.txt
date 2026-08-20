@@ -1,0 +1,34 @@
+# Compiler Explorer panes for #5389, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_6 -E main
+# exit:     5
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+error: validation errors
+error: Module bitcode is invalid.
+error: Call parameter type does not match function signature!
+i64 123
+ i32  call void @dx.op.rawBufferStore.i32(i32 140, %dx.types.Handle %3, i32 0, i32 undef, i64 123, i64 123, i32 undef, i32 undef, i8 3, i32 4)
+
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_6 -E main
+# exit:     5
+
+error: validation errors
+Invalid record
+Validation failed.
+
+
+<Compilation failed>

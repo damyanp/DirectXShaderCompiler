@@ -1,0 +1,36 @@
+# generator: measure.py --dxcompiler <repo>\build\Debug\bin\dxcompiler.dll --label main-debug --source repro.hlsl --prefix manual-case
+# command: <repo>\.github\skills\dxc-issue-triage\.cache\scratch\5173\isense_probe.exe <repo>\build\Debug\bin\dxcompiler.dll <repo>\.github\skills\dxc-issue-triage\data\issues\5173\repro.hlsl
+# process-exit-code: 0
+# variant: main-debug (repro.hlsl)
+# expect: no-attribute-cursor-for-any-of-the-3-semantics
+# stdout:
+# harness: isense_probe
+# dxcompiler: <repo>\build\Debug\bin\dxcompiler.dll
+# source: <repo>\.github\skills\dxc-issue-triage\data\issues\5173\repro.hlsl
+# diagnostics: 0
+# cursor tree:
+kind=300(TranslationUnit) spelling="source.hlsl" display="source.hlsl"
+  kind=2(StructDecl) spelling="PSInput" display="PSInput"
+    kind=6(FieldDecl) spelling="position" display="position"
+      kind=43(TypeRef) spelling="float4" display="float4"
+    kind=6(FieldDecl) spelling="uv" display="uv"
+      kind=43(TypeRef) spelling="float2" display="float2"
+  kind=8(FunctionDecl) spelling="main" display="main(PSInput, float3)"
+    kind=43(TypeRef) spelling="float4" display="float4"
+    kind=10(ParmDecl) spelling="input" display="input"
+      kind=43(TypeRef) spelling="struct PSInput" display="struct PSInput"
+    kind=10(ParmDecl) spelling="normal" display="normal"
+      kind=43(TypeRef) spelling="float3" display="float3"
+    kind=202(CompoundStmt) spelling="" display=""
+      kind=214(ReturnStmt) spelling="" display=""
+        kind=128((other)) spelling="" display=""
+          kind=43(TypeRef) spelling="float4" display="float4"
+          kind=119((other)) spelling="" display=""
+            kind=100((other)) spelling="uv" display="uv"
+              kind=102((other)) spelling="uv" display="uv"
+                kind=101((other)) spelling="input" display="input"
+            kind=100((other)) spelling="" display=""
+              kind=106((other)) spelling="" display=""
+            kind=100((other)) spelling="" display=""
+              kind=106((other)) spelling="" display=""
+# exit: 0

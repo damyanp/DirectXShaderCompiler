@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "Int type 'i33' has an invalid width",
+  "note": "The current/caught shape of the same defect scored by match.json: instead of the illegal i33 SCEV-widened type silently reaching the disassembly, the DXIL validator's Types.IntWidth rule (lib/DxilValidation/DxilValidation.cpp, IsValidIntBitWidth) now rejects the module outright and dxc exits E_FAIL with this literal message (measured: exit 0x80004005, an ordinary diagnosed failure per SKILL.md's exit-code table, not internal_failure). Anchored on the validator's exact quoted text including the type name so an unrelated validation error cannot satisfy it. Bisected separately from match.json's 'to i33' clause: a release can show at most one of the two shapes for this exact repro (either the compile succeeds and the type is visible, or the compile is rejected and the type is only named in the diagnostic), so combining them with any_of would erase the release boundary where the validator started catching this instead of letting it through."
+}

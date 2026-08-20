@@ -1,0 +1,7 @@
+This shader passes an uninitialized Texture2D into an `inout` helper that only assigns it
+on one control path. Compiling it at -T cs_6_6 succeeds silently: look for the full DXIL
+listing with no compiler error and a resource-sample call inside `main`. Compiling the
+identical source at -T cs_6_5 is rejected with a front-end error naming the `SampleGrad`
+line and complaining that the resource cannot be proven to resolve to one unique global
+resource. The two panes differ only in the -T profile argument; nothing else about the
+source changed.

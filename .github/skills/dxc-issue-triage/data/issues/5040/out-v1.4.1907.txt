@@ -1,0 +1,137 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-19T19:11:53+00:00
+# cmd: -T ps_6_0 -E main repro.hlsl -Fo out.dxil ; -dumpbin out.dxil
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T ps_6_0 -E main repro.hlsl -Fo out.dxil
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -dumpbin out.dxil
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; A                        0   x           0     NONE    uint       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   x           0   TARGET   float   x   
+;
+;
+; Pipeline Runtime Information: 
+;
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; A                        0        nointerpolation       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; b                                 texture    byte         r/o      T0             t0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 1, outputs: 1
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.ByteAddressBuffer = type { i32 }
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+
+@"\01?b@@3UByteAddressBuffer@@A" = external constant %struct.ByteAddressBuffer, align 4
+
+define void @main() {
+  %b_texture_rawbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %b_texture_rawbuf, i32 undef, i32 undef)  ; BufferLoad(srv,index,wot)
+  %2 = extractvalue %dx.types.ResRet.i32 %1, 0
+  %3 = uitofp i32 %2 to float
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %3)  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i32) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.typeAnnotations = !{!7, !10}
+!dx.viewIdState = !{!14}
+!dx.entryPoints = !{!15}
+
+!0 = !{!"dxcoob 2019.05.00"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 4}
+!3 = !{!"ps", i32 6, i32 0}
+!4 = !{!5, null, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %struct.ByteAddressBuffer* undef, !"b", i32 0, i32 0, i32 1, i32 11, i32 0, null}
+!7 = !{i32 0, %struct.ByteAddressBuffer undef, !8}
+!8 = !{i32 4, !9}
+!9 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 4}
+!10 = !{i32 1, void ()* @main, !11}
+!11 = !{!12}
+!12 = !{i32 0, !13, !13}
+!13 = !{}
+!14 = !{[3 x i32] [i32 1, i32 1, i32 0]}
+!15 = !{void ()* @main, !"main", !16, !4, !22}
+!16 = !{!17, !20, null}
+!17 = !{!18}
+!18 = !{i32 0, !"A", i8 5, i8 0, !19, i8 1, i32 1, i8 1, i32 0, i8 0, null}
+!19 = !{i32 0}
+!20 = !{!21}
+!21 = !{i32 0, !"SV_Target", i8 9, i8 16, !19, i8 0, i32 1, i8 1, i32 0, i8 0, null}
+!22 = !{i32 0, i64 16}
+
+
+--- stderr ---
+

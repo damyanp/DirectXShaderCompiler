@@ -1,0 +1,148 @@
+# issue: 4786
+# generator: manual-case-icb-source-history-gen.py
+# purpose: establish stable-release history of the ICB float/int reinterpret-cast bug by reading source at each release tag, since dxc.exe never executes projects/dxilconv/DxbcConverter.cpp
+
+=== v1.4.1907 ===
+$ git show v1.4.1907:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+[exit 128] fatal: path 'projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp' exists on disk, but not in 'v1.4.1907'
+
+=== v1.5.2003 ===
+$ git show v1.5.2003:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(m_Ctx, ArrayRef<float>((float*)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(*m_pModule, pIcbData->getType(), true, GlobalValue::InternalLinkage,
+                                      pIcbData, "dx.icb", nullptr, 
+
+=== v1.5.2010 ===
+$ git show v1.5.2010:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(m_Ctx, ArrayRef<float>((float*)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(*m_pModule, pIcbData->getType(), true, GlobalValue::InternalLinkage,
+                                      pIcbData, "dx.icb", nullptr, 
+
+=== v1.6.2104 ===
+$ git show v1.6.2104:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(m_Ctx, ArrayRef<float>((float*)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(*m_pModule, pIcbData->getType(), true, GlobalValue::InternalLinkage,
+                                      pIcbData, "dx.icb", nullptr, 
+
+=== v1.6.2106 ===
+$ git show v1.6.2106:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(m_Ctx, ArrayRef<float>((float*)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(*m_pModule, pIcbData->getType(), true, GlobalValue::InternalLinkage,
+                                      pIcbData, "dx.icb", nullptr, 
+
+=== v1.6.2112 ===
+$ git show v1.6.2112:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(m_Ctx, ArrayRef<float>((float*)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(*m_pModule, pIcbData->getType(), true, GlobalValue::InternalLinkage,
+                                      pIcbData, "dx.icb", nullptr, 
+
+=== v1.7.2207 ===
+$ git show v1.7.2207:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(m_Ctx, ArrayRef<float>((float*)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(*m_pModule, pIcbData->getType(), true, GlobalValue::InternalLinkage,
+                                      pIcbData, "dx.icb", nullptr, 
+
+=== v1.7.2212 ===
+$ git show v1.7.2212:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(m_Ctx, ArrayRef<uint32_t>((uint32_t*)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(*m_pModule, pIcbData->getType(), true, GlobalValue::InternalLinkage,
+                                      pIcbData, "dx.icb", nullptr,
+
+=== v1.7.2212.1 ===
+$ git show v1.7.2212.1:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(m_Ctx, ArrayRef<uint32_t>((uint32_t*)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(*m_pModule, pIcbData->getType(), true, GlobalValue::InternalLinkage,
+                                      pIcbData, "dx.icb", nullptr,
+
+=== v1.7.2308 ===
+$ git show v1.7.2308:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(m_Ctx, ArrayRef<float>((float*)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(*m_pModule, pIcbData->getType(), true, GlobalValue::InternalLinkage,
+                                      pIcbData, "dx.icb", nullptr, 
+
+=== v1.8.2403 ===
+$ git show v1.8.2403:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(
+            m_Ctx, ArrayRef<float>((float *)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(
+
+=== v1.8.2403.1 ===
+$ git show v1.8.2403.1:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(
+            m_Ctx, ArrayRef<float>((float *)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(
+
+=== v1.8.2403.2 ===
+$ git show v1.8.2403.2:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(
+            m_Ctx, ArrayRef<float>((float *)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(
+
+=== v1.8.2405 ===
+$ git show v1.8.2405:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(
+            m_Ctx, ArrayRef<float>((float *)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(
+
+=== v1.8.2407 ===
+$ git show v1.8.2407:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(
+            m_Ctx, ArrayRef<float>((float *)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(
+
+=== v1.8.2502 ===
+$ git show v1.8.2502:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(
+            m_Ctx, ArrayRef<float>((float *)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(
+
+=== v1.8.2505 ===
+$ git show v1.8.2505:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(
+            m_Ctx, ArrayRef<float>((float *)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(
+
+=== v1.8.2505.1 ===
+$ git show v1.8.2505.1:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(
+            m_Ctx, ArrayRef<float>((float *)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(
+
+=== v1.9.2602 ===
+$ git show v1.9.2602:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(
+            m_Ctx, ArrayRef<float>((float *)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(
+
+=== v1.9.2602.24 ===
+$ git show v1.9.2602.24:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(
+            m_Ctx, ArrayRef<float>((float *)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(
+
+=== v1.9.2607 ===
+$ git show v1.9.2607:projects/dxilconv/lib/DxbcConverter/DxbcConverter.cpp
+
+        llvm::Constant *pIcbData = ConstantDataArray::get(
+            m_Ctx, ArrayRef<float>((float *)Inst.m_CustomData.pData, Size));
+        m_pIcbGV = new GlobalVariable(
+

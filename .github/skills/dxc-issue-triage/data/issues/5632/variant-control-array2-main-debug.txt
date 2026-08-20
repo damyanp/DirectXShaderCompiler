@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T21:35:14+00:00
+# cmd: -HV 2021 -T ps_6_7 -enable-16bit-types control-array2-scalar.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-array2 (control-array2-scalar.hlsl)
+# expect: no-match
+
+$ dxc -HV 2021 -T ps_6_7 -enable-16bit-types control-array2-scalar.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-array2-scalar.hlsl:16:18: error: too many elements in vector initialization (expected 1 element, have 2)
+    return float(lineStyles[45]._pad).xxxx;
+                 ^
+
+

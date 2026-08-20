@@ -1,0 +1,7 @@
+What to look for: all three call forms against the templated operator()
+still fail to compile (dxc exit 5 = E_FAIL on this Linux CE build). Look at
+the three error lines under each dxc pane: a "no matching function for call
+to object of type" error on the plain t(5) call, a parser-level "unexpected
+type name" error on the explicit-template-argument t<uint>(5) form, and a
+"no matching member function" error on the explicit t.operator()<uint>(5)
+member-call form. None of the three compiles, matching the original report.

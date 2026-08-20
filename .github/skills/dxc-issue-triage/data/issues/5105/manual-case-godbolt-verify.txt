@@ -1,0 +1,406 @@
+# Compiler Explorer panes for #5105, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E main
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; TEXCOORD                 0   xy          0     NONE   float   xy  
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader debug name: 6989f7f4a5b13e7c204c036bbbfdad57.pdb
+; shader hash: 6989f7f4a5b13e7c204c036bbbfdad57
+;
+; Pipeline Runtime Information: 
+;
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; TEXCOORD                 0                 linear       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; samp                              sampler      NA          NA      S0             s0     1
+; usedTex                           texture     f32          2d      T0             t0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 2, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0, 1 }
+;   output 1 depends on inputs: { 0, 1 }
+;   output 2 depends on inputs: { 0, 1 }
+;   output 3 depends on inputs: { 0, 1 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.f32 = type { float, float, float, float, i32 }
+%"class.Texture2D<vector<float, 4> >" = type { <4 x float>, %"class.Texture2D<vector<float, 4> >::mips_type" }
+%"class.Texture2D<vector<float, 4> >::mips_type" = type { i32 }
+%struct.SamplerState = type { i32 }
+
+define void @main() {
+  %usedTex_texture_2d = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !62 ; line:23 col:12  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %samp_sampler = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 3, i32 0, i32 0, i1 false), !dbg !62 ; line:23 col:12  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 undef), !dbg !63 ; line:21 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 undef), !dbg !63 ; line:21 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !64, metadata !65), !dbg !63 ; var:"uv" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !64, metadata !66), !dbg !63 ; var:"uv" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  %3 = call %dx.types.ResRet.f32 @dx.op.sample.f32(i32 60, %dx.types.Handle %usedTex_texture_2d, %dx.types.Handle %samp_sampler, float %1, float %2, float undef, float undef, i32 0, i32 0, i32 undef, float undef), !dbg !62 ; line:23 col:12  ; Sample(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,offset2,clamp)
+  %4 = extractvalue %dx.types.ResRet.f32 %3, 0, !dbg !62 ; line:23 col:12
+  %5 = extractvalue %dx.types.ResRet.f32 %3, 1, !dbg !62 ; line:23 col:12
+  %6 = extractvalue %dx.types.ResRet.f32 %3, 2, !dbg !62 ; line:23 col:12
+  %7 = extractvalue %dx.types.ResRet.f32 %3, 3, !dbg !62 ; line:23 col:12
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %4), !dbg !67 ; line:23 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %5), !dbg !67 ; line:23 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %6), !dbg !67 ; line:23 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %7), !dbg !67 ; line:23 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !67 ; line:23 col:5
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.f32 @dx.op.sample.f32(i32, %dx.types.Handle, %dx.types.Handle, float, float, float, float, i32, i32, i32, float) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!34, !35}
+!llvm.ident = !{!36}
+!dx.source.contents = !{!37}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!38}
+!dx.source.args = !{!39}
+!dx.version = !{!40}
+!dx.valver = !{!41}
+!dx.shaderModel = !{!42}
+!dx.resources = !{!43}
+!dx.typeAnnotations = !{!49}
+!dx.viewIdState = !{!52}
+!dx.entryPoints = !{!53}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !26)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 21, type: !5, isLocal: false, isDefinition: true, scopeLine: 22, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !19}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, size: 128, align: 32, elements: !9, templateParams: !15)
+!9 = !{!10, !12, !13, !14}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!15 = !{!16, !17}
+!16 = !DITemplateTypeParameter(name: "element", type: !11)
+!17 = !DITemplateValueParameter(name: "element_count", type: !18, value: i32 4)
+!18 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!19 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, baseType: !20)
+!20 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, size: 64, align: 32, elements: !21, templateParams: !24)
+!21 = !{!22, !23}
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !20, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !20, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!24 = !{!16, !25}
+!25 = !DITemplateValueParameter(name: "element_count", type: !18, value: i32 2)
+!26 = !{!27, !31, !32}
+!27 = !DIGlobalVariable(name: "usedTex", linkageName: "\01?usedTex@@3V?$Texture2D@V?$vector@M$03@@@@A", scope: !0, file: !1, line: 17, type: !28, isLocal: false, isDefinition: true)
+!28 = !DICompositeType(tag: DW_TAG_class_type, name: "Texture2D<vector<float, 4> >", file: !1, line: 17, size: 160, align: 32, elements: !2, templateParams: !29)
+!29 = !{!30}
+!30 = !DITemplateTypeParameter(name: "element", type: !8)
+!31 = !DIGlobalVariable(name: "unusedTex", linkageName: "\01?unusedTex@@3V?$Texture2D@V?$vector@M$03@@@@A", scope: !0, file: !1, line: 18, type: !28, isLocal: false, isDefinition: true)
+!32 = !DIGlobalVariable(name: "samp", linkageName: "\01?samp@@3USamplerState@@A", scope: !0, file: !1, line: 19, type: !33, isLocal: false, isDefinition: true)
+!33 = !DICompositeType(tag: DW_TAG_structure_type, name: "SamplerState", file: !1, line: 19, size: 32, align: 32, elements: !2)
+!34 = !{i32 2, !"Dwarf Version", i32 4}
+!35 = !{i32 2, !"Debug Info Version", i32 3}
+!36 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!37 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: in the \22Resource Bindings\22 comment table near the top of the\0A// DXC disassembly, only `samp` (s0) and `usedTex` (t0) are listed. `unusedTex`,\0A// declared at `register(t1)` but never read by `main`, has no row at all --\0A// which is the DCE-driven reflection instability #5105 reports. Compare the\0A// Compiler Explorer options field for the DXC pane: no such option as\0A// `-keep-all-resources` or `-fhlsl-unused-resource-bindings=reserve-all`\0A// (both proposed in still-open, unmerged PRs #7643/#7734) is available here.\0A//==========================================================================//\0A\0A// #5105: an unused, explicitly-registered resource should remain visible in\0A// reflection/disassembly even though nothing in the entry point references it.\0A//\0A// unusedTex (t1) is declared but never read. usedTex (t0) and samp (s0) are\0A// both read, so they must survive under any configuration; unusedTex is the\0A// resource under test.\0ATexture2D<float4> usedTex : register(t0);\0ATexture2D<float4> unusedTex : register(t1);\0ASamplerState samp : register(s0);\0A\0Afloat4 main(float2 uv : TEXCOORD) : SV_Target\0A{\0A    return usedTex.Sample(samp, uv);\0A}\0A"}
+!38 = !{!"/app/example.hlsl"}
+!39 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug"}
+!40 = !{i32 1, i32 0}
+!41 = !{i32 1, i32 6}
+!42 = !{!"ps", i32 6, i32 0}
+!43 = !{!44, null, null, !47}
+!44 = !{!45}
+!45 = !{i32 0, %"class.Texture2D<vector<float, 4> >"* undef, !"usedTex", i32 0, i32 0, i32 1, i32 2, i32 0, !46}
+!46 = !{i32 0, i32 9}
+!47 = !{!48}
+!48 = !{i32 0, %struct.SamplerState* undef, !"samp", i32 0, i32 0, i32 1, i32 0, null}
+!49 = !{i32 1, void ()* @main, !50}
+!50 = !{!51}
+!51 = !{i32 0, !2, !2}
+!52 = !{[4 x i32] [i32 2, i32 4, i32 15, i32 15]}
+!53 = !{void ()* @main, !"main", !54, !43, null}
+!54 = !{!55, !59, null}
+!55 = !{!56}
+!56 = !{i32 0, !"TEXCOORD", i8 9, i8 0, !57, i8 2, i32 1, i8 2, i32 0, i8 0, !58}
+!57 = !{i32 0}
+!58 = !{i32 3, i32 3}
+!59 = !{!60}
+!60 = !{i32 0, !"SV_Target", i8 9, i8 16, !57, i8 0, i32 1, i8 4, i32 0, i8 0, !61}
+!61 = !{i32 3, i32 15}
+!62 = !DILocation(line: 23, column: 12, scope: !4)
+!63 = !DILocation(line: 21, column: 20, scope: !4)
+!64 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "uv", arg: 1, scope: !4, file: !1, line: 21, type: !19)
+!65 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!66 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!67 = !DILocation(line: 23, column: 5, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; TEXCOORD                 0   xy          0     NONE   float   xy  
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   xyzw        0   TARGET   float   xyzw
+;
+; shader debug name: 861048715271127e014ca09d2d9596df.pdb
+; shader hash: 861048715271127e014ca09d2d9596df
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 1
+; SigOutputElements: 1
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 1
+; SigOutputVectors[0]: 1
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; TEXCOORD                 0                 linear       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; samp                              sampler      NA          NA      S0             s0     1
+; usedTex                           texture     f32          2d      T0             t0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 2, outputs: 4
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0, 1 }
+;   output 1 depends on inputs: { 0, 1 }
+;   output 2 depends on inputs: { 0, 1 }
+;   output 3 depends on inputs: { 0, 1 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.f32 = type { float, float, float, float, i32 }
+%"class.Texture2D<vector<float, 4> >" = type { <4 x float>, %"class.Texture2D<vector<float, 4> >::mips_type" }
+%"class.Texture2D<vector<float, 4> >::mips_type" = type { i32 }
+%struct.SamplerState = type { i32 }
+
+define void @main() {
+  %usedTex_texture_2d = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !62 ; line:23 col:12  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %samp_sampler = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 3, i32 0, i32 0, i1 false), !dbg !62 ; line:23 col:12  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 undef), !dbg !63 ; line:21 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 undef), !dbg !63 ; line:21 col:20  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata float %1, i64 0, metadata !64, metadata !65), !dbg !63 ; var:"uv" !DIExpression(DW_OP_bit_piece, 0, 32) func:"main"
+  call void @llvm.dbg.value(metadata float %2, i64 0, metadata !64, metadata !66), !dbg !63 ; var:"uv" !DIExpression(DW_OP_bit_piece, 32, 32) func:"main"
+  %3 = call %dx.types.ResRet.f32 @dx.op.sample.f32(i32 60, %dx.types.Handle %usedTex_texture_2d, %dx.types.Handle %samp_sampler, float %1, float %2, float undef, float undef, i32 0, i32 0, i32 undef, float undef), !dbg !62 ; line:23 col:12  ; Sample(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,offset2,clamp)
+  %4 = extractvalue %dx.types.ResRet.f32 %3, 0, !dbg !62 ; line:23 col:12
+  %5 = extractvalue %dx.types.ResRet.f32 %3, 1, !dbg !62 ; line:23 col:12
+  %6 = extractvalue %dx.types.ResRet.f32 %3, 2, !dbg !62 ; line:23 col:12
+  %7 = extractvalue %dx.types.ResRet.f32 %3, 3, !dbg !62 ; line:23 col:12
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %4), !dbg !67 ; line:23 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %5), !dbg !67 ; line:23 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %6), !dbg !67 ; line:23 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %7), !dbg !67 ; line:23 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !67 ; line:23 col:5
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.f32 @dx.op.sample.f32(i32, %dx.types.Handle, %dx.types.Handle, float, float, float, float, i32, i32, i32, float) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!34, !35}
+!llvm.ident = !{!36}
+!dx.source.contents = !{!37}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!38}
+!dx.source.args = !{!39}
+!dx.version = !{!40}
+!dx.valver = !{!41}
+!dx.shaderModel = !{!42}
+!dx.resources = !{!43}
+!dx.typeAnnotations = !{!49}
+!dx.viewIdState = !{!52}
+!dx.entryPoints = !{!53}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !26)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 21, type: !5, isLocal: false, isDefinition: true, scopeLine: 22, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !19}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 4>", file: !1, size: 128, align: 32, elements: !9, templateParams: !15)
+!9 = !{!10, !12, !13, !14}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+!15 = !{!16, !17}
+!16 = !DITemplateTypeParameter(name: "element", type: !11)
+!17 = !DITemplateValueParameter(name: "element_count", type: !18, value: i32 4)
+!18 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!19 = !DIDerivedType(tag: DW_TAG_typedef, name: "float2", file: !1, baseType: !20)
+!20 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<float, 2>", file: !1, size: 64, align: 32, elements: !21, templateParams: !24)
+!21 = !{!22, !23}
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !20, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!23 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !20, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!24 = !{!16, !25}
+!25 = !DITemplateValueParameter(name: "element_count", type: !18, value: i32 2)
+!26 = !{!27, !31, !32}
+!27 = !DIGlobalVariable(name: "usedTex", linkageName: "\01?usedTex@@3V?$Texture2D@V?$vector@M$03@@@@A", scope: !0, file: !1, line: 17, type: !28, isLocal: false, isDefinition: true)
+!28 = !DICompositeType(tag: DW_TAG_class_type, name: "Texture2D<vector<float, 4> >", file: !1, line: 17, size: 160, align: 32, elements: !2, templateParams: !29)
+!29 = !{!30}
+!30 = !DITemplateTypeParameter(name: "element", type: !8)
+!31 = !DIGlobalVariable(name: "unusedTex", linkageName: "\01?unusedTex@@3V?$Texture2D@V?$vector@M$03@@@@A", scope: !0, file: !1, line: 18, type: !28, isLocal: false, isDefinition: true)
+!32 = !DIGlobalVariable(name: "samp", linkageName: "\01?samp@@3USamplerState@@A", scope: !0, file: !1, line: 19, type: !33, isLocal: false, isDefinition: true)
+!33 = !DICompositeType(tag: DW_TAG_structure_type, name: "SamplerState", file: !1, line: 19, size: 32, align: 32, elements: !2)
+!34 = !{i32 2, !"Dwarf Version", i32 4}
+!35 = !{i32 2, !"Debug Info Version", i32 3}
+!36 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!37 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: in the \22Resource Bindings\22 comment table near the top of the\0A// DXC disassembly, only `samp` (s0) and `usedTex` (t0) are listed. `unusedTex`,\0A// declared at `register(t1)` but never read by `main`, has no row at all --\0A// which is the DCE-driven reflection instability #5105 reports. Compare the\0A// Compiler Explorer options field for the DXC pane: no such option as\0A// `-keep-all-resources` or `-fhlsl-unused-resource-bindings=reserve-all`\0A// (both proposed in still-open, unmerged PRs #7643/#7734) is available here.\0A//==========================================================================//\0A\0A// #5105: an unused, explicitly-registered resource should remain visible in\0A// reflection/disassembly even though nothing in the entry point references it.\0A//\0A// unusedTex (t1) is declared but never read. usedTex (t0) and samp (s0) are\0A// both read, so they must survive under any configuration; unusedTex is the\0A// resource under test.\0ATexture2D<float4> usedTex : register(t0);\0ATexture2D<float4> unusedTex : register(t1);\0ASamplerState samp : register(s0);\0A\0Afloat4 main(float2 uv : TEXCOORD) : SV_Target\0A{\0A    return usedTex.Sample(samp, uv);\0A}\0A"}
+!38 = !{!"/app/example.hlsl"}
+!39 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug"}
+!40 = !{i32 1, i32 0}
+!41 = !{i32 1, i32 10}
+!42 = !{!"ps", i32 6, i32 0}
+!43 = !{!44, null, null, !47}
+!44 = !{!45}
+!45 = !{i32 0, %"class.Texture2D<vector<float, 4> >"* undef, !"usedTex", i32 0, i32 0, i32 1, i32 2, i32 0, !46}
+!46 = !{i32 0, i32 9}
+!47 = !{!48}
+!48 = !{i32 0, %struct.SamplerState* undef, !"samp", i32 0, i32 0, i32 1, i32 0, null}
+!49 = !{i32 1, void ()* @main, !50}
+!50 = !{!51}
+!51 = !{i32 0, !2, !2}
+!52 = !{[4 x i32] [i32 2, i32 4, i32 15, i32 15]}
+!53 = !{void ()* @main, !"main", !54, !43, null}
+!54 = !{!55, !59, null}
+!55 = !{!56}
+!56 = !{i32 0, !"TEXCOORD", i8 9, i8 0, !57, i8 2, i32 1, i8 2, i32 0, i8 0, !58}
+!57 = !{i32 0}
+!58 = !{i32 3, i32 3}
+!59 = !{!60}
+!60 = !{i32 0, !"SV_Target", i8 9, i8 16, !57, i8 0, i32 1, i8 4, i32 0, i8 0, !61}
+!61 = !{i32 3, i32 15}
+!62 = !DILocation(line: 23, column: 12, scope: !4)
+!63 = !DILocation(line: 21, column: 20, scope: !4)
+!64 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "uv", arg: 1, scope: !4, file: !1, line: 21, type: !19)
+!65 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!66 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!67 = !DILocation(line: 23, column: 5, scope: !4)

@@ -1,0 +1,12 @@
+What to look for: this file has two dx.op.rawBufferStore.i32/f32 calls. The FIRST
+(asuint(int2(123, 123)), an explicitly int32-typed literal) is fine on every pane. The
+SECOND (asuint((123).xx), a bare unsuffixed integer literal swizzled to a vector) is
+where DXC's own literal-typing rules (in the pre-HLSL-2021 default language mode) keep
+the literal 64-bit through the swizzle, so the asuint bitcast is applied to a 64-bit
+value instead of the 32-bit value the DXIL op expects. Look for the exit code (5 =
+E_FAIL) and the "error: validation errors" / "Invalid record" (or, on this Linux build,
+"Call parameter type does not match function signature!") text -- that is DXIL
+validation catching the malformed module the front end produced, not a clean compile.
+Compare the "-HV 2021" pane (still fails) against the "-HV 202x" pane (compiles clean):
+the officially released HLSL 2021 language mode does NOT fix this; only the newer,
+still-experimental "202x" preview mode does.

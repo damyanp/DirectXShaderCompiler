@@ -1,0 +1,536 @@
+# Compiler Explorer panes for #4871, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E CSMain -Zi -Qembed_debug
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 824c292b132034f9de0c867475081782.pdb
+; shader hash: 824c292b132034f9de0c867475081782
+;
+; Pipeline Runtime Information: 
+;
+;
+;
+; Buffer Definitions:
+;
+; Resource bind info for Out
+; {
+;
+;   uint $Element;                                    ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; Out                                   UAV  struct         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWStructuredBuffer<unsigned int>" = type { i32 }
+
+define void @CSMain() {
+  %Out_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !50 ; line:29 col:5  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadId.i32(i32 93, i32 0), !dbg !51 ; line:25 col:19  ; ThreadId(component)
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !52, metadata !53), !dbg !51 ; var:"tid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"CSMain"
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !54, metadata !55), !dbg !56 ; var:"byteOffset" !DIExpression() func:"Func"
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !58, metadata !55), !dbg !59 ; var:"i" !DIExpression() func:"CSMain"
+  %2 = add i32 %1, -2, !dbg !60 ; line:28 col:10
+  call void @llvm.dbg.value(metadata i32 %2, i64 0, metadata !54, metadata !55), !dbg !56 ; var:"byteOffset" !DIExpression() func:"Func"
+  call void @llvm.dbg.value(metadata i32 %2, i64 0, metadata !58, metadata !55), !dbg !59 ; var:"i" !DIExpression() func:"CSMain"
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %Out_UAV_structbuf, i32 0, i32 0, i32 %2, i32 undef, i32 undef, i32 undef, i8 1), !dbg !61 ; line:29 col:12  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void, !dbg !62 ; line:30 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!28, !29}
+!llvm.ident = !{!30}
+!dx.source.contents = !{!31}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!32}
+!dx.source.args = !{!33}
+!dx.version = !{!34}
+!dx.valver = !{!35}
+!dx.shaderModel = !{!36}
+!dx.resources = !{!37}
+!dx.typeAnnotations = !{!41, !44}
+!dx.entryPoints = !{!47}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !24)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4, !18}
+!4 = !DISubprogram(name: "CSMain", scope: !1, file: !1, line: 25, type: !5, isLocal: false, isDefinition: true, scopeLine: 26, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @CSMain)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, size: 96, align: 32, elements: !9, templateParams: !14)
+!9 = !{!10, !12, !13}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !{!15, !16}
+!15 = !DITemplateTypeParameter(name: "element", type: !11)
+!16 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !DISubprogram(name: "Func", linkageName: "\01?Func@@YAXAIAI@Z", scope: !1, file: !1, line: 20, type: !19, isLocal: false, isDefinition: true, scopeLine: 21, flags: DIFlagPrototyped, isOptimized: false)
+!19 = !DISubroutineType(types: !20)
+!20 = !{null, !21}
+!21 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !22)
+!22 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !23)
+!23 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 27, baseType: !11)
+!24 = !{!25}
+!25 = !DIGlobalVariable(name: "Out", linkageName: "\01?Out@@3V?$RWStructuredBuffer@I@@A", scope: !0, file: !1, line: 18, type: !26, isLocal: false, isDefinition: true)
+!26 = !DICompositeType(tag: DW_TAG_class_type, name: "RWStructuredBuffer<unsigned int>", file: !1, line: 18, size: 32, align: 32, elements: !2, templateParams: !27)
+!27 = !{!15}
+!28 = !{i32 2, !"Dwarf Version", i32 4}
+!29 = !{i32 2, !"Debug Info Version", i32 3}
+!30 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!31 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: `Func` is an empty `inout` function -- its body never touches\0A// its parameter. `PSMain` pre-decrements `i` exactly once and passes that as\0A// Func's argument: `Func(--i)`. A correct compile therefore subtracts one input\0A// unit from the loaded value before storing it to the output. Compare the\0A// operand of the arithmetic instruction generated for the `--i` expression (near\0A// the DXIL disassembly's `StoreOutput`/`bufferStore` call) across the dxc panes:\0A// it currently subtracts two input units, not one -- the pre-decrement is\0A// applied twice. This does not depend on optimisation level or shader stage; it\0A// reproduces identically in the pixel-shader source tested locally and in the\0A// compute-shader restatement shown here.\0A//==========================================================================//\0A\0A// Compute-shader restatement of #4871's repro, for Compiler Explorer panes\0A// whose compilers cannot lower a pixel shader (e.g. hlsl_clang_trunk requires\0A// SV_Target to be a float type). The construct under test -- an empty inout\0A// function called with a pre-decremented argument -- is not stage-specific.\0ARWStructuredBuffer<uint> Out : register(u0);\0A\0Avoid Func(inout uint byteOffset)\0A{\0A}\0A\0A[numthreads(1, 1, 1)]\0Avoid CSMain(uint3 tid : SV_DispatchThreadID)\0A{\0A    uint i = tid.x;\0A    Func(--i);  // Subtracts 2...\0A    Out[0] = i;\0A}\0A"}
+!32 = !{!"/app/example.hlsl"}
+!33 = !{!"-E", !"CSMain", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug", !"-Zi", !"-Qembed_debug"}
+!34 = !{i32 1, i32 0}
+!35 = !{i32 1, i32 6}
+!36 = !{!"cs", i32 6, i32 0}
+!37 = !{null, !38, null, null}
+!38 = !{!39}
+!39 = !{i32 0, %"class.RWStructuredBuffer<unsigned int>"* undef, !"Out", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !40}
+!40 = !{i32 1, i32 4}
+!41 = !{i32 0, %"class.RWStructuredBuffer<unsigned int>" undef, !42}
+!42 = !{i32 4, !43}
+!43 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 5}
+!44 = !{i32 1, void ()* @CSMain, !45}
+!45 = !{!46}
+!46 = !{i32 0, !2, !2}
+!47 = !{void ()* @CSMain, !"CSMain", null, !37, !48}
+!48 = !{i32 0, i64 16, i32 4, !49}
+!49 = !{i32 1, i32 1, i32 1}
+!50 = !DILocation(line: 29, column: 5, scope: !4)
+!51 = !DILocation(line: 25, column: 19, scope: !4)
+!52 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "tid", arg: 1, scope: !4, file: !1, line: 25, type: !7)
+!53 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!54 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "byteOffset", arg: 1, scope: !18, file: !1, line: 20, type: !23)
+!55 = !DIExpression()
+!56 = !DILocation(line: 20, column: 22, scope: !18, inlinedAt: !57)
+!57 = distinct !DILocation(line: 28, column: 5, scope: !4)
+!58 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "i", scope: !4, file: !1, line: 27, type: !23)
+!59 = !DILocation(line: 27, column: 10, scope: !4)
+!60 = !DILocation(line: 28, column: 10, scope: !4)
+!61 = !DILocation(line: 29, column: 12, scope: !4)
+!62 = !DILocation(line: 30, column: 1, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E CSMain -Zi -Qembed_debug
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: 0290fe8d82a86b4a8a869969e8e1d53c.pdb
+; shader hash: 0290fe8d82a86b4a8a869969e8e1d53c
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: CSMain
+;
+;
+; Buffer Definitions:
+;
+; Resource bind info for Out
+; {
+;
+;   uint $Element;                                    ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; Out                                   UAV  struct         r/w      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%"class.RWStructuredBuffer<unsigned int>" = type { i32 }
+
+define void @CSMain() {
+  %Out_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !50 ; line:29 col:5  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call i32 @dx.op.threadId.i32(i32 93, i32 0), !dbg !51 ; line:27 col:14  ; ThreadId(component)
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !52, metadata !53), !dbg !54 ; var:"tid" !DIExpression(DW_OP_bit_piece, 0, 32) func:"CSMain"
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !55, metadata !56), !dbg !57 ; var:"i" !DIExpression() func:"CSMain"
+  %2 = add i32 %1, -2, !dbg !58 ; line:28 col:10
+  call void @llvm.dbg.value(metadata i32 %2, i64 0, metadata !55, metadata !56), !dbg !57 ; var:"i" !DIExpression() func:"CSMain"
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %Out_UAV_structbuf, i32 0, i32 0, i32 %2, i32 undef, i32 undef, i32 undef, i8 1), !dbg !59 ; line:29 col:12  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void, !dbg !60 ; line:30 col:1
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!28, !29}
+!llvm.ident = !{!30}
+!dx.source.contents = !{!31}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!32}
+!dx.source.args = !{!33}
+!dx.version = !{!34}
+!dx.valver = !{!35}
+!dx.shaderModel = !{!36}
+!dx.resources = !{!37}
+!dx.typeAnnotations = !{!41, !44}
+!dx.entryPoints = !{!47}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !24)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4, !18}
+!4 = !DISubprogram(name: "CSMain", scope: !1, file: !1, line: 25, type: !5, isLocal: false, isDefinition: true, scopeLine: 26, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @CSMain)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null, !7}
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", file: !1, baseType: !8)
+!8 = !DICompositeType(tag: DW_TAG_class_type, name: "vector<unsigned int, 3>", file: !1, size: 96, align: 32, elements: !9, templateParams: !14)
+!9 = !{!10, !12, !13}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !8, file: !1, baseType: !11, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !8, file: !1, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+!14 = !{!15, !16}
+!15 = !DITemplateTypeParameter(name: "element", type: !11)
+!16 = !DITemplateValueParameter(name: "element_count", type: !17, value: i32 3)
+!17 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!18 = !DISubprogram(name: "Func", linkageName: "\01?Func@@YAXAIAI@Z", scope: !1, file: !1, line: 20, type: !19, isLocal: false, isDefinition: true, scopeLine: 21, flags: DIFlagPrototyped, isOptimized: false)
+!19 = !DISubroutineType(types: !20)
+!20 = !{null, !21}
+!21 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !22)
+!22 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !23)
+!23 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, line: 27, baseType: !11)
+!24 = !{!25}
+!25 = !DIGlobalVariable(name: "Out", linkageName: "\01?Out@@3V?$RWStructuredBuffer@I@@A", scope: !0, file: !1, line: 18, type: !26, isLocal: false, isDefinition: true)
+!26 = !DICompositeType(tag: DW_TAG_class_type, name: "RWStructuredBuffer<unsigned int>", file: !1, line: 18, size: 32, align: 32, elements: !2, templateParams: !27)
+!27 = !{!15}
+!28 = !{i32 2, !"Dwarf Version", i32 4}
+!29 = !{i32 2, !"Debug Info Version", i32 3}
+!30 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!31 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: `Func` is an empty `inout` function -- its body never touches\0A// its parameter. `PSMain` pre-decrements `i` exactly once and passes that as\0A// Func's argument: `Func(--i)`. A correct compile therefore subtracts one input\0A// unit from the loaded value before storing it to the output. Compare the\0A// operand of the arithmetic instruction generated for the `--i` expression (near\0A// the DXIL disassembly's `StoreOutput`/`bufferStore` call) across the dxc panes:\0A// it currently subtracts two input units, not one -- the pre-decrement is\0A// applied twice. This does not depend on optimisation level or shader stage; it\0A// reproduces identically in the pixel-shader source tested locally and in the\0A// compute-shader restatement shown here.\0A//==========================================================================//\0A\0A// Compute-shader restatement of #4871's repro, for Compiler Explorer panes\0A// whose compilers cannot lower a pixel shader (e.g. hlsl_clang_trunk requires\0A// SV_Target to be a float type). The construct under test -- an empty inout\0A// function called with a pre-decremented argument -- is not stage-specific.\0ARWStructuredBuffer<uint> Out : register(u0);\0A\0Avoid Func(inout uint byteOffset)\0A{\0A}\0A\0A[numthreads(1, 1, 1)]\0Avoid CSMain(uint3 tid : SV_DispatchThreadID)\0A{\0A    uint i = tid.x;\0A    Func(--i);  // Subtracts 2...\0A    Out[0] = i;\0A}\0A"}
+!32 = !{!"/app/example.hlsl"}
+!33 = !{!"-E", !"CSMain", !"-T", !"cs_6_0", !"-Zi", !"-Qembed_debug", !"-Zi", !"-Qembed_debug"}
+!34 = !{i32 1, i32 0}
+!35 = !{i32 1, i32 10}
+!36 = !{!"cs", i32 6, i32 0}
+!37 = !{null, !38, null, null}
+!38 = !{!39}
+!39 = !{i32 0, %"class.RWStructuredBuffer<unsigned int>"* undef, !"Out", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !40}
+!40 = !{i32 1, i32 4}
+!41 = !{i32 0, %"class.RWStructuredBuffer<unsigned int>" undef, !42}
+!42 = !{i32 4, !43}
+!43 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 5}
+!44 = !{i32 1, void ()* @CSMain, !45}
+!45 = !{!46}
+!46 = !{i32 0, !2, !2}
+!47 = !{void ()* @CSMain, !"CSMain", null, !37, !48}
+!48 = !{i32 0, i64 16, i32 4, !49}
+!49 = !{i32 1, i32 1, i32 1}
+!50 = !DILocation(line: 29, column: 5, scope: !4)
+!51 = !DILocation(line: 27, column: 14, scope: !4)
+!52 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "tid", arg: 1, scope: !4, file: !1, line: 25, type: !7)
+!53 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!54 = !DILocation(line: 25, column: 19, scope: !4)
+!55 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "i", scope: !4, file: !1, line: 27, type: !23)
+!56 = !DIExpression()
+!57 = !DILocation(line: 27, column: 10, scope: !4)
+!58 = !DILocation(line: 28, column: 10, scope: !4)
+!59 = !DILocation(line: 29, column: 12, scope: !4)
+!60 = !DILocation(line: 30, column: 1, scope: !4)
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T cs_6_0 -E CSMain -Zi -Qembed_debug
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+; Out                                   UAV  struct         r/w      U0             u0         1
+;
+; ModuleID = '/app/example.hlsl'
+source_filename = "/app/example.hlsl"
+target datalayout = "e-m:e-ve-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxilv1.0-unknown-shadermodel6.0-compute"
+
+%"RWStructuredBuffer<int32_t>" = type { i32 }
+%dx.types.Handle = type { ptr }
+
+@Out = external constant %"RWStructuredBuffer<int32_t>"
+
+; Function Attrs: convergent noinline nounwind memory(write, inaccessiblemem: none, target_mem: none)
+define void @CSMain() local_unnamed_addr #0 {
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !77, metadata !DIExpression()), !dbg !86
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !77, metadata !DIExpression()), !dbg !86
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !80, metadata !DIExpression()), !dbg !86
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !80, metadata !DIExpression()), !dbg !86
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 1, i64 0, metadata !81, metadata !DIExpression()), !dbg !86
+  tail call void @llvm.dbg.value(metadata i32 1, metadata !81, metadata !DIExpression()), !dbg !86
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !82, metadata !DIExpression()), !dbg !86
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !82, metadata !DIExpression()), !dbg !86
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata ptr @.str, i64 0, metadata !83, metadata !DIExpression()), !dbg !86
+  tail call void @llvm.dbg.value(metadata ptr @.str, metadata !83, metadata !DIExpression()), !dbg !86
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !84, metadata !DIExpression()), !dbg !86
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !84, metadata !DIExpression()), !dbg !86
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !86
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 0)
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %2, i64 0, metadata !94, metadata !DIExpression()), !dbg !107
+  tail call void @llvm.dbg.value(metadata i32 %2, metadata !94, metadata !DIExpression()), !dbg !107
+  %3 = add i32 %2, -1, !dbg !108
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 %3, i64 0, metadata !94, metadata !DIExpression()), !dbg !107
+  tail call void @llvm.dbg.value(metadata i32 %3, metadata !94, metadata !DIExpression()), !dbg !107
+; DXIL: to be replaced with:   tail call addrspace(0) void @llvm.dbg.value(metadata i32 0, i64 0, metadata !109, metadata !DIExpression()), !dbg !113
+  tail call void @llvm.dbg.value(metadata i32 0, metadata !109, metadata !DIExpression()), !dbg !113
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 0, i32 0, i32 %3, i32 undef, i32 undef, i32 undef, i8 1), !dbg !115
+  ret void
+}
+
+; Function Attrs: nounwind memory(none)
+declare i32 @dx.op.threadId.i32(i32, i32) #1
+
+; Function Attrs: nounwind memory(read)
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #3
+
+; Function Attrs: nounwind memory(none)
+declare void @llvm.dbg.value(metadata, metadata, metadata) #1
+
+attributes #0 = { convergent noinline nounwind memory(write, inaccessiblemem: none, target_mem: none) }
+attributes #1 = { nounwind memory(none) }
+attributes #2 = { nounwind memory(read) }
+attributes #3 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!dx.valver = !{!58}
+!dx.source.contents = !{!59}
+!dx.source.defines = !{!60}
+!dx.source.mainFileName = !{!61}
+!dx.source.args = !{!62}
+!llvm.ident = !{!63}
+!dx.shaderModel = !{!64}
+!dx.version = !{!65}
+!dx.resources = !{!66}
+!dx.entryPoints = !{!70}
+!llvm.module.flags = !{!73, !74, !75, !76}
+
+; DXIL: !0: additional data: !116
+!0 = distinct !DICompileUnit(language: DW_LANG_HLSL, file: !1, producer: "clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, retainedTypes: !2, globals: !55, splitDebugInlining: false, nameTableKind: None)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{!3, !5, !7}
+!3 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !4, size: 32)
+!4 = !DICompositeType(tag: DW_TAG_structure_type, name: "__hlsl_resource_t", file: !1, flags: DIFlagFwdDecl)
+!5 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !6, size: 32)
+!6 = !DIBasicType(name: "unsigned int", size: 32, encoding: DW_ATE_unsigned)
+!7 = distinct !DICompositeType(tag: DW_TAG_class_type, name: "RWStructuredBuffer<unsigned int>", scope: !8, size: 64, flags: DIFlagTypePassByReference | DIFlagNonTrivial, elements: !9, templateParams: !53)
+!8 = !DINamespace(name: "hlsl", scope: null)
+!9 = !{!10, !12, !13, !17, !22, !26, !33, !34, !39, !42, !46, !49, !50}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "__handle", scope: !7, file: !11, line: 30, baseType: !3, size: 32)
+!11 = !DIFile(filename: "example.hlsl", directory: "/app")
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "__counter_handle", scope: !7, file: !11, line: 30, baseType: !3, size: 32, offset: 32)
+!13 = !DISubprogram(name: "RWStructuredBuffer", linkageName: "_ZN4hlsl18RWStructuredBufferIjEC4Ev", scope: !7, file: !11, type: !14, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!14 = !DISubroutineType(types: !15)
+!15 = !{null, !16}
+!16 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !7, size: 32, flags: DIFlagArtificial | DIFlagObjectPointer)
+!17 = !DISubprogram(name: "RWStructuredBuffer", linkageName: "_ZN4hlsl18RWStructuredBufferIjEC4ERKS1_", scope: !7, file: !11, type: !18, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!18 = !DISubroutineType(types: !19)
+!19 = !{null, !16, !20}
+!20 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !21, size: 32)
+!21 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !7)
+!22 = !DISubprogram(name: "operator=", linkageName: "_ZN4hlsl18RWStructuredBufferIjEaSERKS1_", scope: !7, file: !11, type: !23, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!23 = !DISubroutineType(types: !24)
+!24 = !{!25, !16, !20}
+!25 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !7, size: 32)
+!26 = !DISubprogram(name: "__createFromBindingWithImplicitCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIjE38__createFromBindingWithImplicitCounterEjjijPKcj", scope: !7, file: !11, type: !27, flags: DIFlagPublic | DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!27 = !DISubroutineType(types: !28)
+!28 = !{!7, !6, !6, !29, !6, !30, !6}
+!29 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
+!30 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !31, size: 32)
+!31 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !32)
+!32 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_signed_char)
+!33 = !DISubprogram(name: "__createFromImplicitBindingWithImplicitCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIjE46__createFromImplicitBindingWithImplicitCounterEjjijPKcj", scope: !7, file: !11, type: !27, flags: DIFlagPublic | DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!34 = !DISubprogram(name: "operator[]", linkageName: "_ZNK4hlsl18RWStructuredBufferIjEixEj", scope: !7, file: !11, type: !35, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!35 = !DISubroutineType(types: !36)
+!36 = !{!37, !38, !6}
+!37 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !6, size: 32)
+!38 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !21, size: 32, flags: DIFlagArtificial | DIFlagObjectPointer)
+!39 = !DISubprogram(name: "Load", linkageName: "_ZNK4hlsl18RWStructuredBufferIjE4LoadEj", scope: !7, file: !11, type: !40, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!40 = !DISubroutineType(types: !41)
+!41 = !{!6, !38, !6}
+!42 = !DISubprogram(name: "Load", linkageName: "_ZNK4hlsl18RWStructuredBufferIjE4LoadEjRj", scope: !7, file: !11, type: !43, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!43 = !DISubroutineType(types: !44)
+!44 = !{!6, !38, !6, !45}
+!45 = !DIDerivedType(tag: DW_TAG_restrict_type, baseType: !37)
+!46 = !DISubprogram(name: "IncrementCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIjE16IncrementCounterEv", scope: !7, file: !11, type: !47, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!47 = !DISubroutineType(types: !48)
+!48 = !{!6, !16}
+!49 = !DISubprogram(name: "DecrementCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIjE16DecrementCounterEv", scope: !7, file: !11, type: !47, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!50 = !DISubprogram(name: "GetDimensions", linkageName: "_ZN4hlsl18RWStructuredBufferIjE13GetDimensionsERjS2_", scope: !7, file: !11, type: !51, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!51 = !DISubroutineType(types: !52)
+!52 = !{null, !16, !45, !45}
+!53 = !{!54}
+!54 = !DITemplateTypeParameter(name: "element_type", type: !6)
+!55 = !{!56}
+; DXIL: !56: to be replaced by: !57
+!56 = !DIGlobalVariableExpression(var: !57, expr: !DIExpression())
+!57 = distinct !DIGlobalVariable(name: "Out", linkageName: "_ZL3Out", scope: !0, file: !11, line: 18, type: !7, isLocal: true, isDefinition: true)
+!58 = !{i32 1, i32 8}
+!59 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: `Func` is an empty `inout` function -- its body never touches\0A// its parameter. `PSMain` pre-decrements `i` exactly once and passes that as\0A// Func's argument: `Func(--i)`. A correct compile therefore subtracts one input\0A// unit from the loaded value before storing it to the output. Compare the\0A// operand of the arithmetic instruction generated for the `--i` expression (near\0A// the DXIL disassembly's `StoreOutput`/`bufferStore` call) across the dxc panes:\0A// it currently subtracts two input units, not one -- the pre-decrement is\0A// applied twice. This does not depend on optimisation level or shader stage; it\0A// reproduces identically in the pixel-shader source tested locally and in the\0A// compute-shader restatement shown here.\0A//==========================================================================//\0A\0A// Compute-shader restatement of #4871's repro, for Compiler Explorer panes\0A// whose compilers cannot lower a pixel shader (e.g. hlsl_clang_trunk requires\0A// SV_Target to be a float type). The construct under test -- an empty inout\0A// function called with a pre-decremented argument -- is not stage-specific.\0ARWStructuredBuffer<uint> Out : register(u0);\0A\0Avoid Func(inout uint byteOffset)\0A{\0A}\0A\0A[numthreads(1, 1, 1)]\0Avoid CSMain(uint3 tid : SV_DispatchThreadID)\0A{\0A    uint i = tid.x;\0A    Func(--i);  // Subtracts 2...\0A    Out[0] = i;\0A}\0A"}
+!60 = !{}
+!61 = !{!"example.hlsl"}
+!62 = !{!"--driver-mode=dxc", !"-g", !"-Qembed_debug", !"-Fc", !"/app/output.s", !"-fcolor-diagnostics", !"-gen-reproducer=off", !"-T", !"cs_6_0", !"-hlsl-entry", !"CSMain", !"-g", !"-Qembed_debug", !"/app/example.hlsl", !"-S", !"-O3"}
+!63 = !{!"clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)"}
+!64 = !{!"cs", i32 6, i32 0}
+!65 = !{i32 1, i32 0}
+!66 = !{null, !67, null, null}
+!67 = !{!68}
+!68 = !{i32 0, ptr @Out, !"Out", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !69}
+!69 = !{i32 1, i32 4}
+!70 = !{ptr @CSMain, !"CSMain", null, !66, !71}
+!71 = !{i32 0, i64 16, i32 4, !72}
+!72 = !{i32 1, i32 1, i32 1}
+!73 = !{i32 2, !"Dwarf Version", i32 4}
+!74 = !{i32 2, !"Debug Info Version", i32 3}
+!75 = !{i32 2, !"frame-pointer", i32 2}
+!76 = !{i32 2, !"debug-info-assignment-tracking", i1 true}
+!77 = !DILocalVariable(name: "registerNo", arg: 1, scope: !78, file: !11, type: !6)
+; DXIL: !78: to be replaced by: !117
+!78 = distinct !DISubprogram(name: "__createFromBindingWithImplicitCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIjE38__createFromBindingWithImplicitCounterEjjijPKcj", scope: !7, file: !11, line: 30, type: !27, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !26, retainedNodes: !79)
+!79 = !{!77, !80, !81, !82, !83, !84, !85}
+!80 = !DILocalVariable(name: "spaceNo", arg: 2, scope: !78, file: !11, type: !6)
+!81 = !DILocalVariable(name: "range", arg: 3, scope: !78, file: !11, type: !29)
+!82 = !DILocalVariable(name: "index", arg: 4, scope: !78, file: !11, type: !6)
+!83 = !DILocalVariable(name: "name", arg: 5, scope: !78, file: !11, type: !30)
+!84 = !DILocalVariable(name: "counterOrderId", arg: 6, scope: !78, file: !11, type: !6)
+!85 = !DILocalVariable(name: "tmp", scope: !78, file: !11, type: !7)
+!86 = !DILocation(line: 0, scope: !78, inlinedAt: !87)
+!87 = distinct !DILocation(line: 0, scope: !88, inlinedAt: !91)
+; DXIL: !88: to be replaced by: !118
+!88 = distinct !DISubprogram(name: "__cxx_global_var_init", scope: !11, file: !11, type: !89, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!89 = !DISubroutineType(types: !90)
+!90 = !{null}
+!91 = distinct !DILocation(line: 0, scope: !92)
+; DXIL: !92: to be replaced by: !119
+!92 = distinct !DISubprogram(linkageName: "_GLOBAL__sub_I_example.hlsl", scope: !11, file: !11, type: !93, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!93 = !DISubroutineType(types: !60)
+!94 = !DILocalVariable(name: "i", scope: !95, file: !11, line: 27, type: !102)
+; DXIL: !95: to be replaced by: !120
+!95 = distinct !DISubprogram(name: "CSMain", linkageName: "_Z6CSMainDv3_j", scope: !11, file: !11, line: 25, type: !96, scopeLine: 26, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !105)
+!96 = !DISubroutineType(types: !97)
+!97 = !{null, !98}
+!98 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint3", scope: !8, file: !99, line: 70, baseType: !100)
+!99 = !DIFile(filename: "/cefs/ed/edec7da708b32073a16376f7_clang-trunk-20260818/lib/clang/24/include/hlsl/hlsl_basic_types.h", directory: "")
+!100 = !DIDerivedType(tag: DW_TAG_typedef, name: "vector<unsigned int, 3>", scope: !8, file: !11, baseType: !101)
+!101 = !DICompositeType(tag: DW_TAG_array_type, baseType: !102, size: 96, flags: DIFlagVector, elements: !103)
+!102 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", scope: !8, file: !99, line: 35, baseType: !6)
+!103 = !{!104}
+!104 = !DISubrange(count: 3)
+!105 = !{!106, !94}
+!106 = !DILocalVariable(name: "tid", arg: 1, scope: !95, file: !11, line: 25, type: !98)
+!107 = !DILocation(line: 0, scope: !95)
+!108 = !DILocation(line: 28, column: 10, scope: !95)
+!109 = !DILocalVariable(name: "Index", arg: 2, scope: !110, file: !11, type: !6)
+; DXIL: !110: to be replaced by: !121
+!110 = distinct !DISubprogram(name: "operator[]", linkageName: "_ZNK4hlsl18RWStructuredBufferIjEixEj", scope: !7, file: !11, line: 30, type: !35, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !34, retainedNodes: !111)
+!111 = !{!112, !109}
+!112 = !DILocalVariable(name: "this", arg: 1, scope: !110, type: !20, flags: DIFlagArtificial | DIFlagObjectPointer)
+!113 = !DILocation(line: 0, scope: !110, inlinedAt: !114)
+!114 = distinct !DILocation(line: 29, column: 5, scope: !95)
+!115 = !DILocation(line: 29, column: 12, scope: !95)
+!116 = !{!78, !88, !92, !95, !110}
+!117 = !DISubprogram(name: "__createFromBindingWithImplicitCounter", linkageName: "_ZN4hlsl18RWStructuredBufferIjE38__createFromBindingWithImplicitCounterEjjijPKcj", scope: !7, file: !11, line: 30, type: !27, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !26, retainedNodes: !79)
+!118 = !DISubprogram(name: "__cxx_global_var_init", scope: !11, file: !11, type: !89, flags: DIFlagArtificial, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!119 = !DISubprogram(linkageName: "_GLOBAL__sub_I_example.hlsl", scope: !11, file: !11, type: !93, flags: DIFlagArtificial, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!120 = !DISubprogram(name: "CSMain", linkageName: "_Z6CSMainDv3_j", scope: !11, file: !11, line: 25, type: !96, scopeLine: 26, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !105)
+!121 = !DISubprogram(name: "operator[]", linkageName: "_ZNK4hlsl18RWStructuredBufferIjEixEj", scope: !7, file: !11, line: 30, type: !35, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !34, retainedNodes: !111)

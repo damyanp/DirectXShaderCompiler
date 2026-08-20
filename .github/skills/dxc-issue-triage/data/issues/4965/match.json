@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Crash/assert issue (issue #4965): the reported symptom is one of three build-dependent internal-failure shapes for the same defect \u2014 a Windows access violation (0xC0000005), a Debug-build assert trap in ScalarReplAggregatesHLSL.cpp ('otherwise we flattened a library function.'), or a Linux SIGSEGV in GlobalIsNeeded \u2014 rather than an ordinary diagnosed error. internal_failure keys on dxc's own internal-error exit statuses (and its text backstop), not on any one of the three quoted messages, since the shape differs across build configuration and platform per the skill's crash-predicate guidance. A well-formed shader (control-good.hlsl) that exits 0 is the negative control."
+}

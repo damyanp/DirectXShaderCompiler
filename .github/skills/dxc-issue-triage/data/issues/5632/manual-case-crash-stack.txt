@@ -1,0 +1,56 @@
+# Debug-build stack trace for the DXIL crash reported in #5632 (ask A)
+#
+# Command (run from data/issues/5632, via cmd.exe /c so redirection/quoting behaves):
+#   "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe" ^
+#     -c "sxe -c \"kb 8; gh\" e0000001; g; q" ^
+#     <repo>\build\Debug\bin\dxc.exe ^
+#     -HV 2021 -T ps_6_7 -enable-16bit-types repro.hlsl
+#
+# `sxe -c "kb 8; gh" e0000001` breaks on the C++-exception-style LLVM assert (0xe0000001),
+# prints an 8-frame stack, then `gh` ("go handled") continues past it -- emulating what an
+# NDEBUG/Release build would do -- so the run below shows two successive asserts before the
+# driver finally reports the plain "Internal compiler error: LLVM Assert" that `run --issue
+# 5632` captured in out-main-debug.txt with no stack (dxc.exe's own top-level handler does not
+# print one).
+#
+# main-debug self-reports commit 7665270b9 / dxcompiler.dll 1.9.0.5465 (triage, 7665270b9),
+# verified equivalent to public commit 89e2f98e29c289ae8ad9e00dd310104fea9fd7df (see
+# notes.md "Ground truth" section for the tree-diff control).
+
+Error: assert(getOperand(0)->getType() == cast<PointerType>(getOperand(1)->getType())->getElementType() && "Ptr must be a pointer to Val type!")
+File:
+<repo>\lib\IR\Instructions.cpp(995)
+Func:	llvm::StoreInst::AssertOK
+(93c4.6ac0): Unknown exception - code e0000001 (first chance)
+RetAddr               : Args to Child                                                           : Call Site
+00007ffd`9c561741     : ...                                                                      : KERNELBASE!RaiseException+0x8a
+00007ffd`9be79ed7     : ...                                                                      : dxcompiler!llvm_assert+0x51
+00007ffd`9be7a3dd     : ...                                                                      : dxcompiler!llvm::StoreInst::AssertOK+0x127
+00007ffd`9be7a235     : ...                                                                      : dxcompiler!llvm::StoreInst::StoreInst+0xfd
+00007ffd`9be7a145     : ...                                                                      : dxcompiler!llvm::StoreInst::StoreInst+0x55
+00007ffd`9c80dc2a     : ...                                                                      : dxcompiler!llvm::StoreInst::StoreInst+0x45
+00007ffd`9c9bf9cb     : ...                                                                      : dxcompiler!llvm::IRBuilder<1,llvm::ConstantFolder,clang::CodeGen::CGBuilderInserter<1> >::CreateStore+0x6a
+00007ffd`9c9b54a8     : ...                                                                      : dxcompiler!clang::CodeGen::CodeGenFunction::EmitHLSLVectorElementExpr+0x33b
+
+# continued past via `gh` (emulates NDEBUG) -- a second, downstream assert fires next:
+
+Error: assert(New->getType() == getType() && "replaceAllUses of value with new value of different type!")
+File:
+<repo>\lib\IR\Value.cpp(365)
+Func:	llvm::Value::replaceAllUsesWith
+(93c4.6ac0): Unknown exception - code e0000001 (first chance)
+RetAddr               : Args to Child                                                           : Call Site
+00007ffd`9c561741     : ...                                                                      : KERNELBASE!RaiseException+0x8a
+00007ffd`9bdcea3e     : ...                                                                      : dxcompiler!llvm::Value::replaceAllUsesWith+0xee
+00007ffd`9c634db4     : ...                                                                      : dxcompiler!rewriteSingleStoreAlloca+0x334
+00007ffd`9c632404     : ...                                                                      : dxcompiler!`anonymous namespace'::PromoteMem2Reg::run+0x344
+00007ffd`9c6314d3     : ...                                                                      : dxcompiler!llvm::PromoteMemToReg+0xb3
+00007ffd`9c52e257     : ...                                                                      : dxcompiler!Mem2Reg+0x1a7
+00007ffd`9c530ced     : ...                                                                      : dxcompiler!DxilConditionalMem2Reg::runOnFunction+0xfd
+
+# continued past again -- this is the C++-exception form of the release-path check
+# (hlsl::Exception / DXC_E_LLVM_CAST_ERROR, per the skill's E_FAIL-vs-crash note), and is
+# what a NDEBUG/Release build hits instead of the two asserts above:
+
+(93c4.6ac0): C++ EH exception - code e06d7363 (first chance)
+error: llvm::cast<X>() argument of incompatible type!

@@ -1,0 +1,31 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-19T19:54:27+00:00
+# cmd: -T cs_6_0 -E ShaderDomain_Cs repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T cs_6_0 -E ShaderDomain_Cs repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+at 0x29ff8597df8 inside block switch.hole_check of function ShaderDomain_Cs I8 can only used as immediate value for intrinsic
+at 0x29ff859dac0 inside block switch.hole_check of function ShaderDomain_Cs I8 can only used as immediate value for intrinsic
+at 0x29ff859dac0 inside block switch.hole_check of function ShaderDomain_Cs I8 can only used as immediate value for intrinsic
+at 0x29ff859dac0 inside block switch.hole_check of function ShaderDomain_Cs I8 can only used as immediate value for intrinsic
+at 0x29ff859cfc0 inside block switch.hole_check of function ShaderDomain_Cs I8 can only used as immediate value for intrinsic
+at 0x29ff859cfc0 inside block switch.hole_check of function ShaderDomain_Cs I8 can only used as immediate value for intrinsic
+at 0x29ff859cfc0 inside block switch.hole_check of function ShaderDomain_Cs I8 can only used as immediate value for intrinsic
+at 0x29ff859da40 inside block switch.hole_check of function ShaderDomain_Cs I8 can only used as immediate value for intrinsic
+at 0x29ff859da40 inside block switch.hole_check of function ShaderDomain_Cs I8 can only used as immediate value for intrinsic
+
+Validation failed.
+
+
+

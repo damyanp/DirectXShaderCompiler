@@ -1,0 +1,189 @@
+# generator: gen-manual-case.py
+# command: "C:\Program Files\LLVM\bin\clang.exe" -fsyntax-only -std=c++17 -U_WIN32 -I<repo>\external\DirectX-Headers\include -I<repo>\external\DirectX-Headers\include\wsl\stubs -I<repo>\include -I<triage>\issues\5079\posix-shim -include<triage>\issues\5079\posix-locale-prelude.h <triage>\issues\5079\control-dxc-only.cpp
+# exit: 0 (0x00000000)
+# stdout+stderr follows
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:51:9: warning: '_countof' macro redefined [-Wmacro-redefined]
+   51 | #define _countof(a) (sizeof(a) / sizeof(*(a)))
+      |         ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\stdlib.h:27:13: note: previous definition is here
+   27 |     #define _countof __crt_countof
+      |             ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:249:9: warning: '_In_' macro redefined [-Wmacro-redefined]
+  249 | #define _In_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:305:9: note: previous definition is here
+  305 | #define _In_                            _SAL2_Source_(_In_, (), _Pre1_impl_(__notnull_impl_notref) _Pre_valid_impl_ _Deref_pre1_impl_(__readaccess_impl_notref))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:250:9: warning: '_In_z_' macro redefined [-Wmacro-redefined]
+  250 | #define _In_z_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:310:9: note: previous definition is here
+  310 | #define _In_z_                          _SAL2_Source_(_In_z_, (),     _In_     _Pre1_impl_(__zterm_impl))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:251:9: warning: '_In_opt_' macro redefined [-Wmacro-redefined]
+  251 | #define _In_opt_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:306:9: note: previous definition is here
+  306 | #define _In_opt_                        _SAL2_Source_(_In_opt_, (), _Pre1_impl_(__maybenull_impl_notref) _Pre_valid_impl_ _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:252:9: warning: '_In_opt_count_' macro redefined [-Wmacro-redefined]
+  252 | #define _In_opt_count_(size)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:808:9: note: previous definition is here
+  808 | #define _In_opt_count_(size)           _SAL1_1_Source_(_In_opt_count_, (size), _Pre_opt_count_(size)     _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:253:9: warning: '_In_opt_z_' macro redefined [-Wmacro-redefined]
+  253 | #define _In_opt_z_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:311:9: note: previous definition is here
+  311 | #define _In_opt_z_                      _SAL2_Source_(_In_opt_z_, (), _In_opt_ _Pre1_impl_(__zterm_impl))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:254:9: warning: '_In_count_' macro redefined [-Wmacro-redefined]
+  254 | #define _In_count_(size)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:807:9: note: previous definition is here
+  807 | #define _In_count_(size)               _SAL1_1_Source_(_In_count_, (size), _Pre_count_(size)         _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:255:9: warning: '_In_bytecount_' macro redefined [-Wmacro-redefined]
+  255 | #define _In_bytecount_(size)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:809:9: note: previous definition is here
+  809 | #define _In_bytecount_(size)           _SAL1_1_Source_(_In_bytecount_, (size), _Pre_bytecount_(size)     _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:257:9: warning: '_Out_' macro redefined [-Wmacro-redefined]
+  257 | #define _Out_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:342:9: note: previous definition is here
+  342 | #define _Out_                                  _SAL2_Source_(_Out_, (),     _Out_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:258:9: warning: '_Out_opt_' macro redefined [-Wmacro-redefined]
+  258 | #define _Out_opt_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:343:9: note: previous definition is here
+  343 | #define _Out_opt_                              _SAL2_Source_(_Out_opt_, (), _Out_opt_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:259:9: warning: '_Outptr_' macro redefined [-Wmacro-redefined]
+  259 | #define _Outptr_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:424:9: note: previous definition is here
+  424 | #define _Outptr_                         _SAL2_Source_(_Outptr_, (),                      _Out_impl_     _Deref_post2_impl_(__notnull_impl_notref,   __count_impl(1)))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:260:9: warning: '_Outptr_opt_' macro redefined [-Wmacro-redefined]
+  260 | #define _Outptr_opt_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:426:9: note: previous definition is here
+  426 | #define _Outptr_opt_                     _SAL2_Source_(_Outptr_opt_, (),                  _Out_opt_impl_ _Deref_post2_impl_(__notnull_impl_notref,   __count_impl(1)))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:261:9: warning: '_Outptr_result_z_' macro redefined [-Wmacro-redefined]
+  261 | #define _Outptr_result_z_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:431:9: note: previous definition is here
+  431 | #define _Outptr_result_z_                _SAL2_Source_(_Outptr_result_z_, (),               _Out_impl_     _Deref_post_z_)
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:262:9: warning: '_Outptr_opt_result_z_' macro redefined [-Wmacro-redefined]
+  262 | #define _Outptr_opt_result_z_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:432:9: note: previous definition is here
+  432 | #define _Outptr_opt_result_z_            _SAL2_Source_(_Outptr_opt_result_z_, (),           _Out_opt_impl_ _Deref_post_z_)
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:263:9: warning: '_Outptr_result_maybenull_' macro redefined [-Wmacro-redefined]
+  263 | #define _Outptr_result_maybenull_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:425:9: note: previous definition is here
+  425 | #define _Outptr_result_maybenull_        _SAL2_Source_(_Outptr_result_maybenull_, (),     _Out_impl_     _Deref_post2_impl_(__maybenull_impl_notref, __count_impl(1)))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:264:9: warning: '_Outptr_result_nullonfailure_' macro redefined [-Wmacro-redefined]
+  264 | #define _Outptr_result_nullonfailure_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:438:9: note: previous definition is here
+  438 | #define _Outptr_result_nullonfailure_       _SAL2_Source_(_Outptr_result_nullonfailure_, (),     _Outptr_      _On_failure_(_Deref_post_null_))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:265:9: warning: '_Outptr_result_buffer_maybenull_' macro redefined [-Wmacro-redefined]
+  265 | #define _Outptr_result_buffer_maybenull_(ptr)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:461:9: note: previous definition is here
+  461 | #define _Outptr_result_buffer_maybenull_(size)               _SAL2_Source_(_Outptr_result_buffer_maybenull_, (size),               _Out_impl_     _Deref_post2_impl_(__maybenull_impl_notref, __cap_impl(size)))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:266:9: warning: '_Outptr_result_buffer_' macro redefined [-Wmacro-redefined]
+  266 | #define _Outptr_result_buffer_(ptr)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:453:9: note: previous definition is here
+  453 | #define _Outptr_result_buffer_(size)                      _SAL2_Source_(_Outptr_result_buffer_, (size),               _Out_impl_     _Deref_post2_impl_(__notnull_impl_notref, __cap_impl(size)))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:268:9: warning: '_COM_Outptr_' macro redefined [-Wmacro-redefined]
+  268 | #define _COM_Outptr_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:446:9: note: previous definition is here
+  446 | #define _COM_Outptr_                        _SAL2_Source_(_COM_Outptr_, (),                      _Outptr_                      _On_failure_(_Deref_post_null_))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:269:9: warning: '_COM_Outptr_opt_' macro redefined [-Wmacro-redefined]
+  269 | #define _COM_Outptr_opt_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:448:9: note: previous definition is here
+  448 | #define _COM_Outptr_opt_                    _SAL2_Source_(_COM_Outptr_opt_, (),                  _Outptr_opt_                  _On_failure_(_Deref_post_null_))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:270:9: warning: '_COM_Outptr_result_maybenull_' macro redefined [-Wmacro-redefined]
+  270 | #define _COM_Outptr_result_maybenull_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:447:9: note: previous definition is here
+  447 | #define _COM_Outptr_result_maybenull_       _SAL2_Source_(_COM_Outptr_result_maybenull_, (),     _Outptr_result_maybenull_     _On_failure_(_Deref_post_null_))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:271:9: warning: '_COM_Outptr_opt_result_maybenull_' macro redefined [-Wmacro-redefined]
+  271 | #define _COM_Outptr_opt_result_maybenull_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:449:9: note: previous definition is here
+  449 | #define _COM_Outptr_opt_result_maybenull_   _SAL2_Source_(_COM_Outptr_opt_result_maybenull_, (), _Outptr_opt_result_maybenull_ _On_failure_(_Deref_post_null_))
+      |         ^
+In file included from <triage>\issues\5079\control-dxc-only.cpp:6:
+In file included from <repo>\include\dxc/dxcapi.h:36:
+<repo>\include\dxc\WinAdapter.h:277:9: warning: '_Maybenull_' macro redefined [-Wmacro-redefined]
+  277 | #define _Maybenull_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:656:9: note: previous definition is here
+  656 | #define _Maybenull_                       _SAL2_Source_(_Maybenull_, (), _Maybenull_impl_)
+      |         ^
+23 warnings generated.

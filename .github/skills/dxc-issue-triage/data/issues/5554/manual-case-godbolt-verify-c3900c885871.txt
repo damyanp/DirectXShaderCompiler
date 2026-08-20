@@ -1,0 +1,26 @@
+# Compiler Explorer panes for #5554, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -HV 2021 -T cs_6_0 -E main
+# exit:     5
+
+<source>:32:32: error: non-type template argument of type 'ENUM' is not an integral constant expression
+typedef integral_constant<ENUM,ENUM::TRUE> test_t;
+                               ^~~~~~~~~~
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -HV 2021 -T cs_6_0 -E main
+# exit:     5
+
+<source>:32:32: error: non-type template argument of type 'ENUM' is not an integral constant expression
+typedef integral_constant<ENUM,ENUM::TRUE> test_t;
+                               ^~~~~~~~~~
+
+<Compilation failed>

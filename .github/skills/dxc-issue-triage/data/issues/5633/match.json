@@ -1,0 +1,9 @@
+{
+  "kind": "all_of",
+  "note": "Issue #5633 asks that DXC emit a warning/error when a struct member's fixed-size array is indexed with a compile-time-constant literal that is statically out of bounds (repro.hlsl: `_pad[2000]` into `uint _pad[1]`). 'Reproduces' = dxc compiles the shader to completion with NO diagnostic mentioning the problem. Positive anchor (clause 1+2) requires the run actually reached codegen and baked the specific out-of-bounds literal (2000) into the emitted SPIR-V access chain -- this rules out an unrelated early failure (e.g. a profile/parse error on some old release) being scored as a false 'clean' result, per the invalid-probe absence-predicate trap. Absence clause (3) requires no 'warning' or 'error' token anywhere in combined stdout+stderr. Self-test: control-local-array-oob.hlsl and out-<compiler>--diag-selftest.txt (a shader with an unrelated, real dxc warning) prove clause 3 CAN flip to false when a diagnostic is present, so a permanently-silent compiler build does not vacuously satisfy this predicate forever.",
+  "value": [
+    { "kind": "nonzero_exit", "invert": true },
+    { "kind": "regex", "value": "int_2000\\b" },
+    { "kind": "not_regex", "value": "(?i)\\b(warning|error)\\b" }
+  ]
+}

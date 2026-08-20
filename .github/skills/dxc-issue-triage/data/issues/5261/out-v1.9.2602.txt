@@ -1,0 +1,16 @@
+# compiler: v1.9.2602
+# exe: <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+# ran: 2026-08-19T20:15:19+00:00
+# cmd: -E main -T cs_6_6 repro.hlsl -Fo test
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -E main -T cs_6_6 repro.hlsl -Fo test
+[exe] <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

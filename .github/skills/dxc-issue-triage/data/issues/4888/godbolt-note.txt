@@ -1,0 +1,7 @@
+What to look for: DXC (both panes) fails with a DXIL-validation error whose second line is
+shaped like "All metadata must be used by dxil.!<N> = !{i32 <M>}" -- an opaque validator
+complaint, not a diagnostic naming the actual unsupported construct (a static const array of
+Texture2D objects, each individually looked up from ResourceDescriptorHeap, then indexed with
+NonUniformResourceIndex). Compare against a Clang pane compiling the same construct to see
+whether the successor front end already rejects it with a clearer diagnostic, or shares the
+same silent gap.

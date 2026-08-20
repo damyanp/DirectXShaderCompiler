@@ -1,0 +1,32 @@
+# Compiler Explorer panes for #5269, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T as_6_5 -E main
+# exit:     5
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+error: validation errors
+<source>:9:5: error: For amplification shader with entry 'main', payload size 4 is greater than declared size of 0 bytes.
+note: at 'call void @dx.op.dispatchMesh.struct.Payload(i32 173, i32 32, i32 1, i32 1, %struct.Payload* nonnull %1)' in block '#0' of function 'main'.
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T as_6_5 -E main
+# exit:     5
+
+error: validation errors
+<source>:9:5: error: For amplification shader with entry 'main', payload size 4 is greater than declared size of 0 bytes.
+note: at 'call void @dx.op.dispatchMesh.struct.Payload(i32 173, i32 32, i32 1, i32 1, %struct.Payload* nonnull %1)' in block '#0' of function 'main'.
+Validation failed.
+
+
+<Compilation failed>

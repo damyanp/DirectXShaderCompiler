@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-08-05T11:51:25Z",
+  "godbolt_url": "https://godbolt.org/z/bqbP386nM",
+  "history": "always-repro'd v1.6.2112..v1.9.2607 and main-debug (89e2f98e2); v1.8.2405's clean bisect result is a confirmed invalid-probe artifact (unrelated global-namespace collision with the builtin 'integral_constant' added by PR #6156, itself fixed by PR #6700 before v1.8.2407 -- see notes.md), not a fix. v1.4.1907..v1.6.2106 are invalid-probes (HV 2021 did not exist yet). v1.6.2112 (2021-12-08) predates the 2023-08-05 filing by ~20 months, so the checkable history covers the issue's whole life.",
+  "labels": "bug,hlsl2021",
+  "labels_add": "type-system",
+  "labels_now": "bug,hlsl2021",
+  "notes_path": "issues/5554/notes.md",
+  "number": 5554,
+  "repro_quality": "partial",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "A scoped enum's enumerator is rejected as a non-type template argument even when the template parameter's declared type is that exact enum type (repro.hlsl: 'non-type template argument of type ENUM is not an integral constant expression'); the identical pattern with a plain enum compiles, and gcc accepts the scoped-enum version, so this is a DXC-specific gap. The original report's array-index half is not a bug -- gcc rejects the same uncast scoped-enum array index identically. Duplicate #6706 already carries a maintainer statement that DXC will not get further investment here and that Clang does not have the gap; the hlsl_clang_trunk godbolt pane now confirms that directly.",
+  "title": "C++11 enums don\u2019t work as integer constants as expected",
+  "triaged_at": "2026-08-20T05:15:24+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5554"
+}

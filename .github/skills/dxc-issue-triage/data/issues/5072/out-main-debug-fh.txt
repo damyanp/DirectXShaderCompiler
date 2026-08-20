@@ -1,0 +1,17 @@
+# compiler: main-debug-fh
+# exe: <triage>/issues/5072/fh-header-check.cmd
+# ran: 2026-08-19T19:20:00+00:00
+# cmd: -T lib_6_3 -Fh out-header.h repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T lib_6_3 -Fh out-header.h repro.hlsl
+[exe] <triage>/issues/5072/fh-header-check.cmd
+[exit] 0
+--- stdout ---
+FH-HARNESS: IDENTIFIER-INVALID name='g_lib.no::entry'
+
+--- stderr ---
+

@@ -1,0 +1,13 @@
+What to look for: the compile below is clean, with zero warnings. That is
+the finding, not a reassurance. AOPayload.ddxRay and AOPayload.ddyRay are
+qualified write(caller) and are never assigned anywhere in this file, in
+RaygenShader or otherwise. TraceRay is invoked only through the
+TraceRadianceRay helper, one call away from raygen. Compare this pane
+against tools/clang/test/HLSLFileCheck/hlsl/payload_qualifier/nested_access.hlsl
+TEST_NUM=5, whose direct-in-raygen TraceRay call does get the
+"field is never written for TraceRay call" diagnostic for an equivalent
+violation. This is not the false-positive #5848 reports; it is the
+opposite defect found while trying to reconstruct that report -- see
+notes.md for the source-level explanation (raygeneration shaders carry a
+null Info.Payload, which gates off the recursive check entirely for any
+TraceRay call reached through a helper function).

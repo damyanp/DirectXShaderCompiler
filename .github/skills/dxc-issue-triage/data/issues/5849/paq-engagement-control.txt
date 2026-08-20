@@ -1,0 +1,12 @@
+# Control check: confirm repro.hlsl actually engages Payload Access Qualifiers
+# (i.e. the PAQ-enabled vs -disable-payload-qualifiers comparison is a real
+# predicate difference, not a no-op flag). Method: disassemble both builds
+# and grep for the !dx.dxrPayloadAnnotations module metadata that DXC emits
+# only when PAQs are parsed/applied (see disable_paq.hlsl test, which asserts
+# CHECK-NOT on this same metadata for the disabled case).
+$ dxc.exe -T lib_6_7 repro.hlsl -Fc - | findstr dxrPayloadAnnotations
+!dx.dxrPayloadAnnotations = !{!19}
+
+$ dxc.exe -T lib_6_7 -disable-payload-qualifiers repro.hlsl -Fc - | findstr dxrPayloadAnnotations
+(no output -- metadata absent, confirming PAQs did not engage under the control flag)
+

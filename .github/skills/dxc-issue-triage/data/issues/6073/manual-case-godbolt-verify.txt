@@ -1,0 +1,32 @@
+# Compiler Explorer panes for #6073, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_0 -E main
+# exit:     5
+
+<source>:22:1: error: 'template' is a reserved keyword in HLSL
+template<int ID>
+^
+<source>:28:1: error: 'template' is a reserved keyword in HLSL
+template<int ID>
+^
+<source>:36:35: error: use of undeclared identifier 'Test'
+   MyBuffer[DispatchThreadId.x] = Test<42>::Num;
+                                  ^
+<source>:36:45: error: no member named 'Num' in the global namespace
+   MyBuffer[DispatchThreadId.x] = Test<42>::Num;
+                                          ~~^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_0 -E main
+# exit:     1
+
+LLVM ERROR: Broken module found, compilation aborted!
+<Compilation failed>

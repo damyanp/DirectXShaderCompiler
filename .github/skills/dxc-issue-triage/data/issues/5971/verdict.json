@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-11-03T19:47:36Z",
+  "godbolt_skip": "CI/toolchain issue (ASAN false positive from a Ubuntu libc++ package); no HLSL shader or compiled-output difference exists to show, so a Compiler Explorer link would be a link to nothing",
+  "history": "n/a",
+  "labels": "bug",
+  "labels_add": "ci, sanitizer, linux",
+  "labels_now": "bug",
+  "notes_path": "issues/5971/notes.md",
+  "number": 5971,
+  "repro_quality": "prose-only",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "needs-human-judgement",
+  "summary": "CI/toolchain issue, not compiler-verifiable. ASAN_OPTIONS=alloc_dealloc_mismatch=0 workaround from PR #5976 is still present unchanged in azure-pipelines.yml at 89e2f98e2. CI has since moved from OS-default clang to apt.llvm.org clang-18/libc++-18-dev on Ubuntu-24.04 (the originally-implicated package family), but the workaround was never re-tested against the new toolchain. Both upstream bugs cited by the reporter (llvm/llvm-project#59432, #52771) are now closed (2024-12-21, 2025-02-02 respectively), the latter specifically about apt.llvm.org libc++ -- suggestive but not proof the false positive is gone from DXC's current CI toolchain.",
+  "title": "ASAN alloc_dealloc_mismatch false positive on Ubuntu Linux when using libc++ package",
+  "triaged_at": "2026-08-20T05:15:32+00:00",
+  "triaged_by": "claude-sonnet-5 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e2",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5971"
+}

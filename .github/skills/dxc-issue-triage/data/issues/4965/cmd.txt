@@ -1,0 +1,1 @@
+-T ps_6_2 -E f repro.hlsl

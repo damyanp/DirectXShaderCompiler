@@ -1,0 +1,28 @@
+This issue's symptom is not a single `dxc` invocation, so there is no `cmd.txt`
+in the standard "arguments only, one dxc invocation per line" form. Recorded
+here for reference; see `measure-rewrite.py` for the actual harness that
+issues this call.
+
+Tool under test: `dxr` (the `IDxcRewriter2::RewriteWithOptions` COM entry
+point embedded in `dxcompiler.dll`; there is no Debug `dxr.exe` in this build
+tree, and no shipped release archive contains one either — see
+`method-notes.md`).
+
+Reporter's exact command line, reproduced verbatim:
+
+    dxr.exe -remove-unused-functions -remove-unused-globals -E ps_main repro.hlsl
+
+`measure-rewrite.py` replicates this exactly via ctypes/COM against a given
+`dxcompiler.dll` (ground truth or any cached release), passing this same argv
+(program name included, matching `dxr.cpp`'s own `skipArgCount=0` convention)
+straight into `RewriteWithOptions`.
+
+Usage:
+
+    python measure-rewrite.py --shader repro.hlsl               # ground truth only
+    python measure-rewrite.py --shader repro.hlsl --dll <path>   # a specific dxcompiler.dll
+    python measure-rewrite.py --history                          # repro.hlsl x every cached release + main-debug
+    python measure-rewrite.py --shader <file> --label <name> --expect match|no-match
+        # files a variant-<name>-main-debug.txt capture, scored with
+        # match.json via triage.classify, so `triage.py audit`/`reindex`
+        # see it exactly like a `run --label` capture (see notes.md).

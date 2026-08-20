@@ -1,0 +1,11 @@
+What to look for: DXC (dxc_1_6_2112 and dxc_trunk panes) fails both compiles inside
+struct S's member functions with
+
+    error: cannot compile this aggregate expression yet
+
+on the `return this;` line and on the `dst = this;` line -- an ordinary diagnosed compile
+error (not a crash), reported at both call sites. The FXC pane (fxc_10_0_19041, run at
+cs_5_0 since FXC has no cs_6_0 profile) accepts the same struct/member-function shape and
+produces ordinary DXBC, with no equivalent diagnostic -- the FXC/DXC disagreement the issue
+reports. This does not show the DXIL/SPIR-V split from the issue thread's maintainer comment;
+Compiler Explorer's dxc panes only emit DXIL here, matching the repro's own command line.

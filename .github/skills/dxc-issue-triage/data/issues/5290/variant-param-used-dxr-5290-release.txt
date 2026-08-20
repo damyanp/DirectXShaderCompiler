@@ -1,0 +1,29 @@
+# compiler: dxr-5290-release
+# exe: <repo>/build/Release/bin/dxr.exe
+# ran: 2026-08-19T20:09:11+00:00
+# cmd: -remove-unused-functions -remove-unused-globals -E ps_main control-param-used.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: param-used (control-param-used.hlsl)
+# expect: no-match
+
+$ dxc -remove-unused-functions -remove-unused-globals -E ps_main control-param-used.hlsl
+[exe] <repo>/build/Release/bin/dxr.exe
+[exit] 0
+--- stdout ---
+struct VS_OUTPUT {
+  float4 position : SV_Position;
+  float4 uv : TEXCOORD0;
+  float4 color : VC;
+};
+float4 ps_main(VS_OUTPUT input) : SV_Target0 {
+  return input.color;
+}
+
+
+
+
+--- stderr ---
+

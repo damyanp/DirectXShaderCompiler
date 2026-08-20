@@ -1,0 +1,5 @@
+What to look for: the "error: validation errors" block. The message names the
+amplification shader's declared payload size (the number after "declared size
+of") -- the point of this issue is that DXC reports a nonzero payload size and
+therefore fails an empty-struct payload, even though the entry function's
+payload struct declares no members at all.

@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-28T23:48:00Z",
+  "godbolt_url": "https://godbolt.org/z/WT19a1jbM",
+  "history": "always-repro'd",
+  "labels": "bug,sm6.8,validation",
+  "labels_add": "sm6.7",
+  "labels_now": "bug,sm6.8,validation",
+  "notes_path": "issues/5801/notes.md",
+  "number": 5801,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Both the SM6.7 front-end/legalizer bypass (DxilLegalizeSampleOffsetPass.cpp:88-90) and the SM6.7 validator bypass (DxilValidation.cpp:369-372, ValidateResourceOffset) still unconditionally skip the -8..7 constant-offset range check under IsSM67Plus(), confirmed by source reading and by compiling the reporter's exact shader: main-debug (89e2f98e2) accepts int2(12,-14) with exit 0 and the literal offsets embedded in final DXIL, while the identical source at ps_6_6 still emits the range diagnostic. Compiler Explorer's dxc_trunk (Linux Release) reproduces the same defect; dxc_1_6_2112 correctly rejects the profile as SM6.7-unaware. Bisecting stable releases: every release able to target ps_6_7 (v1.7.2207 through v1.9.2607) reproduces, and no earlier stable release can even select the profile, so this is a since-inception gap, not a regression.",
+  "title": "Sample immediate offset range is not diagnosed or validated in SM 6.7",
+  "triaged_at": "2026-08-20T05:15:29+00:00",
+  "triaged_by": "claude-opus-5 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5801"
+}

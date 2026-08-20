@@ -1,0 +1,52 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T23:30:28+00:00
+# cmd: -T ps_6_7 -E PSMain -HV 2021 -spirv variant-nontemplate-const.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: nontemplate-const (variant-nontemplate-const.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_7 -E PSMain -HV 2021 -spirv variant-nontemplate-const.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 16
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %PSMain "PSMain" %in_var_COLOR0 %out_var_SV_Target0
+               OpExecutionMode %PSMain OriginUpperLeft
+               OpSource HLSL 670
+               OpName %in_var_COLOR0 "in.var.COLOR0"
+               OpName %out_var_SV_Target0 "out.var.SV_Target0"
+               OpName %PSMain "PSMain"
+               OpDecorate %in_var_COLOR0 Location 0
+               OpDecorate %out_var_SV_Target0 Location 0
+      %float = OpTypeFloat 32
+    %float_1 = OpConstant %float 1
+    %float_0 = OpConstant %float 0
+    %v4float = OpTypeVector %float 4
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %11 = OpTypeFunction %void
+%in_var_COLOR0 = OpVariable %_ptr_Input_v4float Input
+%out_var_SV_Target0 = OpVariable %_ptr_Output_v4float Output
+         %12 = OpConstantComposite %v4float %float_1 %float_0 %float_1 %float_1
+     %PSMain = OpFunction %void None %11
+         %13 = OpLabel
+         %14 = OpLoad %v4float %in_var_COLOR0
+         %15 = OpFMul %v4float %14 %12
+               OpStore %out_var_SV_Target0 %15
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

@@ -1,0 +1,7 @@
+Look at line 22 in each pane: `(SomeStructWithBitfields)cStructWithUint`. Both structs
+pack into one uint32_t (three bit-fields totalling 30 bits vs. a single uint32_t member), yet
+dxc rejects the cast with a "cannot convert" diagnostic and exit status 5 (E_FAIL) in both the
+oldest Compiler Explorer DXC (1.6.2112) and dxc_trunk. There is no successful compile to
+contrast against in this pane set; the point is that the same rejection appears at CE's oldest
+available DXC and at trunk, corroborating the local release-history scan (always-repro'd,
+v1.6.2112..v1.9.2607) with an independently built pair of binaries.

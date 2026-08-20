@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-07-18T19:26:24Z",
+  "godbolt_skip": "no HLSL repro exists or is reconstructable -- the gap only shows up in hand-built adversarial DXIL fed directly to the standalone validator, which CE's dxc panes (HLSL source only) cannot express",
+  "history": "always-repro'd",
+  "labels": "enhancement,tech-debt,validation",
+  "labels_now": "enhancement,tech-debt,validation",
+  "notes_path": "issues/5434/notes.md",
+  "number": 5434,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Confirmed still missing: AnnotateHandle/AnnotateNodeHandle/AnnotateNodeRecordHandle validate a handle operand not derived from any Create*Handle call (DxilValidation.cpp's ValidateHandleArgs still hits the documented TODO and skips ValidateHandleArgsForInstruction). Hand-built DXIL with a zero/undef handle validates clean on all three opcodes; the identical value fed to a checked opcode (BufferUpdateCounter) is correctly rejected, isolating the gap to these opcodes. Gap dates to #5399 (2023-07-21, 3 days after filing), unchanged through the 2025-06-03 rewrite and in the current release. No labels changes suggested.",
+  "title": "[Validation] Add validation for Annotate*Handle intrinsics",
+  "triaged_at": "2026-08-20T05:15:23+00:00",
+  "triaged_by": "Claude Sonnet 4.5 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5434"
+}

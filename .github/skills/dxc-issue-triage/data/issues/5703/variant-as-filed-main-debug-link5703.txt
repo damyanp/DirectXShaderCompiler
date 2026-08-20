@@ -1,0 +1,32 @@
+# compiler: main-debug-link5703
+# exe: <triage>/issues/5703/run-link5703.cmd
+# ran: 2026-08-19T22:09:17+00:00
+# cmd: --entry main --lib-profile lib_6_3 --link-profile cs_6_3 -O3 repro-as-filed.hlsl
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: as-filed (repro-as-filed.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc --entry main --lib-profile lib_6_3 --link-profile cs_6_3 -O3 repro-as-filed.hlsl
+[exe] <triage>/issues/5703/run-link5703.cmd
+[exit] 1
+--- stdout ---
+$ <repo>/build/Release/bin/dxc.exe -T lib_6_3 -O3 -Fo <skill>/data/issues/5703/work/lib5703.dxo <skill>/.cache/scratch/probe-5703-22052-1787177357421911000/repro-as-filed.hlsl
+<cache>\scratch\probe-5703-22052-1787177357421911000\repro-as-filed.hlsl:3:2: warning: attribute 'numthreads' ignored without accompanying shader attribute [-Wmisplaced-attributes]
+[numthreads(8, 8, 1)]
+ ^
+[link5703] dxc exit 0
+[link5703] unlinked-lib parts: SFI0(8), VERS(40), RDAT(24), STAT(828), HASH(20), DXIL(828)
+unlinked-lib-RDAT: PRESENT
+$ <repo>/build/Release/bin/dxl.exe -T cs_6_3 -E main -O3 -Fo <skill>/data/issues/5703/work/linked5703.dxo <skill>/data/issues/5703/work/lib5703.dxo
+Link failed:
+error: Cannot find definition of function main
+[link5703] dxl exit 1
+linked-RDAT: NO-CONTAINER (link failed)
+
+--- stderr ---
+

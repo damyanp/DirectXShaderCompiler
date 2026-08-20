@@ -1,0 +1,1 @@
+-HV 2021 -T ps_6_7 -enable-16bit-types repro.hlsl

@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "target datalayout"
+    },
+    {
+      "kind": "contains",
+      "value": "addrspace(3)"
+    },
+    {
+      "kind": "not_regex",
+      "value": "Thread Group Shared Memory not supported"
+    }
+  ],
+  "note": "The bug is that -T lib_6_3 validates a hull-shader library cleanly even though its patch-constant function (HSPatch, not the [shader(\"hull\")] entry `main`) reads a groupshared variable, which the DXIL validator is supposed to reject with 'Thread Group Shared Memory not supported from non-compute entry points.' 'repro' therefore means the compile finishes and prints full disassembly (positive anchor: 'target datalayout', which dxc only prints after a compile that reaches final DXIL emission and passes validation -- a failed validation run prints only the error/note lines, never the module dump) while never printing that specific validator diagnostic. The second anchor, 'addrspace(3)', requires the emitted IR to still contain a groupshared-address-space load -- this is the same substring the validator's own note quotes when it DOES fire, so on its own it cannot discriminate; it is included only to prove HSPatch's read of `gs` was not optimized away, and it is the not_regex clause on the validator's own diagnostic text that carries the discrimination. Absence predicates are otherwise satisfied for free by an unrelated failed compile (SKILL.md); the 'target datalayout' anchor guards against exactly that, because dxc's own error path for this shader never prints it (confirmed: out-main-debug.txt has no 'target datalayout' line, only the error/note block)."
+}

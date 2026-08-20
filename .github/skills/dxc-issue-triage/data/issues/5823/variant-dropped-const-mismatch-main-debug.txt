@@ -1,0 +1,24 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T23:32:43+00:00
+# cmd: -HV 202x -T ps_6_7 -E PSMain variant-dropped-const-mismatch.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: dropped-const-mismatch (variant-dropped-const-mismatch.hlsl)
+# expect: match
+# expectation-kind: hypothesis
+# outcome: refuted
+
+$ dxc -HV 202x -T ps_6_7 -E PSMain variant-dropped-const-mismatch.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-dropped-const-mismatch.hlsl:14:1: error: 'const' is not a valid modifier for a field
+float GaussLegendreValues<2,float>::wi[2] = {1.0, 1.0};
+^
+
+

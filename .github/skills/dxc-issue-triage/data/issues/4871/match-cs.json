@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "define void @CSMain\\(" },
+    { "kind": "regex", "value": "add i32 %[\\w.]+,\\s*-2\\b" }
+  ],
+  "note": "Same predicate as match.json, retargeted at the compute-shader restatement's entry point (CSMain instead of PSMain) used only for Compiler Explorer panes whose compilers cannot lower a pixel shader writing SV_Target (hlsl_clang_trunk requires SV_Target to be a float type; see notes.md). Confirmed locally on main-debug before use: the compute translation reproduces byte-for-byte the same defect shape as repro.hlsl (`add i32 %N, -2` at the pre-decrement call-argument site) -- see variant-cs-restatement-main-debug.txt."
+}

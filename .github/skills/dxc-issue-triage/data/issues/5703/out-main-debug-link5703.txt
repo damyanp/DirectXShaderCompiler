@@ -1,0 +1,24 @@
+# compiler: main-debug-link5703
+# exe: <triage>/issues/5703/run-link5703.cmd
+# ran: 2026-08-19T22:08:23+00:00
+# cmd: --entry main --lib-profile lib_6_3 --link-profile cs_6_3 -O3 repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc --entry main --lib-profile lib_6_3 --link-profile cs_6_3 -O3 repro.hlsl
+[exe] <triage>/issues/5703/run-link5703.cmd
+[exit] 0
+--- stdout ---
+$ <repo>/build/Release/bin/dxc.exe -T lib_6_3 -O3 -Fo <skill>/data/issues/5703/work/lib5703.dxo <skill>/.cache/scratch/probe-5703-37176-1787177303122210300/repro.hlsl
+[link5703] dxc exit 0
+[link5703] unlinked-lib parts: SFI0(8), VERS(40), RDAT(232), STAT(1740), HASH(20), DXIL(1824)
+unlinked-lib-RDAT: PRESENT
+$ <repo>/build/Release/bin/dxl.exe -T cs_6_3 -E main -O3 -Fo <skill>/data/issues/5703/work/linked5703.dxo <skill>/data/issues/5703/work/lib5703.dxo
+[link5703] dxl exit 0
+[link5703] linked parts: SFI0(8), ISG1(8), OSG1(8), PSV0(132), STAT(1416), ILDN(44), HASH(20), DXIL(1436)
+linked-RDAT: MISSING
+
+--- stderr ---
+

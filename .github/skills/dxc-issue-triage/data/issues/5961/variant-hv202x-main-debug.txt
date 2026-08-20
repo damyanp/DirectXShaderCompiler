@@ -1,0 +1,60 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-20T00:09:39+00:00
+# cmd: -T cs_6_0 -E main -HV 202x repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: hv202x (repro.hlsl)
+# expect: match
+# expectation-kind: hypothesis
+# outcome: refuted
+
+$ dxc -T cs_6_0 -E main -HV 202x repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:13:19: warning: implicit conversion from 'float' to 'int' changes value from 2.1474836E+9 to 2147483647 [-Wliteral-conversion]
+    store(to_int(-2147483648.0)); // MaxNegative int: -2147483648
+          ~~~~~~  ^~~~~~~~~~~~
+repro.hlsl:14:19: warning: magnitude of floating-point constant too large for type 'float'; maximum is 3.40282347E+38 [-Wliteral-range]
+    store(to_int(-1.7976931348623158e+308)); // MaxNegative double: -2147483648 (clamp int)
+                  ^
+repro.hlsl:14:19: warning: implicit conversion from 'float' to 'int' changes value from +Inf to 2147483647 [-Wliteral-conversion]
+    store(to_int(-1.7976931348623158e+308)); // MaxNegative double: -2147483648 (clamp int)
+          ~~~~~~  ^~~~~~~~~~~~~~~~~~~~~~~
+repro.hlsl:15:18: warning: magnitude of floating-point constant too large for type 'float'; maximum is 3.40282347E+38 [-Wliteral-range]
+    store(to_int(1.7976931348623158e+308)); // MaxPositive double: 2147483647 (clamp int)
+                 ^
+repro.hlsl:15:18: warning: implicit conversion from 'float' to 'int' changes value from +Inf to 2147483647 [-Wliteral-conversion]
+    store(to_int(1.7976931348623158e+308)); // MaxPositive double: 2147483647 (clamp int)
+          ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~~~
+repro.hlsl:16:20: warning: magnitude of floating-point constant too large for type 'float'; maximum is 3.40282347E+38 [-Wliteral-range]
+    store(to_uint(-1.7976931348623158e+308)); // MaxNegative double: 0 (clamp uint)
+                   ^
+repro.hlsl:16:20: warning: implicit conversion from 'float' to 'uint' changes value from +Inf to 4294967295 [-Wliteral-conversion]
+    store(to_uint(-1.7976931348623158e+308)); // MaxNegative double: 0 (clamp uint)
+          ~~~~~~~  ^~~~~~~~~~~~~~~~~~~~~~~
+repro.hlsl:17:19: warning: magnitude of floating-point constant too large for type 'float'; maximum is 3.40282347E+38 [-Wliteral-range]
+    store(to_uint(1.7976931348623158e+308)); // MaxPositive double: 4294967295 (clamp uint)
+                  ^
+repro.hlsl:17:19: warning: implicit conversion from 'float' to 'uint' changes value from +Inf to 4294967295 [-Wliteral-conversion]
+    store(to_uint(1.7976931348623158e+308)); // MaxPositive double: 4294967295 (clamp uint)
+          ~~~~~~~ ^~~~~~~~~~~~~~~~~~~~~~~
+error: validation errors
+
+repro.hlsl:8:5: error: Assignment of undefined values to UAV.
+note: at 'call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 4, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i8 1)' in block '#0' of function 'main'.
+repro.hlsl:8:5: error: Assignment of undefined values to UAV.
+note: at 'call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 8, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i8 1)' in block '#0' of function 'main'.
+repro.hlsl:8:5: error: Assignment of undefined values to UAV.
+note: at 'call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 12, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i8 1)' in block '#0' of function 'main'.
+repro.hlsl:8:5: error: Assignment of undefined values to UAV.
+note: at 'call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 16, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i8 1)' in block '#0' of function 'main'.
+Validation failed.
+
+
+

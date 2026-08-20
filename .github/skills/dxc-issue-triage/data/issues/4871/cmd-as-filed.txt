@@ -1,0 +1,1 @@
+-T ps_6_7 -E PSMain -fspv-target-env=universal1.5 -Zi -Qembed_debug -Fc - repro.hlsl

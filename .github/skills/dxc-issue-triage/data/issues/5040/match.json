@@ -1,0 +1,12 @@
+{
+  "kind": "all_of",
+  "note": "Ask C (damyanp, 2024-08-27): the DXIL validator/compiler should not silently accept a resource-load index that is `undef`. Present when (a) the bufferLoad call for the index actually reached codegen with BOTH coordinate operands `undef` -- the literal shape reported in the issue and reproduced with an initialized-index control below -- and (b) no diagnostic mentioning uninitialized use was printed by default (Ask A). Anchored on the opcode name plus both-undef operands rather than only 'undef' so that a control whose first operand is a defined constant (the initialized-index control) cannot satisfy it -- that value is always undef for a ByteAddressBuffer/unstructured load regardless of the bug, so anchoring on it alone would be vacuous.",
+  "value": [
+    { "kind": "regex",
+      "value": "dx\\.op\\.bufferLoad\\.i32\\(i32 68, %dx\\.types\\.Handle %[\\w.]+, i32 undef, i32 undef\\)",
+      "note": "positive anchor: the call for the byte-address load survived to codegen with its index kept fully undef (both coordinate operands). Register spelled with [\\w.]+ because older releases print named SSA values rather than %N." },
+    { "kind": "not_regex",
+      "value": "(?i)uninitiali[sz]ed",
+      "note": "absence clause: no diagnostic (front-end warning/error or validator message) about the uninitialized value was printed under the default (as-filed) invocation. Sensitivity proven by the control-wuninitialized variant below, which enables -Wuninitialized and must score no-match because this text then appears." }
+  ]
+}

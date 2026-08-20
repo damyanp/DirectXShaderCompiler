@@ -1,0 +1,18 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "generated SPIR-V is invalid"
+    },
+    {
+      "kind": "contains",
+      "value": "DebugSource text"
+    },
+    {
+      "kind": "contains",
+      "value": "WALK-INCOMPLETE"
+    }
+  ],
+  "note": "A second, distinct signature of the same underlying defect, found during this triage rather than reported: when a real file happens to exist on disk at the include's resolved candidate path but with DIFFERENT text/line-count than what the custom handler actually served (control-mismatch/main.hlsl), the raw disk re-read in ReadSourceCode silently substitutes that mismatched text as the DebugSource content -- but the line/column references elsewhere in the module were computed against the buffer the parser actually used (the handler's), so the two disagree and DXC's own SPIR-V validator now rejects the module outright ('DebugTypeMember: operand Column End (41) is larger then Line 3 column length of 2 found in the DebugSource text'), turning what used to be a successful-but-wrong compile into a hard compile failure. This is a --hypothesis/--label run, not a --expect no-match control of match.json: it is not asserting an absence, it is asserting a DIFFERENT positive failure shape exists at all, which is itself the finding (SKILL.md, 'one defect can have two signatures'). Measured to be ABSENT (compiles cleanly, S_OK) on both v1.7.2207 (2022-07, contemporary with this issue's filing) and v1.8.2502 (2025-02); PRESENT only on main-debug (2026, commit 89e2f98e). git merge-base --is-ancestor confirms 97b5edbc4398317a6c50437cee06393c1fd94b74 (PR #7662, 2025-07-24, 'Fix DebugSource for files which are not found') is absent from v1.8.2502 and present in main-debug -- see notes.md and manual-case-release-history.txt for the full matrix and the source diff that narrows the fallback condition responsible."
+}

@@ -1,0 +1,302 @@
+# Compiler Explorer panes for #5040, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E main
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; A                        0   x           0     NONE    uint       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   x           0   TARGET   float   x   
+;
+; shader debug name: 45d391855fd59faf50307a8207102c05.pdb
+; shader hash: 45d391855fd59faf50307a8207102c05
+;
+; Pipeline Runtime Information: 
+;
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; A                        0        nointerpolation       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; b                                 texture    byte         r/o      T0             t0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 1, outputs: 1
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%struct.ByteAddressBuffer = type { i32 }
+
+define void @main() {
+  %b_texture_rawbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !38 ; line:8 col:12  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %b_texture_rawbuf, i32 undef, i32 undef), !dbg !38 ; line:8 col:12  ; BufferLoad(srv,index,wot)
+  %2 = extractvalue %dx.types.ResRet.i32 %1, 0, !dbg !38 ; line:8 col:12
+  %3 = uitofp i32 %2 to float, !dbg !38 ; line:8 col:12
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %3), !dbg !39 ; line:8 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !39 ; line:8 col:5
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i32) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!13, !14}
+!llvm.ident = !{!15}
+!dx.source.contents = !{!16}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!17}
+!dx.source.args = !{!18}
+!dx.version = !{!19}
+!dx.valver = !{!20}
+!dx.shaderModel = !{!21}
+!dx.resources = !{!22}
+!dx.typeAnnotations = !{!25}
+!dx.viewIdState = !{!28}
+!dx.entryPoints = !{!29}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !10)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 5, type: !5, isLocal: false, isDefinition: true, scopeLine: 6, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !8}
+!7 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!8 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, baseType: !9)
+!9 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!10 = !{!11}
+!11 = !DIGlobalVariable(name: "b", linkageName: "\01?b@@3UByteAddressBuffer@@A", scope: !0, file: !1, line: 2, type: !12, isLocal: false, isDefinition: true)
+!12 = !DICompositeType(tag: DW_TAG_structure_type, name: "ByteAddressBuffer", file: !1, line: 2, size: 32, align: 32, elements: !2)
+!13 = !{i32 2, !"Dwarf Version", i32 4}
+!14 = !{i32 2, !"Debug Info Version", i32 3}
+!15 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!16 = !{!"/app/example.hlsl", !"// dxc /Tps_6_0 t.hlsl\0AByteAddressBuffer b;\0A\0A[RootSignature(\22UAV(u0), SRV(t0)\22)]\0Afloat main(uint a : A) : SV_Target\0A{\0A    uint X;\0A    return b.Load(X);\0A}\0A"}
+!17 = !{!"/app/example.hlsl"}
+!18 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug"}
+!19 = !{i32 1, i32 0}
+!20 = !{i32 1, i32 6}
+!21 = !{!"ps", i32 6, i32 0}
+!22 = !{!23, null, null, null}
+!23 = !{!24}
+!24 = !{i32 0, %struct.ByteAddressBuffer* undef, !"b", i32 0, i32 0, i32 1, i32 11, i32 0, null}
+!25 = !{i32 1, void ()* @main, !26}
+!26 = !{!27}
+!27 = !{i32 0, !2, !2}
+!28 = !{[3 x i32] [i32 1, i32 1, i32 0]}
+!29 = !{void ()* @main, !"main", !30, !22, !37}
+!30 = !{!31, !34, null}
+!31 = !{!32}
+!32 = !{i32 0, !"A", i8 5, i8 0, !33, i8 1, i32 1, i8 1, i32 0, i8 0, null}
+!33 = !{i32 0}
+!34 = !{!35}
+!35 = !{i32 0, !"SV_Target", i8 9, i8 16, !33, i8 0, i32 1, i8 1, i32 0, i8 0, !36}
+!36 = !{i32 3, i32 1}
+!37 = !{i32 0, i64 16}
+!38 = !DILocation(line: 8, column: 12, scope: !4)
+!39 = !DILocation(line: 8, column: 5, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main
+# exit:     0
+
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; A                        0   x           0     NONE    uint       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   x           0   TARGET   float   x   
+;
+; shader debug name: ac7ac0ebc9feb5d553566cda8fd2e47e.pdb
+; shader hash: ac7ac0ebc9feb5d553566cda8fd2e47e
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 1
+; SigOutputElements: 1
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 1
+; SigOutputVectors[0]: 1
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; A                        0        nointerpolation       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; b                                 texture    byte         r/o      T0             t0     1
+;
+;
+; ViewId state:
+;
+; Number of inputs: 1, outputs: 1
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%struct.ByteAddressBuffer = type { i32 }
+
+define void @main() {
+  %b_texture_rawbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 0, i1 false), !dbg !38 ; line:8 col:12  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %1 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %b_texture_rawbuf, i32 undef, i32 undef), !dbg !38 ; line:8 col:12  ; BufferLoad(srv,index,wot)
+  %2 = extractvalue %dx.types.ResRet.i32 %1, 0, !dbg !38 ; line:8 col:12
+  %3 = uitofp i32 %2 to float, !dbg !38 ; line:8 col:12
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %3), !dbg !39 ; line:8 col:5  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !39 ; line:8 col:5
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i32) #1
+
+attributes #0 = { nounwind }
+attributes #1 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!13, !14}
+!llvm.ident = !{!15}
+!dx.source.contents = !{!16}
+!dx.source.defines = !{!2}
+!dx.source.mainFileName = !{!17}
+!dx.source.args = !{!18}
+!dx.version = !{!19}
+!dx.valver = !{!20}
+!dx.shaderModel = !{!21}
+!dx.resources = !{!22}
+!dx.typeAnnotations = !{!25}
+!dx.viewIdState = !{!28}
+!dx.entryPoints = !{!29}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !10)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 5, type: !5, isLocal: false, isDefinition: true, scopeLine: 6, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !8}
+!7 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!8 = !DIDerivedType(tag: DW_TAG_typedef, name: "uint", file: !1, baseType: !9)
+!9 = !DIBasicType(name: "unsigned int", size: 32, align: 32, encoding: DW_ATE_unsigned)
+!10 = !{!11}
+!11 = !DIGlobalVariable(name: "b", linkageName: "\01?b@@3UByteAddressBuffer@@A", scope: !0, file: !1, line: 2, type: !12, isLocal: false, isDefinition: true)
+!12 = !DICompositeType(tag: DW_TAG_structure_type, name: "ByteAddressBuffer", file: !1, line: 2, size: 32, align: 32, elements: !2)
+!13 = !{i32 2, !"Dwarf Version", i32 4}
+!14 = !{i32 2, !"Debug Info Version", i32 3}
+!15 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!16 = !{!"/app/example.hlsl", !"// dxc /Tps_6_0 t.hlsl\0AByteAddressBuffer b;\0A\0A[RootSignature(\22UAV(u0), SRV(t0)\22)]\0Afloat main(uint a : A) : SV_Target\0A{\0A    uint X;\0A    return b.Load(X);\0A}\0A"}
+!17 = !{!"/app/example.hlsl"}
+!18 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug"}
+!19 = !{i32 1, i32 0}
+!20 = !{i32 1, i32 10}
+!21 = !{!"ps", i32 6, i32 0}
+!22 = !{!23, null, null, null}
+!23 = !{!24}
+!24 = !{i32 0, %struct.ByteAddressBuffer* undef, !"b", i32 0, i32 0, i32 1, i32 11, i32 0, null}
+!25 = !{i32 1, void ()* @main, !26}
+!26 = !{!27}
+!27 = !{i32 0, !2, !2}
+!28 = !{[3 x i32] [i32 1, i32 1, i32 0]}
+!29 = !{void ()* @main, !"main", !30, !22, !37}
+!30 = !{!31, !34, null}
+!31 = !{!32}
+!32 = !{i32 0, !"A", i8 5, i8 0, !33, i8 1, i32 1, i8 1, i32 0, i8 0, null}
+!33 = !{i32 0}
+!34 = !{!35}
+!35 = !{i32 0, !"SV_Target", i8 9, i8 16, !33, i8 0, i32 1, i8 1, i32 0, i8 0, !36}
+!36 = !{i32 3, i32 1}
+!37 = !{i32 0, i64 16}
+!38 = !DILocation(line: 8, column: 12, scope: !4)
+!39 = !DILocation(line: 8, column: 5, scope: !4)

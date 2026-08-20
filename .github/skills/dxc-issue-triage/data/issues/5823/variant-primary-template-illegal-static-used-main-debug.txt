@@ -1,0 +1,58 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T23:41:50+00:00
+# cmd: -T cs_6_8 -E main -spirv variant-primary-template-illegal-static-used.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: primary-template-illegal-static-used (variant-primary-template-illegal-static-used.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc -T cs_6_8 -E main -spirv variant-primary-template-illegal-static-used.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 17
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main"
+               OpExecutionMode %main LocalSize 1 1 1
+               OpSource HLSL 680
+               OpName %type_RWStructuredBuffer_float "type.RWStructuredBuffer.float"
+               OpName %outBuf "outBuf"
+               OpName %main "main"
+               OpDecorate %outBuf DescriptorSet 0
+               OpDecorate %outBuf Binding 0
+               OpDecorate %_runtimearr_float ArrayStride 4
+               OpMemberDecorate %type_RWStructuredBuffer_float 0 Offset 0
+               OpDecorate %type_RWStructuredBuffer_float BufferBlock
+      %float = OpTypeFloat 32
+    %float_1 = OpConstant %float 1
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+       %uint = OpTypeInt 32 0
+     %uint_0 = OpConstant %uint 0
+%_runtimearr_float = OpTypeRuntimeArray %float
+%type_RWStructuredBuffer_float = OpTypeStruct %_runtimearr_float
+%_ptr_Uniform_type_RWStructuredBuffer_float = OpTypePointer Uniform %type_RWStructuredBuffer_float
+       %void = OpTypeVoid
+         %13 = OpTypeFunction %void
+%_ptr_Uniform_float = OpTypePointer Uniform %float
+     %outBuf = OpVariable %_ptr_Uniform_type_RWStructuredBuffer_float Uniform
+       %main = OpFunction %void None %13
+         %15 = OpLabel
+         %16 = OpAccessChain %_ptr_Uniform_float %outBuf %int_0 %uint_0
+               OpStore %16 %float_1
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

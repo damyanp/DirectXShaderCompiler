@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "error: validation errors",
+  "note": "The reported bug is not merely 'this shader fails to compile' -- it should fail, the complaint is that it fails at the WRONG stage. dxc always emits a driver-level 'error: validation errors' preamble immediately before the DXIL validator's own diagnostics when a validation-stage error occurs (see tools/clang/tools/dxclib/dxc.cpp), and a Sema/front-end error never does -- a Sema error is only 'file:line:col: error: <message>' with no such preamble (confirmed by control-sema-error2.hlsl, an ordinary undeclared-identifier error, which prints no 'validation errors' text at all and exits the same E_FAIL). So 'contains \"error: validation errors\"' is present exactly when the input got past Sema, was lowered to DXIL, and was only then rejected by the validator -- the reported symptom. Absence means either the shader compiled cleanly (control-clean.hlsl, uint-typed SV_VertexID) or a Sema-level error stopped it before DXIL/validation ever ran, which would be the fix the reporter is asking for."
+}

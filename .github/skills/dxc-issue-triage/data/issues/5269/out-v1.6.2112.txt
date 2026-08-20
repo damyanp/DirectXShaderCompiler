@@ -1,0 +1,23 @@
+# compiler: v1.6.2112
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+# ran: 2026-08-19T20:09:38+00:00
+# cmd: -T as_6_5 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T as_6_5 -E main repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+repro.hlsl:9:5: error: For amplification shader with entry 'main', payload size 4 is greater than declared size of 0 bytes.
+note: at 'call void @dx.op.dispatchMesh.struct.Payload(i32 173, i32 32, i32 1, i32 1, %struct.Payload* nonnull %1)' in block '#0' of function 'main'.
+Validation failed.
+
+
+

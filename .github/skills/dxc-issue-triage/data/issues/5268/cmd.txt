@@ -1,0 +1,1 @@
+-E VSMain -remove-unused-globals repro.hlsl

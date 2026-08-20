@@ -1,0 +1,19 @@
+# compiler: main-debug-fh
+# exe: <triage>/issues/5072/fh-header-check.cmd
+# ran: 2026-08-19T19:20:10+00:00
+# cmd: -T lib_6_3 -Fh out-header-vn.h -Vn g_MyLibShader repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: vn-control (repro.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 -Fh out-header-vn.h -Vn g_MyLibShader repro.hlsl
+[exe] <triage>/issues/5072/fh-header-check.cmd
+[exit] 0
+--- stdout ---
+FH-HARNESS: IDENTIFIER-VALID name='g_MyLibShader'
+
+--- stderr ---
+

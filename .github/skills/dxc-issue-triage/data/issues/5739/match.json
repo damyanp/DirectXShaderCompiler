@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains", "value": "Resource Bindings:" },
+    { "kind": "not_contains", "value": "shader debug name:" }
+  ],
+  "note": "cmd.txt ends with `-dumpbin test.pdb`, where test.pdb is the -Fd output of the LINK step. `Resource Bindings:` anchors that dumpbin actually disassembled something (rules out a failed compile/link/dumpbin vacuously satisfying the absence clause -- see the invalid-probe/absence-predicate trap in SKILL.md). `shader debug name:` is the header line dxc's dumpbin prints only when it can read a genuine PDB compiland/debug-name stream; a bare DXIL/bitcode blob (no MSF7 wrapper) never gets one. Verified by hand (see notes.md / manual-case-header-check.txt) that testc.pdb (the COMPILE step's own -Fd output, a real PDB) prints the line and test.pdb (the LINK step's -Fd output) does not, on both main-debug and the reporter's own v1.7.2207.3 release binary."
+}

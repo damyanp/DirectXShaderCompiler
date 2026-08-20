@@ -1,0 +1,67 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T19:43:24+00:00
+# cmd: -spirv -Zi -fspv-reflect -E PS -T ps_6_7 control-trivial-spirv.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-trivial-spirv (control-trivial-spirv.hlsl)
+# expect: no-match
+
+$ dxc -spirv -Zi -fspv-reflect -E PS -T ps_6_7 control-trivial-spirv.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 13
+; Schema: 0
+               OpCapability Shader
+               OpExtension "SPV_GOOGLE_hlsl_functionality1"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %PS "PS" %out_var_SV_Target
+               OpExecutionMode %PS OriginUpperLeft
+          %3 = OpString "control-trivial-spirv.hlsl"
+               OpSource HLSL 670 %3 "// Trivial pixel shader: SPIR-V codegen must succeed cleanly for a shader that
+
+// does not touch a multisampled UAV texture. Proves the internal_failure
+
+// predicate is not simply \"any SPIR-V compile crashes\".
+
+float4 PS() : SV_Target
+
+{
+
+    return float4(1, 0, 0, 1);
+
+}
+
+"
+               OpName %out_var_SV_Target "out.var.SV_Target"
+               OpName %PS "PS"
+               OpDecorateString %out_var_SV_Target UserSemantic "SV_Target"
+               OpDecorate %out_var_SV_Target Location 0
+      %float = OpTypeFloat 32
+    %float_1 = OpConstant %float 1
+    %float_0 = OpConstant %float 0
+    %v4float = OpTypeVector %float 4
+          %8 = OpConstantComposite %v4float %float_1 %float_0 %float_0 %float_1
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %11 = OpTypeFunction %void
+%out_var_SV_Target = OpVariable %_ptr_Output_v4float Output
+               OpLine %3 4 1
+         %PS = OpFunction %void None %11
+               OpNoLine
+         %12 = OpLabel
+               OpLine %3 4 1
+               OpStore %out_var_SV_Target %8
+               OpLine %3 7 1
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

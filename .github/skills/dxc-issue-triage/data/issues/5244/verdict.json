@@ -1,0 +1,23 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-05-29T17:35:57Z",
+  "expected_symptom": "Compiling the reporter's RWTexture2DMS shader for SPIR-V (-spirv -T ps_6_7 -E PS) fails while the identical shader compiles fine for DXIL.",
+  "godbolt_url": "https://godbolt.org/z/oj91s731v",
+  "history": "always-repro'd across v1.5.2010..v1.9.2607 (19 stable releases; v1.4.1907 invalid-probe, SPIR-V codegen not built)",
+  "labels": "enhancement,spirv,sm6.7",
+  "labels_add": "bug, crash",
+  "labels_now": "enhancement,spirv,sm6.7",
+  "notes_path": "issues/5244/notes.md",
+  "number": 5244,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still reproduces on main as a real crash (chained LLVM asserts in clang::spirv::PreciseVisitor::isAccessingPrecise, exit 0xE0000001), not merely an unimplemented-feature diagnostic; continuing past both asserts (emulating Release/NDEBUG) shows DXC's own SPIR-V validator then rejects the malformed module it just built. All 19 probeable stable releases v1.5.2010..v1.9.2607 hit the same invalid-SPIR-V path and fail the same way without crashing (assert compiled out), so this has never worked in SPIR-V on any checkable release -- not a regression.",
+  "title": "[SPIR-V][SM6.7] Add support for RWTexture2DMS in the SPIR-V backend",
+  "triaged_at": "2026-08-20T05:15:18+00:00",
+  "triaged_by": "GitHub Copilot CLI (model not self-identifiable)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5244"
+}

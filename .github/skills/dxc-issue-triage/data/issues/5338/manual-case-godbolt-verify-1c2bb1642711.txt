@@ -1,0 +1,38 @@
+# Compiler Explorer panes for #5338, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: fxc_10_0_19041
+# args:     /T vs_6_0 /E main
+# exit:     1
+
+Unsupported shader model specified "vs_6_0"
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T vs_6_0
+# exit:     5
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+error: validation errors
+<source>:33: error: Function main with parameter is not permitted, it should be inlined.
+<source>:33: error: Not all elements of output SV_ClipDistance were written.
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T vs_6_0
+# exit:     5  CRASH
+
+error: cast<X>() argument of incompatible type!
+
+
+
+<Compilation failed>

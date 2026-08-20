@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-04-23T06:55:47Z",
+  "godbolt_skip": "IDxcCursor/IDxcIntelliSense is a COM/libclang-style AST-walking API, not something Compiler Explorer's compile-and-show-output panes can exercise; there is no compiler-output artifact for a pane to display. Evidence for this issue is the isense_probe.cpp harness driving the API directly (see manual-case-*.txt and variant-*.txt).",
+  "history": "always-repro'd",
+  "labels": "enhancement",
+  "labels_add": "api",
+  "labels_now": "enhancement",
+  "notes_path": "data/issues/5173/notes.md",
+  "number": 5173,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "IDxcCursor/IDxcTranslationUnit exposes no attribute cursor at all for HLSL semantics (struct field, parameter, or return type); confirmed by direct API harness against main-debug (89e2f98e2, unchanged) plus oldest (v1.4.1907) and newest (v1.9.2607) catalogued releases, and by source: semantics are stored via a Decl-level UnusualAnnotation side channel that libclang's VisitAttributes never walks, so a real Attr-based cursor (control: [numthreads]) surfaces but the semantic never does. Maintainer already declined to prioritize in favor of future LSP tooling; patch welcome.",
+  "title": "IDxcCursor misses semantics",
+  "triaged_at": "2026-08-20T05:15:17+00:00",
+  "triaged_by": "GitHub Copilot CLI",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5173"
+}

@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-02-27T17:06:02Z",
+  "godbolt_skip": "not a compiler defect and no shader/dxc invocation exists -- the asks are (1) a LIT-compatible test-discovery workflow for DXIL validator tests and (2) external-validator test coverage; CE cannot express lit test discovery, TAEF harness wiring, or which build-tree directories are excluded from an internal test runner's config. A CE link would be affirmatively misleading here.",
+  "history": "n/a - no shader/dxc invocation applies; source/lit-config history only. tools/clang/test/HLSLFileCheck/lit.local.cfg sets config.suffixes = [] since b503da708 (#5537, 2023-08-18), replacing config.unsupported = True from f5442b1fb (#4822, 2022-11-29); unchanged at ground truth (89e2f98e2). Confirmed 0 tests discovered under build/tools/clang/test/HLSLFileCheck and .../DXILValidation via lit --show-tests. New tests still added to the excluded HLSLFileCheck/validation/ tree as recently as dcb618a2f (#6172, 2024-01-22).",
+  "labels": "tech-debt",
+  "labels_add": "test",
+  "labels_now": "tech-debt",
+  "notes_path": "issues\\5064\\notes.md",
+  "number": 5064,
+  "repro_quality": "prose-only",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Partially addressed on main (89e2f98e2). Still open: no LIT-compatible workflow for DXIL-validator tests exists -- tools/clang/test/HLSLFileCheck/validation/ (~150 %dxilver/%dxv FileCheck tests) remains excluded from lit discovery (config.suffixes = [], set by #5537 Aug 2023), confirmed via lit --show-tests (0 tests found); only reachable via a manual, one-directory-at-a-time hcttest.cmd -filecheck / TAEF CompilerTest::ManualFileCheckTest invocation, not check-all/CI; tests still being added there as recently as #6172 (Jan 2024). A separate, newer tools/clang/test/HLSLFileCheckLit/ tree shows a partial LIT migration exists for HLSL codegen tests generally, but has no validation subdirectory. Resolved: the follow-up comment's narrower ask for external-validator-workflow test coverage -- tools/clang/test/DXC/validate_1_6_2112.test, validate_1_7_2308.test, validate_1_8_2502.test, version_interface.test now cover loading an external/older validator via DxcDllExtValidationLoader and are genuinely lit-discovered, added by #7749 (2025-10-27) and fixed by #8075 (2026-01-22). Zero PRs cross-reference this issue in the timeline, so this rests on direct tree inspection, not a linked resolution.",
+  "title": "Improve DXIL Validator Testing Infrastructure",
+  "triaged_at": "2026-08-20T05:15:15+00:00",
+  "triaged_by": "Claude Sonnet 4.6 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5064"
+}

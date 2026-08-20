@@ -1,0 +1,36 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-19T22:10:09+00:00
+# cmd: -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro.hlsl ; -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc ; -dumpbin linked.bc
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "Unknown argument", so this build did not reach the code under test
+
+$ dxc -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-link'
+
+
+$ dxc -dumpbin linked.bc
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 1
+--- stdout ---
+
+
+--- stderr ---
+The system cannot find the file specified. linked.bc
+

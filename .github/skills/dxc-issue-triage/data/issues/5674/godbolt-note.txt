@@ -1,0 +1,5 @@
+SIGSEGV on the dxc_trunk pane (bottom) is the crash: `float2x2 matrix;` shadows the
+built-in `matrix` template name, and using it in `float2(1,2) * matrix` crashes overload
+resolution instead of producing a diagnostic. The dxc_1_6_2112 pane (top) shows the older,
+correct behaviour: it rejects the declaration outright with "template specialization
+requires 'template<>'" before ever reaching the multiply.

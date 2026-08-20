@@ -1,0 +1,13 @@
+# DXIL containers written by link5703.py's probe chain (the library, the
+# linked shader, and the direct-compile control). All derived --
+# `python ../../../scripts/triage.py run --issue 5703 ...` recreates them,
+# and the readable result (the part list and the RDAT PRESENT/MISSING
+# verdict) is what is committed, in out-*.txt, variant-*.txt and
+# manual-case-*.txt.
+*.dxo
+
+# link5703.py's scratch directory for the containers above. Recreated
+# (and wiped first) on every run; kept under the issue directory rather
+# than the system temp dir so no per-machine username ever appears in a
+# printed path (see link5703.py's `display_arg`).
+work/

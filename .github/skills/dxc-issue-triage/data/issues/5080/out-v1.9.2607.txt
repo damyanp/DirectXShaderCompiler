@@ -1,0 +1,83 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-19T19:10:33+00:00
+# cmd: -spirv -fspv-target-env=vulkan1.3 -T ps_6_2 -E ps_main -fvk-use-dx-layout -fspv-debug=vulkan-with-source repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -spirv -fspv-target-env=vulkan1.3 -T ps_6_2 -E ps_main -fvk-use-dx-layout -fspv-debug=vulkan-with-source repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.6
+; Generator: Google spiregg; 0
+; Bound: 43
+; Schema: 0
+               OpCapability Shader
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %ps_main "ps_main"
+               OpExecutionMode %ps_main OriginUpperLeft
+          %3 = OpString "repro.hlsl"
+          %4 = OpString "cbuffer scene : register(b1) {
+
+  const uint var;
+
+}
+
+
+
+void ps_main() {
+
+}
+
+"
+          %5 = OpString "ps_main"
+          %6 = OpString ""
+          %7 = OpString "__dxc_setup"
+          %8 = OpString "0d3ee6b5"
+          %9 = OpString " -E ps_main -T ps_6_2 -spirv -fspv-target-env=vulkan1.3 -fvk-use-dx-layout -fspv-debug=vulkan-with-source -Qembed_debug"
+         %10 = OpString "uint"
+         %11 = OpString "var"
+         %12 = OpString "type.scene"
+         %13 = OpString "scene"
+               OpName %ps_main "ps_main"
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+       %void = OpTypeVoid
+     %uint_3 = OpConstant %uint 3
+     %uint_1 = OpConstant %uint 1
+     %uint_4 = OpConstant %uint 4
+     %uint_5 = OpConstant %uint 5
+     %uint_6 = OpConstant %uint 6
+     %uint_0 = OpConstant %uint 0
+     %uint_2 = OpConstant %uint 2
+    %uint_14 = OpConstant %uint 14
+     %uint_9 = OpConstant %uint 9
+     %uint_8 = OpConstant %uint 8
+         %37 = OpTypeFunction %void
+         %15 = OpExtInst %void %1 DebugInfoNone
+         %16 = OpExtInst %void %1 DebugTypeFunction %uint_3 %void
+         %18 = OpExtInst %void %1 DebugSource %3 %4
+         %19 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %18 %uint_5
+         %23 = OpExtInst %void %1 DebugFunction %7 %16 %18 %uint_5 %uint_1 %19 %6 %uint_3 %uint_5
+         %24 = OpExtInst %void %1 DebugTypeBasic %10 %uint_32 %uint_6 %uint_0
+         %28 = OpExtInst %void %1 DebugTypeMember %11 %24 %18 %uint_2 %uint_14 %uint_0 %uint_32 %uint_3
+         %31 = OpExtInst %void %1 DebugTypeComposite %12 %uint_1 %18 %uint_1 %uint_9 %19 %12 %uint_32 %uint_3 %28
+         %33 = OpExtInst %void %1 DebugGlobalVariable %13 %31 %18 %uint_1 %uint_9 %19 %13 %15 %uint_8
+         %35 = OpExtInst %void %1 DebugEntryPoint %23 %19 %8 %9
+    %ps_main = OpFunction %void None %37
+         %38 = OpLabel
+         %41 = OpExtInst %void %1 DebugScope %23
+         %39 = OpExtInst %void %1 DebugFunctionDefinition %23 %ps_main
+         %40 = OpExtInst %void %1 DebugLine %18 %uint_6 %uint_6 %uint_1 %uint_1
+               OpReturn
+         %42 = OpExtInst %void %1 DebugNoScope
+               OpFunctionEnd
+
+
+--- stderr ---
+

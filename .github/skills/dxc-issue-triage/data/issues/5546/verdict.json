@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-08-15T03:12:24Z",
+  "godbolt_url": "https://godbolt.org/z/rnEKhGWcY",
+  "history": "n/a -- not a regression claim; discard's kill-without-branch codegen follows directly from stable semantics, no fix-boundary to locate",
+  "labels": "docs",
+  "labels_now": "docs",
+  "notes_path": "data\\issues\\5546\\notes.md",
+  "number": 5546,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Doc-clarity request about an external MS Learn page (owned by MicrosoftDocs/win32-pr, not this repo) still listing 'discard' among flow-control statements as of 2025-03-11 / today. The technical premise is confirmed by DXC's own DXIL: discard falls through to an unconditionally-reached block containing the subsequent buffer write and SV_Target export (both branch arms reach it), whereas an equivalent early return skips that same write on one arm. Compiler behavior confirms the claim; the requested doc edit is out of this repo's scope.",
+  "title": "[Doc Update Request] Clarify the `discard` statement as _not_ a control flow statement",
+  "triaged_at": "2026-08-20T05:15:24+00:00",
+  "triaged_by": "claude-sonnet-4.6",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5546"
+}

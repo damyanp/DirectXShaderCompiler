@@ -1,0 +1,78 @@
+# repo root: C:/prj/DirectXShaderCompiler
+# HEAD: ced72eee367189d37543579a6315b9a50f70af5d 2026-08-18 22:11:59 -0700 triage: batch 018 (7033, 7300)
+
+## 1. No lit-native hash-stability format/harness exists in the tree
+$ git grep -n -i -e DxcHashTest -e HashStability.py -e hash_stability -e %hash_stability -- :!.github/skills/dxc-issue-triage
+include/dxc/Test/DxcTestUtils.h:149:  FileRunCommandResult RunDxcHashTest(dxc::DllLoader &DllSupport);
+tools/clang/unittests/HLSLTestLib/FileCheckerTest.cpp:65:    return RunDxcHashTest(DllSupport);
+tools/clang/unittests/HLSLTestLib/FileCheckerTest.cpp:379:FileRunCommandPart::RunDxcHashTest(dxc::DllLoader &DllSupport) {
+(exit 0)
+
+## 2. lit's available test formats (no hash-related one)
+$ git ls-files utils/lit/lit/formats/
+utils/lit/lit/formats/__init__.py
+utils/lit/lit/formats/base.py
+utils/lit/lit/formats/googletest.py
+utils/lit/lit/formats/shtest.py
+utils/lit/lit/formats/taef.py
+(exit 0)
+
+## 3. HLSLFileCheckLit (lit) vs HLSLFileCheck (TAEF-only) file counts
+HLSLFileCheckLit tracked files: 29
+HLSLFileCheck tracked files:    2212
+
+## 4. No HLSLFileCheckLit test carries a hash-stability directive
+$ git grep -l -i -e hash -- tools/clang/test/HLSLFileCheckLit
+
+(exit 1)
+
+## 5. The existing TAEF hash-stability tests (CodeGenHashStability*)
+$ git grep -n CodeGenHashStability -- tools/clang/unittests/HLSL/CompilerTest.cpp
+tools/clang/unittests/HLSL/CompilerTest.cpp:279:  TEST_METHOD(CodeGenHashStabilityD3DReflect)
+tools/clang/unittests/HLSL/CompilerTest.cpp:280:  TEST_METHOD(CodeGenHashStabilityDisassembler)
+tools/clang/unittests/HLSL/CompilerTest.cpp:281:  TEST_METHOD(CodeGenHashStabilityDXIL)
+tools/clang/unittests/HLSL/CompilerTest.cpp:282:  TEST_METHOD(CodeGenHashStabilityHLSL)
+tools/clang/unittests/HLSL/CompilerTest.cpp:283:  TEST_METHOD(CodeGenHashStabilityInfra)
+tools/clang/unittests/HLSL/CompilerTest.cpp:284:  TEST_METHOD(CodeGenHashStabilityPIX)
+tools/clang/unittests/HLSL/CompilerTest.cpp:285:  TEST_METHOD(CodeGenHashStabilityRewriter)
+tools/clang/unittests/HLSL/CompilerTest.cpp:286:  TEST_METHOD(CodeGenHashStabilitySamples)
+tools/clang/unittests/HLSL/CompilerTest.cpp:287:  TEST_METHOD(CodeGenHashStabilityShaderTargets)
+tools/clang/unittests/HLSL/CompilerTest.cpp:288:  TEST_METHOD(CodeGenHashStabilityValidation)
+tools/clang/unittests/HLSL/CompilerTest.cpp:4862:TEST_F(CompilerTest, CodeGenHashStabilityD3DReflect) {
+tools/clang/unittests/HLSL/CompilerTest.cpp:4866:TEST_F(CompilerTest, CodeGenHashStabilityDisassembler) {
+tools/clang/unittests/HLSL/CompilerTest.cpp:4870:TEST_F(CompilerTest, CodeGenHashStabilityDXIL) {
+tools/clang/unittests/HLSL/CompilerTest.cpp:4874:TEST_F(CompilerTest, CodeGenHashStabilityHLSL) {
+tools/clang/unittests/HLSL/CompilerTest.cpp:4878:TEST_F(CompilerTest, CodeGenHashStabilityInfra) {
+tools/clang/unittests/HLSL/CompilerTest.cpp:4882:TEST_F(CompilerTest, CodeGenHashStabilityPIX) {
+tools/clang/unittests/HLSL/CompilerTest.cpp:4886:TEST_F(CompilerTest, CodeGenHashStabilityRewriter) {
+tools/clang/unittests/HLSL/CompilerTest.cpp:4890:TEST_F(CompilerTest, CodeGenHashStabilitySamples) {
+tools/clang/unittests/HLSL/CompilerTest.cpp:4894:TEST_F(CompilerTest, CodeGenHashStabilityShaderTargets) {
+tools/clang/unittests/HLSL/CompilerTest.cpp:4898:TEST_F(CompilerTest, CodeGenHashStabilityValidation) {
+(exit 0)
+
+## 6. PR #5600 ('[lit] Add hash stability test for lit.', 'Fixes #5595')
+    -- fetch its head directly from upstream and test ancestry
+$ git fetch upstream pull/5600/head
+From https://github.com/microsoft/DirectXShaderCompiler
+ * branch                refs/pull/5600/head -> FETCH_HEAD
+(exit 0)
+
+$ git rev-parse FETCH_HEAD
+cd69ffc8e37c673bc117c6248d56a44875f96e45
+(exit 0)
+
+$ git log -1 "--format=%H %ci %s" FETCH_HEAD
+cd69ffc8e37c673bc117c6248d56a44875f96e45 2023-09-22 15:15:27 -0400 Create tmp dir for original output like Fi/Fe
+(exit 0)
+
+$ git merge-base --is-ancestor FETCH_HEAD HEAD
+
+(exit 1)
+
+(exit 1 above means FETCH_HEAD -- the PR's own final commit,
+ cd69ffc8e37c673bc117c6248d56a44875f96e45 -- is NOT an ancestor of
+ this branch's HEAD: the PR was never merged. Corroborated by
+ `gh pr view 5600` reporting state=OPEN, mergedAt=null,
+ mergeCommit=null, and by section 1 above finding none of the PR's
+ identifiers (DxcHashTest, HashStability.py, hash_stability) in the
+ tree.)

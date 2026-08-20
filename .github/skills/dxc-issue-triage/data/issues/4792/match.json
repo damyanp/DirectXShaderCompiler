@@ -1,0 +1,5 @@
+{
+  "kind": "internal_failure",
+  "invert": true,
+  "note": "Sanity/positive control only: proves repro.hlsl is a valid shader that compiles cleanly on a single thread. The reported defect (a concurrency lockup when the SAME loaded dxcompiler library is invoked from many threads at once, first documented as a hang inside CALL_ONCE_INITIALIZATION / llvm::initializeLoopSimplifyPass in include/llvm/PassSupport.h) is not observable from a single sequential dxc invocation -- see manual-case-mt-harness.txt for the multithreaded probe, which is the actual instrument for this issue. This predicate exists only so 'triage.py run'/'audit' have a normal single-shader capture to check against, and its 'no-repro' verdict on a single thread is expected and uninformative about the concurrency defect."
+}

@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T21:41:17+00:00
+# cmd: -T ps_6_0 -E main -spirv control-existing-check-plain.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-existing-check.json
+# verdict: repro
+# variant: existing-check-plain (control-existing-check-plain.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E main -spirv control-existing-check-plain.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-existing-check-plain.hlsl:10:12: error: array index 2000 is out of bounds
+    return arr[2000];
+           ^
+control-existing-check-plain.hlsl:9:5: note: array 'arr' declared here
+    float arr[1];
+    ^
+
+

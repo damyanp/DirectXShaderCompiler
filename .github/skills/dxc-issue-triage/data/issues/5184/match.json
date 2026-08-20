@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "Instructions must be of an allowed type",
+  "note": "Diagnostic-quality issue: the reported symptom IS the DXIL validator diagnostic quoted in the issue body verbatim (\"Instructions must be of an allowed type\", at an `insertvalue ... %dx.types.fouri32` note). Anchored on the diagnostic text rather than on exit code alone: the process exit is ordinary E_FAIL (0x80004005), identical to any other diagnosed validation failure, so an exit-code-only predicate cannot discriminate this from an unrelated compile error. Because this predicate's own positive clause quotes the validator's message verbatim, `classify` does not treat a match here as an invalid-probe demotion (see SKILL.md 'markers break down on an issue whose reported symptom IS a diagnostic'). Confirmed via control-scalar.hlsl (a scalar, non-vector WaveMatch argument) that the predicate does not fire on an unrelated clean compile under the same -Od -Zi flags."
+}

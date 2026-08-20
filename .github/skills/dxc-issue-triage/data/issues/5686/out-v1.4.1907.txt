@@ -1,0 +1,33 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-19T22:11:10+00:00
+# cmd: -T lib_6_x -Fo as.lib repro.hlsl ; -T as_6_6 -link as.lib
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "use of undeclared identifier", so this build did not reach the code under test
+
+$ dxc -T lib_6_x -Fo as.lib repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:8:9: error: attribute 'shader' must have one of these values: compute,vertex,pixel,hull,domain,geometry,raygeneration,intersection,anyhit,closesthit,miss,callable
+[shader("amplification")]
+        ^
+repro.hlsl:14:5: error: use of undeclared identifier 'DispatchMesh'
+    DispatchMesh(1,1,1,p);
+    ^
+
+
+
+$ dxc -T as_6_6 -link as.lib
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-link'
+

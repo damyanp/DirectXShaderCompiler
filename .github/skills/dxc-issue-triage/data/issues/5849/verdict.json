@@ -1,0 +1,20 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-10-10T22:27:33Z",
+  "godbolt_skip": "Not reproducible on Compiler Explorer: the symptom lives in RDAT (RuntimeDataFunctionInfo::PayloadSizeInBytes), a binary container part assembled after DXIL/IR generation. CE's DXC panes show -Fc-style DXIL/LLVM-IR text only, which does not carry this field (confirmed locally: PAQ metadata IS visible in -Fc output, but the RDAT byte value is not observable there).",
+  "history": "Swept repro.hlsl across main-debug and every cached stable release v1.4.1907..v1.9.2607, PAQ-enabled and -disable-payload-qualifiers, both compiled and read via manual-case-rdat-payload.py (direct RDAT FunctionTable parse, no dxa.exe/no rebuild). v1.4.1907..v1.6.2112: invalid-probe (error: invalid profile lib_6_7 -- lib_6_7 did not exist yet). v1.7.2207 (2022-07-18) through v1.9.2607 and main-debug: 14 data points, all agreeing -- PayloadSizeInBytes=20 for MyClosestHit/MyMiss in BOTH PAQ-enabled and -disable-payload-qualifiers builds, byte-identical. Always-repro'd since lib_6_7 first shipped; not a bisectable regression. DxilFeatureInfo1/2 enums read in full: no PAQ-related feature bit exists either, so the gap is total.",
+  "labels": "validation",
+  "notes_path": "notes.md",
+  "number": 5849,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (1.9.0.5465, 89e2f98e2). RDAT gives the runtime no indication that Payload Access Qualifiers were used on a DXR entry point: RuntimeDataFunctionInfo::PayloadSizeInBytes for a PAQ-qualified closesthit/miss entry point is identical (20 bytes) whether or not PAQs engage (-disable-payload-qualifiers control), confirmed by dx.dxrPayloadAnnotations metadata presence/absence. No PAQ-related bit exists in DxilFeatureInfo1/2 either. Source: DxilContainerAssembler.cpp unconditionally copies the real payload size into RDAT with no PAQ-conditional branch; no commit on any branch implements the reporter's/amarpMSFT's agreed zeroing fix; disable_paq.hlsl has no RDAT assertion. Reproduces identically on every lib_6_7-capable release (v1.7.2207..v1.9.2607) plus main -- a still-open, maintainer-agreed, unimplemented gap, not a regression or stale duplicate. Issue was milestoned Dormant 2024-10-23 with no cross-references, consistent with the fix never landing.",
+  "title": "Missing DXR PAQ indication in RDAT to determine whether MaxPayloadSizeInBytes needs validation",
+  "triaged_at": "2026-08-20T05:15:31+00:00",
+  "triaged_by": "GitHub Copilot CLI (claude-sonnet-4.6)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5849"
+}

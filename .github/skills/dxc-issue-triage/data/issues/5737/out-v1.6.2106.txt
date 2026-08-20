@@ -1,0 +1,26 @@
+# compiler: v1.6.2106
+# exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+# ran: 2026-08-19T22:45:21+00:00
+# cmd: -T lib_6_3 -Zi -Qstrip_reflect -Qembed_debug -Fd testc.pdb -Fo test.lib repro.hlsl ; -link -T lib_6_3 -Zi -Qstrip_reflect -Qstrip_debug -Fd test.pdb -Fo test.bin test.lib
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T lib_6_3 -Zi -Qstrip_reflect -Qembed_debug -Fd testc.pdb -Fo test.lib repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -link -T lib_6_3 -Zi -Qstrip_reflect -Qstrip_debug -Fd test.pdb -Fo test.bin test.lib
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 1
+--- stdout ---
+
+
+--- stderr ---
+dxc failed : DXIL container does not contain the given part.
+

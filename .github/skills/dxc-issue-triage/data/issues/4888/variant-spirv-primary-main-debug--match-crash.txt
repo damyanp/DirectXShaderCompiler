@@ -1,0 +1,24 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T18:39:45+00:00
+# cmd: -T ps_6_6 -E PSMain -spirv repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-crash.json
+# verdict: no-repro
+# variant: spirv-primary (repro.hlsl)
+# expect: match
+# expectation-kind: hypothesis
+# outcome: refuted
+
+$ dxc -T ps_6_6 -E PSMain -spirv repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:12:46: error: Cannot cast initializer type 'Texture2D<vector<float, 4> >' into variable type 'const Texture2D<vector<float, 4> >'
+static const Texture2D<float4> textures[2] = {
+                                             ^
+
+

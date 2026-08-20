@@ -1,0 +1,7 @@
+What to look for: both dxc panes fail to produce any SPIR-V output. The exit status is
+non-zero and stderr prints a fatal internal-validation error/rejection instead of a
+disassembly listing -- compare with a DXIL compile of the same source (cmd.txt's sibling,
+`-T ps_6_7 -E PS`, no `-spirv`), which succeeds. The failure is triggered by the
+RWTexture2DMS<uint4,2> declaration and its `.sample[]` subscript access; DXC's SPIR-V
+backend produces an invalid multisample-resource variable type and its own embedded
+validator refuses to emit it.

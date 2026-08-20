@@ -1,0 +1,8 @@
+What to look for: in each DXC pane's disassembly, the RWStructuredBuffer write and every
+SV_Target component store sit in the merge block reached from *both* arms of the branch that
+tests `pos.x < 0` -- they execute unconditionally, whether or not the discard fires. There is
+no further conditional branch guarding them after the discard call. That is the structural
+evidence that `discard` does not skip/branch past subsequent statements the way an early
+`return` does (compare locally against control-return.hlsl in this issue's directory, where
+the equivalent write sits in a block reached from only one branch arm and is skipped on the
+early-return path).

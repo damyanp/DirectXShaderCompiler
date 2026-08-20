@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-07-06T20:00:05Z",
+  "godbolt_url": "https://godbolt.org/z/KzYb6cKTE",
+  "history": "always-repro'd across v1.6.2112 (2021-12-08, the release that added -HV 2021 support) .. v1.9.2607 and main-debug; not a regression -- -HV2021 gives the for-loop induction variable a real nested scope, so the legacy same-scope redefinition-merge path that emits -Wfor-redefinition is never entered, and DXC has no general shadow warning in any HV mode",
+  "labels": "bug,hlsl2021",
+  "labels_add": "diagnostic",
+  "labels_now": "bug,hlsl2021",
+  "notes_path": "issues/5395/notes.md",
+  "number": 5395,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "HV2021 for-loops give the induction variable real block scope, so the legacy -Wfor-redefinition merge path (gated on Scope::ForDeclScope, HV<2021 only) never fires; DXC has no general shadow warning in any mode (confirmed with a non-loop block-shadow control), so this is a request for new diagnostic coverage rather than a broken existing check. Reproduces on every release that has ever shipped -HV 2021 (v1.6.2112..v1.9.2607) and on main-debug.",
+  "title": "Report warning when loop variable shadows one from outer scope in HLSL 2021",
+  "triaged_at": "2026-08-20T05:15:22+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5395"
+}

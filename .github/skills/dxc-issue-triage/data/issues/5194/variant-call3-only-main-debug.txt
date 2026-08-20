@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T19:45:36+00:00
+# cmd: -spirv -HV 2021 -T cs_6_2 -E main variant-clang-call3.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: call3-only (variant-clang-call3.hlsl)
+# expect: match
+
+$ dxc -spirv -HV 2021 -T cs_6_2 -E main variant-clang-call3.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-clang-call3.hlsl:11:7: error: no matching member function for call to 'operator()'
+    t.operator()<uint>(5);
+    ~~^~~~~~~~~~~~~~~~
+
+

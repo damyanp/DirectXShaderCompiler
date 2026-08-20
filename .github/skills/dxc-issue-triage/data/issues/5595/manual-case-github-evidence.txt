@@ -1,0 +1,93 @@
+## Cross-reference timeline on #5595 (read-only; predates this triage)
+$ gh api repos/microsoft/DirectXShaderCompiler/issues/5595/timeline --paginate --jq ".[] | select(.event==\"cross-referenced\") | \"\(.created_at)  \(.source.issue.repository.full_name)#\(.source.issue.number)  \(.source.issue.title)\""
+2023-08-24T15:46:07Z  microsoft/DirectXShaderCompiler#5600  [lit] Add hash stability test for lit.
+2023-08-30T15:27:50Z  microsoft/DirectXShaderCompiler#5552  Support hash stability testing through LIT
+(exit 0)
+
+## Duplicate issue #5552 (closed 2023-08-30 as 'Duplicated by #5595')
+$ gh issue view 5552 --repo microsoft/DirectXShaderCompiler --json number,title,state,createdAt,closedAt,body
+{"body":"<!--- If this is a language feature request please file the issue against the\r\nhlsl-specs repository: https://github.com/microsoft/hlsl-specs/issues/new --->\r\n\r\n**Is your feature request related to a problem? Please describe.**\r\nThe TAEF-based test infrastructure has a \"hash stability\" test, which provides important test coverage. We do not have a way to get this coverage today through LIT.\r\n\r\n**Describe the solution you'd like**\r\nWe need to test hash stability through the LIT test infrastructure.\r\n\r\n**Describe alternatives you've considered**\r\nNot testing hash stability seems bad.\r\n\r\n**Additional context**\r\nIssue #5530 was identified by hash stability testing, proving the value of the testing.","closedAt":"2023-08-30T15:27:49Z","createdAt":"2023-08-15T20:53:22Z","number":5552,"state":"CLOSED","title":"Support hash stability testing through LIT"}
+(exit 0)
+
+$ gh issue view 5552 --repo microsoft/DirectXShaderCompiler --json comments -q ".comments[] | \"\(.author.login) \(.createdAt)\n\(.body)\""
+pow2clk 2023-08-30T15:27:49Z
+Duplicated by #5595
+(exit 0)
+
+## PR #5600 top-level state (never merged)
+$ gh pr view 5600 --repo microsoft/DirectXShaderCompiler --json number,title,state,createdAt,updatedAt,closedAt,mergedAt,mergeCommit,isDraft,headRefName,baseRefName,changedFiles,additions,deletions
+{"additions":552,"baseRefName":"main","changedFiles":20,"closedAt":null,"createdAt":"2023-08-24T15:45:07Z","deletions":2,"headRefName":"lit_hash","isDraft":false,"mergeCommit":null,"mergedAt":null,"number":5600,"state":"OPEN","title":"[lit] Add hash stability test for lit.","updatedAt":"2025-04-01T13:51:54Z"}
+(exit 0)
+
+## PR #5600 review states (extensive review, then no further activity)
+$ gh pr view 5600 --repo microsoft/DirectXShaderCompiler --json reviews -q ".reviews[] | \"\(.author.login) \(.state) \(.submittedAt)\""
+llvm-beanz COMMENTED 2023-08-24T15:55:04Z
+llvm-beanz COMMENTED 2023-08-24T15:58:56Z
+python3kgae COMMENTED 2023-08-24T16:03:38Z
+llvm-beanz COMMENTED 2023-08-24T16:05:57Z
+llvm-beanz COMMENTED 2023-08-24T16:08:09Z
+llvm-beanz COMMENTED 2023-08-24T17:50:07Z
+python3kgae COMMENTED 2023-08-24T17:53:28Z
+python3kgae COMMENTED 2023-08-24T17:55:11Z
+python3kgae COMMENTED 2023-08-24T18:00:29Z
+python3kgae COMMENTED 2023-08-24T18:00:35Z
+python3kgae COMMENTED 2023-08-24T18:00:51Z
+python3kgae COMMENTED 2023-08-24T18:01:00Z
+python3kgae COMMENTED 2023-08-24T18:01:10Z
+pow2clk COMMENTED 2023-08-29T21:15:16Z
+python3kgae COMMENTED 2023-08-29T23:03:48Z
+python3kgae COMMENTED 2023-08-29T23:04:05Z
+python3kgae COMMENTED 2023-08-29T23:08:23Z
+python3kgae COMMENTED 2023-08-29T23:08:43Z
+python3kgae COMMENTED 2023-08-29T23:10:38Z
+python3kgae COMMENTED 2023-08-29T23:11:26Z
+python3kgae COMMENTED 2023-08-29T23:11:35Z
+python3kgae COMMENTED 2023-08-29T23:11:44Z
+python3kgae COMMENTED 2023-08-29T23:12:19Z
+python3kgae COMMENTED 2023-08-29T23:13:14Z
+python3kgae COMMENTED 2023-08-29T23:13:30Z
+python3kgae COMMENTED 2023-08-29T23:13:37Z
+python3kgae COMMENTED 2023-08-29T23:13:49Z
+python3kgae COMMENTED 2023-08-29T23:15:37Z
+python3kgae COMMENTED 2023-08-29T23:16:01Z
+pow2clk DISMISSED 2023-08-31T16:46:04Z
+llvm-beanz COMMENTED 2023-09-01T15:26:27Z
+llvm-beanz COMMENTED 2023-09-01T15:36:10Z
+python3kgae COMMENTED 2023-09-01T18:48:06Z
+python3kgae COMMENTED 2023-09-01T18:55:08Z
+python3kgae COMMENTED 2023-09-01T18:55:24Z
+python3kgae COMMENTED 2023-09-01T18:56:21Z
+llvm-beanz COMMENTED 2023-09-01T19:48:16Z
+llvm-beanz COMMENTED 2023-09-01T20:42:21Z
+llvm-beanz COMMENTED 2023-09-05T16:17:31Z
+llvm-beanz APPROVED 2023-09-05T16:54:17Z
+llvm-beanz CHANGES_REQUESTED 2023-09-05T17:49:00Z
+llvm-beanz COMMENTED 2023-09-05T17:50:21Z
+python3kgae COMMENTED 2023-09-06T02:12:59Z
+llvm-beanz COMMENTED 2023-09-06T02:33:33Z
+python3kgae COMMENTED 2023-09-06T12:56:52Z
+python3kgae COMMENTED 2023-09-06T16:17:14Z
+(exit 0)
+
+## PR #5600 commit list (last commit 2023-09-22; no activity since)
+$ gh pr view 5600 --repo microsoft/DirectXShaderCompiler --json commits -q ".commits[] | \"\(.committedDate)  \(.messageHeadline)\""
+2023-08-24T15:44:20Z  [lit] Add hash stability test for lit.
+2023-08-24T17:43:27Z  remove skip_hash_stability
+2023-08-24T17:53:06Z  naming style.
+2023-08-24T18:00:17Z  Remove check-clang-hash-stability target.
+2023-08-24T19:20:38Z  Fix utf-8 codec error on linux.
+2023-08-28T14:18:13Z  Set %PATH% to empty to avoid ues dxil.dll.
+2023-08-29T23:01:13Z  Update per comment.
+2023-09-01T18:45:45Z  Add test for HashStability.py.
+2023-09-01T18:53:43Z  Make test of HashStability.py a FileCheck test.
+2023-09-01T20:29:40Z  Rename folder.
+2023-09-01T23:13:58Z  Use positional arguments for arguments of HashStability.py.
+2023-09-05T16:21:20Z  Remove extra space.
+2023-09-06T02:10:26Z  Load local config for each folder and run all %dxc RUN lines.
+2023-09-11T16:17:45Z  use local suffix to skip test.
+2023-09-20T03:11:06Z  Error when normal compile fail.
+2023-09-22T16:06:04Z  Report error if no RUN line found.
+2023-09-22T17:17:08Z  Add xfail test.
+2023-09-22T19:15:27Z  Create tmp dir for original output like Fi/Fe
+(exit 0)
+

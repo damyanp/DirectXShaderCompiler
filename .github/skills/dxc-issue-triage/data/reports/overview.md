@@ -4,9 +4,9 @@
 
 # DXC issue triage — overview
 
-**107 issues triaged** across 18 batches (001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 012, 013, 014, 015, 016, 017, 018). Ordered by what a maintainer can act on, most actionable first.
+**207 issues triaged** across 19 batches (001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 012, 013, 014, 015, 016, 017, 018, 019). Ordered by what a maintainer can act on, most actionable first.
 
-**Oldest-100 progress: 102/100.** 5 deliberately selected issues are counted separately: [#5293](https://github.com/microsoft/DirectXShaderCompiler/issues/5293), [#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527), [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725), [#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732), [#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737).
+**Oldest-100 progress: 202/100.** 5 deliberately selected issues are counted separately: [#5293](https://github.com/microsoft/DirectXShaderCompiler/issues/5293), [#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527), [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725), [#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732), [#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737).
 
 > 🔔 **Recent activity — [#5293](https://github.com/microsoft/DirectXShaderCompiler/issues/5293):** New external report on 2026-08-10: Release crash and Debug assert; the thread is actively watched.
 
@@ -16,13 +16,15 @@ Nothing here has been applied. No issue has been edited, commented on, closed or
 
 | Action | Issues |
 | --- | ---: |
-| [Ready to close](#ready-to-close) | 9 |
-| [Needs a maintainer decision](#needs-a-maintainer-decision) | 10 |
-| [Reclassify](#reclassify) | 24 |
-| [Confirmed still broken (keep open)](#confirmed-still-broken-keep-open) | 64 |
-| **Total** | **107** |
+| [Ready to close](#ready-to-close) | 16 |
+| [Needs a maintainer decision](#needs-a-maintainer-decision) | 23 |
+| [Duplicate or subsumed](#duplicate-or-subsumed) | 1 |
+| [Reclassify](#reclassify) | 30 |
+| [Needs the reporter](#needs-the-reporter) | 2 |
+| [Confirmed still broken (keep open)](#confirmed-still-broken-keep-open) | 135 |
+| **Total** | **207** |
 
-**24 issues whose text no longer matches their measured behaviour or artifacts.** `text_stale` is not itself a reproduction verdict: some issues below still reproduce and some do not. It means a reader following the current title, body, or thread would be led away from the measured result. Correcting that text is a cheap, immediate action.
+**33 issues whose text no longer matches their measured behaviour or artifacts.** `text_stale` is not itself a reproduction verdict: some issues below still reproduce and some do not. It means a reader following the current title, body, or thread would be led away from the measured result. Correcting that text is a cheap, immediate action.
 
 | # | What is stale |
 | --- | --- |
@@ -45,7 +47,16 @@ Nothing here has been applied. No issue has been edited, commented on, closed or
 | [#4614](https://github.com/microsoft/DirectXShaderCompiler/issues/4614) | Title says 'regression'; for the attached repro no release regressed -- all 20 stable releases v1.4.1907..v1.9.2607 fail, including v1.6.2106, the first containing 527d58e5a ('Fixes #3016'). The body itself hedges this ('Unknown if it is exact same issue or just similar'), and the reporter's own production shader, which he says he worked around locally and then met again elsewhere, is not what was measured. |
 | [#4619](https://github.com/microsoft/DirectXShaderCompiler/issues/4619) | The body's first sentence -- 'I tried ID3D12ShaderReflection::GetThreadGroupSize, but got 0, 0, 0 all the time' -- has been false of every DXC since v1.7.2212 (2022-12-16). It was true when filed (v1.7.2207 reproduces), so this is staleness by the compiler moving, not by bad reporting. The harm is the usual one inverted: a reader spot-checking the issue finds GetThreadGroupSize works and may close the whole thing, dropping the still-open topology half; a reader who trusts the text instead goes looking for a bug fixed four years ago. The title names both asks and so overstates the remaining work. Nothing in the thread records the fix. |
 | [#4708](https://github.com/microsoft/DirectXShaderCompiler/issues/4708) | Standing maintainer comment (2023-06-30) names HLSL 202x; hlsl-specs proposal 0008 was retargeted to 202y (2025-04-01) and marked Accepted (2025-07-22). Version number only; the comment's substance was correct. |
+| [#4805](https://github.com/microsoft/DirectXShaderCompiler/issues/4805) | The body describes a crash under -Zi/-fspv-debug=source with CWD=parent-dir; this no longer reproduces as a crash on any build tested (the disk-read failure has been wrapped in a non-crashing catch since 2020, predating the report). The underlying 'handler ignored' defect the title names is still fully real and unfixed -- only the reported symptom's shape (crash vs silent content loss) is stale. leozzyzheng's 2025-11-19 comment already reflects the current, non-crashing shape. |
+| [#4871](https://github.com/microsoft/DirectXShaderCompiler/issues/4871) | 2023-07-08 maintainer comment says the fix is verified against a development branch and will land via #5377; that tracking issue was closed not_planned on 2024-09-16 and the linked draft PR #5249 is still open/unmerged, so the branch never reached main and the comment now reads as resolved when it is not. |
+| [#4888](https://github.com/microsoft/DirectXShaderCompiler/issues/4888) | Comment by @Keenuts (2023-01-03) reports an isa<> assertion crash when '-spirv' is added; this no longer reproduces on any stable release from v1.8.2405 (2024-05-24) onward or on main -- the -spirv path now fails with an ordinary diagnosed error instead of crashing. |
+| [#5059](https://github.com/microsoft/DirectXShaderCompiler/issues/5059) | The title and body describe the compile succeeding with an illegal i33 type silently visible in the disassembly. That silent shape stopped occurring at v1.9.2607: on current main-debug the exact same input now hard-fails to compile with error: Int type 'i33' has an invalid width. (exit 0x80004005), so a naive spot-check of the literal reported wording now reads as cannot-reproduce for a defect that is, in fact, still fully present (confirmed internally via -Vd). A reader should not close this as fixed. |
 | [#5293](https://github.com/microsoft/DirectXShaderCompiler/issues/5293) | The 2023-06-23 maintainer comment states the assert has no impact on AST formation or code generation and that the code behaves correctly with the assert removed. Measured evidence contradicts this: with NDEBUG the code reads a valueless Optional and performs an out-of-bounds SmallBitVector access, which crashes 12 consecutive shipping releases once the function has 29 or more tracked locals. simontaylor81 raised exactly this in 2024 and it was never resolved on the thread. |
+| [#5563](https://github.com/microsoft/DirectXShaderCompiler/issues/5563) | issue is open and its title reads as a present-tense description of current behavior ('when compiling ... for SPIR-V'); the compiler has not behaved this way since v1.9.2602 |
+| [#5704](https://github.com/microsoft/DirectXShaderCompiler/issues/5704) | Title's claim no longer reproduces via the literal repro, which now fails to link for an unrelated reason from v1.8.2403 onward; the underlying stripping defect is independently confirmed fixed from v1.8.2403 via an equivalent repro using the currently-required [shader(compute)] entry attribute. |
+| [#5790](https://github.com/microsoft/DirectXShaderCompiler/issues/5790) | pow2clk's 2023-10-25 comment ('This has been done for all branches') no longer matches main's live configuration; both the classic branch-protection toggle and the org ruleset's equivalent rule are off as of this triage |
+| [#5823](https://github.com/microsoft/DirectXShaderCompiler/issues/5823) | Body: the reported symptom (SIGSEGV) has not reproduced since v1.7.2308 (2023-08-14); the exact same input now fails to compile with a diagnosed E_FAIL error instead of crashing. The underlying 'this input never compiles' defect is still live, just not as a crash. |
+| [#5985](https://github.com/microsoft/DirectXShaderCompiler/issues/5985) | Title/body describe dxcompiler.dll's DllMain loading dxil.dll via LoadLibrary; that call was removed from dxcompiler.dll by commit 77b2ff676 (PR #7451, 2025-06-05), well before ground truth. The description still accurately matches the separate dxrfallbackcompiler.dll's DllMain, which the issue never names. |
 | [#7033](https://github.com/microsoft/DirectXShaderCompiler/issues/7033) | The title says ray queries do not work with rich SPIR-V debug information, but the crash is fixed in v1.9.2602 and current main. |
 | [#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527) | Title says 'case sensitive'. Case is not the mechanism: #pragma once keys on the path as spelled, so './x' vs '././x' fails with case held constant. The real scope is wider than the title. |
 | [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725) | Title scopes this to 'passing a payload by value to HitObject::Invoke'. Measured: dx::HitObject::TraceRay fails identically, and a mutable static payload passed straight to Invoke fails with no by-value parameter and no user function at all. So the title's 'by value' is one instance of a wider trigger -- an object-method intrinsic with an inout record parameter called with an argument whose address is not provably non-aliasing -- stated as a lead; only Invoke and TraceRay were measured. |
@@ -59,13 +70,20 @@ Nothing here has been applied. No issue has been edited, commented on, closed or
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | [#2922](https://github.com/microsoft/DirectXShaderCompiler/issues/2922) | value-to-declare pass not handling pointer case under -O1 ⚠️ | does-not-repro | Fixed between v1.6.2112 (2021-12-08) and v1.7.2207 (2022-07… | high | prose-only | [End684Ycq](https://godbolt.org/z/End684Ycq) | [draft](../issues/2922/comment.md) · [notes](../issues/2922/notes.md) · [expected](../issues/2922/expected.md) · [method](../issues/2922/method-notes.md) |
 | [#3414](https://github.com/microsoft/DirectXShaderCompiler/issues/3414) | DXIL Modifying recursive payload does not work ⚠️ | does-not-repro | fixed | high | complete | [9vKr9a34K](https://godbolt.org/z/9vKr9a34K) | [draft](../issues/3414/comment.md) · [notes](../issues/3414/notes.md) · [expected](../issues/3414/expected.md) · [method](../issues/3414/method-notes.md) |
+| [#5563](https://github.com/microsoft/DirectXShaderCompiler/issues/5563) | "found unregistered decl" when compiling partial template specialization for SPIR-V ⚠️ | does-not-repro | fixed | high | complete | [Y1W7q714v](https://godbolt.org/z/Y1W7q714v) | [draft](../issues/5563/comment.md) · [notes](../issues/5563/notes.md) · [expected](../issues/5563/expected.md) |
 | [#7033](https://github.com/microsoft/DirectXShaderCompiler/issues/7033) | [SPIR-V] Ray queries do not work with -fspv-debug=vulkan-with-source ⚠️ | does-not-repro | fixed | high | complete | [EbMbKx9d9](https://godbolt.org/z/EbMbKx9d9) | [draft](../issues/7033/comment.md) · [notes](../issues/7033/notes.md) · [expected](../issues/7033/expected.md) |
 | [#2918](https://github.com/microsoft/DirectXShaderCompiler/issues/2918) | PIX: Numbering pass fails with /Od when subroutines are used | does-not-repro | fixed-in: v1.6.2104 | high | agent-constructed | [a4qPPYzvK](https://godbolt.org/z/a4qPPYzvK) | [draft](../issues/2918/comment.md) · [notes](../issues/2918/notes.md) · [expected](../issues/2918/expected.md) · [method](../issues/2918/method-notes.md) |
 | [#3038](https://github.com/microsoft/DirectXShaderCompiler/issues/3038) | DXR 1.1: Using TraceRayInline(...) right after TraceRay(...) crashes shader compilation | does-not-repro | fixed-in: v1.8.2505 | high | agent-constructed | [6s1W5rfKx](https://godbolt.org/z/6s1W5rfKx) | [draft](../issues/3038/comment.md) · [notes](../issues/3038/notes.md) · [expected](../issues/3038/expected.md) |
 | [#3954](https://github.com/microsoft/DirectXShaderCompiler/issues/3954) | AnyHit Shader hits `llvm_unreachable("Unexpected matrix subscript use.")` | does-not-repro | fixed in v1.8.2502 (repro'd v1.4.1907..v1.8.2407, 14 releas… | high | complete | [PT7Yqj1r6](https://godbolt.org/z/PT7Yqj1r6) | [draft](../issues/3954/comment.md) · [notes](../issues/3954/notes.md) · [expected](../issues/3954/expected.md) · [method](../issues/3954/method-notes.md) |
+| [#4965](https://github.com/microsoft/DirectXShaderCompiler/issues/4965) | int f(int) as /E results in "Internal compiler error: access violation. Attempted to read from address 0x0000000000000018" | does-not-repro | fixed | high | complete | [ee6xoP8jz](https://godbolt.org/z/ee6xoP8jz) | [draft](../issues/4965/comment.md) · [notes](../issues/4965/notes.md) · [expected](../issues/4965/expected.md) · [method](../issues/4965/method-notes.md) |
+| [#5080](https://github.com/microsoft/DirectXShaderCompiler/issues/5080) | cbuffer assert when using -fspv-debug=vulkan-with-source | does-not-repro | fixed | high | complete | [9rshx68rz](https://godbolt.org/z/9rshx68rz) | [draft](../issues/5080/comment.md) · [notes](../issues/5080/notes.md) · [expected](../issues/5080/expected.md) · [method](../issues/5080/method-notes.md) |
 | [#7300](https://github.com/microsoft/DirectXShaderCompiler/issues/7300) | [SPIR-V] Failed to compile ray query shader with -fspv-debug=vulkan-with-source | does-not-repro | fixed | high | complete | [zbP5qasd3](https://godbolt.org/z/zbP5qasd3) | [draft](../issues/7300/comment.md) · [notes](../issues/7300/notes.md) · [expected](../issues/7300/expected.md) · [method](../issues/7300/method-notes.md) |
 | [#3768](https://github.com/microsoft/DirectXShaderCompiler/issues/3768) | [SPIR-V] crash compiling shader using printf | does-not-repro | regressed-in v1.6.2104; fixed-in v1.6.2112 | high | complete | [e5KT1E6W9](https://godbolt.org/z/e5KT1E6W9) | [draft](../issues/3768/comment.md) · [notes](../issues/3768/notes.md) · [expected](../issues/3768/expected.md) · [method](../issues/3768/method-notes.md) |
 | [#4168](https://github.com/microsoft/DirectXShaderCompiler/issues/4168) | Can't get cbuffer's variables from a linked shader | does-not-repro | fixed | high | prose-only | n/a | [draft](../issues/4168/comment.md) · [notes](../issues/4168/notes.md) · [expected](../issues/4168/expected.md) · [method](../issues/4168/method-notes.md) |
+| [#5261](https://github.com/microsoft/DirectXShaderCompiler/issues/5261) | DXIL: Deadlock when loading `RayDesc` from `ByteAddressBuffer` | does-not-repro | regressed-then-fixed: clean v1.6.2104..v1.7.2207, regressed… | high | complete | [1K9zo9Mnc](https://godbolt.org/z/1K9zo9Mnc) | [draft](../issues/5261/comment.md) · [notes](../issues/5261/notes.md) · [expected](../issues/5261/expected.md) · [method](../issues/5261/method-notes.md) |
+| [#5587](https://github.com/microsoft/DirectXShaderCompiler/issues/5587) | Bitfield initialization unclear | does-not-repro | fixed-in v1.8.2505 | high | complete | [xG8Kj4v58](https://godbolt.org/z/xG8Kj4v58) | [draft](../issues/5587/comment.md) · [notes](../issues/5587/notes.md) · [expected](../issues/5587/expected.md) |
+| [#5681](https://github.com/microsoft/DirectXShaderCompiler/issues/5681) | Segmentation fault/ICE when attempting a particular (invalid) code pattern | does-not-repro | fixed | high | complete | [vfcsj3ThG](https://godbolt.org/z/vfcsj3ThG) | [draft](../issues/5681/comment.md) · [notes](../issues/5681/notes.md) · [expected](../issues/5681/expected.md) |
+| [#5748](https://github.com/microsoft/DirectXShaderCompiler/issues/5748) | Groupshared memory used through patch constant function allowed in hull shaders | does-not-repro | fixed-in v1.9.2607 | high | complete | [daqY8a3x8](https://godbolt.org/z/daqY8a3x8) | [draft](../issues/5748/comment.md) · [notes](../issues/5748/notes.md) · [expected](../issues/5748/expected.md) |
 
 **[#2922](https://github.com/microsoft/DirectXShaderCompiler/issues/2922) — value-to-declare pass not handling pointer case under -O1**  
 <sub>batch 008 · triaged against `13730886e` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.6-sol (blind reproducibility check, SKILL.md step "Test reproducibility"; and independent draft review, SKILL.md step 10, applied selectively at collation)`</sub>
@@ -86,6 +104,13 @@ Fixed. From v1.6.2104 to v1.8.2502 (13 consecutive stable releases) DXC passed a
 > ⚠️ **Issue text is stale.** A maintainer comment, not the body. The body was accurate when filed (2021-02) and the defect is now fixed. The standing 2023-07-14 comment "The DXIL generation looks correct to me. We are generating a store to the payload" predates the v1.8.2505 fix: trunk of that date emitted both a store to the payload and a dx.op.traceRay taking that same payload object.
 
 *Labels:* add `correctness`, `dxil`.
+
+**[#5563](https://github.com/microsoft/DirectXShaderCompiler/issues/5563) — "found unregistered decl" when compiling partial template specialization for SPIR-V**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude Sonnet 4.5 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Partial template specialization referencing a static const bool member (TEST_STRUCT<PARAM1, true>::FIELD) no longer trips DeclResultIdMapper's 'found unregistered decl' fatal error under -spirv -HV 2021. Fixed between v1.8.2505.1 (last repro) and v1.9.2602 (first clean); strong source-level candidate is 1e3da156b (#7673, fixes near-duplicate #7007), possibly together with b9af1ec44 (#7786). Confirmed on main-debug@89e2f98e2.
+
+> ⚠️ **Issue text is stale.** issue is open and its title reads as a present-tense description of current behavior ('when compiling ... for SPIR-V'); the compiler has not behaved this way since v1.9.2602
 
 **[#7033](https://github.com/microsoft/DirectXShaderCompiler/issues/7033) — [SPIR-V] Ray queries do not work with -fspv-debug=vulkan-with-source**  
 <sub>batch 018 · triaged against `89e2f98e2` · drafted by `GPT-5.4` · reviewed by `GPT-5.6 Sol`</sub>
@@ -117,6 +142,20 @@ Does not reproduce on main (1.9.0.5433, 13730886e): the AnyHit repro compiles cl
 
 *Labels:* add `matrix-bug`.
 
+**[#4965](https://github.com/microsoft/DirectXShaderCompiler/issues/4965) — int f(int) as /E results in "Internal compiler error: access violation. Attempted to read from address 0x0000000000000018"**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude Sonnet 4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Fixed at v1.8.2505 (last repro v1.8.2502, 162-commit window, no single commit identified): using -E f on a function f that is also called at global scope to initialize a static creates a self-recursive entry-point wrapper, which every stable release v1.4.1907-v1.8.2502 crashes on (access violation / bad-cast text / Debug SROA assert per build) and which v1.8.2505 onward and main-debug (89e2f98e29c289ae8ad9e00dd310104fea9fd7df) instead reject with a clean 'recursive functions are not allowed' diagnostic; corroborated on Compiler Explorer (dxc_1_6_2112 SIGSEGV, dxc_trunk same diagnostic).
+
+*Labels:* add `crash`.
+
+**[#5080](https://github.com/microsoft/DirectXShaderCompiler/issues/5080) — cbuffer assert when using -fspv-debug=vulkan-with-source**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude Sonnet 4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+The complete cbuffer + -fvk-use-dx-layout + -fspv-debug=vulkan-with-source repro no longer crashes main-debug. Stable-release history is non-monotonic: v1.6.2112 (once probed with a target-env value it accepts, correcting a masked invalid-probe) through v1.8.2403.2 crash with an access violation; v1.8.2405 onward is clean. Likely fixed by commit 1e59ce9185... (#6531), which removes the exact assert this issue quotes, at strong-not-certain confidence (source-diff match plus a two-release window, not a built-binary before/after test).
+
+*Labels:* add `crash`.
+
 **[#7300](https://github.com/microsoft/DirectXShaderCompiler/issues/7300) — [SPIR-V] Failed to compile ray query shader with -fspv-debug=vulkan-with-source**  
 <sub>batch 018 · triaged against `89e2f98e2` · drafted by `GPT-5.4` · reviewed by `GPT-5.6 Sol`</sub>
 
@@ -136,6 +175,28 @@ Reflection of a lib_6_x library linked to ps_6_0 reported Num Variables: 0 for i
 
 *No Compiler Explorer link:* Compiler Explorer compiles a single source file with one dxc invocation and shows generated code; it cannot run the second (dxl/-link) step, cannot run dxa -dumpreflection, and exposes no reflection data at all. The symptom is a field of D3D12_SHADER_BUFFER_DESC in the linked container, so no CE link can show it.
 
+**[#5261](https://github.com/microsoft/DirectXShaderCompiler/issues/5261) — DXIL: Deadlock when loading `RayDesc` from `ByteAddressBuffer`**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Two-signature crash (deadlock on Release, assert 'cannot flatten hlsl intrinsic' on Debug) in ByteAddressBuffer.Load<RayDesc>; regressed between v1.7.2207 and v1.7.2212 (2022), fixed between v1.8.2502 and v1.8.2505 (2025), most likely by 053e7ac65 (PR #7440, filed against a different issue #7434); clean on main-debug (89e2f98e2) and on CE dxc_trunk.
+
+*History:* regressed-then-fixed: clean v1.6.2104..v1.7.2207, regressed v1.7.2212..v1.8.2502 (hangs, Release builds), fixed v1.8.2505 onward through main-debug; v1.4.1907/v1.5.2010 invalid-probe (cs_6_6 unsupported)
+
+**[#5587](https://github.com/microsoft/DirectXShaderCompiler/issues/5587) — Bitfield initialization unclear**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+SomeBitfield val = (SomeBitfield)0 now compiles cleanly with -T cs_6_6 -HV 2021, in both the reported field order and the reordered form; DXIL stores a concrete 0, not undef. Bisect: repros through v1.8.2502 (2025-02-20), fixed by v1.8.2505 (2025-05-24), 162-commit window, exact commit not identified. v1.4.1907-v1.6.2106 are invalid-probe (predate -HV 2021 support).
+
+**[#5681](https://github.com/microsoft/DirectXShaderCompiler/issues/5681) — Segmentation fault/ICE when attempting a particular (invalid) code pattern**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Copilot CLI (triage session)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Access violation on every release v1.6.2104..v1.8.2502 when InterlockedMax targets a field of a templated RWByteAddressBuffer::Load<T>() result; fixed in v1.8.2505, which now cleanly diagnoses 'Atomic operation targets must be groupshared, Node Record or UAV.' instead of crashing.
+
+**[#5748](https://github.com/microsoft/DirectXShaderCompiler/issues/5748) — Groupshared memory used through patch constant function allowed in hull shaders**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Fixed on main-debug (89e2f98e2): compiling a lib-target hull shader whose groupshared use is only in the patch-constant function now correctly fails validation, naming the patch-constant function (HSPatch). Release-binary bisection: reproduces on every stable release v1.4.1907-v1.9.2602.24, fixed starting v1.9.2607. PR 5749 (reporter's own proposed fix) was closed unmerged by an inactivity sweep; the shipped fix instead appears to be an incidental effect of PR 8140 (GroupSharedLimit for Mesh/Amp/Node shaders), which added the missing IsPatchConstantShader check to the same validation loop -- strong but not build-confirmed attribution, since its 2026-02-13 merge predates the still-reproducing v1.9.2602.24 release build.
+
 
 ## Needs a maintainer decision
 
@@ -143,8 +204,11 @@ Reflection of a lib_6_x library linked to ps_6_0 reported Num Variables: 0 for i
 
 | # | Title | Status | History | Conf. | Repro | CE | Artifacts |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| [#5985](https://github.com/microsoft/DirectXShaderCompiler/issues/5985) | DllMain calls LoadLibrary for dxil.dll, could cause deadlock or crash ⚠️ | does-not-repro | fixed -- dxcompiler.dll's DllMain no longer calls DxilLibIn… | high | complete | n/a | [draft](../issues/5985/comment.md) · [notes](../issues/5985/notes.md) · [expected](../issues/5985/expected.md) |
 | [#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732) | [SPIR-V] SPV_EXT_descriptor_heap mixed bound/heap aliasing causes silent miscompilation or ICE ⚠️ | inconclusive | unmeasurable -- only v1.9.2607 of the 20 releases in the bi… | high | partial | [bcn4zoTdM](https://godbolt.org/z/bcn4zoTdM) | [draft](../issues/8732/comment.md) · [notes](../issues/8732/notes.md) · [expected](../issues/8732/expected.md) · [method](../issues/8732/method-notes.md) |
 | [#3005](https://github.com/microsoft/DirectXShaderCompiler/issues/3005) | Generated separate PDB files have possibly invalid header ⚠️ | repros | always-repro'd across v1.4.1907..v1.9.2607 (all 20 releases… | high | complete | [s567x57P8](https://godbolt.org/z/s567x57P8) | [draft](../issues/3005/comment.md) · [notes](../issues/3005/notes.md) · [expected](../issues/3005/expected.md) · [method](../issues/3005/method-notes.md) |
+| [#5704](https://github.com/microsoft/DirectXShaderCompiler/issues/5704) | Linker doesn't strip resource names when using -Qstrip_reflect ⚠️ | changed-behavior | fixed-by-v1.8.2403-for-adapted-repro; literal-repro-invalid… | high | complete | n/a | [draft](../issues/5704/comment.md) · [notes](../issues/5704/notes.md) · [expected](../issues/5704/expected.md) · [method](../issues/5704/method-notes.md) |
+| [#5790](https://github.com/microsoft/DirectXShaderCompiler/issues/5790) | [Github] Enable "Require conversation resolution before merging" ? ⚠️ | not-compiler-verifiable | n/a | high | prose-only | n/a | [draft](../issues/5790/comment.md) · [notes](../issues/5790/notes.md) · [expected](../issues/5790/expected.md) |
 | [#3150](https://github.com/microsoft/DirectXShaderCompiler/issues/3150) | Unspecified behavior from new-to-DXIL sdiv instruction | not-compiler-verifiable | n/a | high | prose-only | n/a | [draft](../issues/3150/comment.md) · [notes](../issues/3150/notes.md) · [expected](../issues/3150/expected.md) |
 | [#3276](https://github.com/microsoft/DirectXShaderCompiler/issues/3276) | Install target installs lots of unnecessary LLVM outputs | not-compiler-verifiable | unknown | high | partial | n/a | [draft](../issues/3276/comment.md) · [notes](../issues/3276/notes.md) · [expected](../issues/3276/expected.md) · [method](../issues/3276/method-notes.md) |
 | [#3305](https://github.com/microsoft/DirectXShaderCompiler/issues/3305) | Empty Payload struct not recognized in DXIL | repros | always-repro'd across v1.4.1907..v1.9.2607 (all 20 releases… | high | complete | [Pr3cfczY7](https://godbolt.org/z/Pr3cfczY7) | [draft](../issues/3305/comment.md) · [notes](../issues/3305/notes.md) · [expected](../issues/3305/expected.md) · [method](../issues/3305/method-notes.md) |
@@ -153,6 +217,29 @@ Reflection of a lib_6_x library linked to ps_6_0 reported Num Variables: 0 for i
 | [#4096](https://github.com/microsoft/DirectXShaderCompiler/issues/4096) | `bool` cast operator doesn't implicitly trigger | repros | always-repro'd across v1.6.2112..v1.9.2607 (16 releases, li… | high | complete | [6Y38q1bn9](https://godbolt.org/z/6Y38q1bn9) | [draft](../issues/4096/comment.md) · [notes](../issues/4096/notes.md) · [expected](../issues/4096/expected.md) · [method](../issues/4096/method-notes.md) |
 | [#4710](https://github.com/microsoft/DirectXShaderCompiler/issues/4710) | Incorrectly erroring with error: Index for resource array inside cbuffer must be a literal expression | repros | regressed | high | complete | [EKh5E8Y4M](https://godbolt.org/z/EKh5E8Y4M) | [draft](../issues/4710/comment.md) · [notes](../issues/4710/notes.md) · [expected](../issues/4710/expected.md) · [method](../issues/4710/method-notes.md) |
 | [#4763](https://github.com/microsoft/DirectXShaderCompiler/issues/4763) | DXC doesn't report an error when placing a resource in a ConstantBuffer | repros | always-repro'd | high | complete | [q9vnhdroE](https://godbolt.org/z/q9vnhdroE) | [draft](../issues/4763/comment.md) · [notes](../issues/4763/notes.md) · [expected](../issues/4763/expected.md) · [method](../issues/4763/method-notes.md) |
+| [#4766](https://github.com/microsoft/DirectXShaderCompiler/issues/4766) | How can I build `dxil` and `dxcompiler` as a static library? | not-compiler-verifiable | n/a - no shader/dxc invocation applies; source/build-config… | high | prose-only | n/a | [draft](../issues/4766/comment.md) · [notes](../issues/4766/notes.md) · [expected](../issues/4766/expected.md) · [method](../issues/4766/method-notes.md) |
+| [#5064](https://github.com/microsoft/DirectXShaderCompiler/issues/5064) | Improve DXIL Validator Testing Infrastructure | not-compiler-verifiable | n/a - no shader/dxc invocation applies; source/lit-config h… | high | prose-only | n/a | [draft](../issues/5064/comment.md) · [notes](../issues/5064/notes.md) · [expected](../issues/5064/expected.md) · [method](../issues/5064/method-notes.md) |
+| [#5079](https://github.com/microsoft/DirectXShaderCompiler/issues/5079) | Conflict with DirectX-Headers | repros | always-repro'd since filed (2023-03-04); DirectX-Headers su… | high | complete | n/a | [draft](../issues/5079/comment.md) · [notes](../issues/5079/notes.md) · [expected](../issues/5079/expected.md) · [method](../issues/5079/method-notes.md) |
+| [#5350](https://github.com/microsoft/DirectXShaderCompiler/issues/5350) | [SM 6.8] Reflection for Work Graph nodes plus more general DXIL Library reflection | not-compiler-verifiable | n/a | high | prose-only | n/a | [draft](../issues/5350/comment.md) · [notes](../issues/5350/notes.md) · [expected](../issues/5350/expected.md) |
+| [#5971](https://github.com/microsoft/DirectXShaderCompiler/issues/5971) | ASAN alloc_dealloc_mismatch false positive on Ubuntu Linux when using libc++ package | not-compiler-verifiable | n/a | high | prose-only | n/a | [draft](../issues/5971/comment.md) · [notes](../issues/5971/notes.md) · [expected](../issues/5971/expected.md) |
+| [#6082](https://github.com/microsoft/DirectXShaderCompiler/issues/6082) | Incorrect DXIL bitcasts generated for bool matrices in ray payloads | repros | always-repro'd across v1.6.2104..v1.9.2607 (bisection floor… | high | complete | [zxjbnx5dE](https://godbolt.org/z/zxjbnx5dE) | [draft](../issues/6082/comment.md) · [notes](../issues/6082/notes.md) · [expected](../issues/6082/expected.md) |
+| [#5476](https://github.com/microsoft/DirectXShaderCompiler/issues/5476) | [MacOS only] dxc dump nothing when -fcgl with root signature | not-compiler-verifiable | unmeasurable -- platform-specific *nix locale bug; no compi… | medium | complete | [vajbo9sxW](https://godbolt.org/z/vajbo9sxW) | [draft](../issues/5476/comment.md) · [notes](../issues/5476/notes.md) · [expected](../issues/5476/expected.md) · [method](../issues/5476/method-notes.md) |
+| [#5546](https://github.com/microsoft/DirectXShaderCompiler/issues/5546) | [Doc Update Request] Clarify the `discard` statement as _not_ a control flow statement | not-compiler-verifiable | n/a -- not a regression claim; discard's kill-without-branc… | high | agent-constructed | [rnEKhGWcY](https://godbolt.org/z/rnEKhGWcY) | [draft](../issues/5546/comment.md) · [notes](../issues/5546/notes.md) · [expected](../issues/5546/expected.md) · [method](../issues/5546/method-notes.md) |
+| [#5723](https://github.com/microsoft/DirectXShaderCompiler/issues/5723) | Revise extra metadata error reporting in DxilMetadataHelper | not-compiler-verifiable | n/a | high | prose-only | n/a | [draft](../issues/5723/comment.md) · [notes](../issues/5723/notes.md) · [expected](../issues/5723/expected.md) |
+| [#6003](https://github.com/microsoft/DirectXShaderCompiler/issues/6003) | [Valgrind] Conditional branches on uninitialized SourceLocation::ID | not-compiler-verifiable | unknown | medium | complete | n/a | [draft](../issues/6003/comment.md) · [notes](../issues/6003/notes.md) · [expected](../issues/6003/expected.md) |
+
+**[#5985](https://github.com/microsoft/DirectXShaderCompiler/issues/5985) — DllMain calls LoadLibrary for dxil.dll, could cause deadlock or crash**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+dxcompiler.dll's DllMain no longer loads dxil.dll via LoadLibrary (validation is now via a statically-linked internal validator); fixed by commit 77b2ff676 / PR #7451 well before ground truth. The identical DllMain->LoadLibrary(dxil.dll) pattern still exists in the separate dxrfallbackcompiler.dll, and the thread's broader asks (moving remaining DllMain work to DxcCreateInstance, an explicit dxil.dll path API) remain open.
+
+> ⚠️ **Issue text is stale.** Title/body describe dxcompiler.dll's DllMain loading dxil.dll via LoadLibrary; that call was removed from dxcompiler.dll by commit 77b2ff676 (PR #7451, 2025-06-05), well before ground truth. The description still accurately matches the separate dxrfallbackcompiler.dll's DllMain, which the issue never names.
+
+*History:* fixed -- dxcompiler.dll's DllMain no longer calls DxilLibInitialize()/LoadLibrary for dxil.dll; removed by commit 77b2ff676 (PR #7451, merged 2025-06-05), confirmed 479 commits behind main-debug's ground-truth commit via GitHub compare API (local shallow clone gave a false-negative ancestry check). The identical unfixed pattern still exists in the separate tools/clang/tools/dxrfallbackcompiler/DXCompiler.cpp, which the issue never names.
+
+*Labels:* remove `crash`.
+
+*No Compiler Explorer link:* source/architecture issue about DllMain calling LoadLibrary under the loader lock -- not observable from a single dxc compile invocation; CE cannot demonstrate a loader-lock hazard or its absence
 
 **[#8732](https://github.com/microsoft/DirectXShaderCompiler/issues/8732) — [SPIR-V] SPV_EXT_descriptor_heap mixed bound/heap aliasing causes silent miscompilation or ICE**  
 <sub>batch 005 · triaged against `13730886e` · drafted by `claude-opus-4.5 (GitHub Copilot CLI)` · reviewed by `gpt-5.6-sol (independent draft review, step 10)`</sub>
@@ -173,6 +260,26 @@ Still reproduces on main (13730886e). The separate PDB written by -Fd declares N
 > ⚠️ **Issue text is stale.** A maintainer comment left standing: @damyanp asked on 2024-06-27 'it looks like you have a PR prepared for this. How far off is that from being ready to go in?' It was never answered, and the PR it refers to (#5767) was closed unmerged on 2026-01-22, so the thread reads top-down as though a fix is pending when none is. Title and body are still accurate -- the hex dump reproduces exactly on v1.5.2010.
 
 *History:* always-repro'd across v1.4.1907..v1.9.2607 (all 20 releases) plus main-debug -- established by reading the PDB's bytes on all 21 builds (manual-case-msf-header-history.txt), NOT by the predicate. Do not read the bisect line as symptom history: it reports v1.4.1907 no-repro because that release's -dumpbin cannot read a PDB and the precondition predicate fails, not because the defect is absent -- v1.4.1907 writes the identical short NumBlocks. Source dating puts introduction at 2dec1cd0d (2019-05-29), before the oldest probeable release.
+
+**[#5704](https://github.com/microsoft/DirectXShaderCompiler/issues/5704) — Linker doesn't strip resource names when using -Qstrip_reflect**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Reported strip_reflect resource-name leak across lib_6_3->linked cs_6_3 reproduced exactly as filed on v1.7.2308 and is fixed by v1.8.2403 when tested with a currently-valid equivalent (adding required [shader(compute)]); separately and in the same window the literal unattributed repro regressed into an unrelated link failure and can no longer be run as filed.
+
+> ⚠️ **Issue text is stale.** Title's claim no longer reproduces via the literal repro, which now fails to link for an unrelated reason from v1.8.2403 onward; the underlying stripping defect is independently confirmed fixed from v1.8.2403 via an equivalent repro using the currently-required [shader(compute)] entry attribute.
+
+*History:* fixed-by-v1.8.2403-for-adapted-repro; literal-repro-invalid-probe-from-v1.8.2403 (unrelated linkage regression)
+
+*No Compiler Explorer link:* repro is a 3-step compile-lib -> link -> disassemble pipeline; Compiler Explorer has no linker step and cannot express IDxcLinker::Link, so no single CE pane can reproduce the reported symptom
+
+**[#5790](https://github.com/microsoft/DirectXShaderCompiler/issues/5790) — [Github] Enable "Require conversation resolution before merging" ?**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Repo-settings request, not a compiler bug: enable 'Require conversation resolution before merging' on main. pow2clk said in 2023-10-25 it 'has been done for all branches', but Keenuts reported on 2025-04-23 that a comment-only review still let auto-merge submit PR #7369. Live read-only gh api checks (2026-08-19) confirm the setting is off today on both mechanisms GitHub exposes: classic branch protection ('required_conversation_resolution': false) and the org-sourced 'microsoft-production-ruleset' pull_request rule ('required_review_thread_resolution': false, ruleset created 2025-05-07, after Keenuts' report). No branch-protection change history is exposed by the API, so whether it was toggled off or superseded by the ruleset cannot be determined.
+
+> ⚠️ **Issue text is stale.** pow2clk's 2023-10-25 comment ('This has been done for all branches') no longer matches main's live configuration; both the classic branch-protection toggle and the org ruleset's equivalent rule are off as of this triage
+
+*No Compiler Explorer link:* pure GitHub repository-settings question (branch protection / ruleset); no shader, source, or compiler behavior exists to show on Compiler Explorer
 
 **[#3150](https://github.com/microsoft/DirectXShaderCompiler/issues/3150) — Unspecified behavior from new-to-DXIL sdiv instruction**  
 <sub>batch 003 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
@@ -244,6 +351,110 @@ Both halves of the report still reproduce on main (1.10 5433-ab540090, 13730886e
 
 *Labels:* add `bug`, `correctness`, `diagnostic`.
 
+**[#4766](https://github.com/microsoft/DirectXShaderCompiler/issues/4766) — How can I build `dxil` and `dxcompiler` as a static library?**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude Sonnet 4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Still unaddressed on main: dxcompiler's and dxildll's CMake targets remain hardcoded SHARED (unchanged since 2016 and since dxildll entered this repo in 2024, respectively), and no PR or maintainer reply in this thread has accepted or declined the contributor's proposed STATIC option. Related issue #5985 cites this one directly and ties static linking to an unfinished DllMain/LoadLibraryA refactor that a maintainer asked about as recently as 2024-10-28 with no reply since.
+
+*History:* n/a - no shader/dxc invocation applies; source/build-config history only. add_clang_library(dxcompiler SHARED ...) at tools/clang/tools/dxcompiler/CMakeLists.txt:127 has been unconditionally hardcoded since the repository's first commit (6ee4074a4, 2016-12-28) and is unchanged at ground truth (89e2f98e2); the file's most recent touch (6ea7cf1c1, #8166) is an unrelated MacOS warning fix. dxildll (dxil.dll) has the identical pattern and has never been touched since it entered this repo via #6866 (2024-09-05, after this issue was filed).
+
+*Labels:* add `enhancement`.
+
+*No Compiler Explorer link:* not a compiler defect - no shader or dxc invocation exists; the ask is a CMake build-target configuration question (SHARED vs STATIC), which CE cannot express (it cannot configure a CMake build or produce a static archive). A CE link showing dxc compiling fine would be affirmatively misleading, inviting the reader to conclude the static-linking ask has been addressed when it has not.
+
+**[#5064](https://github.com/microsoft/DirectXShaderCompiler/issues/5064) — Improve DXIL Validator Testing Infrastructure**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude Sonnet 4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Partially addressed on main (89e2f98e2). Still open: no LIT-compatible workflow for DXIL-validator tests exists -- tools/clang/test/HLSLFileCheck/validation/ (~150 %dxilver/%dxv FileCheck tests) remains excluded from lit discovery (config.suffixes = [], set by #5537 Aug 2023), confirmed via lit --show-tests (0 tests found); only reachable via a manual, one-directory-at-a-time hcttest.cmd -filecheck / TAEF CompilerTest::ManualFileCheckTest invocation, not check-all/CI; tests still being added there as recently as #6172 (Jan 2024). A separate, newer tools/clang/test/HLSLFileCheckLit/ tree shows a partial LIT migration exists for HLSL codegen tests generally, but has no validation subdirectory. Resolved: the follow-up comment's narrower ask for external-validator-workflow test coverage -- tools/clang/test/DXC/validate_1_6_2112.test, validate_1_7_2308.test, validate_1_8_2502.test, version_interface.test now cover loading an external/older validator via DxcDllExtValidationLoader and are genuinely lit-discovered, added by #7749 (2025-10-27) and fixed by #8075 (2026-01-22). Zero PRs cross-reference this issue in the timeline, so this rests on direct tree inspection, not a linked resolution.
+
+*History:* n/a - no shader/dxc invocation applies; source/lit-config history only. tools/clang/test/HLSLFileCheck/lit.local.cfg sets config.suffixes = [] since b503da708 (#5537, 2023-08-18), replacing config.unsupported = True from f5442b1fb (#4822, 2022-11-29); unchanged at ground truth (89e2f98e2). Confirmed 0 tests discovered under build/tools/clang/test/HLSLFileCheck and .../DXILValidation via lit --show-tests. New tests still added to the excluded HLSLFileCheck/validation/ tree as recently as dcb618a2f (#6172, 2024-01-22).
+
+*Labels:* add `test`.
+
+*No Compiler Explorer link:* not a compiler defect and no shader/dxc invocation exists -- the asks are (1) a LIT-compatible test-discovery workflow for DXIL validator tests and (2) external-validator test coverage; CE cannot express lit test discovery, TAEF harness wiring, or which build-tree directories are excluded from an internal test runner's config. A CE link would be affirmatively misleading here.
+
+**[#5079](https://github.com/microsoft/DirectXShaderCompiler/issues/5079) — Conflict with DirectX-Headers**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Still reproduces on main: DXC's own non-Windows shim (WinAdapter.h) and DirectX-Headers' own non-Windows shim independently redefine the same Windows base types with different underlying types (e.g. BOOL as bool vs uint32_t), producing clang typedef-redefinition/_GUID-redefinition errors whenever both are combined in one TU with _WIN32 undefined. Reproduced locally with this repo's own vendored headers (clang -U_WIN32); no dxc.exe/HLSL angle applies. A fix already exists as open PR #8431 but is stalled on an unresolved ABI/dependency-model tradeoff that needs a maintainer decision, not further investigation.
+
+*History:* always-repro'd since filed (2023-03-04); DirectX-Headers submodule pin (980971e835876dc0cde415e8f9bc646e64667bf7) unchanged since it was first added 2022-11-23 (PR #4810), before the issue existed; DXC's own conflicting shim dates to the original 2018-06-17 Linux port (PR #1314); no dxc.exe release bisect applies since every stable release ships the same WinAdapter.h design and the conflict is entirely with a different project's headers; open, mergeable, stalled fix in PR #8431 (opened 2026-05-08, last activity 2026-05-11)
+
+*Labels:* add `linux`.
+
+*No Compiler Explorer link:* C++ header/build-system conflict between DXC's dxc/WinAdapter.h and DirectX-Headers' wsl/winadapter.h (both non-Windows Windows-type shims) -- not an HLSL shader, nothing for dxc.exe to compile. Compiler Explorer cannot host a repro combining two C++ header trees outside the dxc binary; the faithful repro is the clang manual-case captured locally (see repro.cpp / manual-case-clang-conflict.txt).
+
+**[#5350](https://github.com/microsoft/DirectXShaderCompiler/issues/5350) — [SM 6.8] Reflection for Work Graph nodes plus more general DXIL Library reflection**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Maintainer-filed design question (not a bug): should the ID3D12LibraryReflection/ID3D12FunctionReflection COM interfaces be extended to expose Work Graph node-shader launch mode/node ID, or should a more general RDAT-surfacing API be designed instead. On main (89e2f98e2), ID3D12FunctionReflection1/GetDesc1/D3D12_FUNCTION_DESC1 do not exist anywhere in the repo; CFunctionReflection::GetDesc only fills Version/ConstantBuffers/BoundResources and never reads DxilFunctionProps::NodeProps or NodeShaderID, though that data is already computed and serialized into RDAT internally. PR #6827 is an open, unreviewed attempt at exactly this and still needs a DirectX-Headers change. Both outstanding questions remain unresolved; no shader repro can settle an API-design decision.
+
+*Labels:* add `enhancement`, `api`.
+
+*No Compiler Explorer link:* pure API/design question (extend reflection COM interfaces vs. design a new RDAT-surfacing API); no shader exists whose compilation would demonstrate more or less reflection-API surface, and CE cannot exercise a COM reflection interface at all
+
+**[#5971](https://github.com/microsoft/DirectXShaderCompiler/issues/5971) — ASAN alloc_dealloc_mismatch false positive on Ubuntu Linux when using libc++ package**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-5 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+CI/toolchain issue, not compiler-verifiable. ASAN_OPTIONS=alloc_dealloc_mismatch=0 workaround from PR #5976 is still present unchanged in azure-pipelines.yml at 89e2f98e2. CI has since moved from OS-default clang to apt.llvm.org clang-18/libc++-18-dev on Ubuntu-24.04 (the originally-implicated package family), but the workaround was never re-tested against the new toolchain. Both upstream bugs cited by the reporter (llvm/llvm-project#59432, #52771) are now closed (2024-12-21, 2025-02-02 respectively), the latter specifically about apt.llvm.org libc++ -- suggestive but not proof the false positive is gone from DXC's current CI toolchain.
+
+*Labels:* add `ci`, `sanitizer`, `linux`.
+
+*No Compiler Explorer link:* CI/toolchain issue (ASAN false positive from a Ubuntu libc++ package); no HLSL shader or compiled-output difference exists to show, so a Compiler Explorer link would be a link to nothing
+
+**[#6082](https://github.com/microsoft/DirectXShaderCompiler/issues/6082) — Incorrect DXIL bitcasts generated for bool matrices in ray payloads**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+DXC still bitcasts a bool-matrix payload field's <N x i1>-vector-backed pointer to <N x i32>* and loads through it, assuming 32-bit-per-lane spacing where LLVM vectors are bit-packed; unchanged v1.6.2104 (oldest lib_6_6 release) through main and CE trunk. DXC's own validator accepts the output; the maintainers' unresolved position is that this is only unsound if DXIL is reinterpreted as standard modern LLVM IR, which is what the reporter's own opt-based repro does. No fix or resolution since the thread went quiet 2024-04-10.
+
+*History:* always-repro'd across v1.6.2104..v1.9.2607 (bisection floor: lib_6_6 postdates v1.4.1907/v1.5.2010, which answer invalid profile lib_6_6)
+
+*Labels:* add `correctness`, `matrix-bug`.
+
+**[#5476](https://github.com/microsoft/DirectXShaderCompiler/issues/5476) — [MacOS only] dxc dump nothing when -fcgl with root signature**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-opus-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Platform-specific (macOS/Linux console) Unicode-conversion bug in Unicode::UTF8BufferToWideBuffer's *nix emulation; cannot be run on Windows (real Win32 API, never buggy) or reproduced via Compiler Explorer's Linux panes (which never hit the failing locale condition, even on a 2021 build). A strong but unconfirmed fix candidate exists: commit 9bcce409b / PR #7506 (merged 2025-11-25), which rewrites the exact locale-handling and MultiByteToWideChar emulation code the issue describes. Needs re-testing on an actual macOS/Linux machine against a build containing that commit.
+
+*History:* unmeasurable -- platform-specific *nix locale bug; no compiler in this triage's toolkit (Windows main-debug; CE's Linux dxc_1_6_2112/dxc_trunk) has ever been observed to trigger the failure, including CE's oldest build which predates the candidate fix by ~4 years
+
+**[#5546](https://github.com/microsoft/DirectXShaderCompiler/issues/5546) — [Doc Update Request] Clarify the `discard` statement as _not_ a control flow statement**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Doc-clarity request about an external MS Learn page (owned by MicrosoftDocs/win32-pr, not this repo) still listing 'discard' among flow-control statements as of 2025-03-11 / today. The technical premise is confirmed by DXC's own DXIL: discard falls through to an unconditionally-reached block containing the subsequent buffer write and SV_Target export (both branch arms reach it), whereas an equivalent early return skips that same write on one arm. Compiler behavior confirms the claim; the requested doc edit is out of this repo's scope.
+
+*History:* n/a -- not a regression claim; discard's kill-without-branch codegen follows directly from stable semantics, no fix-boundary to locate
+
+**[#5723](https://github.com/microsoft/DirectXShaderCompiler/issues/5723) — Revise extra metadata error reporting in DxilMetadataHelper**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Tech-debt design proposal (not a bug repro). Checkable facts: the DXASSERT+bare-flag m_bExtraMetadata pattern the issue complains about is still exactly what's in DxilMetadataHelper.cpp at every extended-metadata call site; no MetaErrorContext/PushErrorContext mechanism exists anywhere in the tree; and the linked tex3d/metadata-error-reporting branch is unchanged since a single commit 13 minutes before filing and was never merged or cross-referenced.
+
+*No Compiler Explorer link:* tech-debt design proposal (internal error-reporting refactor); no shader/compiler output to show, checked by source inspection instead
+
+**[#6003](https://github.com/microsoft/DirectXShaderCompiler/issues/6003) — [Valgrind] Conditional branches on uninitialized SourceLocation::ID**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.5 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Bundles two findings. (2) SemaHLSL.cpp:6465 OOB/uninitialised-index Template[] read: confirmed fixed by 108c34654 (2023-09-14), before filing; still guarded at ground truth 89e2f98e2 by direct source read. (1) TypeLoc::getBeginLoc() uninitialised-value read reached via HLSL's synthetic vector-template FieldDecl instantiation: no fix found in git log for this call chain, code is unmodified Clang internals plus SemaHLSL.cpp's NewSimpleAggregateType/GetOrCreateVectorSpecialization; cannot be confirmed or refuted without a Linux Valgrind/MSan build, which is out of scope here. Repro compiles cleanly (exit 0) on the Windows ground-truth build for both the filed SPIR-V command and a DXIL variant, consistent with Valgrind reporting a non-crashing conditional-jump warning.
+
+*No Compiler Explorer link:* symptom is a Valgrind/memcheck 'uninitialised value' finding on a Linux debug build; Compiler Explorer runs Release builds with no Valgrind/MSan equivalent, so a link would show a clean compile that reads as 'fixed' while nothing about the reported UB can actually be confirmed or refuted through it
+
+
+## Duplicate or subsumed
+
+*Can be merged into another issue.*
+
+| # | Title | Status | History | Conf. | Repro | CE | Artifacts |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| [#5744](https://github.com/microsoft/DirectXShaderCompiler/issues/5744) | Intrinsics ddx_fine/ddy_fine should not be allowed to sink into flow control | does-not-repro | fixed-in main (28d9915fa0 / PR #8707, merged 2026-07-31, an… | high | agent-constructed | [vrMMYWr31](https://godbolt.org/z/vrMMYWr31) | [draft](../issues/5744/comment.md) · [notes](../issues/5744/notes.md) · [expected](../issues/5744/expected.md) · [method](../issues/5744/method-notes.md) |
+
+**[#5744](https://github.com/microsoft/DirectXShaderCompiler/issues/5744) — Intrinsics ddx_fine/ddy_fine should not be allowed to sink into flow control**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Derivative ops (DerivCoarseX/Y, DerivFineX/Y) lacked the LLVM convergent attribute, letting the optimizer sink calls into conditional branches, exactly as reported. Fixed on main by 28d9915fa0 (PR #8707, 2026-07-31), which was recorded against later duplicate #8001, not this issue -- no shipped release yet contains the fix. Always reproduced on every stable release able to run the repro (v1.6.2104..v1.9.2607).
+
+*History:* fixed-in main (28d9915fa0 / PR #8707, merged 2026-07-31, an ancestor of ground-truth main-debug 89e2f98e); always-repro'd in every probeable stable release v1.6.2104..v1.9.2607 (newest, built 2026-07-29, 2 days before the fix); v1.4.1907/v1.5.2010 invalid-probe (predate SM 6.6)
+
 
 ## Reclassify
 
@@ -273,8 +484,14 @@ Both halves of the report still reproduce on main (1.10 5433-ab540090, 13730886e
 | [#4501](https://github.com/microsoft/DirectXShaderCompiler/issues/4501) | [SPIR-V] Debug info should use DebugBuildIdentifier and DebugStoragePath with -Fd flag | repros | never-implemented | high | agent-constructed | [cj44aEcbj](https://godbolt.org/z/cj44aEcbj) | [draft](../issues/4501/comment.md) · [notes](../issues/4501/notes.md) · [expected](../issues/4501/expected.md) · [method](../issues/4501/method-notes.md) |
 | [#4615](https://github.com/microsoft/DirectXShaderCompiler/issues/4615) | DXIL debug locations do not respect #line directives | repros | regressed-in v1.5.2010 | high | agent-constructed | [fdMjWcKd1](https://godbolt.org/z/fdMjWcKd1) | [draft](../issues/4615/comment.md) · [notes](../issues/4615/notes.md) · [expected](../issues/4615/expected.md) · [method](../issues/4615/method-notes.md) |
 | [#4721](https://github.com/microsoft/DirectXShaderCompiler/issues/4721) | Support applying clang fix-its automatically | repros | never-implemented | high | agent-constructed | [af7P4dYvc](https://godbolt.org/z/af7P4dYvc) | [draft](../issues/4721/comment.md) · [notes](../issues/4721/notes.md) · [expected](../issues/4721/expected.md) · [method](../issues/4721/method-notes.md) |
+| [#5172](https://github.com/microsoft/DirectXShaderCompiler/issues/5172) | IDxcIndex::ParseTranslationUnit has no mechanism to honor an IDxcIncludeHandler | repros | Not release-bisectable (no shader regression; API-surface i… | high | agent-constructed | n/a | [draft](../issues/5172/comment.md) · [notes](../issues/5172/notes.md) · [expected](../issues/5172/expected.md) · [method](../issues/5172/method-notes.md) |
+| [#5173](https://github.com/microsoft/DirectXShaderCompiler/issues/5173) | IDxcCursor misses semantics | repros | always-repro'd | high | agent-constructed | n/a | [draft](../issues/5173/comment.md) · [notes](../issues/5173/notes.md) · [expected](../issues/5173/expected.md) · [method](../issues/5173/method-notes.md) |
+| [#5175](https://github.com/microsoft/DirectXShaderCompiler/issues/5175) | IDxcCursor does not support template parameter and template argument querying | repros | always-repro'd since IDxcCursor's introduction (first commi… | high | complete | n/a | [draft](../issues/5175/comment.md) · [notes](../issues/5175/notes.md) · [expected](../issues/5175/expected.md) |
+| [#5395](https://github.com/microsoft/DirectXShaderCompiler/issues/5395) | Report warning when loop variable shadows one from outer scope in HLSL 2021 | repros | always-repro'd across v1.6.2112 (2021-12-08, the release th… | high | complete | [KzYb6cKTE](https://godbolt.org/z/KzYb6cKTE) | [draft](../issues/5395/comment.md) · [notes](../issues/5395/notes.md) · [expected](../issues/5395/expected.md) |
+| [#5703](https://github.com/microsoft/DirectXShaderCompiler/issues/5703) | RDAT part is missing when linking a compute shader | repros | always-repro'd | high | complete | n/a | [draft](../issues/5703/comment.md) · [notes](../issues/5703/notes.md) · [expected](../issues/5703/expected.md) |
 | [#6727](https://github.com/microsoft/DirectXShaderCompiler/issues/6727) | Support IMul/UMul/UDiv with two outputs from HLSL | repros | always-repro'd across all 20 stable releases v1.4.1907..v1.… | high | agent-constructed | [1nG4f73d3](https://godbolt.org/z/1nG4f73d3) | [draft](../issues/6727/comment.md) · [notes](../issues/6727/notes.md) · [expected](../issues/6727/expected.md) · [method](../issues/6727/method-notes.md) |
 | [#4273](https://github.com/microsoft/DirectXShaderCompiler/issues/4273) | How to remove unused cbuffer? | repros | always-repro'd | high | prose-only | n/a | [draft](../issues/4273/comment.md) · [notes](../issues/4273/notes.md) · [expected](../issues/4273/expected.md) · [method](../issues/4273/method-notes.md) |
+| [#5448](https://github.com/microsoft/DirectXShaderCompiler/issues/5448) | [Validation] Organize usage of GetResourceFromHandle and GetResourceFromVal calls in validation | repros | always-repro'd since filing (2023-07-22, six minutes after… | high | complete | n/a | [draft](../issues/5448/comment.md) · [notes](../issues/5448/notes.md) · [expected](../issues/5448/expected.md) · [method](../issues/5448/method-notes.md) |
 
 **[#2633](https://github.com/microsoft/DirectXShaderCompiler/issues/2633) — [SPIRV][Question]Link libraries**  
 <sub>batch 009 · triaged against `13730886e` · drafted by `claude-opus-4.5 (GitHub Copilot CLI)` · reviewed by `GPT (collation)`</sub>
@@ -462,6 +679,55 @@ Feature request, still open and still accurate, but narrower than the title: dxc
 
 *Labels:* add `enhancement`, `diagnostic`, `rewriter`.
 
+**[#5172](https://github.com/microsoft/DirectXShaderCompiler/issues/5172) — IDxcIndex::ParseTranslationUnit has no mechanism to honor an IDxcIncludeHandler**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Confirmed still open on main (89e2f98e2, 1.9.0.5465). IDxcIndex::ParseTranslationUnit (dxcisense.h:802-808) has no IDxcIncludeHandler or other per-request VFS parameter; its only related parameter, IDxcUnsavedFile, requires content pre-declared under an exact path before the call. Implementation (dxcisenseimpl.cpp:973) binds unconditionally to a disk filesystem otherwise, with the original 'TODO: until an interface to file access is defined' comment. Harness (isense5172.cpp) against this build's dxcompiler.dll: file absent + no override -> file-not-found (1 diagnostic); file absent + pre-declared IDxcUnsavedFile -> resolves (0 diagnostics, static substitute works); IDxcCompiler::Compile, file absent, content served only via a custom IDxcIncludeHandler::LoadSource -> handler invoked once, content served with zero disk backing (dynamic callback genuinely works on Compile, on this same build). Behaviour traces to the project's original 2016-12-28 commit (confirmed ancestor of v1.4.1907, 2019-08-30, via upstream's deeper-fetched tag history -- the local shallow origin/main graft boundary at 2025-06-03 makes a direct ancestry check against it misleadingly negative; recorded as a CONTROL in manual-case-source-evidence.txt). Maintainer (llvm-beanz, 2023-07-13) already declined to prioritize and stated the longer-term direction is to retire the IntelliSense interface for upstream LSP tooling rather than extend it; nothing found contradicts that comment, no text-stale finding.
+
+*History:* Not release-bisectable (no shader regression; API-surface interface gap). Source provenance instead: the disk-only implementation and its TODO comment are present in the project's original 2016-12-28 commit (confirmed ancestor of v1.4.1907, 2019-08-30, three-plus years before this issue was filed 2023-04-23) and unchanged through the pinned ground-truth commit 89e2f98e29c289ae8ad9e00dd310104fea9fd7df. bisect deliberately not run: there is no dxc.exe command line this claim can be tested against (see notes.md); godbolt deliberately skipped for the same reason.
+
+*Labels:* add `api`.
+
+*No Compiler Explorer link:* pure COM/API-surface question; no HLSL input or CE compile pane can show a parameter's absence from a COM interface, and CE does not expose the IntelliSense/indexing API
+
+**[#5173](https://github.com/microsoft/DirectXShaderCompiler/issues/5173) — IDxcCursor misses semantics**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+IDxcCursor/IDxcTranslationUnit exposes no attribute cursor at all for HLSL semantics (struct field, parameter, or return type); confirmed by direct API harness against main-debug (89e2f98e2, unchanged) plus oldest (v1.4.1907) and newest (v1.9.2607) catalogued releases, and by source: semantics are stored via a Decl-level UnusualAnnotation side channel that libclang's VisitAttributes never walks, so a real Attr-based cursor (control: [numthreads]) surfaces but the semantic never does. Maintainer already declined to prioritize in favor of future LSP tooling; patch welcome.
+
+*Labels:* add `api`.
+
+*No Compiler Explorer link:* IDxcCursor/IDxcIntelliSense is a COM/libclang-style AST-walking API, not something Compiler Explorer's compile-and-show-output panes can exercise; there is no compiler-output artifact for a pane to display. Evidence for this issue is the isense_probe.cpp harness driving the API directly (see manual-case-*.txt and variant-*.txt).
+
+**[#5175](https://github.com/microsoft/DirectXShaderCompiler/issues/5175) — IDxcCursor does not support template parameter and template argument querying**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+IDxcCursor (include/dxc/dxcisense.h) still has no GetNumTemplateArguments/GetTemplateArgumentKind/GetTemplateArgumentValue-style methods; only generic GetNumArguments/GetArgumentAt (wrapping clang_Cursor_getNumArguments/getArgument) and a name-formatting flag exist. The underlying clang_Cursor_getNumTemplateArguments family already exists in this fork's libclang (CXCursor.cpp) but is still the pre-D134416 form gated to CXCursor_FunctionDecl via FunctionTemplateSpecializationInfo, so it would not by itself serve a class-template cursor like the reporter's Foo<float,-2,3> even if wired to IDxcCursor. git log of both dxcisense.h and CXCursor.cpp shows no template-argument-querying change was ever made. Matches maintainer llvm-beanz's 2023-07-13 comment: low priority, patches welcome.
+
+*History:* always-repro'd since IDxcCursor's introduction (first commit) through main (89e2f98e29c289ae8ad9e00dd310104fea9fd7df); confirmed by source inspection, not release bisection -- IDxcCursor is a COM interface with no dxc.exe CLI surface to probe across releases
+
+*Labels:* add `api`, `up-for-grabs`.
+
+*No Compiler Explorer link:* IDxcCursor is a COM intellisense interface with no dxc.exe CLI surface and no CE-exposed pane; CE compiles source and shows diagnostics/IR, it cannot walk cursors. repro.hlsl compiles cleanly (variant-valid-template-source-main-debug.txt), so a CE pane would only show that, not the API-surface gap.
+
+**[#5395](https://github.com/microsoft/DirectXShaderCompiler/issues/5395) — Report warning when loop variable shadows one from outer scope in HLSL 2021**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+HV2021 for-loops give the induction variable real block scope, so the legacy -Wfor-redefinition merge path (gated on Scope::ForDeclScope, HV<2021 only) never fires; DXC has no general shadow warning in any mode (confirmed with a non-loop block-shadow control), so this is a request for new diagnostic coverage rather than a broken existing check. Reproduces on every release that has ever shipped -HV 2021 (v1.6.2112..v1.9.2607) and on main-debug.
+
+*History:* always-repro'd across v1.6.2112 (2021-12-08, the release that added -HV 2021 support) .. v1.9.2607 and main-debug; not a regression -- -HV2021 gives the for-loop induction variable a real nested scope, so the legacy same-scope redefinition-merge path that emits -Wfor-redefinition is never entered, and DXC has no general shadow warning in any HV mode
+
+*Labels:* add `diagnostic`.
+
+**[#5703](https://github.com/microsoft/DirectXShaderCompiler/issues/5703) — RDAT part is missing when linking a compute shader**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-opus-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+RDAT is written only for library-profile containers (DxilContainerAssembler.cpp, keyed on ShaderModel::IsLib()); any finalized non-library container -- whether reached via IDxcLinker::Link(...,cs_6_3,...) or by direct compilation to cs_6_3 -- gets PSV0 instead and never RDAT. Confirmed on current main (89e2f98e2) and unchanged from the reporter's own v1.7.2308 build. ID3D12ShaderReflection (via dxa -dumpreflection) fully resolves both bound resources on the linked container, so no reflection data is actually lost -- RDAT specifically feeds the library-only ID3D12LibraryReflection interface, which does not apply post-link. Working as designed, not a bug; docs could state this explicitly.
+
+*Labels:* add `docs`; remove `bug`.
+
+*No Compiler Explorer link:* container-part absence after IDxcLinker::Link; CE runs one dxc invocation per pane and exposes no linker (dxl) equivalent, so the symptom (a linked, non-library container's part table) cannot be produced there
+
 **[#6727](https://github.com/microsoft/DirectXShaderCompiler/issues/6727) — Support IMul/UMul/UDiv with two outputs from HLSL**  
 <sub>batch 011 · triaged against `13730886e` · drafted by `claude-opus-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.6-sol (worker independent review); claude-sonnet-5 (batch-011 final independent draft review, applied selectively)`</sub>
 
@@ -477,6 +743,43 @@ Feature request, still unimplemented: DXIL defines IMul=41, UMul=42 and UDiv=43 
 -remove-unused-globals never removes an explicit cbuffer block (nor an unused member inside one); only loose globals bound for $Globals are removal candidates. Reproduces on main 1.9.0.5433 (13730886e) via dxr.exe and on all 19 stable releases v1.5.2010..v1.9.2607 that can express the option; v1.4.1907 predates the rewriter option surface (invalid probe), so there is no regression. Structural in dxcrewriteunused.cpp, where HLSLBufferDecls go to a separate cbufferDecls list and are never added to unusedGlobals, and asserted by the lit test rewriter/remove-unused-globals.hlsl since 2020. tex3d answered the question in 2022 and converted the issue into an accepted feature request; it should stay open as an enhancement.
 
 *No Compiler Explorer link:* The reported surface is the rewriter (dxr.exe / IDxcRewriter2::RewriteWithOptions). Compiler Explorer's DXC compilers run dxc.exe, which rejects -remove-unused-globals and -rewrite outright (variant-dxc-rejects-rewriter-flag-main-debug.txt), so CE cannot run this repro at all.
+
+**[#5448](https://github.com/microsoft/DirectXShaderCompiler/issues/5448) — [Validation] Organize usage of GetResourceFromHandle and GetResourceFromVal calls in validation**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+GetResourceFromHandle (lib/DxilValidation/DxilValidation.cpp:167-189) still both looks up resource properties and emits InstrHandleNotFromCreateHandle/InstrReorderCoherentRequiresSM69 as a side effect, unrenamed; GetSamplerKind, GetResourceKindAndCompTy and GetCBufSize -- the three functions the issue names -- still all call it rather than the silent GetResourceFromVal, so an invalid handle reaching e.g. GetDimensions still has the same error emitted twice (once from the up-front ValidateHandleArgs pass PR #5399 added, once from the op-specific accessor -- no early return between them). No ValidateResourceHandle function exists anywhere in the tree, and DxilResourceProperties::isValid() (include/dxc/DXIL/DxilResourceProperties.h:79) is never called from the validator; every call site hand-repeats getResourceClass()==Invalid instead. ValidateASHandle (DxilValidation.cpp:1572-1579, TraceRay's AS handle) already uses the pattern the issue asks for everywhere, confirming both styles coexist today. git log --all --grep for GetResourceFromHandle/ValidateResourceHandle/5448, and -S'ValidateResourceHandle', all return zero commits: no part of this refactor has ever been implemented. Filed by the reporter six minutes after their own PR #5399 merged; zero comments, zero cross-references. No dxc.exe command line or CE link exists for this issue: the one observable consequence (duplicate diagnostic) needs a handle Value absent from ResPropMap, which ordinary HLSL cannot construct -- confirmed directly, a control shader selecting between two Texture2D locals is rejected by dxc's legalizer (exit 0x80004005, an ordinary diagnosed error) before DXIL validation runs; reaching the validator's own path needs the standalone dxv validator, not built here and out of scope to build (no rebuilds permitted).
+
+*History:* always-repro'd since filing (2023-07-22, six minutes after PR #5399 merged) through main (89e2f98e29c289ae8ad9e00dd310104fea9fd7df); confirmed by source inspection only -- no dxc.exe command line or release history exists to bisect an internal validator code-organization request against, and git log shows no commit has ever implemented any part of the described rename
+
+*No Compiler Explorer link:* internal validator code-organization request; the one observable consequence (duplicate diagnostics for the same malformed handle) is unreachable from ordinary HLSL through dxc.exe or CE (front end rejects the only HLSL construct that could produce it, see control-dynamic-handle-select.hlsl), and reaching it needs the standalone dxv validator, which is not built in this environment and building it is out of scope (no rebuilds permitted for this task)
+
+
+## Needs the reporter
+
+*Blocked on information only the reporter has.*
+
+| # | Title | Status | History | Conf. | Repro | CE | Artifacts |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| [#5309](https://github.com/microsoft/DirectXShaderCompiler/issues/5309) | Dxbc to Dxil conversion failure | not-compiler-verifiable | n/a -- not executable in this environment under any configu… | medium | partial | n/a | [draft](../issues/5309/comment.md) · [notes](../issues/5309/notes.md) · [expected](../issues/5309/expected.md) · [method](../issues/5309/method-notes.md) |
+| [#5848](https://github.com/microsoft/DirectXShaderCompiler/issues/5848) | DXC possibly emitting spurious [-Wpayload-access-trace] PAQ warnings in SM 6.7 | inconclusive | never-repro'd-in-releases | medium | agent-constructed | [d1a7E9Mxj](https://godbolt.org/z/d1a7E9Mxj) | [draft](../issues/5848/comment.md) · [notes](../issues/5848/notes.md) · [expected](../issues/5848/expected.md) |
+
+**[#5309](https://github.com/microsoft/DirectXShaderCompiler/issues/5309) — Dxbc to Dxil conversion failure**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Reported error 0x8007007e is HRESULT_FROM_WIN32(ERROR_MOD_NOT_FOUND); the only call in dxbc2dxil.cpp that can produce it is GetDxcCreateInstance's LoadLibraryExW(L'dxilconv.dll', ..., LOAD_LIBRARY_SEARCH_APPLICATION_DIR), which runs before the DXBC is ever passed to converter->Convert(). Confirmed both by HRESULT arithmetic and a standalone out-of-tree Win32 harness reproducing the exact code. The attached DXBC is well-formed (correct fourcc and TotalSize), so the content is likely not the cause. dxbc2dxil declares no CMake dependency on dxilconv (only on the statically-linked DxbcConverter), so a selective build/copy of dxbc2dxil.exe without its sibling dxilconv.dll would reproduce this exactly, consistent with the reporter's own uncertainty about what their build included. Cannot execute dxbc2dxil/dxilconv end-to-end in this environment (HLSL_BUILD_DXILCONV=OFF here, no rebuilds permitted, and no cataloged release ships these binaries), so whether DxbcConverter itself would convert this DXBC correctly once the module loads is unmeasured.
+
+*History:* n/a -- not executable in this environment under any configuration (dxilconv is not built here, HLSL_BUILD_DXILCONV=OFF, and no cataloged release ships dxbc2dxil.exe/dxilconv.dll either); history not attempted
+
+*Labels:* add `needs repro steps`.
+
+*No Compiler Explorer link:* dxbc2dxil is never invoked by any CE dxc pane (CE compiles HLSL through the same front end as local dxc.exe, which never reaches DxbcConverter/dxilconv.dll -- same reasoning as #4786), and there is no HLSL source to compile. A CE link would show nothing relevant.
+
+**[#5848](https://github.com/microsoft/DirectXShaderCompiler/issues/5848) — DXC possibly emitting spurious [-Wpayload-access-trace] PAQ warnings in SM 6.7**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Best-effort reconstruction of the reported code (fields written in RaygenShader, TraceRay called via a helper function) produces zero -Wpayload-access-trace warnings on both current main (89e2f98e2) and the reporter's own v1.7.2308.7 build, so the described false positive could not be reproduced. Source reading of SemaDXR.cpp explains why: raygeneration shaders get a null Info.Payload, which gates off the entire write/read-tracking recursion needed to check a TraceRay call reached through a helper function -- confirmed empirically with a genuinely-broken control that also produces no warning through a helper, versus a directly-called TraceRay that correctly warns. This is a real but different defect (silently missing diagnostic coverage) from what was reported (a spurious warning), and it does not establish that the reporter's literal claim is false, only that it cannot be reconstructed from the snippet given. No minimal repro was ever supplied despite a maintainer request.
+
+*Labels:* add `diagnostic`, `needs repro steps`.
 
 
 ## Confirmed still broken (keep open)
@@ -495,9 +798,14 @@ Feature request, still unimplemented: DXIL defines IMul=41, UMul=42 and UDiv=43 
 | [#4520](https://github.com/microsoft/DirectXShaderCompiler/issues/4520) | SamplerDescriptorHeap[sampIdx] cannot be used inside of texture.Sample(...) ⚠️ | repros | always-repro'd | high | complete | [dvYe69hdx](https://godbolt.org/z/dvYe69hdx) | [draft](../issues/4520/comment.md) · [notes](../issues/4520/notes.md) · [expected](../issues/4520/expected.md) · [method](../issues/4520/method-notes.md) |
 | [#4527](https://github.com/microsoft/DirectXShaderCompiler/issues/4527) | Using a static const array in a member function declaration causes CREATEPIXELSHADER_INVALIDSHADERBYTECODE during CreatePipelineState ⚠️ | changed-behavior | always-repro'd | high | partial | [oYrbGzGq3](https://godbolt.org/z/oYrbGzGq3) | [draft](../issues/4527/comment.md) · [notes](../issues/4527/notes.md) · [expected](../issues/4527/expected.md) · [method](../issues/4527/method-notes.md) |
 | [#4614](https://github.com/microsoft/DirectXShaderCompiler/issues/4614) | Assert/hang in SROA_HLSL pass related to empty base struct regression ⚠️ | repros | always-repro'd | high | complete | [erb45rxTb](https://godbolt.org/z/erb45rxTb) | [draft](../issues/4614/comment.md) · [notes](../issues/4614/notes.md) · [expected](../issues/4614/expected.md) · [method](../issues/4614/method-notes.md) |
+| [#4871](https://github.com/microsoft/DirectXShaderCompiler/issues/4871) | When using "--variable" as an argument to an inout function, 2 is subtracted not one ⚠️ | repros | Clean at v1.4.1907 (correct add i32 %1, -1); regressed at v… | high | complete | [4318d6hbY](https://godbolt.org/z/4318d6hbY) | [draft](../issues/4871/comment.md) · [notes](../issues/4871/notes.md) · [expected](../issues/4871/expected.md) · [method](../issues/4871/method-notes.md) |
+| [#4888](https://github.com/microsoft/DirectXShaderCompiler/issues/4888) | Dynamic resources validation errors: All metadata must be used by dxil.!55 = !{i32 1} ⚠️ | repros | always-repro'd | high | complete | [fhjbK7r4x](https://godbolt.org/z/fhjbK7r4x) | [draft](../issues/4888/comment.md) · [notes](../issues/4888/notes.md) · [expected](../issues/4888/expected.md) · [method](../issues/4888/method-notes.md) |
 | [#5293](https://github.com/microsoft/DirectXShaderCompiler/issues/5293) | Assert in `template` + `out` functions when it has local variables ⚠️ 🔔 | repros | Present in all 12 valid release probes from v1.7.2308 to v1… | high | complete | [MKsnrdq4T](https://godbolt.org/z/MKsnrdq4T) | [draft](../issues/5293/comment.md) · [notes](../issues/5293/notes.md) · [expected](../issues/5293/expected.md) · [method](../issues/5293/method-notes.md) |
+| [#5823](https://github.com/microsoft/DirectXShaderCompiler/issues/5823) | [SPIR-V] SIGSEGV when defining a partial specialization array static member ⚠️ | changed-behavior | match-crash.json (internal_failure only): fixed-in v1.7.230… | high | complete | [dsK39nrKE](https://godbolt.org/z/dsK39nrKE) | [draft](../issues/5823/comment.md) · [notes](../issues/5823/notes.md) · [expected](../issues/5823/expected.md) |
 | [#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527) | pragma once is case sensitive ⚠️ | repros | always-repro'd | high | complete | n/a | [draft](../issues/8527/comment.md) · [notes](../issues/8527/notes.md) · [expected](../issues/8527/expected.md) · [method](../issues/8527/method-notes.md) |
 | [#8725](https://github.com/microsoft/DirectXShaderCompiler/issues/8725) | [SER] Passing a payload by value to HitObject::Invoke asserts in CodeGen ⚠️ | repros | always-repro'd across v1.8.2505..v1.9.2607 (15 older releas… | high | complete | [Eo8YbKs5n](https://godbolt.org/z/Eo8YbKs5n) | [draft](../issues/8725/comment.md) · [notes](../issues/8725/notes.md) · [expected](../issues/8725/expected.md) · [method](../issues/8725/method-notes.md) |
+| [#4805](https://github.com/microsoft/DirectXShaderCompiler/issues/4805) | Compiler does not use the custom include handler when compiling with `-Zi` ⚠️ | changed-behavior | always-repro'd | high | agent-constructed | n/a | [draft](../issues/4805/comment.md) · [notes](../issues/4805/notes.md) · [expected](../issues/4805/expected.md) · [method](../issues/4805/method-notes.md) |
+| [#5059](https://github.com/microsoft/DirectXShaderCompiler/issues/5059) | HLSL loop optimization results in an unsupported i33 type ⚠️ | changed-behavior | match.json (reported/silent shape, literal 'to i33' in disa… | high | complete | [PGGE6r8s9](https://godbolt.org/z/PGGE6r8s9) | [draft](../issues/5059/comment.md) · [notes](../issues/5059/notes.md) · [expected](../issues/5059/expected.md) · [method](../issues/5059/method-notes.md) |
 | [#708](https://github.com/microsoft/DirectXShaderCompiler/issues/708) | RegisterOffset is being ignored from RegisterAssignment | repros | always-repro'd | high | agent-constructed | [MsfE6b1v8](https://godbolt.org/z/MsfE6b1v8) | — |
 | [#1768](https://github.com/microsoft/DirectXShaderCompiler/issues/1768) | Arrays of structs in GS OutputStreams are not supported | repros | always-repro'd | high | complete | [b66vK5EPx](https://godbolt.org/z/b66vK5EPx) | [draft](../issues/1768/comment.md) · [notes](../issues/1768/notes.md) · [expected](../issues/1768/expected.md) |
 | [#1803](https://github.com/microsoft/DirectXShaderCompiler/issues/1803) | [RW]StructuredBuffer<matrix> ignores orientation | repros | always-repro'd | high | complete | [4K5T5G5Wf](https://godbolt.org/z/4K5T5G5Wf) | [draft](../issues/1803/comment.md) · [notes](../issues/1803/notes.md) · [expected](../issues/1803/expected.md) |
@@ -542,6 +850,40 @@ Feature request, still unimplemented: DXIL defines IMul=41, UMul=42 and UDiv=43 
 | [#4701](https://github.com/microsoft/DirectXShaderCompiler/issues/4701) | DXC not optimizing out code related to groupshared | repros | always-repro'd | high | complete | [b9KE6as36](https://godbolt.org/z/b9KE6as36) | [draft](../issues/4701/comment.md) · [notes](../issues/4701/notes.md) · [expected](../issues/4701/expected.md) · [method](../issues/4701/method-notes.md) |
 | [#4722](https://github.com/microsoft/DirectXShaderCompiler/issues/4722) | `column_major` and `row_major` don't apply correctly to template-dependent types | repros | always-repro'd | high | partial | [16hP1TjKK](https://godbolt.org/z/16hP1TjKK) | [draft](../issues/4722/comment.md) · [notes](../issues/4722/notes.md) · [expected](../issues/4722/expected.md) · [method](../issues/4722/method-notes.md) |
 | [#4723](https://github.com/microsoft/DirectXShaderCompiler/issues/4723) | Support -M depfile generation flags during -P preprocess to file | repros | always-repro'd | high | agent-constructed | n/a | [draft](../issues/4723/comment.md) · [notes](../issues/4723/notes.md) · [expected](../issues/4723/expected.md) · [method](../issues/4723/method-notes.md) |
+| [#4786](https://github.com/microsoft/DirectXShaderCompiler/issues/4786) | `DxbcConverter` can corrupt integer Immediate Constant Buffer values (x86) | repros | Regression, not a standing bug. Source read via git show <t… | high | complete | n/a | [draft](../issues/4786/comment.md) · [notes](../issues/4786/notes.md) · [expected](../issues/4786/expected.md) · [method](../issues/4786/method-notes.md) |
+| [#4792](https://github.com/microsoft/DirectXShaderCompiler/issues/4792) | `libdxcompiler.so` locks up when used in many threads at once | repros | always-repro'd (source-level: never fixed) | high | agent-constructed | n/a | [draft](../issues/4792/comment.md) · [notes](../issues/4792/notes.md) · [expected](../issues/4792/expected.md) · [method](../issues/4792/method-notes.md) |
+| [#4914](https://github.com/microsoft/DirectXShaderCompiler/issues/4914) | [feature request] Copying "this" fails | repros | always-repro'd | high | agent-constructed | [jbqesq9P1](https://godbolt.org/z/jbqesq9P1) | [draft](../issues/4914/comment.md) · [notes](../issues/4914/notes.md) · [expected](../issues/4914/expected.md) · [method](../issues/4914/method-notes.md) |
+| [#5039](https://github.com/microsoft/DirectXShaderCompiler/issues/5039) | Nonsensical error message when using undef offset in structured buffer | repros | always-repro'd v1.4.1907..v1.9.2607 (wording changed twice:… | high | complete | [aM54EnbzT](https://godbolt.org/z/aM54EnbzT) | [draft](../issues/5039/comment.md) · [notes](../issues/5039/notes.md) · [expected](../issues/5039/expected.md) · [method](../issues/5039/method-notes.md) |
+| [#5040](https://github.com/microsoft/DirectXShaderCompiler/issues/5040) | Undefined value allowed for buffer load index | repros | always-repro'd across v1.4.1907..v1.9.2607 (full --linear s… | high | complete | [cP8cW1v3x](https://godbolt.org/z/cP8cW1v3x) | [draft](../issues/5040/comment.md) · [notes](../issues/5040/notes.md) · [expected](../issues/5040/expected.md) · [method](../issues/5040/method-notes.md) |
+| [#5072](https://github.com/microsoft/DirectXShaderCompiler/issues/5072) | Header output option `-Fh` results in invalid default identifier for library targets | repros | always-repro'd across all 21 cached releases (v1.4.1907 201… | high | complete | n/a | [draft](../issues/5072/comment.md) · [notes](../issues/5072/notes.md) · [expected](../issues/5072/expected.md) · [method](../issues/5072/method-notes.md) |
+| [#5105](https://github.com/microsoft/DirectXShaderCompiler/issues/5105) | Allow unused registers to be output to reflection | repros | always-repro'd | high | agent-constructed | [snfK4ebdG](https://godbolt.org/z/snfK4ebdG) | [draft](../issues/5105/comment.md) · [notes](../issues/5105/notes.md) · [expected](../issues/5105/expected.md) · [method](../issues/5105/method-notes.md) |
+| [#5115](https://github.com/microsoft/DirectXShaderCompiler/issues/5115) | signed/unsigned overload resolution error seems unjustified | repros | always-repro'd across v1.4.1907..v1.9.2607 (linear scan, 20… | high | complete | [xPz8ndv7T](https://godbolt.org/z/xPz8ndv7T) | [draft](../issues/5115/comment.md) · [notes](../issues/5115/notes.md) · [expected](../issues/5115/expected.md) · [method](../issues/5115/method-notes.md) |
+| [#5117](https://github.com/microsoft/DirectXShaderCompiler/issues/5117) | Dumping header dependencies to file prevents error output | repros | always-repro'd | high | agent-constructed | [s4Mcsxj66](https://godbolt.org/z/s4Mcsxj66) | [draft](../issues/5117/comment.md) · [notes](../issues/5117/notes.md) · [expected](../issues/5117/expected.md) · [method](../issues/5117/method-notes.md) |
+| [#5165](https://github.com/microsoft/DirectXShaderCompiler/issues/5165) | Validation error on switches having 8 cases: "I8 can only used as immediate value for intrinsic" | repros | always-repro'd | high | agent-constructed | [qPfqjxxnY](https://godbolt.org/z/qPfqjxxnY) | [draft](../issues/5165/comment.md) · [notes](../issues/5165/notes.md) · [expected](../issues/5165/expected.md) · [method](../issues/5165/method-notes.md) |
+| [#5184](https://github.com/microsoft/DirectXShaderCompiler/issues/5184) | WaveMatch with a vector input value | repros | always-repro'd | high | complete | [GjKe8bn5b](https://godbolt.org/z/GjKe8bn5b) | [draft](../issues/5184/comment.md) · [notes](../issues/5184/notes.md) · [expected](../issues/5184/expected.md) |
+| [#5244](https://github.com/microsoft/DirectXShaderCompiler/issues/5244) | [SPIR-V][SM6.7] Add support for RWTexture2DMS in the SPIR-V backend | repros | always-repro'd across v1.5.2010..v1.9.2607 (19 stable relea… | high | complete | [oj91s731v](https://godbolt.org/z/oj91s731v) | [draft](../issues/5244/comment.md) · [notes](../issues/5244/notes.md) · [expected](../issues/5244/expected.md) · [method](../issues/5244/method-notes.md) |
+| [#5255](https://github.com/microsoft/DirectXShaderCompiler/issues/5255) | Rewriter removed struct declaration which used in constant buffer. | repros | always-repro'd across every checkable release (v1.5.2010..v… | high | complete | n/a | [draft](../issues/5255/comment.md) · [notes](../issues/5255/notes.md) · [expected](../issues/5255/expected.md) · [method](../issues/5255/method-notes.md) |
+| [#5258](https://github.com/microsoft/DirectXShaderCompiler/issues/5258) | SemaHLSL's FlattenedTypeIterator does not handle bit fields properly. | repros | Mixed, per-example: Example 1 (struct-to-struct cast, equal… | high | partial | [b9vP5dhMK](https://godbolt.org/z/b9vP5dhMK) | [draft](../issues/5258/comment.md) · [notes](../issues/5258/notes.md) · [expected](../issues/5258/expected.md) · [method](../issues/5258/method-notes.md) |
+| [#5269](https://github.com/microsoft/DirectXShaderCompiler/issues/5269) | Amplification shader: support for empty payload | repros | always-repro'd (v1.5.2010..v1.9.2607; v1.4.1907 predates SM… | high | agent-constructed | [WfqfzrK91](https://godbolt.org/z/WfqfzrK91) | [draft](../issues/5269/comment.md) · [notes](../issues/5269/notes.md) · [expected](../issues/5269/expected.md) · [method](../issues/5269/method-notes.md) |
+| [#5290](https://github.com/microsoft/DirectXShaderCompiler/issues/5290) | Rewriter: entrypoint function's param referenced types are removed when param is not used. | repros | always-repro'd across every checkable release (v1.5.2010..v… | high | complete | n/a | [draft](../issues/5290/comment.md) · [notes](../issues/5290/notes.md) · [expected](../issues/5290/expected.md) · [method](../issues/5290/method-notes.md) |
+| [#5302](https://github.com/microsoft/DirectXShaderCompiler/issues/5302) | Incorrect code for waterfall loop in VS shader | repros | always-repro'd | high | complete | [jj8fzqMTK](https://godbolt.org/z/jj8fzqMTK) | [draft](../issues/5302/comment.md) · [notes](../issues/5302/notes.md) · [expected](../issues/5302/expected.md) · [method](../issues/5302/method-notes.md) |
+| [#5328](https://github.com/microsoft/DirectXShaderCompiler/issues/5328) | Typo and potential null dereference in HLMatrixBitcastLowerPass.cpp | repros | always-repro'd | high | partial | n/a | [draft](../issues/5328/comment.md) · [notes](../issues/5328/notes.md) · [expected](../issues/5328/expected.md) · [method](../issues/5328/method-notes.md) |
+| [#5357](https://github.com/microsoft/DirectXShaderCompiler/issues/5357) | Ensure type annotations are added for reference returning intrinsics/operators | repros | always-repro'd | high | complete | [eqjMv4v5Y](https://godbolt.org/z/eqjMv4v5Y) | [draft](../issues/5357/comment.md) · [notes](../issues/5357/notes.md) · [expected](../issues/5357/expected.md) |
+| [#5389](https://github.com/microsoft/DirectXShaderCompiler/issues/5389) | `as` casts on integer constant swizzles result in invalid module bitcode (or assert in debug) | repros | always-repro'd across v1.4.1907..v1.9.2607 (all 20 probeabl… | high | complete | [Y45Yhd3P5](https://godbolt.org/z/Y45Yhd3P5) | [draft](../issues/5389/comment.md) · [notes](../issues/5389/notes.md) · [expected](../issues/5389/expected.md) |
+| [#5416](https://github.com/microsoft/DirectXShaderCompiler/issues/5416) | depfile generation isn't supported in the same invocation as compilation | repros | always-repro'd: 6 pre-2021.12.21 releases invalid-probe (Un… | high | agent-constructed | [3jn1eM9K4](https://godbolt.org/z/3jn1eM9K4) | [draft](../issues/5416/comment.md) · [notes](../issues/5416/notes.md) · [expected](../issues/5416/expected.md) |
+| [#5417](https://github.com/microsoft/DirectXShaderCompiler/issues/5417) | Attributes read via `GetAttributeAtVertex` aren't counted as read in the signature | repros | always-repro'd | high | complete | [zWTG5Wrxv](https://godbolt.org/z/zWTG5Wrxv) | [draft](../issues/5417/comment.md) · [notes](../issues/5417/notes.md) · [expected](../issues/5417/expected.md) |
+| [#5481](https://github.com/microsoft/DirectXShaderCompiler/issues/5481) | [Build] enable clang Source Based Code Coverage on windows | not-compiler-verifiable | not-attempted -- no dxc.exe command line applies; build/CI… | high | none | n/a | [draft](../issues/5481/comment.md) · [notes](../issues/5481/notes.md) · [expected](../issues/5481/expected.md) |
+| [#5554](https://github.com/microsoft/DirectXShaderCompiler/issues/5554) | C++11 enums don’t work as integer constants as expected | repros | always-repro'd v1.6.2112..v1.9.2607 and main-debug (89e2f98… | high | partial | [bqbP386nM](https://godbolt.org/z/bqbP386nM) | [draft](../issues/5554/comment.md) · [notes](../issues/5554/notes.md) · [expected](../issues/5554/expected.md) · [method](../issues/5554/method-notes.md) |
+| [#5668](https://github.com/microsoft/DirectXShaderCompiler/issues/5668) | DispatchMesh fails when given an emtpy struct | repros | always-repro'd across v1.6.2104..v1.9.2607 (18 stable relea… | high | complete | [rqTqed5s8](https://godbolt.org/z/rqTqed5s8) | [draft](../issues/5668/comment.md) · [notes](../issues/5668/notes.md) · [expected](../issues/5668/expected.md) · [method](../issues/5668/method-notes.md) |
+| [#5674](https://github.com/microsoft/DirectXShaderCompiler/issues/5674) | Crash in syntax check when using 'matrix' keyword in an operation | repros | regressed-in v1.7.2207 (last good v1.6.2112, first bad v1.7… | high | complete | [bsEPd3eaY](https://godbolt.org/z/bsEPd3eaY) | [draft](../issues/5674/comment.md) · [notes](../issues/5674/notes.md) · [expected](../issues/5674/expected.md) |
+| [#5682](https://github.com/microsoft/DirectXShaderCompiler/issues/5682) | Install error | not-compiler-verifiable | always-repro'd | high | complete | n/a | [draft](../issues/5682/comment.md) · [notes](../issues/5682/notes.md) · [expected](../issues/5682/expected.md) |
+| [#5768](https://github.com/microsoft/DirectXShaderCompiler/issues/5768) | Declare SV_VertexID as float only get validation error | repros | always-repro'd | high | complete | [PWdbvjGP3](https://godbolt.org/z/PWdbvjGP3) | [draft](../issues/5768/comment.md) · [notes](../issues/5768/notes.md) · [expected](../issues/5768/expected.md) · [method](../issues/5768/method-notes.md) |
+| [#5801](https://github.com/microsoft/DirectXShaderCompiler/issues/5801) | Sample immediate offset range is not diagnosed or validated in SM 6.7 | repros | always-repro'd | high | complete | [WT19a1jbM](https://godbolt.org/z/WT19a1jbM) | [draft](../issues/5801/comment.md) · [notes](../issues/5801/notes.md) · [expected](../issues/5801/expected.md) |
+| [#5804](https://github.com/microsoft/DirectXShaderCompiler/issues/5804) | Fix UBSAN alignment failures | repros | always-repro'd | high | prose-only | n/a | [draft](../issues/5804/comment.md) · [notes](../issues/5804/notes.md) · [expected](../issues/5804/expected.md) |
+| [#5924](https://github.com/microsoft/DirectXShaderCompiler/issues/5924) | Cannot do swizzle operations with floating type when it's a typename | repros | always-repro'd | high | complete | [h5q7acrv9](https://godbolt.org/z/h5q7acrv9) | [draft](../issues/5924/comment.md) · [notes](../issues/5924/notes.md) · [expected](../issues/5924/expected.md) |
+| [#5993](https://github.com/microsoft/DirectXShaderCompiler/issues/5993) | ClangTidy: clang-analyzer-core.uninitialized.Branch in third_party/dawn/third_party/dxc/tools/clang/tools/libclang/CIndex.cpp | repros | always-repro'd | high | complete | n/a | [draft](../issues/5993/comment.md) · [notes](../issues/5993/notes.md) · [expected](../issues/5993/expected.md) · [method](../issues/5993/method-notes.md) |
+| [#6005](https://github.com/microsoft/DirectXShaderCompiler/issues/6005) | [Assert Triggered] MaybeODRUseExprs.empty() && "Leftover expressions for odr-use checking" | repros | repro'd on the only assert-enabled build measured (main-deb… | high | complete | [h7WEM3v8G](https://godbolt.org/z/h7WEM3v8G) | [draft](../issues/6005/comment.md) · [notes](../issues/6005/notes.md) · [expected](../issues/6005/expected.md) · [method](../issues/6005/method-notes.md) |
+| [#6073](https://github.com/microsoft/DirectXShaderCompiler/issues/6073) | Non-const static data members of templated structs fail to compile | repros | always-repro'd | high | agent-constructed | [17nh9j5fW](https://godbolt.org/z/17nh9j5fW) | [draft](../issues/6073/comment.md) · [notes](../issues/6073/notes.md) · [expected](../issues/6073/expected.md) |
 | [#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737) | Atomics on RWTexture2DMS result in silent UB or ICE | repros | always-repro'd (v1.7.2207..v1.9.2607; 5 older releases pred… | high | complete | [ea91a6vnj](https://godbolt.org/z/ea91a6vnj) | [draft](../issues/8737/comment.md) · [notes](../issues/8737/notes.md) · [expected](../issues/8737/expected.md) · [method](../issues/8737/method-notes.md) |
 | [#3251](https://github.com/microsoft/DirectXShaderCompiler/issues/3251) | Missing implementation for HLOpcodeGroup::NotHL in TranslateCBAddressUserLegacy | repros | always-repro'd -- all 19 probeable releases v1.5.2010..v1.9… | high | complete | [arjrMWhWf](https://godbolt.org/z/arjrMWhWf) | [draft](../issues/3251/comment.md) · [notes](../issues/3251/notes.md) · [expected](../issues/3251/expected.md) · [method](../issues/3251/method-notes.md) |
 | [#3906](https://github.com/microsoft/DirectXShaderCompiler/issues/3906) | Compiler infinite loop issue | repros | always repro'd across v1.4.1907..v1.9.2607 -- 20/20 catalog… | high | complete | [M7Ex1s9b3](https://godbolt.org/z/M7Ex1s9b3) | [draft](../issues/3906/comment.md) · [notes](../issues/3906/notes.md) · [expected](../issues/3906/expected.md) · [method](../issues/3906/method-notes.md) |
@@ -549,6 +891,38 @@ Feature request, still unimplemented: DXIL defines IMul=41, UMul=42 and UDiv=43 
 | [#4492](https://github.com/microsoft/DirectXShaderCompiler/issues/4492) | [DXIL] Broken codegen for loading elements from FP16 matrix types in StructuredBuffer | repros | Reproduces on every checkable release. The reporter's shade… | high | complete | [3Pe367EfM](https://godbolt.org/z/3Pe367EfM) | [draft](../issues/4492/comment.md) · [notes](../issues/4492/notes.md) · [expected](../issues/4492/expected.md) · [method](../issues/4492/method-notes.md) |
 | [#4514](https://github.com/microsoft/DirectXShaderCompiler/issues/4514) | Variable inside a namespace not found | repros | always-repro'd | high | complete | [1497YdPj1](https://godbolt.org/z/1497YdPj1) | [draft](../issues/4514/comment.md) · [notes](../issues/4514/notes.md) · [expected](../issues/4514/expected.md) · [method](../issues/4514/method-notes.md) |
 | [#4540](https://github.com/microsoft/DirectXShaderCompiler/issues/4540) | [DXIL] Incorrect codegen when using "static" on groupshared variables | repros | always-repro'd | high | complete | [7Kexss5x8](https://godbolt.org/z/7Kexss5x8) | [draft](../issues/4540/comment.md) · [notes](../issues/4540/notes.md) · [expected](../issues/4540/expected.md) · [method](../issues/4540/method-notes.md) |
+| [#4858](https://github.com/microsoft/DirectXShaderCompiler/issues/4858) | [DXIL] Illegal code motion for CalculateLevelOfDetailUnclamped | repros | always-repro'd | high | complete | [1h4fff5Ef](https://godbolt.org/z/1h4fff5Ef) | [draft](../issues/4858/comment.md) · [notes](../issues/4858/notes.md) · [expected](../issues/4858/expected.md) · [method](../issues/4858/method-notes.md) |
+| [#4958](https://github.com/microsoft/DirectXShaderCompiler/issues/4958) | Compiling hull shader with unused globals causes internal compiler error | repros | regressed-in v1.6.2106 (last good: v1.6.2104, oldest releas… | high | complete | [zdcvTzcd7](https://godbolt.org/z/zdcvTzcd7) | [draft](../issues/4958/comment.md) · [notes](../issues/4958/notes.md) · [expected](../issues/4958/expected.md) · [method](../issues/4958/method-notes.md) |
+| [#5116](https://github.com/microsoft/DirectXShaderCompiler/issues/5116) | Weird behavior when returning texture | repros | always-repro'd | high | complete | [eE8co66vG](https://godbolt.org/z/eE8co66vG) | [draft](../issues/5116/comment.md) · [notes](../issues/5116/notes.md) · [expected](../issues/5116/expected.md) · [method](../issues/5116/method-notes.md) |
+| [#5169](https://github.com/microsoft/DirectXShaderCompiler/issues/5169) | Add D3D_SVC_BIT_FIELD to D3D_SHADER_VARIABLE_CLASS | not-compiler-verifiable | always-repro'd | high | none | n/a | [draft](../issues/5169/comment.md) · [notes](../issues/5169/notes.md) · [expected](../issues/5169/expected.md) · [method](../issues/5169/method-notes.md) |
+| [#5194](https://github.com/microsoft/DirectXShaderCompiler/issues/5194) | Impossible to add template on operator() overload | repros | always-repro'd | high | complete | [9ajqv56xK](https://godbolt.org/z/9ajqv56xK) | [draft](../issues/5194/comment.md) · [notes](../issues/5194/notes.md) · [expected](../issues/5194/expected.md) · [method](../issues/5194/method-notes.md) |
+| [#5268](https://github.com/microsoft/DirectXShaderCompiler/issues/5268) | Rewriter remove used static global variable which is used for other static global variable definition used by entryPoint | repros | always-repro'd (v1.5.2010-v1.9.2607, all 19 remaining stabl… | high | complete | n/a | [draft](../issues/5268/comment.md) · [notes](../issues/5268/notes.md) · [expected](../issues/5268/expected.md) |
+| [#5292](https://github.com/microsoft/DirectXShaderCompiler/issues/5292) | Rewriter : does not remove unused typedef statements and it lead to compile error | repros | always-repro'd | high | complete | n/a | [draft](../issues/5292/comment.md) · [notes](../issues/5292/notes.md) · [expected](../issues/5292/expected.md) · [method](../issues/5292/method-notes.md) |
+| [#5338](https://github.com/microsoft/DirectXShaderCompiler/issues/5338) | Arrays cast compiler error | repros | non-monotonic: repro (hang) v1.4.1907 -> no-repro (crash pr… | high | complete | [5nqjfhfve](https://godbolt.org/z/5nqjfhfve) | [draft](../issues/5338/comment.md) · [notes](../issues/5338/notes.md) · [expected](../issues/5338/expected.md) · [method](../issues/5338/method-notes.md) |
+| [#5423](https://github.com/microsoft/DirectXShaderCompiler/issues/5423) | `dxr.exe` doesn't support macro definitions via its CLI | repros | always-repro'd v1.4.1907..v1.9.2607 (dxr.exe half; dxc.exe… | high | complete | [GzETMvxvs](https://godbolt.org/z/GzETMvxvs) | [draft](../issues/5423/comment.md) · [notes](../issues/5423/notes.md) · [expected](../issues/5423/expected.md) |
+| [#5434](https://github.com/microsoft/DirectXShaderCompiler/issues/5434) | [Validation] Add validation for Annotate*Handle intrinsics | repros | always-repro'd | high | agent-constructed | n/a | [draft](../issues/5434/comment.md) · [notes](../issues/5434/notes.md) · [expected](../issues/5434/expected.md) · [method](../issues/5434/method-notes.md) |
+| [#5436](https://github.com/microsoft/DirectXShaderCompiler/issues/5436) | [Validation] Add an assert to make sure no dxil opcodes are left unvalidated. | not-compiler-verifiable | n/a - no shader/dxc invocation applies; source-only. Both n… | high | prose-only | n/a | [draft](../issues/5436/comment.md) · [notes](../issues/5436/notes.md) · [expected](../issues/5436/expected.md) · [method](../issues/5436/method-notes.md) |
+| [#5491](https://github.com/microsoft/DirectXShaderCompiler/issues/5491) | DXC does not eliminate wave intrinsic calls even when the result is unused | repros | always-repro'd (v1.4.1907..v1.9.2607; 20/20 probeable stabl… | high | complete | [1T6e4zWsf](https://godbolt.org/z/1T6e4zWsf) | [draft](../issues/5491/comment.md) · [notes](../issues/5491/notes.md) · [expected](../issues/5491/expected.md) · [method](../issues/5491/method-notes.md) |
+| [#5567](https://github.com/microsoft/DirectXShaderCompiler/issues/5567) | -Wcomma-in-init should maybe be more aggressive? | repros | always-repro'd v1.6.2104..v1.9.2607 (v1.4.1907/v1.5.2010 in… | high | complete | [dPM8vnz5b](https://godbolt.org/z/dPM8vnz5b) | [draft](../issues/5567/comment.md) · [notes](../issues/5567/notes.md) · [expected](../issues/5567/expected.md) |
+| [#5573](https://github.com/microsoft/DirectXShaderCompiler/issues/5573) | "External declaration [decl name] is unused" after resource assignment | repros | always-repro'd | high | complete | [r6TGKo7sv](https://godbolt.org/z/r6TGKo7sv) | [draft](../issues/5573/comment.md) · [notes](../issues/5573/notes.md) · [expected](../issues/5573/expected.md) |
+| [#5595](https://github.com/microsoft/DirectXShaderCompiler/issues/5595) | [Feature Request] support hash stability test in lit | not-compiler-verifiable | unknown | high | none | n/a | [draft](../issues/5595/comment.md) · [notes](../issues/5595/notes.md) · [expected](../issues/5595/expected.md) |
+| [#5632](https://github.com/microsoft/DirectXShaderCompiler/issues/5632) | Can construct-cast an array type to non-array without compiler complaining (DXIL Crash) | repros | always-repro'd across v1.4.1907..v1.9.2607 under the compos… | high | complete | [W9Kr6fvPa](https://godbolt.org/z/W9Kr6fvPa) | [draft](../issues/5632/comment.md) · [notes](../issues/5632/notes.md) · [expected](../issues/5632/expected.md) |
+| [#5633](https://github.com/microsoft/DirectXShaderCompiler/issues/5633) | DXC should warn on statically checkable out-of-bounds | repros | always-repro'd across v1.5.2010..v1.9.2607 (v1.4.1907 inval… | high | complete | [KG9b5j1f8](https://godbolt.org/z/KG9b5j1f8) | [draft](../issues/5633/comment.md) · [notes](../issues/5633/notes.md) · [expected](../issues/5633/expected.md) |
+| [#5686](https://github.com/microsoft/DirectXShaderCompiler/issues/5686) | Validation fails when linking to amplification shader target | repros | always-repro'd across v1.6.2106..v1.9.2607, all 18 probeabl… | high | complete | n/a | [draft](../issues/5686/comment.md) · [notes](../issues/5686/notes.md) · [expected](../issues/5686/expected.md) · [method](../issues/5686/method-notes.md) |
+| [#5721](https://github.com/microsoft/DirectXShaderCompiler/issues/5721) | DXC linker API doesn't include DXC_OUT_PDB in the result | repros | always-repro'd | high | complete | n/a | [draft](../issues/5721/comment.md) · [notes](../issues/5721/notes.md) · [expected](../issues/5721/expected.md) |
+| [#5736](https://github.com/microsoft/DirectXShaderCompiler/issues/5736) | Internal compiler error when attempting to link a non-library input | repros | always-repro'd across v1.6.2106..v1.9.2607 (for the entire… | high | complete | n/a | [draft](../issues/5736/comment.md) · [notes](../issues/5736/notes.md) · [expected](../issues/5736/expected.md) |
+| [#5737](https://github.com/microsoft/DirectXShaderCompiler/issues/5737) | Link fails when using -Fd with -Qstrip_debug | repros | always-repro'd across every -link-capable release (v1.6.210… | high | complete | n/a | [draft](../issues/5737/comment.md) · [notes](../issues/5737/notes.md) · [expected](../issues/5737/expected.md) |
+| [#5739](https://github.com/microsoft/DirectXShaderCompiler/issues/5739) | DXC linker debug output isn't a valid PDB (and doesn't work with PIX) | repros | always-repro'd across v1.6.2106..v1.9.2607 (every stable re… | high | complete | n/a | [draft](../issues/5739/comment.md) · [notes](../issues/5739/notes.md) · [expected](../issues/5739/expected.md) |
+| [#5807](https://github.com/microsoft/DirectXShaderCompiler/issues/5807) | Error in implicit conversions when enums are involved | repros | always-repro'd across v1.4.1907..v1.9.2607 (both bisect end… | high | complete | [dE4KrbPjY](https://godbolt.org/z/dE4KrbPjY) | [draft](../issues/5807/comment.md) · [notes](../issues/5807/notes.md) · [expected](../issues/5807/expected.md) |
+| [#5824](https://github.com/microsoft/DirectXShaderCompiler/issues/5824) | [Test] Move clang diagnostic tests to verifiertest.cpp | not-compiler-verifiable | n/a (no compiler-version axis); unmoved throughout ground-t… | high | complete | n/a | [draft](../issues/5824/comment.md) · [notes](../issues/5824/notes.md) · [expected](../issues/5824/expected.md) |
+| [#5849](https://github.com/microsoft/DirectXShaderCompiler/issues/5849) | Missing DXR PAQ indication in RDAT to determine whether MaxPayloadSizeInBytes needs validation | repros | Swept repro.hlsl across main-debug and every cached stable… | high | agent-constructed | n/a | [draft](../issues/5849/comment.md) · [notes](../issues/5849/notes.md) · [expected](../issues/5849/expected.md) |
+| [#5883](https://github.com/microsoft/DirectXShaderCompiler/issues/5883) | Initializing a const-qualified var of type 'struct/array of (struct/array of) more than one type' with initializer 'init' will ignore any dynamic writes made to 'init' beforehand | repros | always-repro'd | high | complete | [s7WdTna8d](https://godbolt.org/z/s7WdTna8d) | [draft](../issues/5883/comment.md) · [notes](../issues/5883/notes.md) · [expected](../issues/5883/expected.md) · [method](../issues/5883/method-notes.md) |
+| [#5961](https://github.com/microsoft/DirectXShaderCompiler/issues/5961) | Warnings about float to int conversions are wrong | repros | always-repro'd | high | complete | [95MndY74x](https://godbolt.org/z/95MndY74x) | [draft](../issues/5961/comment.md) · [notes](../issues/5961/notes.md) · [expected](../issues/5961/expected.md) · [method](../issues/5961/method-notes.md) |
+| [#5987](https://github.com/microsoft/DirectXShaderCompiler/issues/5987) | Error assigning struct into amplification payload | repros | always-repro'd across every release able to compile the as_… | high | complete | [YoavsEvns](https://godbolt.org/z/YoavsEvns) | [draft](../issues/5987/comment.md) · [notes](../issues/5987/notes.md) · [expected](../issues/5987/expected.md) · [method](../issues/5987/method-notes.md) |
+| [#5999](https://github.com/microsoft/DirectXShaderCompiler/issues/5999) | An issue with template type deduction and globallycoherent? | repros | always-repro'd across v1.7.2308..v1.9.2607 (8 older stable… | high | complete | [E16q13zKa](https://godbolt.org/z/E16q13zKa) | [draft](../issues/5999/comment.md) · [notes](../issues/5999/notes.md) · [expected](../issues/5999/expected.md) |
+| [#6001](https://github.com/microsoft/DirectXShaderCompiler/issues/6001) | Pass-through control point case broken for hull shader | repros | always-repro'd | high | partial | [nM3en9K5b](https://godbolt.org/z/nM3en9K5b) | [draft](../issues/6001/comment.md) · [notes](../issues/6001/notes.md) · [expected](../issues/6001/expected.md) |
+| [#6016](https://github.com/microsoft/DirectXShaderCompiler/issues/6016) | Using large vert/hull/domain IO makes DXC crash when building to DXIL | repros | regressed-in v1.7.2212 (last good v1.7.2207); crash-shaped:… | high | complete | [h7YxEKKT5](https://godbolt.org/z/h7YxEKKT5) | [draft](../issues/6016/comment.md) · [notes](../issues/6016/notes.md) · [expected](../issues/6016/expected.md) |
+| [#6084](https://github.com/microsoft/DirectXShaderCompiler/issues/6084) | [CI] Add clang-cl on windows build to test pipeline | not-compiler-verifiable | n/a | high | prose-only | n/a | [draft](../issues/6084/comment.md) · [notes](../issues/6084/notes.md) · [expected](../issues/6084/expected.md) |
 
 **[#1702](https://github.com/microsoft/DirectXShaderCompiler/issues/1702) — Array as parameter of function**  
 <sub>batch 001 · triaged against `eff900d54` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
@@ -646,6 +1020,26 @@ ONE defect, TWO signatures, and the composed predicate is what makes it visible:
 
 *Labels:* add `type-system`, `test`.
 
+**[#4871](https://github.com/microsoft/DirectXShaderCompiler/issues/4871) — When using "--variable" as an argument to an inout function, 2 is subtracted not one**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Reproduces on main (89e2f98e2, Debug). Func(--i) -- an empty inout function called with a pre-decremented argument -- lowers the single decrement to 'add i32 %N, -2' instead of -1; controls confirm neither a bare inout call nor a bare pre-decrement alone triggers it, only the combination written directly as the argument expression. Regressed between v1.4.1907 (clean) and v1.5.2010; reproduces at every release since and on main-debug. The maintainer's cited fix vehicle (tracking issue #5377) was closed not_planned 2024-09-16 and the draft PR it points to (#5249) is still open/unmerged, so that rewrite never reached main -- consistent with the still-reproducing probes. Separately, Compiler Explorer's hlsl_clang_trunk (the new Clang-based HLSL front end) already emits the correct 'add i32 ..., -1' for the identical construct, while classic dxc_trunk still emits -2.
+
+> ⚠️ **Issue text is stale.** 2023-07-08 maintainer comment says the fix is verified against a development branch and will land via #5377; that tracking issue was closed not_planned on 2024-09-16 and the linked draft PR #5249 is still open/unmerged, so the branch never reached main and the comment now reads as resolved when it is not.
+
+*History:* Clean at v1.4.1907 (correct add i32 %1, -1); regressed at v1.5.2010; reproduces at every stable release from v1.5.2010 through v1.9.2607 with no reversion (linear scan, 20 probeable releases) and on main-debug. One clean transition, not oscillating -- the tool's 'non-monotonic' label here just reflects run-count, see method-notes.md.
+
+*Labels:* add `correctness`.
+
+**[#4888](https://github.com/microsoft/DirectXShaderCompiler/issues/4888) — Dynamic resources validation errors: All metadata must be used by dxil.!55 = !{i32 1}**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Still reproduces on main (89e2f98e2): the DXIL-validation error is unchanged since filing and present on every probeable stable release back to v1.6.2104 (2021-04-20), the oldest release accepting -T ps_6_6 -- no clean release exists anywhere in the checkable history. @tex3d's comment remains the authoritative read: dxc does not legalize this pattern and the intended fix is a diagnostic naming it, which has not landed. Separately, @Keenuts' -spirv isa<> assertion crash no longer reproduces -- it access-violated through v1.8.2403.2 and has failed with an ordinary diagnosed error from v1.8.2405 onward.
+
+> ⚠️ **Issue text is stale.** Comment by @Keenuts (2023-01-03) reports an isa<> assertion crash when '-spirv' is added; this no longer reproduces on any stable release from v1.8.2405 (2024-05-24) onward or on main -- the -spirv path now fails with an ordinary diagnosed error instead of crashing.
+
+*Labels:* add `diagnostic`.
+
 **[#5293](https://github.com/microsoft/DirectXShaderCompiler/issues/5293) — Assert in `template` + `out` functions when it has local variables**  
 <sub>batch 013 · triaged against `13730886e` · drafted by `claude-sonnet-4-6` · reviewed by `gemini-3.1-pro-preview`</sub>
 
@@ -658,6 +1052,17 @@ Reproduces. A function template with a scalar 'out' parameter and at least one l
 *History:* Present in all 12 valid release probes from v1.7.2308 to v1.9.2607. v1.6.2112-v1.7.2212.1 are clean because the analysis containing the defect does not exist yet (introduced by 1380cf88e, 'Add diagnostics for uninitialized out parameters'); v1.4.1907-v1.6.2106 are invalid probes that cannot compile the repro at all (no -HV 2021). Confirmed independently by -Wparameter-usage presence and by git merge-base --is-ancestor, and reproduced on Compiler Explorer (1.7.2212 clean, 1.7.2308 SIGSEGV, trunk SIGSEGV). Note the plain repro exits 0 on every Release build because the assert is compiled out -- a bisect on it alone reports 'never reproduced' and is not evidence of a fix.
 
 *Labels:* add `crash`, `hlsl2021`, `diagnostic`.
+
+**[#5823](https://github.com/microsoft/DirectXShaderCompiler/issues/5823) — [SPIR-V] SIGSEGV when defining a partial specialization array static member**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (batch-019 single-issue triage session)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+The reported SIGSEGV is fixed (PR #8079, v1.7.2308-equivalent fix for the crash symptom): the exact 2023 repro now exits 0x80004005 with 'casting to type void unimplemented' instead of crashing. But the underlying defect persists and is broader than reported: (1) any out-of-line definition of a class-template partial-specialization's static member still fails to compile at all, because PR #8079's fix only detects primary-template declaration context, not partial-specialization context; (2) separately, full/explicit-specialization and even plain (non-specialized) template static members only compile out-of-line if the illegal, C++-invalid duplicated 'static' keyword is kept -- dropping it (the standards-correct spelling) is misparsed as a new in-class field and rejected with ''const' is not a valid modifier for a field', matching devshgraphicsprogramming's 2025-12-10 comment on the related, closed #6677; (3) DXC never diagnoses that illegal duplicated 'static', unlike Clang, which rejects the equivalent C++ construct. #6677's narrower ask (generic C++11-style deduced OOL initializers) was correctly closed NOT_PLANNED as a template-model feature gap per llvm-beanz -- that specific ask is out of scope here, but the bogus 'const' diagnostic reproduces even for a full/explicit specialization where no deduction is involved, so it is a genuine parser bug, not a feature gap.
+
+> ⚠️ **Issue text is stale.** Body: the reported symptom (SIGSEGV) has not reproduced since v1.7.2308 (2023-08-14); the exact same input now fails to compile with a diagnosed E_FAIL error instead of crashing. The underlying 'this input never compiles' defect is still live, just not as a crash.
+
+*History:* match-crash.json (internal_failure only): fixed-in v1.7.2308 (2023-08-14), last-repro'd v1.7.2212.1 (2023-03-01) -- the crash was already fixed before the issue was filed (2023-10-03), consistent with the reporter's CE pin (dxc_1_7_2207, 2022-07-18) being stale. match.json (internal_failure OR contains 'casting to type void unimplemented'): always-repro'd across every probeable release v1.7.2207..v1.9.2607 (5 pre-2022 releases invalid-probe due to -HV 202x/ps_6_7 requirements, 5 prereleases excluded by policy), plus main-debug. Attributed to PR #8079 (merged df50f51f8, 2026-01-26, 'Fixes #5823'), which stops SPIR-V codegen for the un-instantiated template-declaration VarDecl via CXXRecordDecl::getDescribedClassTemplate() -- non-null only for a primary template's pattern record, so it never matches a ClassTemplatePartialSpecializationDecl. Confirmed by reproducing PR #8079's own regression test (variant-primary-template-fix-test.hlsl, exit 0) and by the partial-specialization repro still hitting the pre-fix codepath (out-main-debug.txt).
+
+*Labels:* add `diagnostic`.
 
 **[#8527](https://github.com/microsoft/DirectXShaderCompiler/issues/8527) — pragma once is case sensitive**  
 <sub>batch 004 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
@@ -680,6 +1085,24 @@ Confirmed on main (1.9.0.5433, 13730886e) and on all 5 releases that can compile
 *History:* always-repro'd across v1.8.2505..v1.9.2607 (15 older releases predate lib_6_9)
 
 *Labels:* add `crash`, `incorrect-code`, `diagnostic`, `sm6.9`; remove `needs-triage`.
+
+**[#4805](https://github.com/microsoft/DirectXShaderCompiler/issues/4805) — Compiler does not use the custom include handler when compiling with `-Zi`**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-opus-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+A caller-supplied, non-disk-backed IDxcIncludeHandler's content is never what gets embedded as an included file's SPIR-V DebugSource text (-fspv-debug=vulkan-with-source): EmitVisitor.cpp's ReadSourceCode always does its own independent raw disk read instead of reusing the buffer the handler already returned to the parser. Measured with a purpose-built API harness (handler4805.cpp, registered as compiler main-debug-inc4805) since dxc.exe's CLI can never supply a custom handler at all. Three scenarios isolate it cleanly: repro.hlsl (no disk file backs the include) compiles S_OK with the marker absent (the reported defect); control-identical (byte-identical disk file at the resolved path) compiles S_OK with the marker present, proving the harness/API/byte-search all work; control-mismatch (a real but differently-formatted file at the same path) now FAILS compilation outright on main-debug with a SPIR-V validator rejection -- a newly-found, worse failure mode absent on v1.7.2207 (2022, contemporary with filing) and v1.8.2502 (2025-02), bounded by git merge-base to PR #7662 (97b5edbc4, merged 2025-07-24). The literal 2022 crash does not reproduce on any build tested; today's shape (silent content loss, no crash) matches the second commenter leozzyzheng's 2025-11-19 report more closely than the original body. DXIL (-Zi -Qembed_debug) was checked but the byte-search instrument's own positive control failed there (DXIL's debug source is not a contiguous ASCII run), so it is left unmeasured, not asserted either way. Godbolt explicitly skipped: CE's dxc panes cannot supply a custom IDxcIncludeHandler at all.
+
+> ⚠️ **Issue text is stale.** The body describes a crash under -Zi/-fspv-debug=source with CWD=parent-dir; this no longer reproduces as a crash on any build tested (the disk-read failure has been wrapped in a non-crashing catch since 2020, predating the report). The underlying 'handler ignored' defect the title names is still fully real and unfixed -- only the reported symptom's shape (crash vs silent content loss) is stale. leozzyzheng's 2025-11-19 comment already reflects the current, non-crashing shape.
+
+*No Compiler Explorer link:* API-only defect unreachable via CE's dxc.exe-backed panes; see notes.md
+
+**[#5059](https://github.com/microsoft/DirectXShaderCompiler/issues/5059) — HLSL loop optimization results in an unsupported i33 type**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+The reported defect (SCEV widens the loop's overflow-guarded closed-form multiply ((input-1)*(input-2))/2 to an illegal i33 DXIL integer type) is unfixed and reproduces on every catalogued release and on main-debug. What changed, precisely between v1.9.2602.24 and v1.9.2607, is that the DXIL validator's Types.IntWidth rule now rejects the module (error: Int type 'i33' has an invalid width., exit 0x80004005) instead of letting it through silently as it did on all 20 older releases. Confirmed with -Vd that the illegal type is still produced internally on main-debug even though validation now blocks it. The reporter's literal as-filed command (-T lib_6_3, no -E) is a separate dead end on current main: without a [shader] attribute CSMain is not recognized as a library entry point, so it compiles an empty library; the maintainer's own corrected repro (-T cs_6_3 -ECSMain, confirmed via the thread's self-corrected close/reopen within two minutes on 2024-09-25) is what still demonstrates the defect today. Two negative controls (no loop; same loop shape without a closed-form summation) both score no-repro under both predicates, confirming discrimination.
+
+> ⚠️ **Issue text is stale.** The title and body describe the compile succeeding with an illegal i33 type silently visible in the disassembly. That silent shape stopped occurring at v1.9.2607: on current main-debug the exact same input now hard-fails to compile with error: Int type 'i33' has an invalid width. (exit 0x80004005), so a naive spot-check of the literal reported wording now reads as cannot-reproduce for a defect that is, in fact, still fully present (confirmed internally via -Vd). A reader should not close this as fixed.
+
+*History:* match.json (reported/silent shape, literal 'to i33' in disassembly): repro on all 20 catalogued stable releases v1.4.1907..v1.9.2602.24, no-repro at v1.9.2607 and on main-debug -- single clean transition, 0 invalid probes, 5 prereleases excluded by policy (v1.5.2003, v1.8.2306-preview, v1.8.2405-mesh-nodes-preview, v1.10.2605.2, v1.10.2605.24), v1.2.0-alpha skipped (no usable asset). match-caught.json (new/caught shape, validator's exact 'Int type ... has an invalid width' message): exact mirror image -- no-repro through v1.9.2602.24, repro at v1.9.2607 and main-debug. Combined, the underlying defect is always-repro'd: confirmed with -Vd (validation disabled) that main-debug still internally produces the same illegal i33 zext/mul/lshr/trunc sequence. Release-build-date bracket for the shape change: v1.9.2602.24 (built 2026-05-27) -> v1.9.2607 (built 2026-07-29), adjacent catalogued releases, no gap. Plausible but not proven source: PR #8207 (90ae8d807, merged 2026-03-10, extended ValidateType's width check to instruction operands) and/or the registered ground-truth commit 89e2f98e2 (PR #8762, re-adds the whole valrule table) -- neither built directly to confirm; the release date bracket is the authoritative claim, commit attribution is strong not certain.
 
 **[#708](https://github.com/microsoft/DirectXShaderCompiler/issues/708) — RegisterOffset is being ignored from RegisterAssignment**  
 <sub>batch 001 · triaged against `eff900d54` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
@@ -1039,6 +1462,298 @@ Reproduces, and the mechanism is worse than the report suggests: under -P the -M
 
 *No Compiler Explorer link:* The observable is a set of FILES the driver writes (a .d depfile) and the contents of a -Fi preprocessed output; Compiler Explorer shows only the compiled result of a single translation unit, so it cannot display either. The repro is also multi-file by construction -- a dependency list is only meaningful with #include, and this one uses two nested headers -- and CE is single-file. A link would show a compile that is not the thing under test.
 
+**[#4786](https://github.com/microsoft/DirectXShaderCompiler/issues/4786) — `DxbcConverter` can corrupt integer Immediate Constant Buffer values (x86)**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+DxbcConverter still reinterprets integer ICB data as float (DxbcConverter.cpp) and BitcodeWriter still round-trips it through getElementAsFloat(), unchanged at main-debug (89e2f98e2). PR 4790 fixed this (shipped v1.7.2212-v1.7.2212.1); PR 5253/5279 reverted it on main (merged 2023-06-08) 'to be re-evaluated once AMD root-causes the issue' and no re-fix has landed since -- every stable release v1.7.2308 through v1.9.2607 (latest) is broken again, matching main-debug. dxc.exe cannot exercise this directly (DxbcConverter is only reached via the D3D12 runtime or a standalone dxbc2dxil, dxilconv is not built in this checkout, and no cached release ships dxbc2dxil), so verification is source-level (git show across 21 release tags) plus a standalone x86-vs-x64 ABI harness that reproduces the issue's exact reported bit corruption (0xffbfffca to 0xffffffca) on x86 and shows it absent on x64, with positive and negative controls.
+
+*History:* Regression, not a standing bug. Source read via git show <tag>:path at each stable release tag (git show/git log, not dxc.exe execution, since dxc.exe never reaches DxbcConverter): buggy (ArrayRef<float>) v1.5.2003 through v1.7.2207; FIXED (ArrayRef<uint32_t>) at v1.7.2212 and v1.7.2212.1 via PR 4790 / commit 0a1f7a19f (merged 2022-11-23); reverted and buggy again from v1.7.2308 (2023-08-14) onward via PR 5253 (release branch) and PR 5279 (main, merged 2023-06-08) through the current latest stable v1.9.2607 (2026-07-29) and at main-debug ground truth. v1.4.1907 is an invalid probe: projects/dxilconv did not exist yet (added 2020-02-11, commit a42ffbf49), confirmed via git show failing with 'path exists on disk, but not in v1.4.1907'. No prereleases were needed or probed.
+
+*Labels:* add `bug`, `correctness`.
+
+*No Compiler Explorer link:* DxbcConverter (the legacy DXBC-to-DXIL converter this bug lives in) is never invoked by any CE dxc pane, which compiles HLSL directly through the same unaffected front-end path as local dxc.exe; a clean CE link would show correct output and misleadingly read as 'fixed'. See notes.md control-direct-hlsl.hlsl / variant-direct-hlsl-main-debug.txt for the equivalent local evidence.
+
+**[#4792](https://github.com/microsoft/DirectXShaderCompiler/issues/4792) — `libdxcompiler.so` locks up when used in many threads at once**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+CALL_ONCE_INITIALIZATION in include/llvm/PassSupport.h is unchanged since the repo's first commit; PR #4818 (the discussed static-initializer fix, D19271) was closed unmerged with the concurrency problem still open per the thread. A 13-attempt multithreaded harness against main-debug's dxcompiler.dll (8-512 threads) did not reproduce a hang on Windows/MSVC Debug, a bounded negative result on a different platform than the reporter's Linux/glibc traces, not a fix.
+
+*Labels:* add `bug`, `api`.
+
+*No Compiler Explorer link:* concurrency/thread-safety defect requiring many threads to call the SAME loaded compiler instance concurrently; Compiler Explorer runs one compile per pane request and cannot express concurrent invocation, so it cannot show the hang or its absence
+
+**[#4914](https://github.com/microsoft/DirectXShaderCompiler/issues/4914) — [feature request] Copying "this" fails**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (agent session)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Reproduces on main-debug (89e2f98e29c289ae8ad9e00dd310104fea9fd7df) and on all 20 stable releases v1.4.1907..v1.9.2607, full linear scan, no invalid probes: a member function returning 'this' by value or assigning it into an out-param fails 'cannot compile this aggregate expression yet'. Source-traced to AggExprEmitter (CGExprAgg.cpp) lacking a VisitCXXThisExpr override, unlike the scalar emitter; Sema itself raises no diagnostic (existing -fsyntax-only -verify test cpp-errors.hlsl already contains the construct with no expected-error). Controls: this.member access is unaffected (no-match); the identical repro compiles cleanly with -spirv (no-match), directly confirming Keenuts's 2023 comment; FXC compiles the identical shape cleanly; hlsl_clang_trunk reproduces the byte-identical diagnostic, so the successor front end shares the gap. A narrow, unimplemented CodeGen path rather than a language-design question.
+
+*Labels:* add `bug`.
+
+**[#5039](https://github.com/microsoft/DirectXShaderCompiler/issues/5039) — Nonsensical error message when using undef offset in structured buffer**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Repros on main (89e2f98e2) and every stable release v1.4.1907..v1.9.2607, always. The diagnostic text drifts three times (access-violation crash on the oldest releases, a dedicated DXC_E_LLVM_CAST_ERROR HRESULT with an Internal Compiler error prefix on v1.6.2106-v1.6.2112, plain E_FAIL error: text from v1.7.2207 onward matching the reporter's exact 2023 quote) but none of the rewordings is the requested uninitialized-value diagnostic. Control with the index initialized compiles cleanly, isolating the defect to the uninitialized read rather than structured-buffer array-member codegen generally. CE (dxc_1_6_2112, dxc_trunk) corroborates with the Linux cast<X>() spelling.
+
+*History:* always-repro'd v1.4.1907..v1.9.2607 (wording changed twice: access-violation -> DXC_E_LLVM_CAST_ERROR HRESULT -> plain E_FAIL text; never fixed)
+
+*Labels:* add `diagnostic`.
+
+**[#5040](https://github.com/microsoft/DirectXShaderCompiler/issues/5040) — Undefined value allowed for buffer load index**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Still reproduces on main-debug (89e2f98e29c289ae8ad9e00dd310104fea9fd7df): the filed repro (ByteAddressBuffer.Load of an uninitialized uint index, ps_6_0) compiles cleanly, exit 0, with no diagnostic and DXIL keeping the buffer-load index as i32 undef, i32 undef (both coordinate operands) -- matching the issue body's quoted line exactly. The default (non-Vd) DXIL validator does not flag it either, confirming @damyanp's 2024-08-27 re-scoping of the issue onto the validator. -Wuninitialized still catches it (spot-checking @llvm-beanz's 2023 comment) but remains off by default, a deliberate policy choice (not re-litigated here) tied to closed issues #2494/#5377. bisect --linear: all 20 probeable stable releases from v1.4.1907 through v1.9.2607 reproduce (5 prereleases excluded by policy) -- always-repro'd, not a regression. Controls: an initialized-index variant does not match (proving the fully-undef anchor is not vacuous, since ByteAddressBuffer.Load's second bufferLoad coordinate is always undef regardless of the bug), and adding -Wuninitialized flips the absence clause as expected. Compiler Explorer (dxc_1_6_2112 + dxc_trunk) corroborates: identical undef shape, no diagnostic on either pane.
+
+*History:* always-repro'd across v1.4.1907..v1.9.2607 (full --linear scan, 20/20 probeable stable releases; 5 prereleases excluded by policy); reproduces on main-debug and on CE dxc_1_6_2112/dxc_trunk
+
+*Labels:* add `fxc-disagrees`.
+
+**[#5072](https://github.com/microsoft/DirectXShaderCompiler/issues/5072) — Header output option `-Fh` results in invalid default identifier for library targets**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Reproduces on main (89e2f98e2, dxc --version 1.9.0.5465) and on all 21 measured releases v1.4.1907..v1.9.2607: -T lib_<n> -Fh <file> with no -Vn declares the header's byte array under the literal identifier g_lib.no::entry, which is not a legal C or C++ identifier (confirmed both by a harness reading back the -Fh file and by feeding the generated header directly to cl.exe, which rejects it as both C and C++; the -Vn workaround header compiles clean under both). HLSLOptions.cpp assigns the lib.no::entry sentinel unconditionally for every library profile (introduced 2017-05-12, unmodified since); dxc.cpp's -Fh default-name logic has no library-profile case. #8074, closed 2026-01-20 as a duplicate, shows the maintainer position (workaround exists, no proactive fix planned, PR welcome) was unchanged about ten months after the original 2024-08-27 comment.
+
+*History:* always-repro'd across all 21 cached releases (v1.4.1907 2019-07-15 through v1.9.2607 2026-07-29) plus main-debug; see manual-case-release-history.txt / release-matrix.json. triage.py bisect refuses this issue (ground truth is the main-debug-fh harness, not dxc); release-matrix.py drives each release's OWN dxc.exe directly (the -Fh code lives in the dxc.exe driver, not dxcompiler.dll, so no DLL can be swapped under a fixed harness). git log -S on the HLSLOptions.cpp sentinel dates it to 8e21407ca (2017-05-12), never edited since -- predates the bisection floor, no regression to bisect.
+
+*Labels:* add `shader-linking`.
+
+*No Compiler Explorer link:* The defect is entirely in -Fh's file-only header output (the sentinel identifier never reaches stdout/stderr/asm, confirmed empirically: default disassembly of the same repro.hlsl under -T lib_6_3 with no -Fh contains no trace of 'lib.no::entry' anywhere in its text). CE's /api/compiler/.../compile endpoint only returns stdout/stderr/asm text, with no channel for an arbitrary output file a flag asked dxc to write, so a CE pane cannot surface this symptom at all -- it would show only a successful compile with no observable difference from any other -Fh-free case, which reads as false reassurance rather than evidence.
+
+**[#5105](https://github.com/microsoft/DirectXShaderCompiler/issues/5105) — Allow unused registers to be output to reflection**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Feature request still unmet on main: an unreferenced but explicitly-registered resource is stripped from the DXIL Resource Bindings table (and reflection) with default flags and with -O0, on every stable release back to v1.4.1907. Two open, unmerged PRs (7643, 7734) surfaced by the issue timeline target this directly; neither flag exists on the ground-truth build.
+
+*Labels:* add `reflection`.
+
+**[#5115](https://github.com/microsoft/DirectXShaderCompiler/issues/5115) — signed/unsigned overload resolution error seems unjustified**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Confirmed on main (89e2f98e2) and on all 20 probeable stable releases v1.4.1907..v1.9.2607: f(1) is rejected as ambiguous between f(unsigned int) and f(int), while f(1u) compiles cleanly, matching the issue exactly. Maintainer (llvm-beanz) already confirmed same-day this is DXC's broken overload resolution, to be fixed by the planned HLSL 202x C++-overload-rules adoption. New finding: the successor Clang-based HLSL front end (hlsl_clang_trunk on Compiler Explorer) already compiles the identical source with no diagnostic, while still correctly rejecting a genuinely-ambiguous control (f(1.0f)) with identical wording to classic dxc -- so the fix is real and already realized there, just not in classic dxc.exe.
+
+*History:* always-repro'd across v1.4.1907..v1.9.2607 (linear scan, 20 stable releases, 0 invalid probes) plus main-debug
+
+*Labels:* add `diagnostic`, `type-system`.
+
+**[#5117](https://github.com/microsoft/DirectXShaderCompiler/issues/5117) — Dumping header dependencies to file prevents error output**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-5` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Reproduces, and the mechanism is worse than reported: dxc doesn't just fail to print diagnostics under -M/-MD/-MF, it reports a successful compile (exit 0) for source that would otherwise be rejected. All three flags set the single opts.DumpDependencies bit (lib/DxcSupport/HLSLOptions.cpp), which routes DxcContext::Compile through clang::PreprocessOnlyAction (tools/clang/tools/dxcompiler/dxcompilerobj.cpp, DumpDependencies branch) instead of the normal compile action -- no Parser or Sema ever runs, so no parse/semantic diagnostic can be produced, and the unified hasErrorOccurred() check finds nothing. Preprocessor-level errors (missing #include) still surface, since the preprocessor is what actually runs; only parser/Sema diagnostics (undeclared identifiers, missing semicolons) are lost. Confirmed with three controls: same source without -MD/-MF is correctly rejected; a bad #include still fails under -MD/-MF; a pure syntax error (missing semicolon) also silently 'succeeds' under -MD/-MF. Always-repro's from v1.7.2207 through v1.9.2607 (the full probeable range); earlier releases correctly rejected -MD as an invalid-probe (option did not exist, introduced by #4017, merged 2021-12-21). CE corroborates: https://godbolt.org/z/s4Mcsxj66 shows the same source erroring on one pane and reporting <No output file> at exit 0 on the other.
+
+*Labels:* add `bug`, `diagnostic`.
+
+**[#5165](https://github.com/microsoft/DirectXShaderCompiler/issues/5165) — Validation error on switches having 8 cases: "I8 can only used as immediate value for intrinsic"**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Optimizer-generated i8 truncation in SimplifyCFG's switch-to-lookup-table hole-check mask (unpatched sibling of a fix already applied to the switch's result bitmap for a different, unrelated issue) fails DXIL TypesI8 validation; not a validator bug per damyanp's comment; always-repro'd v1.4.1907 through main-debug, confirmed by linear scan and by Compiler Explorer on dxc 1.6.2112 and trunk.
+
+*Labels:* add `correctness`.
+
+**[#5184](https://github.com/microsoft/DirectXShaderCompiler/issues/5184) — WaveMatch with a vector input value**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+WaveMatch(vec4) still fails DXIL validation under -Od (any element type, -Zi incidental); always reproduced, v1.6.2104..v1.9.2607, never worked.
+
+*Labels:* add `validation`, `up-for-grabs`.
+
+**[#5244](https://github.com/microsoft/DirectXShaderCompiler/issues/5244) — [SPIR-V][SM6.7] Add support for RWTexture2DMS in the SPIR-V backend**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Still reproduces on main as a real crash (chained LLVM asserts in clang::spirv::PreciseVisitor::isAccessingPrecise, exit 0xE0000001), not merely an unimplemented-feature diagnostic; continuing past both asserts (emulating Release/NDEBUG) shows DXC's own SPIR-V validator then rejects the malformed module it just built. All 19 probeable stable releases v1.5.2010..v1.9.2607 hit the same invalid-SPIR-V path and fail the same way without crashing (assert compiled out), so this has never worked in SPIR-V on any checkable release -- not a regression.
+
+*History:* always-repro'd across v1.5.2010..v1.9.2607 (19 stable releases; v1.4.1907 invalid-probe, SPIR-V codegen not built)
+
+*Labels:* add `bug`, `crash`.
+
+**[#5255](https://github.com/microsoft/DirectXShaderCompiler/issues/5255) — Rewriter removed struct declaration which used in constant buffer.**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+dxr -remove-unused-functions -remove-unused-globals removes a struct declaration still referenced as the element type of an array-typed cbuffer member, producing HLSL that references an undeclared type; root-caused to Type::getAsTagDecl() not unwrapping array types in VisitHLSLBufferDecl, and independently confirmed by PR #5265 (opened 2023-06-02, correct fix, built clean, never merged, auto-closed 2026-01-22 for inactivity).
+
+*History:* always-repro'd across every checkable release (v1.5.2010..v1.9.2607, 20 stable releases) and main (89e2f98e29c289ae8ad9e00dd310104fea9fd7df); v1.4.1907 is invalid-probe (predates the rewriter's -remove-unused-* option support)
+
+*Labels:* add `bug`, `rewriter`, `correctness`.
+
+*No Compiler Explorer link:* the bug lives in the standalone dxr.exe rewriter surface (IDxcRewriter2/RewriteUnused via -remove-unused-globals/-remove-unused-functions), which is not exposed by dxc.exe at all (dxc: 'Unknown argument: -remove-unused-functions', captured in variant-dxc-rejects-rewrite-flags-main-debug.txt) and is not one of the compile modes Compiler Explorer's DXC panes drive; there is no CE surface that can run this repro
+
+**[#5258](https://github.com/microsoft/DirectXShaderCompiler/issues/5258) — SemaHLSL's FlattenedTypeIterator does not handle bit fields properly.**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI agent` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Three-part issue. Examples 1 and 3 (wrong cast rejection; missing narrowing diagnostic) still reproduce on main (89e2f98e2, 1.9.0.5465) and on every stable release back to v1.6.2112, the first to support -HV 2021. Example 2 (cast from 0 to an enum-first bit-field struct) is fixed: errors through v1.8.2502, clean from v1.8.2505 onward including main; the reporter's own plain-field-first control stays clean throughout. Fix is release-bracketed, not commit-isolated (162-commit/41-file window overlapping an unrelated long-vector/SM6.9 refactor). CE verified for Example 1 only (godbolt.org/z/b9vP5dhMK); Examples 2/3 measured via full local per-release history instead.
+
+*History:* Mixed, per-example: Example 1 (struct-to-struct cast, equal total storage, wrongly rejected) always-repro'd v1.6.2112..v1.9.2607, unfixed. Example 2 (cast from 0 to a struct whose first bit-field is enum-typed) fixed between v1.8.2502 (repro) and v1.8.2505 (clean); 162-commit/41-file window, release-level attribution only, not isolated to one commit. Example 3 (no diagnostic narrowing a >32-bit bit-field struct to uint) always-repro'd v1.6.2112..v1.9.2607, unfixed. v1.4.1907/v1.5.2010/v1.6.2104/v1.6.2106 are invalid-probe for all three (-HV 2021 unsupported).
+
+*Labels:* add `type-system`, `diagnostic`.
+
+**[#5269](https://github.com/microsoft/DirectXShaderCompiler/issues/5269) — Amplification shader: support for empty payload**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Empty-struct amplification-shader payload (struct Payload {}; DispatchMesh(...,pld)) still fails DXIL validation on main (89e2f98e2) exactly as reported: 'payload size 4 is greater than declared size of 0 bytes'. Always-repro'd since mesh shaders shipped (v1.5.2010) through v1.9.2607; v1.4.1907 predates as_6_5. Root cause identified by source read: ValidateAsIntrinsics in DxilValidation.cpp measures the payload POINTER's alloc size (constant 4 on DXIL's 32-bit-pointer datalayout) instead of the pointee struct, so the check only ever fires when the real struct size is below 4 bytes -- i.e. only for an empty struct. Confirmed with two controls: a normal 4-byte payload compiles clean, and -Vd (skip validation) on the empty payload also compiles clean and emits a declared size of 0 in the DXIL metadata, isolating the defect to this one validator comparison.
+
+*History:* always-repro'd (v1.5.2010..v1.9.2607; v1.4.1907 predates SM 6.5 / mesh shaders, invalid-probe)
+
+*Labels:* add `validation`.
+
+**[#5290](https://github.com/microsoft/DirectXShaderCompiler/issues/5290) — Rewriter: entrypoint function's param referenced types are removed when param is not used.**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+dxr -remove-unused-functions -remove-unused-globals -E ps_main removes a struct declaration that is still referenced -- either as the type of the entry point's own (unread) parameter, or via a local variable's declaration/cast that is itself never subsequently read. Root-caused to VarReferenceVisitor only marking a type used via a later DeclRefExpr to an already-declared variable, never via the declaration/parameter itself (entryFnDecl->parameters() is never walked in this file's history); one root cause for both reported shapes, confirmed by used-vs-unused controls that flip the verdict identically for each.
+
+*History:* always-repro'd across every checkable release (v1.5.2010..v1.9.2607, 20 stable releases) and main (89e2f98e29c289ae8ad9e00dd310104fea9fd7df); v1.4.1907 is invalid-probe (predates the rewriter's -remove-unused-* option surface)
+
+*Labels:* add `bug`, `rewriter`, `correctness`.
+
+*No Compiler Explorer link:* dxr.exe / IDxcRewriter2 -remove-unused-* surface is not one of the compile modes Compiler Explorer's DXC panes drive (confirmed: dxc.exe itself rejects these flags as 'Unknown argument', see variant-dxc-rejects-rewrite-flags-main-debug.txt); no CE surface can run this repro
+
+**[#5302](https://github.com/microsoft/DirectXShaderCompiler/issues/5302) — Incorrect code for waterfall loop in VS shader**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Compiling the reporter's waterfall loop as vs_6_0 hoists the wave-sensitive buffer load out of the loop because CGHLSLMS.cpp's EmitHLSLCondBreak only engages the dx.break protection (PR #2795) for PS/CS/Lib; ps_6_0 on the identical source stays protected. Unchanged since dx.break was introduced (2020-03-30, d3af7f123): reproduces on every stable release from v1.5.2010 through v1.9.2607 and on main-debug (89e2f98e2); v1.4.1907 predates the mechanism for every stage and is invalid evidence, not a clean result.
+
+*Labels:* add `correctness`, `incorrect-code`.
+
+**[#5328](https://github.com/microsoft/DirectXShaderCompiler/issues/5328) — Typo and potential null dereference in HLMatrixBitcastLowerPass.cpp**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Confirmed present, unchanged, on main-debug @ 89e2f98e29c289ae8ad9e00dd310104fea9fd7df: HLMatrixBitcastLowerPass.cpp:244 constructs IRBuilder<>(LI) inside the StoreInst arm, where LI is guaranteed null (sibling if/else-if arm). This is an unconditional null deref once the branch executes, per IRBuilder's Instruction* ctor semantics. Several agent-constructed dxc -T lib_6_x -link repro attempts did not trigger it (AlwaysInlinerPass inlines the cross-module call before the buggy pass runs), so the verdict rests on static source verification, not an executed crash of this exact branch. The 2026-04-27 comment's crash is a separate, unrelated bug in HLMatrixLowerPass.cpp (different file/function/fault).
+
+*Labels:* add `crash`, `shader-linking`.
+
+*No Compiler Explorer link:* MatrixBitcastLowerPass only runs during multi-module dxc -T lib_6_x -link; CE compiles a single file per pane with no linking step, so it cannot demonstrate the reported code path
+
+**[#5357](https://github.com/microsoft/DirectXShaderCompiler/issues/5357) — Ensure type annotations are added for reference returning intrinsics/operators**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Reproduces on main (89e2f98e2): OutputArray[1].GetThreadNodeOutputRecords(2).OutputComplete(), chained with no intermediate local, asserts in AddOpcodeParamForIntrinsic (pAnno null -- missing type annotation) on Debug, access-violates on every catalogued stable release supporting lib_6_8 (v1.8.2403..v1.9.2607), and SIGSEGVs on CE dxc_trunk. Binding the result to a local first (the documented workaround) compiles cleanly. PR #6227 (Fixes: #5357) has been open/draft and untested since 2024-01 and is unmerged.
+
+*Labels:* add `bug`, `crash`.
+
+**[#5389](https://github.com/microsoft/DirectXShaderCompiler/issues/5389) — `as` casts on integer constant swizzles result in invalid module bitcode (or assert in debug)**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+A bare, unsuffixed integer literal swizzled to a vector (e.g. (123).xx) stays 64-bit through the swizzle in DXC's default/pre-HLSL2021 language mode; feeding it to asuint/asint/asfloat produces a type-mismatched call that trips an assert in Debug builds and fails DXIL validation (Invalid record / Validation failed.) in Release builds. Always-repro'd across all 20 probeable stable releases and on current Compiler Explorer trunk. -HV 2021 does not fix it; only the newer, still-experimental -HV 202x preview mode does. Maintainer (damyanp) marked the issue dormant: fixed only by the HLSL 202x language change, would review a targeted codegen fix. The same defect closed #5082 (an earlier, related report) as resolved under identical HLSL-202x reasoning.
+
+*History:* always-repro'd across v1.4.1907..v1.9.2607 (all 20 probeable stable releases, linear scan, no invalid probes); corroborated today on Compiler Explorer dxc_trunk. -HV 2021 does NOT fix it (refuted hypothesis); only the experimental -HV 202x preview mode does. Same underlying defect as the earlier-filed and since-closed #5082.
+
+*Labels:* add `crash`, `type-system`, `hlsl-next`, `up-for-grabs`.
+
+**[#5416](https://github.com/microsoft/DirectXShaderCompiler/issues/5416) — depfile generation isn't supported in the same invocation as compilation**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Always reproduces: -MD/-MF silently makes dxc skip -Fo output (exit 0, no diagnostic) for any ordinary compile, not just -P. Root cause: DxcContext::ActOnBlob returns unconditionally after writing the depfile, before reaching the -Fo write (dxc.cpp:305-323), present since -M/-MD/-MF was added in #4017 (2021-12-21). Reproduces on main-debug, all 15 probeable stable releases (v1.7.2207-v1.9.2607), and CE dxc_trunk; zero clean results anywhere in range. Related to but distinct from #4723 (-P specific) and #5117 (swallowed diagnostic on invalid source, same code region).
+
+*History:* always-repro'd: 6 pre-2021.12.21 releases invalid-probe (Unknown argument '-MD', predates -M/-MD/-MF, PR #4017); all 15 stable releases v1.7.2207..v1.9.2607 plus main-debug (16 total) reproduce with zero clean results; CE dxc_trunk corroborates; introducing commit ff270c74b (#4017, merged 2021-12-21)
+
+*Labels:* add `diagnostic`.
+
+**[#5417](https://github.com/microsoft/DirectXShaderCompiler/issues/5417) — Attributes read via `GetAttributeAtVertex` aren't counted as read in the signature**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+GetAttributeAtVertex reads are never marked in the input signature's Used mask (Mask=xyzw, Used=blank); MarkUsedSignatureElements in DxilPreparePasses.cpp never checks DxilInst_AttributeAtVertex. Always reproduces v1.4.1907..v1.9.2607 plus CE dxc_1_6_2112/dxc_trunk and main-debug.
+
+*Labels:* add `reflection`.
+
+**[#5481](https://github.com/microsoft/DirectXShaderCompiler/issues/5481) — [Build] enable clang Source Based Code Coverage on windows**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude Sonnet 4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Windows clang Source-Based Code Coverage remains unimplemented at ground truth: the only coverage CI job (coverage-gh-pages.yml) and its cache script (PredefinedParams.cmake) are Linux-only, and closed PR #5510's matching Windows fix (single-quoted -fprofile-instr-generate flag, Python3_EXECUTABLE vs PYTHON_EXECUTABLE) was never merged -- all three of its target lines are unchanged on main.
+
+*History:* not-attempted -- no dxc.exe command line applies; build/CI infrastructure request only
+
+*Labels:* add `ci`.
+
+*No Compiler Explorer link:* pure build/CI infrastructure request; no shader or dxc.exe command line applies -- CE cannot exercise a Windows cmake/CI coverage pipeline
+
+**[#5554](https://github.com/microsoft/DirectXShaderCompiler/issues/5554) — C++11 enums don’t work as integer constants as expected**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+A scoped enum's enumerator is rejected as a non-type template argument even when the template parameter's declared type is that exact enum type (repro.hlsl: 'non-type template argument of type ENUM is not an integral constant expression'); the identical pattern with a plain enum compiles, and gcc accepts the scoped-enum version, so this is a DXC-specific gap. The original report's array-index half is not a bug -- gcc rejects the same uncast scoped-enum array index identically. Duplicate #6706 already carries a maintainer statement that DXC will not get further investment here and that Clang does not have the gap; the hlsl_clang_trunk godbolt pane now confirms that directly.
+
+*History:* always-repro'd v1.6.2112..v1.9.2607 and main-debug (89e2f98e2); v1.8.2405's clean bisect result is a confirmed invalid-probe artifact (unrelated global-namespace collision with the builtin 'integral_constant' added by PR #6156, itself fixed by PR #6700 before v1.8.2407 -- see notes.md), not a fix. v1.4.1907..v1.6.2106 are invalid-probes (HV 2021 did not exist yet). v1.6.2112 (2021-12-08) predates the 2023-08-05 filing by ~20 months, so the checkable history covers the issue's whole life.
+
+*Labels:* add `type-system`.
+
+**[#5668](https://github.com/microsoft/DirectXShaderCompiler/issues/5668) — DispatchMesh fails when given an emtpy struct**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Empty-struct amplification-shader payload (struct S{}; DispatchMesh(1,1,1,s)) still fails DXIL validation on main (89e2f98e2) exactly as reported: 'payload size 4 is greater than declared size of 0 bytes'. Always-repro'd since as_6_6 shipped (v1.6.2104) through v1.9.2607 and on main; v1.4.1907/v1.5.2010 predate as_6_6. Root cause identified by source read: ValidateAsIntrinsics in DxilValidation.cpp measures the payload POINTER's DataLayout alloc size (constant 4 on DXIL's 32-bit-pointer datalayout) instead of the pointee struct's size, so the check only fires when the real struct size is below 4 bytes -- i.e. only for an empty struct. Confirmed with two controls: a 4-byte payload compiles clean, and -Vd on the empty payload also compiles clean while emitting a declared size of 0 in DXIL metadata, isolating the defect to this one validator comparison. Same defect independently identified in #5269 (filed three months earlier) with a matching source-level finding.
+
+*History:* always-repro'd across v1.6.2104..v1.9.2607 (18 stable releases, linear scan; v1.4.1907 and v1.5.2010 answer 'invalid profile as_6_6' and are invalid probes)
+
+*Labels:* add `validation`.
+
+**[#5674](https://github.com/microsoft/DirectXShaderCompiler/issues/5674) — Crash in syntax check when using 'matrix' keyword in an operation**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-5 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Declaring a variable literally named 'matrix' (float2x2 matrix;) and using it in an expression crashes dxc (access violation / ADL over an invalid ValueDecl) instead of diagnosing or compiling. Regressed in v1.7.2207 (previously an outright parse-time rejection back to v1.4.1907); attributed to a7fa058dd 'Rework name lookup' (#4332), which made bare 'matrix' valid HLSL. Still reproduces on main.
+
+*History:* regressed-in v1.7.2207 (last good v1.6.2112, first bad v1.7.2207); attributed to a7fa058dd 'Rework name lookup' (#4332), confirmed in-window via merge-base, not built in isolation
+
+*Labels:* add `matrix-bug`.
+
+**[#5682](https://github.com/microsoft/DirectXShaderCompiler/issues/5682) — Install error**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-opus-4.6 (via GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Plain 'install' target unconditionally installs llvm-as (add_llvm_tool's install(TARGETS) rule, cmake/modules/AddLLVM.cmake), but llvm-as is excluded from the default build by HLSL_OPTIONAL_PROJS_IN_DEFAULT=OFF (tools/llvm-as/CMakeLists.txt), so cmake_install.cmake fails to find an executable that was never built. Unchanged in source from before this issue was filed (18328d510) through the ground-truth commit. Confirmed by maintainer-closed duplicate #5867 ('llvm-as ... was never built'). install-distribution (added pre-issue, PR #5154) sidesteps this via per-component install targets and already works, but is undocumented outside CMakeLists.txt/CI.
+
+*Labels:* add `up-for-grabs`.
+
+*No Compiler Explorer link:* Compiler Explorer compiles a single HLSL source and cannot configure or install a CMake build; this issue has no shader repro at all. Evidence is a static read of the CMake rule graph, per notes.md.
+
+**[#5768](https://github.com/microsoft/DirectXShaderCompiler/issues/5768) — Declare SV_VertexID as float only get validation error**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude Sonnet 4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Still reproduces on main (89e2f98e2): SV_VertexID typed float compiles past Sema and is only rejected at DXIL validation ('SV_VertexID must be uint'), not as a compile-time error. Always-repro'd across all 20 probeable stable releases v1.4.1907..v1.9.2607 (linear scan). PR #3043 added exactly this check and merged 2021-02-25 but was reverted 5 days later ('due to regressions'); both events fall entirely between stable releases v1.5.2010 and v1.6.2104, so no release ever shipped it, and no follow-up has landed since.
+
+*Labels:* add `type-system`, `validation`.
+
+**[#5801](https://github.com/microsoft/DirectXShaderCompiler/issues/5801) — Sample immediate offset range is not diagnosed or validated in SM 6.7**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Both the SM6.7 front-end/legalizer bypass (DxilLegalizeSampleOffsetPass.cpp:88-90) and the SM6.7 validator bypass (DxilValidation.cpp:369-372, ValidateResourceOffset) still unconditionally skip the -8..7 constant-offset range check under IsSM67Plus(), confirmed by source reading and by compiling the reporter's exact shader: main-debug (89e2f98e2) accepts int2(12,-14) with exit 0 and the literal offsets embedded in final DXIL, while the identical source at ps_6_6 still emits the range diagnostic. Compiler Explorer's dxc_trunk (Linux Release) reproduces the same defect; dxc_1_6_2112 correctly rejects the profile as SM6.7-unaware. Bisecting stable releases: every release able to target ps_6_7 (v1.7.2207 through v1.9.2607) reproduces, and no earlier stable release can even select the profile, so this is a since-inception gap, not a regression.
+
+*Labels:* add `sm6.7`.
+
+**[#5804](https://github.com/microsoft/DirectXShaderCompiler/issues/5804) — Fix UBSAN alignment failures**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+UBSAN's alignment sub-sanitizer, disabled by #5803/#6431 because CheckedReaderWriter does unaligned access, is still excluded (fno-sanitize=vptr,function,alignment) in cmake/modules/HandleLLVMOptions.cmake at ground truth; no fix or re-enable has landed.
+
+*Labels:* add `sanitizer`, `build`.
+
+*No Compiler Explorer link:* build-configuration tech-debt issue (UBSAN alignment sanitizer disabled in CMake); no HLSL/shader repro exists or applies -- nothing for Compiler Explorer to show
+
+**[#5924](https://github.com/microsoft/DirectXShaderCompiler/issues/5924) — Cannot do swizzle operations with floating type when it's a typename**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Swizzle (.xx) on a template type parameter that resolves to a scalar fails with 'member reference base type is not a structure or union'; the same swizzle compiles fine when the parameter is declared as a literal scalar type or outside any template. Always-repro'd across every release with template support (v1.7.2308..v1.9.2607) and on main; templates did not exist before that. hlsl_clang_trunk (the new Clang-based HLSL frontend) compiles the exact repro cleanly, corroborating a prior maintainer comment that it works in clang.
+
+*Labels:* add `type-system`; remove `check-in-clang`.
+
+**[#5993](https://github.com/microsoft/DirectXShaderCompiler/issues/5993) — ClangTidy: clang-analyzer-core.uninitialized.Branch in third_party/dawn/third_party/dxc/tools/clang/tools/libclang/CIndex.cpp**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-opus-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Source pattern is unchanged verbatim at ground truth (verified via git show, not a dxc probe: CIndex.cpp is the optional libclang target, never compiled by the dxc target). PR #6002 implemented the maintainer-suggested fix and was approved but never merged; it was closed 2026-01-22 by a 2-year-inactivity sweep, not rejected. Impact is low in practice since the flagged branch is dead code in every current DXC config.
+
+*Labels:* add `up-for-grabs`.
+
+*No Compiler Explorer link:* Not a shader/dxc issue: the finding is a ClangTidy static-analysis pattern in tools/clang/tools/libclang/CIndex.cpp (the libclang CMake target, never compiled by dxc/dxcompiler), not compiler behavior over an HLSL input. Compiler Explorer cannot run ClangTidy or express this.
+
+**[#6005](https://github.com/microsoft/DirectXShaderCompiler/issues/6005) — [Assert Triggered] MaybeODRUseExprs.empty() && "Leftover expressions for odr-use checking"**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Debug-build assert (MaybeODRUseExprs.empty(), SemaDecl.cpp ActOnFinishFunctionBody) still reproduces on main, confirmed independent of -spirv; invisible on Release builds/Compiler Explorer because assert() compiles out under NDEBUG, which is not evidence of a fix.
+
+*History:* repro'd on the only assert-enabled build measured (main-debug, exit 0xE0000001); unmeasurable further back (no older Debug build available in this session); never-repro'd on any stable Release binary v1.7.2207-v1.9.2607, but that is structurally uninformative since assert() compiles out under NDEBUG in every Release build; v1.4.1907-v1.6.2112 are invalid-probe (predate -HV 202x/HLSL2021 support, confirmed load-bearing by a no-Wno-flags control)
+
+*Labels:* add `crash`, `type-system`.
+
+**[#6073](https://github.com/microsoft/DirectXShaderCompiler/issues/6073) — Non-const static data members of templated structs fail to compile**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Still reproduces on main and on every stable release that can parse HLSL templates (v1.7.2308..v1.9.2607, 12 releases, no invalid probes inside that range); older releases reject 'template' as a reserved keyword and are invalid-probes, not clean results. Release binaries print the exact text quoted in the issue, byte-identical mangled name included; the Debug ground truth instead crashes earlier on an unrelated Debug-only assert in clang::LinkageComputer::getLVForDecl, confirmed (via cdb 'gh' continuation past that assert) to be the same defect reaching the identical Comdat text downstream. Both patterns the issue says already work (non-templated static member; templated const static member) still compile cleanly.
+
+*Labels:* add `hlsl-next`.
+
 **[#8737](https://github.com/microsoft/DirectXShaderCompiler/issues/8737) — Atomics on RWTexture2DMS result in silent UB or ICE**  
 <sub>batch 004 · triaged against `eff900d5` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.6-sol`</sub>
 
@@ -1086,12 +1801,238 @@ Reproduces on main (1.9.0.5433, 13730886e) and on all 20 stable releases v1.4.19
 
 Reproduces on main (1.9.0.5433) and on all 20 stable releases from v1.4.1907 to v1.9.2607, so it predates the 2022 report. `static groupshared uint` lowers to `@storeTile = internal unnamed_addr addrspace(3) global i1 false`; docs/DXIL.rst:240 defines i1 memory accesses for thread-local memory only, and i32/f32/f64 for groupshared. Removing the single token `static` gives `addrspace(3) global i32` -- that is the known-good control, and across 22 builds (20 stable releases, 1 prerelease, main) the repro emits i1 on 22/22 while the control emits it on 0/22, with the predicate self-test passing 22/22. Confirms the maintainer comment about the validator and the spec contradicting each other: DXIL validation accepts the i1 module on 22/22 builds, while a 64KB-groupshared control is correctly rejected on 22/22, so the validator does police groupshared memory and still does not object. Attributed by measurement with dxopt (null-pass control emits i32): -globalopt is necessary and sufficient, matching TryToShrinkGlobalToBoolean (lib/Transforms/IPO/GlobalOpt.cpp:1595); `static` supplies the internal linkage that makes the global eligible. The shrink is value-preserving per thread (loads come back as select/zext); what it breaks is the groupshared object type. Clang trunk emits addrspace(3) global i32 for the same source at -O3. The reporter's GPU-level symptom was not verified -- it needs hardware.
 
+**[#4858](https://github.com/microsoft/DirectXShaderCompiler/issues/4858) — [DXIL] Illegal code motion for CalculateLevelOfDetailUnclamped**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI agent` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+CalculateLevelOfDetailUnclamped is sunk into a divergent if-block in every stable release (v1.4.1907-v1.9.2607, linear scan) and on main (89e2f98e2); confirmed on CE dxc_1_6_2112/dxc_trunk. -Od suppresses it (control). Clang check-in-clang still open: Clang rejects the shader at Sema (missing InterlockedMin), unrelated to the sinking.
+
+**[#4958](https://github.com/microsoft/DirectXShaderCompiler/issues/4958) — Compiling hull shader with unused globals causes internal compiler error**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Still reproduces on main-debug (89e2f98e29c289ae8ad9e00dd310104fea9fd7df): compiling the filed hs_6_6 hull shader traps assert(Index < Length) in llvm::ArrayRef<Value*>::operator[], called from StoreVectorOrStructArray during HLSL SROA (SROA_Helper::RewriteForStore), rewriting a store into the unused Texture2D array global before it is eliminated as dead -- confirms and pins down Keenuts 2023-01-26 comment. Continuing past the trap (gh) hits an access violation in the same chain, so Debug-assert and Release-AV are one defect. DXIL-only: identical -spirv compile is clean. bisect: v1.6.2104 clean (oldest release expressing hs_6_6), regressed-in v1.6.2106 (exact stderr/address match to the reporter v1.7.2212 quote), reproduces through v1.9.2607 (newest stable) and CE dxc_trunk (cast<X> E_FAIL form). Re-testing the reporter ARRAY_SIZE table as hypotheses: only size 0 is clean today; size 2, which the report called ok, now crashes like every other non-empty size -- a broader form of the same bug, not a weaker one.
+
+*History:* regressed-in v1.6.2106 (last good: v1.6.2104, oldest release expressing hs_6_6); reproduces in every stable release through v1.9.2607 (newest catalogued) and on main-debug
+
+**[#5116](https://github.com/microsoft/DirectXShaderCompiler/issues/5116) — Weird behavior when returning texture**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+SM 6.6 silently accepts what SM 6.5 correctly rejects: repro.hlsl compiles clean at -T cs_6_6 but -T cs_6_5 fails with 'local resource not guaranteed to map to unique global resource'. Confirmed on main-debug (89e2f98e2), on both probed SM-6.6-shipping endpoints (v1.6.2104, v1.9.2607, agreeing), and on dxc_trunk via Compiler Explorer. Negative control (unambiguous resource index) compiles clean at both profiles, ruling out a vacuous match. Matches maintainer's 2023-11-01 finding (1); finding (2), full CF flattening of the phi/undef, is a separate unresolved ask not re-measured here.
+
+**[#5169](https://github.com/microsoft/DirectXShaderCompiler/issues/5169) — Add D3D_SVC_BIT_FIELD to D3D_SHADER_VARIABLE_CLASS**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+D3D_SVC_BIT_FIELD is still absent from D3D_SHADER_VARIABLE_CLASS in the vendored external/DirectX-Headers d3dcommon.h; DXC still synthesizes it via an unconditional #define with the original FIXME from #5142, unchanged since that PR merged (2023-05-05) through main-debug@89e2f98e.
+
+*No Compiler Explorer link:* no HLSL repro applies: this is a request to add D3D_SVC_BIT_FIELD to the vendored D3D_SHADER_VARIABLE_CLASS header enum, not a compiler-behavior issue. DXC already synthesizes the same reflection value via a local #define regardless of the header, so a shader compiled on Compiler Explorer would show identical output whether or not the header is fixed -- nothing to see. See expected.md and notes.md.
+
+**[#5194](https://github.com/microsoft/DirectXShaderCompiler/issues/5194) — Impossible to add template on operator() overload**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Templated operator() overload calls (t(5), t<uint>(5), t.operator()<uint>(5)) all still error on main (89e2f98e2); bisect shows always-repro'd from v1.6.2112 (the oldest release that can even parse -HV 2021) through v1.9.2607, so this predates the report and was never implemented, not a regression. The successor hlsl_clang_trunk front end already accepts the two C++-legal forms (t(5), t.operator()<uint>(5)) in isolation and only rejects t<uint>(5), which is not valid C++ syntax either -- matching real C++ overload rules on this input, though unshipped in a DXC release.
+
+**[#5268](https://github.com/microsoft/DirectXShaderCompiler/issues/5268) — Rewriter remove used static global variable which is used for other static global variable definition used by entryPoint**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Rewriter's -remove-unused-globals drops a static global whose value is still referenced from a kept global's own initializer (a compound expression VarReferenceVisitor does not walk into), producing rewritten HLSL that fails to recompile. Confirmed on main-debug (89e2f98e2) and all 19 probeable stable releases; v1.4.1907 cannot run the flag at all.
+
+*History:* always-repro'd (v1.5.2010-v1.9.2607, all 19 remaining stable releases, plus main-debug 89e2f98e2); v1.4.1907 is an invalid-probe -- its dxr.exe cannot functionally run -remove-unused-globals at all (generic 0x80070057 on any input including a known-good rewriter test); v1.5.2003 excluded per standing prerelease policy
+
+*No Compiler Explorer link:* Defect is in the standalone dxr.exe rewriter's -remove-unused-globals pass, not in the dxc.exe compiler driver CE exposes; dxc.exe itself rejects the flag outright (dxc failed : Unknown argument: '-remove-unused-globals', verified locally), so no CE pane -- dxc or Clang -- can run the tool under test. Nothing to show.
+
+**[#5292](https://github.com/microsoft/DirectXShaderCompiler/issues/5292) — Rewriter : does not remove unused typedef statements and it lead to compile error**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+dxr's unused-declaration removal drops struct PSOutput (unreachable from ps_main) but never considers typedef PSOutput PSPointOutput for removal, since CollectRewriteHelper only tracks VarDecl/FunctionDecl/TagDecl, never TypedefDecl -- leaving a dangling typedef that fails to recompile, exactly as reported. Reproduces on every stable release able to run this exact probe (v1.5.2010 through v1.9.2607) plus main-debug; v1.4.1907/v1.5.2003 are invalid probes (rewriter API/flag unavailable), not clean results.
+
+*No Compiler Explorer link:* the defect is in the dxr rewriter tool (IDxcRewriter2::RewriteWithOptions), which Compiler Explorer's dxc panes never invoke -- CE only drives ordinary single dxc compiles, so there is no CE surface that can exercise -remove-unused-globals/-remove-unused-functions or reproduce this symptom
+
+**[#5338](https://github.com/microsoft/DirectXShaderCompiler/issues/5338) — Arrays cast compiler error**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Non-monotonic and never actually fixed: v1.4.1907 hangs (confirmed at 240s, not a 60s timeout artefact); v1.5.2010..v1.6.2112 (5 releases) reject with an ordinary diagnosed DXIL-validation error 'Not all elements of output SV_ClipDistance were written' (match-diagnostic.json), not a clean compile; v1.7.2207 onward through v1.9.2607 and main-debug reproduce the reporter's exact 'llvm::cast<X>() argument of incompatible type!' (Release) / the maintainer's exact RewriteBitCast assertion (Debug, ScalarReplAggregatesHLSL.cpp:2630, line only moved from 2548). FXC (/T vs_5_0) compiles cleanly and constant-folds the loop to the correct n*n values -- DXC has never once compiled this input successfully. Candidate regression commit ed717499a (#4456) identified by source search but not built/confirmed (task scope excludes rebuilds).
+
+*History:* non-monotonic: repro (hang) v1.4.1907 -> no-repro (crash predicate)/still-fails (validation-diagnostic predicate) v1.5.2010..v1.6.2112 -> regressed-in v1.7.2207, repro through v1.9.2607 and main-debug
+
+**[#5423](https://github.com/microsoft/DirectXShaderCompiler/issues/5423) — `dxr.exe` doesn't support macro definitions via its CLI**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+dxr.exe still silently ignores -D on the exact ground-truth commit (89e2f98e2) and on all 20 cached stable releases v1.4.1907..v1.9.2607: dxr.cpp hardcodes RewriteWithOptions(..., nullptr, 0, ...) so parsed opts.Defines are never forwarded to the rewrite functions. dxc.exe's -D float4=0 parse-failure (the reporter's own control) still reproduces identically, confirming the -D machinery itself works. An unmerged fix (PR #5424, Fixes #5423) exists but stalled on an unresolved design question (see #4357) and was closed as inactive, not rejected.
+
+*History:* always-repro'd v1.4.1907..v1.9.2607 (dxr.exe half; dxc.exe control also unconditional)
+
+**[#5434](https://github.com/microsoft/DirectXShaderCompiler/issues/5434) — [Validation] Add validation for Annotate*Handle intrinsics**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude Sonnet 4.5 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Confirmed still missing: AnnotateHandle/AnnotateNodeHandle/AnnotateNodeRecordHandle validate a handle operand not derived from any Create*Handle call (DxilValidation.cpp's ValidateHandleArgs still hits the documented TODO and skips ValidateHandleArgsForInstruction). Hand-built DXIL with a zero/undef handle validates clean on all three opcodes; the identical value fed to a checked opcode (BufferUpdateCounter) is correctly rejected, isolating the gap to these opcodes. Gap dates to #5399 (2023-07-21, 3 days after filing), unchanged through the 2025-06-03 rewrite and in the current release. No labels changes suggested.
+
+*No Compiler Explorer link:* no HLSL repro exists or is reconstructable -- the gap only shows up in hand-built adversarial DXIL fed directly to the standalone validator, which CE's dxc panes (HLSL source only) cannot express
+
+**[#5436](https://github.com/microsoft/DirectXShaderCompiler/issues/5436) — [Validation] Add an assert to make sure no dxil opcodes are left unvalidated.**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude Sonnet 4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Still unaddressed on main (89e2f98e2). Neither ValidateDxilOperationCallInProfile's nor ValidateHandleArgs's opcode-switch default case has the requested DXASSERT or a comment justifying its absence; the former's default is only a TODO acknowledging the exact gap, the latter's default runs real generic handle-argument validation but documents no reasoning for why that is sufficient. Confirmed still-open via a live GitHub cross-reference: bob80905 (the reporter) linked this same issue from a PR #5982 review thread on 2023-11-08 in reply to a maintainer asking whether a tracking issue existed for this same switch.
+
+*History:* n/a - no shader/dxc invocation applies; source-only. Both named opcode switches' default cases (ValidateDxilOperationCallInProfile, lib/DxilValidation/DxilValidation.cpp) still lack the requested assert/comment at ground truth (89e2f98e2). Ancestor-scoped git history (not --all) shows both entered this repo's lineage together in one large synthetic commit (8a8b29f96, #7353); 24 later commits touch the file, all adding new case labels, none touching the default block.
+
+*No Compiler Explorer link:* not a compiler behavior/bug -- the ask is to add a DXASSERT to the empty default case of two switch statements in lib/DxilValidation/DxilValidation.cpp (ValidateDxilOperationCallInProfile, ValidateHandleArgs/ValidateHandleArgsForInstruction). There is no HLSL input or dxc invocation whose observable output would change whether or not that assert exists -- an unhandled opcode is validated as clean either way; only a Debug assert build touching that exact opcode would ever show a difference, and no known opcode currently falls through silently in a way that would demonstrate it. A CE link showing dxc compiling something fine would not speak to whether the assert was added.
+
+**[#5491](https://github.com/microsoft/DirectXShaderCompiler/issues/5491) — DXC does not eliminate wave intrinsic calls even when the result is unused**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Confirmed on main (89e2f98e29c289ae8ad9e00dd310104fea9fd7df) and on all 20 probeable stable releases back to v1.4.1907 -- always-repro'd, not a regression. The wave call's result (%2) has no users before ret void. DxilOperations.cpp declares every wave/quad DXIL op with Attribute::None (only nounwind, never readnone/readonly), which the emitted DXIL itself confirms (declare ... #1 / attributes #1 = { nounwind }); ordinary LLVM DCE only removes calls it can prove side-effect-free, so this is the declared attribute working as intended, not an oversight. WaveSensitivityAnalysis.cpp documents why: a wave op's result depends on which lanes are active, so treating it as an ordinary pure value is not obviously safe in general -- matching a maintainer's own filed concern ('not convinced there isn't a correctness bug lurking here too'). DXC separately erases a wave op inside a provably-dead loop (EraseDeadRegion, tested by wave_intrinsic_dead_loop.hlsl) but that is a narrower, different proof than this issue's straight-line unused-result case; the linked PR #5559 is unmerged and is itself a workaround for that other mechanism over-deleting a wave op, evidence the surrounding design space is still unsettled. #5177 (duplicate, WaveActiveMax(0)) was closed in favor of this issue by a maintainer.
+
+*History:* always-repro'd (v1.4.1907..v1.9.2607; 20/20 probeable stable releases)
+
+**[#5567](https://github.com/microsoft/DirectXShaderCompiler/issues/5567) — -Wcomma-in-init should maybe be more aggressive?**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+uint2 a = (1, 2) / 2; still gets no -Wcomma-in-init warning on main-debug (89e2f98e2), while the bare uint2 a = (1, 2); still does on the same build (control). IsExpressionBinaryComma only checks the initializer expression itself, not a comma expr nested inside a larger one; unchanged since before v1.4.1907. hlsl_clang_trunk on Compiler Explorer already flags this shape via -Wunused-value, confirming damyanp's comment.
+
+*History:* always-repro'd v1.6.2104..v1.9.2607 (v1.4.1907/v1.5.2010 invalid-probe: cs_6_6 unsupported); unchanged since before oldest probeable release per source dating
+
+**[#5573](https://github.com/microsoft/DirectXShaderCompiler/issues/5573) — "External declaration [decl name] is unused" after resource assignment**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Repros verbatim on every release that can express it (v1.6.2104..v1.9.2607) and on main-debug (as an internal-failure signature of the same defect: DXASSERT(GV->user_empty()) in DxilCondenseResources.cpp UpdateResourceSymbols, compiled out under NDEBUG so release builds fall through to the reported validation error instead).
+
+**[#5595](https://github.com/microsoft/DirectXShaderCompiler/issues/5595) — [Feature Request] support hash stability test in lit**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-5` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Test-infrastructure feature request, not a compiler bug -- no lit-native hash-stability mechanism exists on main (HLSLFileCheckLit has 29 files, none hash-tested; HLSLFileCheck has 2212, hash-tested only via 10 TAEF CodeGenHashStability* methods). A same-day fix attempt, PR #5600 ('Fixes #5595'), added a DxcHashTest lit format and got three weeks of substantive maintainer review, but stalled unmerged on an unresolved design objection (does not respect lit local-config traversal); its last commit is 2023-09-22 and gh/git both confirm it was never merged. Duplicate issue #5552 was closed in favor of this one. Issue text remains accurate.
+
+*No Compiler Explorer link:* Pure test-infrastructure (lit test-runner) feature request with no shader repro; Compiler Explorer compiles a single HLSL source through fixed compiler panes and cannot express or evaluate lit test-format/runner capability.
+
+**[#5632](https://github.com/microsoft/DirectXShaderCompiler/issues/5632) — Can construct-cast an array type to non-array without compiler complaining (DXIL Crash)**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+DXIL CodeGen crash (llvm::StoreInst::AssertOK / cast<X> incompatible type) construct-casting a single-element array member to a scalar, confirmed by the maintainer and reproducing on main and dxc_trunk; every stable release v1.4.1907..v1.9.2607 fails this input (crash, or a self-caught 'Invalid record' at v1.5.2010 alone). SPIR-V still emits no diagnostic for the same array->scalar truncation (matches FXC); DXC's element-count check does fire for a 2-element array, so the 1-element case is a specific unchecked gap.
+
+*History:* always-repro'd across v1.4.1907..v1.9.2607 under the composed match-broken.json predicate (internal_failure OR self-caught 'Invalid record'); the primary internal_failure predicate alone shows a shape-only non-monotonic blip at v1.5.2010 (self-caught corrupt-module error instead of an assert -- confirmed not a release-wide defect via a trivial control, and confirmed the input never succeeds at any probeable release)
+
+**[#5633](https://github.com/microsoft/DirectXShaderCompiler/issues/5633) — DXC should warn on statically checkable out-of-bounds**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+dxc silently compiles a statically out-of-bounds constant array index (struct-member array of size 1, indexed then swizzled) with no warning/error on every probeable release and on main; DXC already has a related Sema check (err_hlsl_array_element_index_out_of_bounds) but two of its own exemptions (swizzle-wrapped subscripts, and size-1 struct-member arrays for the C89 flexible-array idiom) both apply to this exact shape.
+
+*History:* always-repro'd across v1.5.2010..v1.9.2607 (v1.4.1907 invalid-probe: no SPIR-V codegen) and on main-debug
+
+**[#5686](https://github.com/microsoft/DirectXShaderCompiler/issues/5686) — Validation fails when linking to amplification shader target**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-opus-5 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Amplification-shader payload validation still fails after -T lib_6_x + -link exactly as reported: 'payload size 8 is greater than declared size of 4 bytes', while a direct -T as_6_6 compile of the identical 4-byte-payload source validates clean (confirmed control, --expect no-match). Always-repro'd since -link first shipped (v1.6.2106) through v1.9.2607 and on main (89e2f98e2); three older releases reject -link outright and are invalid probes. Root cause identified by source read: ValidateAsIntrinsics in DxilValidation.cpp measures the DispatchMesh payload POINTER type, not the pointee struct (missing a getPointerElementType() the neighbouring mesh-shader check three lines above does have), so the check really tests declared-size against the DXIL pointer size, not the real payload. That is a constant 4 bytes for a direct compile (coincidentally equal to this payload, so it passes) but becomes 8 once linked, because DxilLinker.cpp's DxilLinkJob::Link never calls setDataLayout on the module it builds (git log -S DataLayout on that file: zero commits, ever) and the linked module falls back to LLVM's default 8-byte pointer -- confirmed directly by disassembling the linked module with -Vd and observing the target datalayout line is simply absent, versus present in the direct-compile disassembly. Same validator defect (pointer-vs-pointee) independently underlies already-triaged #5269 and #5668 in this batch, surfaced there via an empty-struct payload rather than linking; noted for collation in method-notes.md, not asserted here.
+
+*History:* always-repro'd across v1.6.2106..v1.9.2607, all 18 probeable releases, full linear scan, no gaps (v1.4.1907, v1.5.2010 and v1.6.2104 answer 'Unknown argument: -link', confirmed genuinely absent via --help rather than a spelling issue, and are invalid probes)
+
+*No Compiler Explorer link:* the reported divergence is between a direct as_6_6 compile and a two-invocation lib_6_x-then-link pipeline; CE compiles one command per pane and cannot produce or consume an intermediate .lib artifact, so it cannot express the -link step that is the whole subject of this issue
+
+**[#5721](https://github.com/microsoft/DirectXShaderCompiler/issues/5721) — DXC linker API doesn't include DXC_OUT_PDB in the result**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-opus-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Confirmed via a raw COM harness (registered as compiler main-debug-pdb5721, since no dxc/dxl command line reaches IDxcResult::GetOutput on a linked result): IDxcLinker::Link(...,-Zi,-Qstrip_debug) succeeds, but the linked IDxcResult never has a DXC_OUT_PDB output (HasOutput=FALSE, GetOutput=E_INVALIDARG), while a same-object self-test (GetOutput(DXC_OUT_OBJECT) succeeds) and a same-flags/same-source direct-compile control (produces a real PDB) both isolate the gap specifically to the linker path. Root cause: tools/clang/tools/dxcompiler/dxclinker.cpp's Link() sets DXC_OUT_OBJECT/DXC_OUT_ROOT_SIGNATURE/DXC_OUT_SHADER_HASH/DXC_OUT_REFLECTION (added by PR 5678) but never DXC_OUT_PDB, marked only by a bare TODO comment. An open, unmerged PR (6834, 'Add PDB output to linker') already targets this fix. Reproduces unchanged on ground truth 89e2f98e2.
+
+*No Compiler Explorer link:* linker-only defect (no DXC_OUT_PDB output object set by IDxcLinker::Link); Compiler Explorer exposes one dxc invocation per pane and no dxl/linker equivalent, and even the dxc/dxl CLI never reaches DXC_OUT_PDB on a linked result, so the symptom cannot be produced there
+
+**[#5736](https://github.com/microsoft/DirectXShaderCompiler/issues/5736) — Internal compiler error when attempting to link a non-library input**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (via GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Access violation (0xC0000005, read of address 0) still crashes dxc -link when the input container was compiled as an ordinary (non-library) cs_6_3 shader, identical to the 2023 report; reproduces on every stable release since -link was introduced (v1.6.2106) through v1.9.2607 and on main (89e2f98e2). Linking the same shader compiled as a lib_6_3 library target instead does not crash, corroborating the reporter's theory that the defect is specific to non-library (createHandle) input to the linker.
+
+*History:* always-repro'd across v1.6.2106..v1.9.2607 (for the entire lifetime of -link; v1.4.1907..v1.6.2104 reject -link as an unknown argument, before the feature existed) and on main-debug (89e2f98e2)
+
+*No Compiler Explorer link:* repro is inherently a two-stage pipeline (compile to a DXIL container, then -link that container); Compiler Explorer runs one dxc invocation per pane against pasted HLSL source and cannot feed a compiled container into a second invocation, so the crash cannot be expressed on CE
+
+**[#5737](https://github.com/microsoft/DirectXShaderCompiler/issues/5737) — Link fails when using -Fd with -Qstrip_debug**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Link with -Qstrip_debug fails with 'DXIL container does not contain the given part' -- reproduces on main (13730886e); broader than the filed title, since -Qstrip_debug alone at link time (no -Fd needed) triggers it too. Always-repro'd across the entire -link-capable release history (v1.6.2106..v1.9.2607). PR #6833 claims a fix but is still open/unmerged.
+
+*History:* always-repro'd across every -link-capable release (v1.6.2106..v1.9.2607) and main-debug; v1.4.1907/v1.5.2010/v1.6.2104 predate the -link flag itself (Unknown argument: '-link') and are invalid probes
+
+*No Compiler Explorer link:* the repro is a two-invocation compile-then-link chain (compile to a lib_6_3 container, then a separate 'dxc -link' pass over that container); Compiler Explorer's DXC pane runs exactly one dxc invocation over one HLSL source and has no way to feed a previously-produced DXIL container back in as -link input, so the two-step -Fd/-Qstrip_debug interaction under test cannot be expressed in a single pane
+
+**[#5739](https://github.com/microsoft/DirectXShaderCompiler/issues/5739) — DXC linker debug output isn't a valid PDB (and doesn't work with PIX)**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude Sonnet 4.5 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Linker -Fd output (test.pdb) has never been a valid PDB since -link shipped in v1.6.2106: it is the raw DXIL/ILDB bitcode with no MSF7 wrapper, unlike the compile step's own -Fd output. Reproduces unchanged on main-debug. Two open PRs (#6833, #6834) target this but neither is merged.
+
+*History:* always-repro'd across v1.6.2106..v1.9.2607 (every stable release supporting -link; v1.4.1907/v1.5.2010/v1.6.2104 predate the -link CLI flag entirely and are invalid-probes)
+
+*No Compiler Explorer link:* two-invocation compile-then-link-a-.lib pipeline; CE is single-file and cannot pass an intermediate .lib container between two dxc invocations, so it cannot show the link step's broken -Fd output at all
+
+**[#5807](https://github.com/microsoft/DirectXShaderCompiler/issues/5807) — Error in implicit conversions when enums are involved**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+uint e = E::A << 1u; still fails with 'cannot convert from unsigned int to E' on main (89e2f98e2) and on CE dxc_1_6_2112/dxc_trunk; source reading confirms the general enum->int conversion path is not broken (ConvertComponent already allows it), so the defect is localized to shift-operator overload resolution, matching llvm-beanz's comment. hlsl_clang_trunk already compiles this cleanly.
+
+*History:* always-repro'd across v1.4.1907..v1.9.2607 (both bisect endpoints agree; short-circuited)
+
+**[#5824](https://github.com/microsoft/DirectXShaderCompiler/issues/5824) — [Test] Move clang diagnostic tests to verifiertest.cpp**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Claude Sonnet 4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Still unaddressed on main (89e2f98e2). GSMainMissingAttributeFail and GSOtherMissingAttributeFail remain registered under ValidationTest.cpp, calling TestCheck() (FileCheck over a RUN line), not CheckValidationMsgs(); confirmed absent from VerifierTest.cpp. Ground-truth compile of both backing .hlsl files confirms the diagnostic is a Sema error (exit 0x80004005) reached before any DXIL container exists, matching the issue's premise. No linked PR; milestone Dormant since 2024-10-23.
+
+*History:* n/a (no compiler-version axis); unmoved throughout ground-truth ancestry and still in ValidationTest.cpp today
+
+*No Compiler Explorer link:* Not a shader-repro/history question -- no dxc invocation's output depends on which .cpp file registers a unit test. A ground-truth compile of the two backing .hlsl files was run directly (not via CE) to confirm the diagnostic's layer; see notes.md.
+
+**[#5849](https://github.com/microsoft/DirectXShaderCompiler/issues/5849) — Missing DXR PAQ indication in RDAT to determine whether MaxPayloadSizeInBytes needs validation**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (claude-sonnet-4.6)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Reproduces on main (1.9.0.5465, 89e2f98e2). RDAT gives the runtime no indication that Payload Access Qualifiers were used on a DXR entry point: RuntimeDataFunctionInfo::PayloadSizeInBytes for a PAQ-qualified closesthit/miss entry point is identical (20 bytes) whether or not PAQs engage (-disable-payload-qualifiers control), confirmed by dx.dxrPayloadAnnotations metadata presence/absence. No PAQ-related bit exists in DxilFeatureInfo1/2 either. Source: DxilContainerAssembler.cpp unconditionally copies the real payload size into RDAT with no PAQ-conditional branch; no commit on any branch implements the reporter's/amarpMSFT's agreed zeroing fix; disable_paq.hlsl has no RDAT assertion. Reproduces identically on every lib_6_7-capable release (v1.7.2207..v1.9.2607) plus main -- a still-open, maintainer-agreed, unimplemented gap, not a regression or stale duplicate. Issue was milestoned Dormant 2024-10-23 with no cross-references, consistent with the fix never landing.
+
+*History:* Swept repro.hlsl across main-debug and every cached stable release v1.4.1907..v1.9.2607, PAQ-enabled and -disable-payload-qualifiers, both compiled and read via manual-case-rdat-payload.py (direct RDAT FunctionTable parse, no dxa.exe/no rebuild). v1.4.1907..v1.6.2112: invalid-probe (error: invalid profile lib_6_7 -- lib_6_7 did not exist yet). v1.7.2207 (2022-07-18) through v1.9.2607 and main-debug: 14 data points, all agreeing -- PayloadSizeInBytes=20 for MyClosestHit/MyMiss in BOTH PAQ-enabled and -disable-payload-qualifiers builds, byte-identical. Always-repro'd since lib_6_7 first shipped; not a bisectable regression. DxilFeatureInfo1/2 enums read in full: no PAQ-related feature bit exists either, so the gap is total.
+
+*No Compiler Explorer link:* Not reproducible on Compiler Explorer: the symptom lives in RDAT (RuntimeDataFunctionInfo::PayloadSizeInBytes), a binary container part assembled after DXIL/IR generation. CE's DXC panes show -Fc-style DXIL/LLVM-IR text only, which does not carry this field (confirmed locally: PAQ metadata IS visible in -Fc output, but the RDAT byte value is not observable there).
+
+**[#5883](https://github.com/microsoft/DirectXShaderCompiler/issues/5883) — Initializing a const-qualified var of type 'struct/array of (struct/array of) more than one type' with initializer 'init' will ignore any dynamic writes made to 'init' beforehand**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `Copilot CLI (batch-019 per-issue worker)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Const-qualified local aggregate init (struct/array-of-matrix, later widened by reporter to struct/array of any type) folds the referenced variable's own DECLARATION-time initializer instead of its current value, silently discarding any writes made to it before the const init. Reproduces on main-debug (89e2f98e2) and on every bisectable stable release v1.4.1907..v1.9.2607 (always-repro'd); non-const control on the same shader is correct. Corroborated on Compiler Explorer (dxc_1_6_2112, dxc_trunk).
+
+**[#5961](https://github.com/microsoft/DirectXShaderCompiler/issues/5961) — Warnings about float to int conversions are wrong**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Still reproduces on main: the -Wliteral-conversion warning drops the sign of negated float/double literals before formatting both the 'from' and 'to' numbers (Sema::AnalyzeImplicitConversions strips the UnaryOperator and hands the positive FloatingLiteral to DiagnoseFloatingLiteralImpCast), so DXC's own constant-folded DXIL output disagrees with the warning on exactly the negated-literal lines. Always-repro'd across all 20 probeable stable releases (v1.4.1907..v1.9.2607) plus main, and unaffected by -HV 202x.
+
+**[#5987](https://github.com/microsoft/DirectXShaderCompiler/issues/5987) — Error assigning struct into amplification payload**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GitHub Copilot CLI (model not self-identifiable)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Assigning a whole struct value into a member (itself a nested struct) of a groupshared amplification-shader payload crashes dxc: Debug main-debug (89e2f98e2) traps an assert in SROA_Helper::RewriteBitCast (ScalarReplAggregatesHLSL.cpp:2630, identical file/line/message to #5338's assert -- flagged for collation, not asserted as duplicate here); Release-style builds hit the reporter's exact 'error: llvm::cast<X>() argument of incompatible type!' verbatim, reproduced from v1.7.2207 (oldest release able to compile as_6_7) through v1.9.2607 and on Compiler Explorer trunk today. Both of the reporter's own workarounds (comment out the assignment; unwrap the struct) were re-verified as clean negative controls.
+
+*History:* always-repro'd across every release able to compile the as_6_7 profile (v1.7.2207..v1.9.2607); older releases reject the profile itself (invalid-probe), so this is unmeasurable before, always-crashing after
+
+**[#5999](https://github.com/microsoft/DirectXShaderCompiler/issues/5999) — An issue with template type deduction and globallycoherent?**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+globallycoherent is still dropped from a template parameter's deduced type on main (89e2f98e2), with a compiler warning naming the loss; maintainers already correctly diagnosed this in-thread as a known qualifier-vs-attribute canonicalization limitation, not a false positive; reproduces on every stable release able to parse HLSL function templates (v1.7.2308 onward)
+
+*History:* always-repro'd across v1.7.2308..v1.9.2607 (8 older stable releases invalid-probe: HLSL function templates unsupported before v1.7.2308)
+
+**[#6001](https://github.com/microsoft/DirectXShaderCompiler/issues/6001) — Pass-through control point case broken for hull shader**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-5 (GitHub Copilot CLI)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+always-repro'd across v1.4.1907..v1.9.2607 and on main-debug: HS control-point SM5 pass-through case is not recognized, so the compiled control-point body still emits dx.op.loadInput/storeOutput copies and !dx.entryPoints names a real function pointer rather than null; the two validator-crash/false-positive sub-claims require a hand-crafted DXIL module and are not-compiler-verifiable from this HLSL repro.
+
+**[#6016](https://github.com/microsoft/DirectXShaderCompiler/issues/6016) — Using large vert/hull/domain IO makes DXC crash when building to DXIL**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `claude-sonnet-4.6 (batch-019)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+Confirmed regression: reproduces on main (89e2f98e2) as an llvm_unreachable crash in HLSignatureLower.cpp; regressed between v1.7.2207 and v1.7.2212 via 21e56159e, exactly the commit tex3d already named in the thread, now confirmed by ancestry + single-commit-in-window check
+
+*History:* regressed-in v1.7.2212 (last good v1.7.2207); crash-shaped: llvm_unreachable in HLSignatureLower.cpp when a hull/domain/vertex IO signature fails to pack, since 21e56159e converted the prior diagnosed error into an unreachable; verified this commit is inside the v1.7.2207..v1.7.2212 window and is the only commit in that window touching HLSignatureLower.cpp
+
+**[#6084](https://github.com/microsoft/DirectXShaderCompiler/issues/6084) — [CI] Add clang-cl on windows build to test pipeline**  
+<sub>batch 019 · triaged against `89e2f98e2` · drafted by `GPT-5.1-Copilot-CLI (batch-019)` · reviewed by `gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)`</sub>
+
+CI enhancement request (add clang-cl Windows build to the regular pipeline, not just release). Not compiler-verifiable. At ground truth (89e2f98e2) azure-pipelines.yml has no clang-cl job at all -- not even the release-only one the issue describes -- and no GitHub Actions workflow builds DXC either. PR #6107 ('Fixes: #6084') would have added it but was never merged; closed 2026-01-22 as part of a stale-PR sweep, not on its merits. Prerequisite #5480 closed 2024-01-29. Request remains fully open and unaddressed.
+
+*No Compiler Explorer link:* CI/pipeline enhancement request; no shader or dxc invocation to compile, nothing to show on Compiler Explorer
+
 
 ## Provenance and limits
 
-- Ground truth is a **Debug** build of `main` (5 commits across batches). Debug matters: many older issues are asserts, which a Release build compiles out.
+- Ground truth is a **Debug** build of `main` (6 commits across batches). Debug matters: many older issues are asserts, which a Release build compiles out.
 - **The release bisection floor is v1.4.1907** (2019-07), the oldest release shipping a usable `dxc`. For issues filed before it, "always reproduced" means "for as long as it is possible to check". SPIR-V issues have a higher floor still.
 - **Compiler Explorer runs Release builds**, so a Debug-only assert looks clean there. CE corroborates the local build; it never overrules it. `dxc_trunk` is a rolling build and is not reproducible over time.
 - **Sampling is deliberately unrepresentative.** Batches over-weight the oldest issues, so the verdict distribution here does not generalise to the backlog.
 
-Per-batch reports, including the method findings that changed how later batches were run: [batch 001](batch-001.md), [batch 002](batch-002.md), [batch 003](batch-003.md), [batch 004](batch-004.md), [batch 005](batch-005.md), [batch 006](batch-006.md), [batch 007](batch-007.md), [batch 008](batch-008.md), [batch 009](batch-009.md), [batch 010](batch-010.md), [batch 011](batch-011.md), [batch 012](batch-012.md), [batch 013](batch-013.md), [batch 014](batch-014.md), [batch 015](batch-015.md), [batch 016](batch-016.md), [batch 017](batch-017.md), [batch 018](batch-018.md).
+Per-batch reports, including the method findings that changed how later batches were run: [batch 001](batch-001.md), [batch 002](batch-002.md), [batch 003](batch-003.md), [batch 004](batch-004.md), [batch 005](batch-005.md), [batch 006](batch-006.md), [batch 007](batch-007.md), [batch 008](batch-008.md), [batch 009](batch-009.md), [batch 010](batch-010.md), [batch 011](batch-011.md), [batch 012](batch-012.md), [batch 013](batch-013.md), [batch 014](batch-014.md), [batch 015](batch-015.md), [batch 016](batch-016.md), [batch 017](batch-017.md), [batch 018](batch-018.md), [batch 019](batch-019.md).

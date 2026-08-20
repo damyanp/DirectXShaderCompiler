@@ -1,0 +1,8 @@
+{
+  "kind": "any_of",
+  "value": [
+    { "kind": "internal_failure" },
+    { "kind": "contains", "value": "casting to type 'void' unimplemented" }
+  ],
+  "note": "Original report (2023-10-03) is a SIGSEGV under -spirv on an out-of-line static-const array member definition of a template partial specialization. cassiebeckley root-caused it (2023-10-19) to an InitListExpr of type 'void' that the SPIR-V backend's cast handling does not expect, printing 'error: casting to type 'void' unimplemented' as the non-crashing shape of the same defect; llvm-beanz confirmed Clang's own C++ AST also types the InitListExpr 'void', so the fix belongs in the backend/CodeGen, not Sema. internal_failure alone would miss the case where the defect has been demoted from a crash to a diagnosed E_FAIL without being fixed (or vice versa), so both signatures are composed with any_of, matching skill guidance for a defect whose Debug/Release (here: crash/diagnostic) manifestation differs."
+}

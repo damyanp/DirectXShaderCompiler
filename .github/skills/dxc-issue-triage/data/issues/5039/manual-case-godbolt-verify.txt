@@ -1,0 +1,24 @@
+# Compiler Explorer panes for #5039, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0
+# exit:     29  CRASH
+
+Internal Compiler error: cast<X>() argument of incompatible type!
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0
+# exit:     5  CRASH
+
+error: cast<X>() argument of incompatible type!
+
+
+
+<Compilation failed>

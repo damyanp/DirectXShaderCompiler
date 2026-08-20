@@ -1,0 +1,58 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T18:39:08+00:00
+# cmd: -T cs_6_0 -E main -spirv repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: spirv (repro.hlsl)
+# expect: no-match
+
+$ dxc -T cs_6_0 -E main -spirv repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.0
+; Generator: Google spiregg; 0
+; Bound: 18
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main"
+               OpExecutionMode %main LocalSize 1 1 1
+               OpSource HLSL 600
+               OpName %type_RWStructuredBuffer_int "type.RWStructuredBuffer.int"
+               OpName %buf "buf"
+               OpName %main "main"
+               OpDecorate %buf DescriptorSet 0
+               OpDecorate %buf Binding 0
+               OpDecorate %_runtimearr_int ArrayStride 4
+               OpMemberDecorate %type_RWStructuredBuffer_int 0 Offset 0
+               OpDecorate %type_RWStructuredBuffer_int BufferBlock
+        %int = OpTypeInt 32 1
+      %int_5 = OpConstant %int 5
+      %int_0 = OpConstant %int 0
+       %uint = OpTypeInt 32 0
+     %uint_0 = OpConstant %uint 0
+     %uint_1 = OpConstant %uint 1
+%_runtimearr_int = OpTypeRuntimeArray %int
+%type_RWStructuredBuffer_int = OpTypeStruct %_runtimearr_int
+%_ptr_Uniform_type_RWStructuredBuffer_int = OpTypePointer Uniform %type_RWStructuredBuffer_int
+       %void = OpTypeVoid
+         %13 = OpTypeFunction %void
+%_ptr_Uniform_int = OpTypePointer Uniform %int
+        %buf = OpVariable %_ptr_Uniform_type_RWStructuredBuffer_int Uniform
+       %main = OpFunction %void None %13
+         %15 = OpLabel
+         %16 = OpAccessChain %_ptr_Uniform_int %buf %int_0 %uint_0
+               OpStore %16 %int_5
+         %17 = OpAccessChain %_ptr_Uniform_int %buf %int_0 %uint_1
+               OpStore %17 %int_5
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

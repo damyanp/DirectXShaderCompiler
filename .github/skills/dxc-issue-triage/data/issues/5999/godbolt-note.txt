@@ -1,0 +1,9 @@
+What to look for: the `dxc_trunk` pane's warning on the `TemplateFunction(SomeBuffer)` call
+line -- "implicit conversion from 'globallycoherent RWByteAddressBuffer' to
+'RWByteAddressBuffer' loses globallycoherent annotation". That is the reported defect: the
+`globallycoherent` qualifier is dropped when the template parameter's type is deduced, even
+though the call to the explicitly-typed `ExplicitFunction` right above it produces no warning
+at all. The `dxc_1_6_2112` pane (CE's oldest DXC) fails for an unrelated reason -- it predates
+HLSL function templates entirely ("'template' is a reserved keyword in HLSL") -- and is shown
+only to corroborate that the repro cannot be pushed further back than local release testing
+already found (v1.7.2308).

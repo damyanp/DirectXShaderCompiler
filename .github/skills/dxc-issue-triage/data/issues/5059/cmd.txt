@@ -1,0 +1,9 @@
+# Issue as filed used "-T lib_6_3 i33.hlsl -Fc i33.dxil.txt" (library target,
+# no -E, no [shader(...)] attribute on CSMain). On current main-debug that
+# command no longer recognises CSMain as an entry point at all (see notes.md),
+# so it cannot exercise the reported code path any more. The maintainer's
+# 2024-09-25 working godbolt link (the thread's live, corrected position)
+# compiles the same source directly as a compute shader with -T cs_6_3
+# -ECSMain, which does reach the SCEV-widening code and is used here as the
+# primary repro. cmd-as-filed.txt preserves the literal original command.
+-T cs_6_3 -ECSMain repro.hlsl

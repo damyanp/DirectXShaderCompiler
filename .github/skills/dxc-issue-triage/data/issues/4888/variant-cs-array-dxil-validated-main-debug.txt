@@ -1,0 +1,26 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T18:39:25+00:00
+# cmd: -T cs_6_6 -E main -Od variant-cs-array.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: cs-array-dxil-validated (variant-cs-array.hlsl)
+# expect: match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc -T cs_6_6 -E main -Od variant-cs-array.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: All metadata must be used by dxil.!15 = !{i32 1}
+Validation failed.
+
+
+

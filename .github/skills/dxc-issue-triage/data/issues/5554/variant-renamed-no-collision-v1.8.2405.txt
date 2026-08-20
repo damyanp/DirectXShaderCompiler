@@ -1,0 +1,22 @@
+# compiler: v1.8.2405
+# exe: <cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe
+# ran: 2026-08-19T21:11:49+00:00
+# cmd: -HV 2021 -T cs_6_7 -E main variant-renamed-no-collision.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: renamed-no-collision (variant-renamed-no-collision.hlsl)
+# expect: match
+
+$ dxc -HV 2021 -T cs_6_7 -E main variant-renamed-no-collision.hlsl
+[exe] <cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-renamed-no-collision.hlsl:21:42: error: non-type template argument of type 'ENUM' is not an integral constant expression
+using test_t = my_integral_constant<ENUM,ENUM::TRUE>;
+                                         ^~~~~~~~~~
+
+

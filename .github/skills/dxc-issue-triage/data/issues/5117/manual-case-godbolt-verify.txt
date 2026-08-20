@@ -1,0 +1,22 @@
+# Compiler Explorer panes for #5117, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main repro.hlsl
+# exit:     5
+
+<source>:15:10: error: use of undeclared identifier 'badIdentifierNotDeclared'
+  return badIdentifierNotDeclared;
+         ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main -MD -MF repro.d repro.hlsl
+# exit:     0
+
+<No output file>

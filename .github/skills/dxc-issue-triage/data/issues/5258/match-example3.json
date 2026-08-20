@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains", "value": "SomeFunc2" },
+    { "kind": "not_regex", "value": "error|warning" }
+  ],
+  "note": "Example 3's reported symptom: dxc silently accepts (uint)s truncating a two-uint32_t bit-field struct to one uint32_t, with no diagnostic. The positive clause (the entry point's mangled name reaching the emitted DXIL) proves the compile actually completed, so a failed/rejected parse cannot manufacture a false absence-of-diagnostic hit; the negative clause is the reported silence itself."
+}

@@ -1,0 +1,2 @@
+-T cs_6_3 -Fo test.bin repro.hlsl
+-link -T cs_6_3 -Fo test2.bin test.bin

@@ -1,0 +1,7 @@
+This link tests the DXIL crash the maintainer confirmed in the issue thread (ask A): compiling
+this shader for DXIL (no -spirv) with -HV 2021 -T ps_6_7 -enable-16bit-types. Look for a
+non-zero exit / "Internal compiler error" style message instead of successful DXIL
+disassembly. CE's DXC panes run Release builds, so the local Debug assert stack (see
+manual-case-crash-stack.txt) is not visible here -- expect the release-style
+"llvm::cast<X>() argument of incompatible type!" text instead, which is the E_FAIL-coded form
+of the same defect (see notes.md).

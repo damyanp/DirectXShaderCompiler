@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "loses globallycoherent annotation",
+  "note": "Current Sema diagnostic wording, introduced by PR #5121 (commit e50393e49, 2023-05-23), which moved the globallycoherent-mismatch check out of CodeGen and into semantic analysis and made the message name the direction of the mismatch (`implicit conversion from X to Y loses/gains/demotes/promotes ... annotation`). Before that commit the same defect was reported from CGHLSLMS.cpp's isGLCMismatch() as a plain custom warning: `global coherent mismatch` (read at e50393e49^). That older wording is deliberately NOT an any_of branch here: `template<typename T>` HLSL function templates -- required by this repro -- were not accepted by dxc until v1.7.2308 (2023-08-14; every earlier probeable release answers `error: 'template' is a reserved keyword in HLSL`, see out-v1.7.2212.1.txt), which already postdates the wording change (2023-05-23). No release able to even parse this repro could have emitted the pre-#5121 text, so a branch for it would be untestable dead code for this repro's history."
+}

@@ -1,0 +1,6 @@
+Compare the dxc_1_6_2112 pane (CE's oldest, 2021-04) against dxc_trunk. The old pane ends in
+an ordinary diagnosed compile error (E_FAIL) naming both the input- and output-signature
+allocation failure. The trunk pane instead crashes the process outright (a SIGSEGV, not a
+diagnostic) while compiling the exact same input -- the crash the issue reports, still present
+today, just with a different platform-specific fatal signal than the SIGABRT the reporter saw
+on their Linux build after llvm_unreachable().

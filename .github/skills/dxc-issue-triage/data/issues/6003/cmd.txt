@@ -1,0 +1,1 @@
+-T lib_6_4 -spirv -fspv-target-env=vulkan1.2 -enable-16bit-types -HV 2021 -O0 -Zi repro.hlsl -Fo shader.spv

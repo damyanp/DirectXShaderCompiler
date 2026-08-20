@@ -1,0 +1,134 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-20T00:29:28+00:00
+# cmd: -spirv -HV 202x -T cs_6_7 -Zpr -enable-16bit-types -fvk-use-scalar-layout -Wno-c++11-extensions -Wno-c++1z-extensions -Wno-gnu-static-float-init -fspv-target-env=vulkan1.3 -fspv-debug=source -fspv-debug=tool repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -spirv -HV 202x -T cs_6_7 -Zpr -enable-16bit-types -fvk-use-scalar-layout -Wno-c++11-extensions -Wno-c++1z-extensions -Wno-gnu-static-float-init -fspv-target-env=vulkan1.3 -fspv-debug=source -fspv-debug=tool repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+; SPIR-V
+; Version: 1.6
+; Generator: Google spiregg; 0
+; Bound: 12
+; Schema: 0
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main"
+               OpExecutionMode %main LocalSize 256 1 1
+          %2 = OpString "repro.hlsl"
+          %3 = OpString "nbl/builtin/hlsl/cpp_compat.hlsl"
+          %4 = OpString "nbl/builtin/hlsl/cpp_compat/intrinsics.h"
+          %5 = OpString "nbl/builtin/hlsl/cpp_compat/matrix.hlsl"
+          %6 = OpString "nbl/builtin/hlsl/cpp_compat/vector.hlsl"
+          %7 = OpString "app_resources\\common.hlsl"
+          %8 = OpString "app_resourcesshader.comp.hlsl"
+               OpSource HLSL 670 %2 "// compiled with: -spirv -HV 202x -T cs_6_7 -Zpr -enable-16bit-types -fvk-use-scalar-layout -Wno-c++11-extensions -Wno-c++1z-extensions -Wno-gnu-static-float-init -fspv-target-env=vulkan1.3 -fspv-debug=source -fspv-debug=tool
+
+namespace nbl
+{
+namespace hlsl
+{
+# 69 \"nbl/builtin/hlsl/cpp_compat.hlsl\"
+}
+}
+# 1 \"nbl/builtin/hlsl/cpp_compat/intrinsics.h\"
+# 1 \"nbl/builtin/hlsl/cpp_compat/matrix.hlsl\"
+# 1 \"nbl/builtin/hlsl/cpp_compat/vector.hlsl\"
+# 46 \"nbl/builtin/hlsl/cpp_compat/vector.hlsl\"
+namespace nbl
+{
+namespace hlsl
+{
+typedef half float16_t;
+typedef float float32_t;
+typedef double float64_t;
+
+typedef vector<bool,4> bool4;typedef vector<bool,3> bool3;typedef vector<bool,2> bool2;typedef vector<bool,1> bool1;
+
+typedef vector<int16_t,4> int16_t4;typedef vector<int16_t,3> int16_t3;typedef vector<int16_t,2> int16_t2;typedef vector<int16_t,1> int16_t1;
+typedef vector<int32_t,4> int32_t4;typedef vector<int32_t,3> int32_t3;typedef vector<int32_t,2> int32_t2;typedef vector<int32_t,1> int32_t1;
+typedef vector<int64_t,4> int64_t4;typedef vector<int64_t,3> int64_t3;typedef vector<int64_t,2> int64_t2;typedef vector<int64_t,1> int64_t1;
+
+typedef vector<uint16_t,4> uint16_t4;typedef vector<uint16_t,3> uint16_t3;typedef vector<uint16_t,2> uint16_t2;typedef vector<uint16_t,1> uint16_t1;
+typedef vector<uint32_t,4> uint32_t4;typedef vector<uint32_t,3> uint32_t3;typedef vector<uint32_t,2> uint32_t2;typedef vector<uint32_t,1> uint32_t1;
+typedef vector<uint64_t,4> uint64_t4;typedef vector<uint64_t,3> uint64_t3;typedef vector<uint64_t,2> uint64_t2;typedef vector<uint64_t,1> uint64_t1;
+
+typedef vector<float16_t,4> float16_t4;typedef vector<float16_t,3> float16_t3;typedef vector<float16_t,2> float16_t2;typedef vector<float16_t,1> float16_t1;
+typedef vector<float32_t,4> float32_t4;typedef vector<float32_t,3> float32_t3;typedef vector<float32_t,2> float32_t2;typedef vector<float32_t,1> float32_t1;
+typedef vector<float64_t,4> float64_t4;typedef vector<float64_t,3> float64_t3;typedef vector<float64_t,2> float64_t2;typedef vector<float64_t,1> float64_t1;
+
+}
+}
+# 19 \"nbl/builtin/hlsl/cpp_compat/matrix.hlsl\"
+
+namespace nbl
+{
+namespace hlsl
+{
+# 80 \"nbl/builtin/hlsl/cpp_compat/matrix.hlsl\"
+typedef matrix<bool, 4, 4> bool4x4;typedef matrix<bool, 4, 3> bool4x3;typedef matrix<bool, 4, 2> bool4x2; typedef matrix<bool, 3, 4> bool3x4;typedef matrix<bool, 3, 3> bool3x3;typedef matrix<bool, 3, 2> bool3x2; typedef matrix<bool, 2, 4> bool2x4;typedef matrix<bool, 2, 3> bool2x3;typedef matrix<bool, 2, 2> bool2x2;;
+typedef matrix<int16_t, 4, 4> int16_t4x4;typedef matrix<int16_t, 4, 3> int16_t4x3;typedef matrix<int16_t, 4, 2> int16_t4x2; typedef matrix<int16_t, 3, 4> int16_t3x4;typedef matrix<int16_t, 3, 3> int16_t3x3;typedef matrix<int16_t, 3, 2> int16_t3x2; typedef matrix<int16_t, 2, 4> int16_t2x4;typedef matrix<int16_t, 2, 3> int16_t2x3;typedef matrix<int16_t, 2, 2> int16_t2x2;;
+typedef matrix<int32_t, 4, 4> int32_t4x4;typedef matrix<int32_t, 4, 3> int32_t4x3;typedef matrix<int32_t, 4, 2> int32_t4x2; typedef matrix<int32_t, 3, 4> int32_t3x4;typedef matrix<int32_t, 3, 3> int32_t3x3;typedef matrix<int32_t, 3, 2> int32_t3x2; typedef matrix<int32_t, 2, 4> int32_t2x4;typedef matrix<int32_t, 2, 3> int32_t2x3;typedef matrix<int32_t, 2, 2> int32_t2x2;;
+typedef matrix<int64_t, 4, 4> int64_t4x4;typedef matrix<int64_t, 4, 3> int64_t4x3;typedef matrix<int64_t, 4, 2> int64_t4x2; typedef matrix<int64_t, 3, 4> int64_t3x4;typedef matrix<int64_t, 3, 3> int64_t3x3;typedef matrix<int64_t, 3, 2> int64_t3x2; typedef matrix<int64_t, 2, 4> int64_t2x4;typedef matrix<int64_t, 2, 3> int64_t2x3;typedef matrix<int64_t, 2, 2> int64_t2x2;;
+typedef matrix<uint16_t, 4, 4> uint16_t4x4;typedef matrix<uint16_t, 4, 3> uint16_t4x3;typedef matrix<uint16_t, 4, 2> uint16_t4x2; typedef matrix<uint16_t, 3, 4> uint16_t3x4;typedef matrix<uint16_t, 3, 3> uint16_t3x3;typedef matrix<uint16_t, 3, 2> uint16_t3x2; typedef matrix<uint16_t, 2, 4> uint16_t2x4;typedef matrix<uint16_t, 2, 3> uint16_t2x3;typedef matrix<uint16_t, 2, 2> uint16_t2x2;;
+typedef matrix<uint32_t, 4, 4> uint32_t4x4;typedef matrix<uint32_t, 4, 3> uint32_t4x3;typedef matrix<uint32_t, 4, 2> uint32_t4x2; typedef matrix<uint32_t, 3, 4> uint32_t3x4;typedef matrix<uint32_t, 3, 3> uint32_t3x3;typedef matrix<uint32_t, 3, 2> uint32_t3x2; typedef matrix<uint32_t, 2, 4> uint32_t2x4;typedef matrix<uint32_t, 2, 3> uint32_t2x3;typedef matrix<uint32_t, 2, 2> uint32_t2x2;;
+typedef matrix<uint64_t, 4, 4> uint64_t4x4;typedef matrix<uint64_t, 4, 3> uint64_t4x3;typedef matrix<uint64_t, 4, 2> uint64_t4x2; typedef matrix<uint64_t, 3, 4> uint64_t3x4;typedef matrix<uint64_t, 3, 3> uint64_t3x3;typedef matrix<uint64_t, 3, 2> uint64_t3x2; typedef matrix<uint64_t, 2, 4> uint64_t2x4;typedef matrix<uint64_t, 2, 3> uint64_t2x3;typedef matrix<uint64_t, 2, 2> uint64_t2x2;;
+typedef matrix<float16_t, 4, 4> float16_t4x4;typedef matrix<float16_t, 4, 3> float16_t4x3;typedef matrix<float16_t, 4, 2> float16_t4x2; typedef matrix<float16_t, 3, 4> float16_t3x4;typedef matrix<float16_t, 3, 3> float16_t3x3;typedef matrix<float16_t, 3, 2> float16_t3x2; typedef matrix<float16_t, 2, 4> float16_t2x4;typedef matrix<float16_t, 2, 3> float16_t2x3;typedef matrix<float16_t, 2, 2> float16_t2x2;;
+typedef matrix<float32_t, 4, 4> float32_t4x4;typedef matrix<float32_t, 4, 3> float32_t4x3;typedef matrix<float32_t, 4, 2> float32_t4x2; typedef matrix<float32_t, 3, 4> float32_t3x4;typedef matrix<float32_t, 3, 3> float32_t3x3;typedef matrix<float32_t, 3, 2> float32_t3x2; typedef matrix<float32_t, 2, 4> float32_t2x4;typedef matrix<float32_t, 2, 3> float32_t2x3;typedef matrix<float32_t, 2, 2> float32_t2x2;;
+typedef matrix<float64_t, 4, 4> float64_t4x4;typedef matrix<float64_t, 4, 3> float64_t4x3;typedef matrix<float64_t, 4, 2> float64_t4x2; typedef matrix<float64_t, 3, 4> float64_t3x4;typedef matrix<float64_t, 3, 3> float64_t3x3;typedef matrix<float64_t, 3, 2> float64_t3x2; typedef matrix<float64_t, 2, 4> float64_t2x4;typedef matrix<float64_t, 2, 3> float64_t2x3;typedef matrix<float64_t, 2, 2> float64_t2x2;;
+
+}
+}
+# 20 \"nbl/builtin/hlsl/cpp_compat/intrinsics.h\"
+# 86 \"nbl/builtin/hlsl/cpp_compat.hlsl\"
+# 2 \"app_resources\\\\common.hlsl\"
+
+typedef nbl::hlsl::float32_t3 input_t;
+typedef nbl::hlsl::float32_t output_t;
+
+const static uint32_t DataBufferBinding = 0;
+const static uint32_t MetricBufferBinding = 1;
+
+struct PushConstantData
+{
+ const static uint32_t MaxPossibleElementCount = 1<<20;
+ uint32_t dataElementCount;
+};
+
+const static uint32_t WorkgroupSize = 256;
+
+
+ StructuredBuffer<input_t> data;
+ RWStructuredBuffer<output_t> metrics;
+
+ PushConstantData pushConstants;
+
+[numthreads(WorkgroupSize,1,1)]
+void main(uint32_t3 ID : SV_DispatchThreadID)
+{
+# 4679 \"app_resourcesshader.comp.hlsl\"
+}"
+               OpSource HLSL 670 %3
+               OpSource HLSL 670 %4
+               OpSource HLSL 670 %5
+               OpSource HLSL 670 %6
+               OpSource HLSL 670 %7
+               OpSource HLSL 670 %8
+               OpName %main "main"
+               OpModuleProcessed "dxc-commit-hash: 0d3ee6b5"
+               OpModuleProcessed "dxc-cl-option: repro.hlsl -E main -T cs_6_7 -spirv -HV 202x -Zpr -enable-16bit-types -fvk-use-scalar-layout -Wno-c++11-extensions -Wno-c++1z-extensions -Wno-gnu-static-float-init -fspv-target-env=vulkan1.3 -fspv-debug=source -fspv-debug=tool -Qembed_debug"
+       %void = OpTypeVoid
+         %10 = OpTypeFunction %void
+       %main = OpFunction %void None %10
+         %11 = OpLabel
+               OpReturn
+               OpFunctionEnd
+
+
+--- stderr ---
+

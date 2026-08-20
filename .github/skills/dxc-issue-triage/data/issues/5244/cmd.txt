@@ -1,0 +1,1 @@
+-spirv -Zi -fspv-reflect -E PS -T ps_6_7 repro.hlsl

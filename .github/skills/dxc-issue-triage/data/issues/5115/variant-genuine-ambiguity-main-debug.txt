@@ -1,0 +1,28 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T19:11:30+00:00
+# cmd: -T ps_6_0 -E PSMain control-genuine-ambiguity.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: genuine-ambiguity (control-genuine-ambiguity.hlsl)
+# expect: match
+
+$ dxc -T ps_6_0 -E PSMain control-genuine-ambiguity.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-genuine-ambiguity.hlsl:11:5: error: call to 'f' is ambiguous
+    f(1.0f);
+    ^
+control-genuine-ambiguity.hlsl:1:6: note: candidate function
+void f(unsigned int){}
+     ^
+control-genuine-ambiguity.hlsl:2:6: note: candidate function
+void f(int){}
+     ^
+
+

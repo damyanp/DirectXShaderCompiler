@@ -1,0 +1,31 @@
+# compiler: v1.8.2505
+# exe: <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+# ran: 2026-08-19T22:11:14+00:00
+# cmd: -T lib_6_x -Fo as.lib repro.hlsl ; -T as_6_6 -link as.lib
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -T lib_6_x -Fo as.lib repro.hlsl
+[exe] <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -T as_6_6 -link as.lib
+[exe] <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+[exit] 1
+--- stdout ---
+Link failed:
+error: validation errors
+
+Function: main: error: For amplification shader with entry 'main', payload size 8 is greater than declared size of 4 bytes.
+note: at 'call void @dx.op.dispatchMesh.struct.payloadStruct(i32 173, i32 1, i32 1, i32 1, %struct.payloadStruct addrspace(3)* nonnull @"\01?p@@3UpayloadStruct@@A")' in block '#0' of function 'main'.
+Validation failed.
+
+
+--- stderr ---
+

@@ -1,0 +1,6 @@
+What to look for: this should FAIL to compile with a DXIL validation error, not succeed.
+Look for "I8 can only be used as immediate value for intrinsic" in the compiler pane, plus a
+following "note: at '%N = trunc iN to i8' in block ... of function 'ShaderDomain_Cs'." The
+exit status is an ordinary diagnosed E_FAIL, not a crash: the validator is correctly rejecting
+DXIL that SimplifyCFG's switch-to-lookup-table transform miscompiled. Every DXC pane here
+(CE's oldest, 1.6.2112, and trunk) is expected to show the same failure.

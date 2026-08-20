@@ -1,0 +1,9 @@
+Both DXC panes (CE's oldest, 1.6.2112, and dxc_trunk) fail identically with the exact
+validation error quoted in the issue: "External declaration '...buffer...' is unused."
+followed by "Validation failed." -- look at the error text, not just the exit code, since
+CE also prints an unrelated "DXIL.dll not found" *warning* on the 1.6.2112 pane that is
+noise, not part of the bug. This confirms the defect is present in the oldest CE-hosted
+release and unchanged in dxc_trunk: nearly four years of history with no fix. It cannot
+show the local Debug build's internal-error signature (see notes.md) because CE runs
+Release builds, where the guarding assert is compiled out and this validation error is
+what surfaces instead.

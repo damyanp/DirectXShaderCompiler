@@ -1,0 +1,209 @@
+# Source evidence for #5448 -- "Organize usage of GetResourceFromHandle and
+# GetResourceFromVal calls in validation"
+
+Ground truth: main-debug, source tree confirmed identical to public upstream
+89e2f98e29c289ae8ad9e00dd310104fea9fd7df outside this skill directory
+(version-verification.txt). All line numbers below are from
+lib/DxilValidation/DxilValidation.cpp and lib/DxilValidation/DxilValidationUtils.h
+at that commit.
+
+## 1. Both names still exist, unrenamed, exactly as the issue describes
+
+lib/DxilValidation/DxilValidationUtils.h:109
+  DxilResourceProperties GetResourceFromVal(Value *resVal);
+
+lib/DxilValidation/DxilValidation.cpp:167-189
+  static DxilResourceProperties GetResourceFromHandle(Value *Handle,
+                                                      ValidationContext &ValCtx) {
+    CallInst *HandleCall = dyn_cast<CallInst>(Handle);
+    if (!HandleCall) {
+      if (Instruction *I = dyn_cast<Instruction>(Handle))
+        ValCtx.EmitInstrError(I, ValidationRule::InstrHandleNotFromCreateHandle);
+      else
+        ValCtx.EmitError(ValidationRule::InstrHandleNotFromCreateHandle);
+      DxilResourceProperties RP;
+      return RP;
+    }
+
+    DxilResourceProperties RP = ValCtx.GetResourceFromVal(Handle);
+    if (RP.getResourceClass() == DXIL::ResourceClass::Invalid)
+      ValCtx.EmitInstrError(cast<CallInst>(Handle),
+                            ValidationRule::InstrHandleNotFromCreateHandle);
+    if (RP.Basic.IsReorderCoherent &&
+        !ValCtx.DxilMod.GetShaderModel()->IsSM69Plus())
+      ValCtx.EmitInstrError(HandleCall,
+                            ValidationRule::InstrReorderCoherentRequiresSM69);
+
+    return RP;
+  }
+
+So `GetResourceFromHandle` is exactly what the issue says it should stop being:
+a function that both looks up resource properties AND emits validation errors
+as a side effect, under a name that gives no hint it can mutate diagnostic
+state. `GetResourceFromVal` (DxilValidation.cpp:266-274) is the silent lookup
+the issue says should be the only thing individual op validators call.
+No function named ValidateResourceHandle exists anywhere in the tree
+(confirmed: `git log --all -i --grep=ValidateResourceHandle` and a tree-wide
+grep both return nothing -- see below).
+
+## 2. The up-front validation pass the issue asks for already exists...
+
+lib/DxilValidation/DxilValidation.cpp:559-583
+  // Make sure none of the handle arguments are undef / zero-initializer,
+  // Also, do not accept any resource handles with invalid dxil resource
+  // properties
+  void ValidateHandleArgsForInstruction(CallInst *CI, DXIL::OpCode Opcode,
+                                        ValidationContext &ValCtx) {
+    for (Value *op : CI->operands()) {
+      ...
+        if (isa<UndefValue>(op) || isa<ConstantAggregateZero>(op)) {
+          ValCtx.EmitInstrError(CI, ValidationRule::InstrNoReadingUninitialized);
+        } else if (ArgTy == pHandleTy) {
+          // GetResourceFromHandle will emit an error on an invalid handle
+          GetResourceFromHandle(op, ValCtx);
+        }
+    }
+  }
+
+Called from ValidateHandleArgs(...) (line 585), which is called unconditionally
+for every resource dxil op at DxilValidation.cpp:2283, inside the same
+dispatch function that later calls ValidateResourceDxilOp(...) at line 2321
+for the resource-touching opcodes (GetDimensions, Sample*, BufferLoad/Store,
+TextureLoad/Store, CBufferLoad*, RawBuffer*). There is no early return between
+the two calls -- both run against the same CallInst.
+
+## 3. ...but the per-op accessors still call the error-emitting function again
+
+lib/DxilValidation/DxilValidation.cpp:191-236 (GetSamplerKind,
+GetResourceKindAndCompTy) and :547-557 (GetCBufSize) -- the exact three
+functions the issue names -- all still call GetResourceFromHandle, not
+GetResourceFromVal:
+
+  static DXIL::SamplerKind GetSamplerKind(Value *SamplerHandle,
+                                          ValidationContext &ValCtx) {
+    DxilResourceProperties RP = GetResourceFromHandle(SamplerHandle, ValCtx);
+    ...
+
+  static DXIL::ResourceKind
+  GetResourceKindAndCompTy(Value *Handle, DXIL::ComponentType &CompTy,
+                           DXIL::ResourceClass &ResClass,
+                           ValidationContext &ValCtx) {
+    ...
+    DxilResourceProperties RP = GetResourceFromHandle(Handle, ValCtx);
+    ...
+
+  static int GetCBufSize(Value *CbHandle, ValidationContext &ValCtx) {
+    DxilResourceProperties RP = GetResourceFromHandle(CbHandle, ValCtx);
+    if (RP.getResourceClass() != DXIL::ResourceClass::CBuffer) {
+      ValCtx.EmitInstrError(cast<CallInst>(CbHandle),
+                            ValidationRule::InstrCBufferClassForCBufferHandle);
+      return -1;
+    }
+    return RP.CBufferSizeInBytes;
+  }
+
+For an invalid handle reaching e.g. GetDimensions: ValidateHandleArgs (step 2
+above) already ran GetResourceFromHandle on that same Value and emitted
+InstrHandleNotFromCreateHandle once; ValidateResourceDxilOp's GetDimensions
+case then calls GetResourceKindAndCompTy -> GetResourceFromHandle on the
+identical Value again and emits InstrHandleNotFromCreateHandle a second time.
+This is precisely the "any errors emitted there will now be emitted twice"
+architecture the issue describes -- it is still the current architecture, not
+a historical one.
+
+## 4. Some call sites already use the pattern the issue asks for -- the
+##    inconsistency itself is confirmed, not just the double-emission
+
+lib/DxilValidation/DxilValidation.cpp:1572-1579 (ValidateASHandle, used for
+TraceRay's acceleration-structure handle) already does exactly what the issue
+requests: call the silent GetResourceFromVal, check validity itself, and emit
+its own single, specific diagnostic instead of relying on GetResourceFromHandle's
+generic one:
+
+  static void ValidateASHandle(CallInst *CI, Value *Hdl,
+                               ValidationContext &ValCtx) {
+    DxilResourceProperties RP = ValCtx.GetResourceFromVal(Hdl);
+    if (RP.getResourceClass() == DXIL::ResourceClass::Invalid ||
+        RP.getResourceKind() != DXIL::ResourceKind::RTAccelerationStructure) {
+      ValCtx.EmitInstrError(CI, ValidationRule::InstrResourceKindForTraceRay);
+    }
+  }
+
+Lines 2383 and 2655 (ValCtx.GetResourceFromVal(Handle) / GetResourceFromVal(Handle))
+are two more call sites already using the silent accessor directly. So the
+codebase today contains both styles side by side -- exactly the "mess" the
+issue's title names -- rather than having settled on one before or after
+filing.
+
+## 5. DxilResourceProperties::isValid() exists and is never called from the
+##    validator (include/dxc/DXIL/DxilResourceProperties.h:79,
+##    lib/DXIL/DxilResourceProperties.cpp:34-36):
+
+  bool DxilResourceProperties::isValid() const {
+    return getResourceKind() != DXIL::ResourceKind::Invalid;
+  }
+
+grep for `.isValid()`/`->isValid()` in lib/DxilValidation/DxilValidation.cpp:
+zero matches. Every call site instead repeats
+`RP.getResourceClass() == DXIL::ResourceClass::Invalid` (or the resource-kind
+equivalent) by hand -- consistent with the issue's ask that callers "should be
+using GetResourceFromVal() and IsValid()", which they are not.
+
+## 6. No commit has ever implemented any part of this refactor
+
+  git log --all --oneline -i --grep="GetResourceFromHandle"    -> 0 commits
+  git log --all --oneline -i --grep="ValidateResourceHandle"   -> 0 commits
+  git log --all --oneline -i --grep="5448"                     -> 0 commits
+  git log --all --oneline -S"ValidateResourceHandle" -- lib/DxilValidation
+                                                                -> 0 commits
+
+## 7. Filing context: this is a same-day follow-up to a merged PR, not an
+##    independent bug report
+
+  gh pr view 5399 --repo microsoft/DirectXShaderCompiler --json mergedAt,state
+    -> {"mergedAt":"2023-07-22T01:06:04Z","state":"MERGED"}
+  issue.json createdAt: "2023-07-22T01:12:41Z" (6 minutes after PR #5399 merged)
+  issue body: "Full context can be seen here:
+    https://github.com/microsoft/DirectXShaderCompiler/pull/5399#discussion_r1269919402"
+
+PR #5399 ("Prevent instructions that accept handle arguments from accepting
+malformed handle arguments") is exactly ValidateHandleArgsForInstruction /
+ValidateHandleArgs above -- the up-front pass this issue's reporter had just
+added, and immediately flagged as leaving the rest of the file's
+GetResourceFromHandle/GetResourceFromVal split unreorganized.
+
+## 8. No cross-references, no comments (fetch: comments=0; timeline: labeled/
+##    added_to_project_v2/milestoned events only, no cross-referenced events)
+
+## 9. Why this cannot be tested with a dxc.exe command line
+
+The duplicate-diagnostic consequence described in section 3 requires a
+resource handle Value that is a CallInst but is absent from ValCtx.ResPropMap
+(i.e. not a recognised CreateHandle/CreateHandleFromBinding/AnnotateHandle
+result) reaching a resource dxil op. Ordinary HLSL cannot construct that
+Value: the only source-level way to make a handle come from something other
+than a single static CreateHandle call is to select dynamically between two
+different resource objects, and DXC's own legalizer rejects that before DXIL
+validation ever runs -- confirmed directly:
+control-dynamic-handle-select.hlsl selects between two Texture2D locals and
+main-debug rejects it with `local resource not guaranteed to map to unique
+global resource` at exit 0x80004005, an ordinary diagnosed error
+(captured via `triage.py run --issue 5448 --args "-T cs_6_0 -E main
+control-dynamic-handle-select.hlsl" --label control` ->
+variant-control-main-debug.txt), before the validator's
+GetResourceFromHandle path is ever reached.
+
+Reaching the validator's own bad-handle path (an operand that IS a CallInst
+of the handle type but was never entered into ResPropMap) needs directly
+hand-authored malformed DXIL, tested through the standalone validator (`dxv`)
+rather than dxc.exe's full compile-then-validate pipeline. `dxv.exe` is not
+built in this environment (build\Debug\bin has only clang-tblgen, dxc,
+FileCheck, llvm-tblgen), and building it is a new build target -- out of
+scope, since this task explicitly disallows rebuilding anything. match.json
+and cmd.txt are therefore deliberately not created for this issue (per
+SKILL.md: "match.json and cmd.txt may be deliberately absent when compiler
+output cannot answer the question; do not manufacture a hollow predicate
+merely to make the directory look complete"), and godbolt is skipped for the
+same reason -- Compiler Explorer only compiles well-formed source through the
+same front end that already blocks this path, so a link would show nothing
+beyond what the control above already shows.

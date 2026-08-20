@@ -1,0 +1,19 @@
+# compiler: v1.6.2106
+# exe: <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+# ran: 2026-08-19T23:18:45+00:00
+# cmd: -T ps_6_7 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "invalid profile", so this build did not reach the code under test
+
+$ dxc -T ps_6_7 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: invalid profile ps_6_7
+
+

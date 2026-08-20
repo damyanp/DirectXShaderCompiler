@@ -1,0 +1,23 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T19:58:37+00:00
+# cmd: -T ps_6_0 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: unscored
+# variant: baseline-compile (repro.hlsl)
+# expect: no-match
+
+$ dxc -T ps_6_0 -E main repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+In file included from repro.hlsl:1:
+./myinclude.hlsli:1:2: error: DISK_CONTENT_MARKER
+#error DISK_CONTENT_MARKER
+ ^
+
+

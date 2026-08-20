@@ -1,0 +1,8 @@
+{
+  "kind": "any_of",
+  "value": [
+    { "kind": "regex", "value": "\\btexResource\\b" },
+    { "kind": "regex", "value": "\\brwTexResource\\b" }
+  ],
+  "note": "Reported symptom: -Qstrip_reflect fails to remove the HLSL resource identifier names from a lib_6_3 library compiled and then linked to a cs_6_3 target. Presence of either resource name anywhere in the combined compile+link+dumpbin output (Resource Bindings comment table, IR global/SSA symbol names, or !dx.resources metadata) means the names leaked through despite -Qstrip_reflect on both the compile and the link step. Control: the same shader compiled directly to a non-library cs_6_0 target with -Qstrip_reflect strips both names cleanly (see variant-cs-direct-control-*.txt), proving the predicate discriminates a real difference and is not just matching everything. CAVEAT: this predicate is meaningful only when the pipeline actually reaches a linked, disassembled shader -- if the link step fails outright (e.g. 'Cannot find definition of function main', a separate regression in how lib_6_3 recognizes an unattributed entry function, tracked via match-nolink.json) then a clean/no-match result here is an invalid-probe, not evidence of a fix, and must be checked against match-nolink.json before being read as 'does not reproduce'."
+}

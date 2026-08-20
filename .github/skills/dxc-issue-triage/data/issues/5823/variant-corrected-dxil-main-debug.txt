@@ -1,0 +1,24 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T23:29:15+00:00
+# cmd: -HV 202x -T ps_6_7 -E PSMain variant-corrected-template.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: corrected-dxil (variant-corrected-template.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc -HV 202x -T ps_6_7 -E PSMain variant-corrected-template.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-corrected-template.hlsl:14:28: error: 'const' is not a valid modifier for a field
+template<typename float_t> const float_t GaussLegendreValues<2,float_t>::wi[2] = {1.0, 1.0};
+                           ^
+
+

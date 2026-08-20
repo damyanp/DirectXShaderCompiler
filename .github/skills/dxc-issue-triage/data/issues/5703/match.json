@@ -1,0 +1,15 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "unlinked-lib-RDAT: PRESENT",
+      "note": "Anti-vacuity self-test: the intermediate library compile (stage A) must itself carry an RDAT part. DxilContainerAssembler.cpp only ever writes RDAT inside the pSM->IsLib() branch, so a library-profile compile is required to emit it; if this clause fails the reader or the compiler is broken, not the subject of the issue -- see #5703 expected.md."
+    },
+    {
+      "kind": "regex",
+      "value": "linked-RDAT: MISSING",
+      "note": "The reported symptom (#5703): after IDxcLinker::Link(...) to a concrete profile (cs_6_3), the resulting container has no RDAT part. Matches when the linked container's part table (parsed directly from DxilContainerHeader/DxilPartHeader per include/dxc/DxilContainer/DxilContainer.h) contains no FourCC 'RDAT'."
+    }
+  ]
+}

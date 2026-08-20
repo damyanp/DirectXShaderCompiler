@@ -1,0 +1,29 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T20:17:17+00:00
+# cmd: -T lib_6_6 -HV 2021 repro2-as-filed.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-example2.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "use of undeclared identifier", so this build did not reach the code under test
+# variant: example2-as-filed (repro2-as-filed.hlsl)
+# expect: invalid-probe
+
+$ dxc -T lib_6_6 -HV 2021 repro2-as-filed.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro2-as-filed.hlsl:24:5: error: use of undeclared identifier 'SomeStructWithEnums'
+    SomeStructWithEnums = (SomeStructWithEnum)0;
+    ^
+repro2-as-filed.hlsl:25:5: error: use of undeclared identifier 's'
+    s.m3 = Val1;
+    ^
+repro2-as-filed.hlsl:26:17: error: use of undeclared identifier 's'
+    return (int)s.m3;
+                ^
+
+

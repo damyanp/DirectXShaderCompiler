@@ -1,0 +1,1 @@
+dxc_1_6_2112:-D float4=0 -T ps_6_0 -E PSMain,dxc_trunk:-D float4=0 -T ps_6_0 -E PSMain

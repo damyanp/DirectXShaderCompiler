@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "changes value from 2147483648 to 2147483647",
+  "note": "Anchors on the exact (from, to) pairing DXC prints for repro.hlsl:13 (`store(to_int(-2147483648.0));`). The DXIL emitted for that exact store constant-folds to `i32 -2147483648` (see out-<compiler>.txt, the `rawBufferStore` call with element offset 0), which is INT_MIN -- proving the actual conversion result is -2147483648, not 2147483647 (INT_MAX). A warning claiming the value becomes 2147483647 is therefore definitionally wrong: it has the correct magnitude but the wrong sign, exactly the pre-Clang-3.9 bug the issue describes. This is a fixed literal string, not a general regex, because the repro is a fixed shader (recovered verbatim from the issue's Compiler Explorer shortlink) rather than a template -- see method-notes.md for why a general 'value mismatch' predicate was not attempted. Positive control (control-inrange.hlsl, --expect no-match): an in-range double->int literal conversion emits no -Wliteral-conversion warning at all, so this string cannot appear for unrelated reasons."
+}

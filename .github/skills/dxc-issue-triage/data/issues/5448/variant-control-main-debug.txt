@@ -1,0 +1,21 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T20:53:49+00:00
+# cmd: -T cs_6_0 -E main control-dynamic-handle-select.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: unscored
+# variant: control (control-dynamic-handle-select.hlsl)
+
+$ dxc -T cs_6_0 -E main control-dynamic-handle-select.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+control-dynamic-handle-select.hlsl:7:27: error: local resource not guaranteed to map to unique global resource.
+    Texture2D<float4> t = id.x == 0 ? tex0 : tex1;
+                          ^
+
+

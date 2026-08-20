@@ -1,0 +1,14 @@
+{
+  "kind": "any_of",
+  "value": [
+    { "kind": "internal_failure" },
+    {
+      "kind": "all_of",
+      "value": [
+        { "kind": "contains", "value": "Invalid record" },
+        { "kind": "contains", "value": "Validation failed" }
+      ]
+    }
+  ],
+  "note": "The reported defect (a bare-swizzled integer literal, e.g. (123).xx, fed into an as* cast) has two observable signatures for the same root cause: an assert-enabled/Debug build trips the LLVM CallInst::init 'bad signature' assert (0x80000003 or 0xE0000001, an internal_failure), while a Release/NDEBUG build has the assert compiled out, so the mismatched-type call reaches DXIL validation and is reported as 'Invalid record' / 'Validation failed.' -- exactly the original report's own captured output. Neither signature alone covers both build configurations; internal_failure alone would score every Release release binary as clean even though the malformed module still ships, and the text clauses alone would score the Debug ground truth as clean because Debug traps before validation ever runs. Composed with any_of so either build configuration is caught. Self-test/control: repro.hlsl's first line (asuint(int2(123,123))) uses an explicitly-int32-typed literal and must not match either clause on any compiler."
+}

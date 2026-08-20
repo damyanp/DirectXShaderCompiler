@@ -1,0 +1,13 @@
+Both panes should fail with a confusing internal-looking diagnostic rather
+than the compile succeeding or naming the actual problem (an uninitialized
+index used to subscript a structured-buffer array member). Look at the exit
+status and the first line of stderr, not at whether disassembly appears.
+CE's Linux builds drop the `llvm::` qualifier that the local Windows Debug
+build prints, but it is the same underlying failure: dxc_1_6_2112 exits 29
+(the low byte of the DXC_E_LLVM_CAST_ERROR HRESULT) printing "Internal
+Compiler error: cast<X>() argument of incompatible type!"; dxc_trunk exits 5
+(the low byte of E_FAIL) printing "error: cast<X>() argument of incompatible
+type!" -- reworded by an unrelated driver change between the two builds, not
+a fix. CE runs Release builds, so this corroborates the local Debug ground
+truth's LLVM-assert signature; it does not independently date anything older
+than 1.6.2112.

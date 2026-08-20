@@ -1,0 +1,2 @@
+-T cs_6_6 -E main repro.hlsl
+-T cs_6_5 -E main repro.hlsl

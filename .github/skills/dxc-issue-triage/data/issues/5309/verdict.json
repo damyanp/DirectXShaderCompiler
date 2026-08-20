@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "medium",
+  "created_at": "2023-06-21T16:54:55Z",
+  "godbolt_skip": "dxbc2dxil is never invoked by any CE dxc pane (CE compiles HLSL through the same front end as local dxc.exe, which never reaches DxbcConverter/dxilconv.dll -- same reasoning as #4786), and there is no HLSL source to compile. A CE link would show nothing relevant.",
+  "history": "n/a -- not executable in this environment under any configuration (dxilconv is not built here, HLSL_BUILD_DXILCONV=OFF, and no cataloged release ships dxbc2dxil.exe/dxilconv.dll either); history not attempted",
+  "labels": "bug,dxilconv",
+  "labels_add": "needs repro steps",
+  "labels_now": "bug,dxilconv",
+  "notes_path": "issues/5309/notes.md",
+  "number": 5309,
+  "repro_quality": "partial",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "needs-repro-from-reporter",
+  "summary": "Reported error 0x8007007e is HRESULT_FROM_WIN32(ERROR_MOD_NOT_FOUND); the only call in dxbc2dxil.cpp that can produce it is GetDxcCreateInstance's LoadLibraryExW(L'dxilconv.dll', ..., LOAD_LIBRARY_SEARCH_APPLICATION_DIR), which runs before the DXBC is ever passed to converter->Convert(). Confirmed both by HRESULT arithmetic and a standalone out-of-tree Win32 harness reproducing the exact code. The attached DXBC is well-formed (correct fourcc and TotalSize), so the content is likely not the cause. dxbc2dxil declares no CMake dependency on dxilconv (only on the statically-linked DxbcConverter), so a selective build/copy of dxbc2dxil.exe without its sibling dxilconv.dll would reproduce this exactly, consistent with the reporter's own uncertainty about what their build included. Cannot execute dxbc2dxil/dxilconv end-to-end in this environment (HLSL_BUILD_DXILCONV=OFF here, no rebuilds permitted, and no cataloged release ships these binaries), so whether DxbcConverter itself would convert this DXBC correctly once the module loads is unmeasured.",
+  "title": "Dxbc to Dxil conversion failure",
+  "triaged_at": "2026-08-20T05:15:20+00:00",
+  "triaged_by": "GitHub Copilot CLI",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5309"
+}

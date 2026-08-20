@@ -1,0 +1,72 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-20T00:38:38+00:00
+# cmd: -T lib_6_6 control-boolvector.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: boolvector (control-boolvector.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_6 control-boolvector.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+; shader hash: ebf6d0f8b1e53b39ea0ecd29bcd47a34
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.MyPayload = type { <2 x i32>, i32 }
+
+; Function Attrs: nounwind
+define void @"\01?OuterCallable@@YAXUMyPayload@@@Z"(%struct.MyPayload* noalias nocapture %payload) #0 {
+  %1 = getelementptr inbounds %struct.MyPayload, %struct.MyPayload* %payload, i32 0, i32 0, i32 1
+  %2 = load i32, i32* %1, align 4, !tbaa !13, !range !17
+  %3 = getelementptr inbounds %struct.MyPayload, %struct.MyPayload* %payload, i32 0, i32 1
+  store i32 %2, i32* %3, align 4, !tbaa !18
+  ret void
+}
+
+attributes #0 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.typeAnnotations = !{!4}
+!dx.entryPoints = !{!9, !10}
+
+!0 = !{!"dxc(private) 1.9.0.5465 (triage, 7665270b9)"}
+!1 = !{i32 1, i32 6}
+!2 = !{i32 1, i32 10}
+!3 = !{!"lib", i32 6, i32 6}
+!4 = !{i32 1, void (%struct.MyPayload*)* @"\01?OuterCallable@@YAXUMyPayload@@@Z", !5}
+!5 = !{!6, !8}
+!6 = !{i32 1, !7, !7}
+!7 = !{}
+!8 = !{i32 2, !7, !7}
+!9 = !{null, !"", null, null, null}
+!10 = !{void (%struct.MyPayload*)* @"\01?OuterCallable@@YAXUMyPayload@@@Z", !"\01?OuterCallable@@YAXUMyPayload@@@Z", null, null, !11}
+!11 = !{i32 8, i32 12, i32 6, i32 12, i32 5, !12}
+!12 = !{i32 0}
+!13 = !{!14, !14, i64 0}
+!14 = !{!"bool", !15, i64 0}
+!15 = !{!"omnipotent char", !16, i64 0}
+!16 = !{!"Simple C/C++ TBAA"}
+!17 = !{i32 0, i32 2}
+!18 = !{!19, !19, i64 0}
+!19 = !{!"int", !15, i64 0}
+
+
+--- stderr ---
+

@@ -1,0 +1,8 @@
+$ gh pr view 5803 --repo microsoft/DirectXShaderCompiler --json title,body,mergedAt,state,url
+{"body":"The remaining errors are non-trivial to fix, so let's disable this for now.","mergedAt":"2023-10-06T14:02:47Z","state":"MERGED","title":"Disable UBSAN sanitizing alignment errors","url":"https://github.com/microsoft/DirectXShaderCompiler/pull/5803"}
+
+$ gh pr view 6431 --repo microsoft/DirectXShaderCompiler --json title,body,mergedAt,state,url
+{"body":"This adds the same 'no-sanitize=alignment' option in the branch for both asan and ubsan that I missed as part of this PR:\r\nhttps://github.com/microsoft/DirectXShaderCompiler/pull/5803","mergedAt":"2024-03-20T19:43:19Z","state":"MERGED","title":"Disable ubsan alignment errors properly","url":"https://github.com/microsoft/DirectXShaderCompiler/pull/6431"}
+
+$ gh api repos/microsoft/DirectXShaderCompiler/issues/5804/timeline --paginate --jq '.[] | select(.event=="cross-referenced") | "(.created_at)  (.source.issue.repository.full_name)#(.source.issue.number)  (.source.issue.title)"'
+2023-09-29T19:08:43Z  microsoft/DirectXShaderCompiler#5803  Disable UBSAN sanitizing alignment errors

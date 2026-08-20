@@ -1,0 +1,45 @@
+# issue: 4786
+# generator: manual-case-x86-fpu-abi-gen.py
+# purpose: isolate the float-return-by-value ABI mechanism the issue attributes the corruption to, independent of DxbcConverter/dxc.exe
+# note: standalone compile via cl.exe, outside build/, no DXC target touched
+
+--- compile (x86) ---
+$ call "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86 >nul && cl.exe /nologo /EHsc /Fe:"harness_x86.exe" "..\manual-case-x86-fpu-abi-harness.cpp"
+manual-case-x86-fpu-abi-harness.cpp
+
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+
+[compile exit 0]
+--- run (x86) ---
+$ harness_x86.exe
+arch=x86
+issue-reported (0xffbfffca)                in=0xffbfffca out=0xffffffca CORRUPTED
+issue-control-int (0x09909909)             in=0x09909909 out=0x09909909 unchanged
+issue-control-subnormal (0x00000001)       in=0x00000001 out=0x00000001 unchanged
+canonical-snan-min-pos (0x7f800001)        in=0x7f800001 out=0x7fc00001 CORRUPTED
+canonical-snan-min-neg (0xff800001)        in=0xff800001 out=0xffc00001 CORRUPTED
+mismatches=3
+
+[exit 0]
+
+--- compile (x64) ---
+$ call "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 >nul && cl.exe /nologo /EHsc /Fe:"harness_x64.exe" "..\manual-case-x86-fpu-abi-harness.cpp"
+manual-case-x86-fpu-abi-harness.cpp
+
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+
+[compile exit 0]
+--- run (x64) ---
+$ harness_x64.exe
+arch=x64
+issue-reported (0xffbfffca)                in=0xffbfffca out=0xffbfffca unchanged
+issue-control-int (0x09909909)             in=0x09909909 out=0x09909909 unchanged
+issue-control-subnormal (0x00000001)       in=0x00000001 out=0x00000001 unchanged
+canonical-snan-min-pos (0x7f800001)        in=0x7f800001 out=0x7f800001 unchanged
+canonical-snan-min-neg (0xff800001)        in=0xff800001 out=0xff800001 unchanged
+mismatches=0
+
+[exit 0]
+

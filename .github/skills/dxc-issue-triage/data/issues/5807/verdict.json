@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-10-01T14:56:00Z",
+  "godbolt_url": "https://godbolt.org/z/dE4KrbPjY",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (both bisect endpoints agree; short-circuited)",
+  "labels": "bug,hlsl-next",
+  "labels_now": "bug,hlsl-next",
+  "notes_path": "issues/5807/notes.md",
+  "number": 5807,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "uint e = E::A << 1u; still fails with 'cannot convert from unsigned int to E' on main (89e2f98e2) and on CE dxc_1_6_2112/dxc_trunk; source reading confirms the general enum->int conversion path is not broken (ConvertComponent already allows it), so the defect is localized to shift-operator overload resolution, matching llvm-beanz's comment. hlsl_clang_trunk already compiles this cleanly.",
+  "title": "Error in implicit conversions when enums are involved",
+  "triaged_at": "2026-08-20T05:15:30+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5807"
+}

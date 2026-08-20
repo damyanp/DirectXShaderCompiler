@@ -1,0 +1,18 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T18:40:26+00:00
+# cmd: -spirv -T hs_6_6 -E mainHS -Fo output.dxil repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: spirv (repro.hlsl)
+# expect: no-match
+
+$ dxc -spirv -T hs_6_6 -E mainHS -Fo output.dxil repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

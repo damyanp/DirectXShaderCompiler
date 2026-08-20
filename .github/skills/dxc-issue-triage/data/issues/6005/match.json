@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Reported symptom is a Debug-build assert (MaybeODRUseExprs.empty() && \"Leftover expressions for odr-use checking\", SemaDecl.cpp ActOnFinishFunctionBody). Per method notes, always classify crash/assert issues with internal_failure keyed on exit status, never on message text: the same defect can trap (0x80000003) or throw as a C++ exception (0xE0000001) depending on build, and a Release build simply swallows the assert under NDEBUG (exit 0, no signature) rather than printing anything about it. is_internal_failure() covers all of these exit statuses."
+}

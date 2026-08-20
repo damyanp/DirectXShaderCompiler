@@ -1,0 +1,1 @@
+-T lib_6_3 -Fh out-header.h repro.hlsl

@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "Not all elements of output SV_ClipDistance were written",
+  "note": "Secondary predicate distinguishing the transient middle window (v1.5.2010..v1.6.2112) from a genuine fix: those releases do NOT crash, but they also do not compile the shader cleanly -- they reject it with an ordinary diagnosed DXIL-validation error (E_FAIL) because the reinterpret-cast confuses signature-write tracking for SV_ClipDistance. match.json alone (internal_failure) would read this window as 'fixed'; this predicate shows it never produced a clean compile, only a different failure shape. See notes.md for the full three-state history (hang -> diagnosed rejection -> internal-failure crash)."
+}

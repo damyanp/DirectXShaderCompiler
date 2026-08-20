@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-06-16T00:14:43Z",
+  "godbolt_url": "https://godbolt.org/z/jj8fzqMTK",
+  "history": "always-repro'd",
+  "labels": "bug",
+  "labels_add": "correctness, incorrect-code",
+  "labels_now": "bug",
+  "notes_path": "data/issues/5302/notes.md",
+  "number": 5302,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Compiling the reporter's waterfall loop as vs_6_0 hoists the wave-sensitive buffer load out of the loop because CGHLSLMS.cpp's EmitHLSLCondBreak only engages the dx.break protection (PR #2795) for PS/CS/Lib; ps_6_0 on the identical source stays protected. Unchanged since dx.break was introduced (2020-03-30, d3af7f123): reproduces on every stable release from v1.5.2010 through v1.9.2607 and on main-debug (89e2f98e2); v1.4.1907 predates the mechanism for every stage and is invalid evidence, not a clean result.",
+  "title": "Incorrect code for waterfall loop in VS shader",
+  "triaged_at": "2026-08-20T05:15:20+00:00",
+  "triaged_by": "claude-sonnet-4.6 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5302"
+}

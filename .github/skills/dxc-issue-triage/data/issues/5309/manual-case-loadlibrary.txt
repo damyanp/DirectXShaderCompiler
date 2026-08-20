@@ -1,0 +1,31 @@
+# issue: 5309
+# generator: manual-case-loadlibrary-gen.py
+# purpose: confirm that LoadLibraryExW(..., LOAD_LIBRARY_SEARCH_APPLICATION_DIR)
+#          failing on an absent module -- the exact call dxbc2dxil.cpp's
+#          Converter::GetDxcCreateInstance makes for "dxilconv.dll" --
+#          reports HRESULT 0x8007007e, matching the issue's reported
+#          "Conversion failed - error code 0x8007007e"
+# note: standalone compile via cl.exe, outside build/, no DXC target touched
+
+--- compile (x64) ---
+$ call "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 >nul && cl.exe /nologo /EHsc /Fe:"harness_x64.exe" "..\manual-case-loadlibrary-harness.cpp"
+manual-case-loadlibrary-harness.cpp
+
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+
+[compile exit 0]
+--- run ---
+$ harness_x64.exe
+LoadLibraryExW("missing", LOAD_LIBRARY_SEARCH_APPLICATION_DIR):
+  hModule = 0000000000000000
+  GetLastError() = 126 (0x0000007E)
+  HRESULT_FROM_WIN32(GetLastError()) = 0x8007007E
+  matches issue's reported 0x8007007e: YES
+
+Control: LoadLibraryExW("kernel32.dll", SEARCH_SYSTEM32):
+  hModule = 00007FFE3EC90000 (loaded OK)
+
+Control: HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND=2) = 0x80070002 (distinct from module-not-found)
+
+[exit 0]

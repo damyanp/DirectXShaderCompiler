@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-07-22T01:12:41Z",
+  "godbolt_skip": "internal validator code-organization request; the one observable consequence (duplicate diagnostics for the same malformed handle) is unreachable from ordinary HLSL through dxc.exe or CE (front end rejects the only HLSL construct that could produce it, see control-dynamic-handle-select.hlsl), and reaching it needs the standalone dxv validator, which is not built in this environment and building it is out of scope (no rebuilds permitted for this task)",
+  "history": "always-repro'd since filing (2023-07-22, six minutes after PR #5399 merged) through main (89e2f98e29c289ae8ad9e00dd310104fea9fd7df); confirmed by source inspection only -- no dxc.exe command line or release history exists to bisect an internal validator code-organization request against, and git log shows no commit has ever implemented any part of the described rename",
+  "labels": "enhancement,tech-debt,diagnostic,validation",
+  "labels_now": "enhancement,tech-debt,diagnostic,validation",
+  "notes_path": "issues/5448/notes.md",
+  "number": 5448,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "enhancement-not-bug",
+  "summary": "GetResourceFromHandle (lib/DxilValidation/DxilValidation.cpp:167-189) still both looks up resource properties and emits InstrHandleNotFromCreateHandle/InstrReorderCoherentRequiresSM69 as a side effect, unrenamed; GetSamplerKind, GetResourceKindAndCompTy and GetCBufSize -- the three functions the issue names -- still all call it rather than the silent GetResourceFromVal, so an invalid handle reaching e.g. GetDimensions still has the same error emitted twice (once from the up-front ValidateHandleArgs pass PR #5399 added, once from the op-specific accessor -- no early return between them). No ValidateResourceHandle function exists anywhere in the tree, and DxilResourceProperties::isValid() (include/dxc/DXIL/DxilResourceProperties.h:79) is never called from the validator; every call site hand-repeats getResourceClass()==Invalid instead. ValidateASHandle (DxilValidation.cpp:1572-1579, TraceRay's AS handle) already uses the pattern the issue asks for everywhere, confirming both styles coexist today. git log --all --grep for GetResourceFromHandle/ValidateResourceHandle/5448, and -S'ValidateResourceHandle', all return zero commits: no part of this refactor has ever been implemented. Filed by the reporter six minutes after their own PR #5399 merged; zero comments, zero cross-references. No dxc.exe command line or CE link exists for this issue: the one observable consequence (duplicate diagnostic) needs a handle Value absent from ResPropMap, which ordinary HLSL cannot construct -- confirmed directly, a control shader selecting between two Texture2D locals is rejected by dxc's legalizer (exit 0x80004005, an ordinary diagnosed error) before DXIL validation runs; reaching the validator's own path needs the standalone dxv validator, not built here and out of scope to build (no rebuilds permitted).",
+  "title": "[Validation] Organize usage of GetResourceFromHandle and GetResourceFromVal calls in validation",
+  "triaged_at": "2026-08-20T05:15:23+00:00",
+  "triaged_by": "GitHub Copilot CLI (model not self-identifiable)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5448"
+}

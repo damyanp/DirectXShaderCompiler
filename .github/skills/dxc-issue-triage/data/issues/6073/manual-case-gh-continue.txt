@@ -1,0 +1,228 @@
+$ "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe" -c "sxe -c \"gh\" e0000001; sxe -c \"gh\" e06d7363; g; q" <repo>\build\Debug\bin\dxc.exe -T cs_6_0 -E main repro.hlsl
+[cdb exit] 0
+
+************* Preparing the environment for Debugger Extensions Gallery repositories **************
+   ExtensionRepository : Implicit
+   UseExperimentalFeatureForNugetShare : true
+   AllowNugetExeUpdate : true
+   NonInteractiveNuget : true
+   AllowNugetMSCredentialProviderInstall : true
+   AllowParallelInitializationOfLocalRepositories : true
+
+   EnableRedirectToV8JsProvider : false
+
+   -- Configuring repositories
+      ----> Repository : LocalInstalled, Enabled: true
+      ----> Repository : UserExtensions, Enabled: true
+
+>>>>>>>>>>>>> Preparing the environment for Debugger Extensions Gallery repositories completed, duration 0.000 seconds
+
+************* Waiting for Debugger Extensions Gallery to Initialize **************
+
+>>>>>>>>>>>>> Waiting for Debugger Extensions Gallery to Initialize completed, duration 0.016 seconds
+   ----> Repository : UserExtensions, Enabled: true, Packages count: 0
+   ----> Repository : LocalInstalled, Enabled: true, Packages count: 29
+
+Microsoft (R) Windows Debugger Version 10.0.26100.6584 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+CommandLine: <repo>\build\Debug\bin\dxc.exe -T cs_6_0 -E main repro.hlsl
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       srv*
+Symbol search path is: srv*
+Executable search path is: 
+
++------------------------------------------------------------------------+
+| This target supports Hardware-enforced Stack Protection. A HW based    |
+| "Shadow Stack" may be available to assist in debugging and analysis.   |
+| See aka.ms/userhsp for more info.                                      |
+|                                                                        |
+| dps @ssp                                                               |
+|                                                                        |
++------------------------------------------------------------------------+
+
+ModLoad: 00007ff6`fc090000 00007ff6`fc78b000   dxc.exe 
+ModLoad: 00007ffe`3fc20000 00007ffe`3fe86000   ntdll.dll
+ModLoad: 00007ffe`3ec90000 00007ffe`3ed59000   C:\Windows\System32\KERNEL32.DLL
+ModLoad: 00007ffe`3ce40000 00007ffe`3d23e000   C:\Windows\System32\KERNELBASE.dll
+ModLoad: 00007ffe`3f240000 00007ffe`3f407000   C:\Windows\System32\USER32.dll
+ModLoad: 00007ffe`3d250000 00007ffe`3d277000   C:\Windows\System32\win32u.dll
+ModLoad: 00007ffe`3eea0000 00007ffe`3eecb000   C:\Windows\System32\GDI32.dll
+ModLoad: 00007ffe`3d280000 00007ffe`3d3aa000   C:\Windows\System32\gdi32full.dll
+ModLoad: 00007ffe`3d660000 00007ffe`3d703000   C:\Windows\System32\msvcp_win.dll
+ModLoad: 00007ffe`3d440000 00007ffe`3d58c000   C:\Windows\System32\ucrtbase.dll
+ModLoad: 00007ffe`3cc70000 00007ffe`3cda6000   gdi32full.dll
+ModLoad: 00007ffe`3e960000 00007ffe`3eaf9000   C:\Windows\System32\ole32.dll
+ModLoad: 00007ffe`3e580000 00007ffe`3e903000   C:\Windows\System32\combase.dll
+ModLoad: 00007ffe`3eb70000 00007ffe`3ec88000   C:\Windows\System32\RPCRT4.dll
+ModLoad: 00007ffe`3f570000 00007ffe`3f649000   C:\Windows\System32\OLEAUT32.dll
+ModLoad: 00007ffe`3c890000 00007ffe`3cc3c000   combase.dll
+ModLoad: 00007ffe`1bd40000 00007ffe`1bd4f000   C:\Windows\SYSTEM32\VCRUNTIME140_1D.dll
+ModLoad: 00007ffe`2f750000 00007ffe`2f75b000   C:\Windows\SYSTEM32\VERSION.dll
+ModLoad: 00007ffd`f8ca0000 00007ffd`f8cd0000   C:\Windows\SYSTEM32\VCRUNTIME140D.dll
+ModLoad: 00007ffd`f3f90000 00007ffd`f406a000   C:\Windows\SYSTEM32\MSVCP140D.dll
+ModLoad: 00007ffe`3f4c0000 00007ffe`3f569000   C:\Windows\System32\msvcrt.dll
+ModLoad: 00007ffd`c9c00000 00007ffd`c9e04000   C:\Windows\SYSTEM32\ucrtbased.dll
+ModLoad: 00000194`60830000 00000194`60a34000   C:\Windows\SYSTEM32\ucrtbased.dll
+ModLoad: 00000194`60a40000 00000194`60c44000   C:\Windows\SYSTEM32\ucrtbased.dll
+ModLoad: 00000194`60c50000 00000194`60e54000   C:\Windows\SYSTEM32\ucrtbased.dll
+(8f88.7f80): Break instruction exception - code 80000003 (first chance)
+ntdll!LdrpDoDebuggerBreak+0x35:
+00007ffe`3fd3d7bd cc              int     3
+0:000> cdb: Reading initial command 'sxe -c "gh" e0000001; sxe -c "gh" e06d7363; g; q'
+ModLoad: 00007ffe`3e910000 00007ffe`3e942000   C:\Windows\System32\IMM32.DLL
+ModLoad: 00007ffd`9c5a0000 00007ffd`a0e22000   <repo>\build\Debug\bin\dxcompiler.dll
+ModLoad: 00007ffe`3eed0000 00007ffe`3ef87000   C:\Windows\System32\ADVAPI32.dll
+ModLoad: 00007ffe`3edf0000 00007ffe`3ee9a000   C:\Windows\System32\sechost.dll
+Error: assert(!Old || Old->getCachedLinkage() == D->getCachedLinkage())
+File:
+<repo>\tools\clang\lib\AST\Decl.cpp(1357)
+Func:	clang::LinkageComputer::getLVForDecl
+(8f88.7f80): Unknown exception - code e0000001 (first chance)
+Error: assert(!Old || Old->getCachedLinkage() == D->getCachedLinkage())
+File:
+<repo>\tools\clang\lib\AST\Decl.cpp(1357)
+Func:	clang::LinkageComputer::getLVForDecl
+(8f88.7f80): Unknown exception - code e0000001 (first chance)
+Error: assert(!Old || Old->getCachedLinkage() == D->getCachedLinkage())
+File:
+<repo>\tools\clang\lib\AST\Decl.cpp(1357)
+Func:	clang::LinkageComputer::getLVForDecl
+(8f88.7f80): Unknown exception - code e0000001 (first chance)
+Declaration may not be in a Comdat!
+i32* @"\01?Num@?$Test@$0CK@@@2HA"
+(8f88.7f80): C++ EH exception - code e06d7363 (first chance)
+WARNING: Continuing a non-continuable exception
+ModLoad: 00007ffe`3ad80000 00007ffe`3ad9b000   C:\Windows\SYSTEM32\kernel.appcore.dll
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: a4ec750d799f6d5815fd27a5b8d38517
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+; cbuffer $Globals
+; {
+;
+;   struct $Globals
+;   {
+;
+;       int Test<42>::Num;                            ; Offset:    0
+;   
+;   } $Globals;                                       ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; $Globals                          cbuffer      NA          NA     CB0            cb0     1
+; MyBuffer                              UAV     i32         buf      U0             u0     1
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.CBufRet.i32 = type { i32, i32, i32, i32 }
+%"class.RWBuffer<int>" = type { i32 }
+%"$Globals" = type { i32 }
+
+define void @main() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 2, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %3 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %4 = call %dx.types.CBufRet.i32 @dx.op.cbufferLoadLegacy.i32(i32 59, %dx.types.Handle %2, i32 0)  ; CBufferLoadLegacy(handle,regIndex)
+  %5 = extractvalue %dx.types.CBufRet.i32 %4, 0
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %1, i32 %3, i32 undef, i32 %5, i32 %5, i32 %5, i32 %5, i8 15)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.CBufRet.i32 @dx.op.cbufferLoadLegacy.i32(i32, %dx.types.Handle, i32) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!10}
+
+!0 = !{!"dxc(private) 1.9.0.5465 (triage, 7665270b9)"}
+!1 = !{i32 1, i32 0}
+!2 = !{i32 1, i32 10}
+!3 = !{!"cs", i32 6, i32 0}
+!4 = !{null, !5, !8, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.RWBuffer<int>"* undef, !"", i32 0, i32 0, i32 1, i32 10, i1 false, i1 false, i1 false, !7}
+!7 = !{i32 0, i32 4}
+!8 = !{!9}
+!9 = !{i32 0, %"$Globals"* undef, !"", i32 0, i32 0, i32 1, i32 4, null}
+!10 = !{void ()* @main, !"main", null, !4, !11}
+!11 = !{i32 4, !12}
+!12 = !{i32 1, i32 1, i32 1}
+
+quit:
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\atlmfc.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\ObjectiveC.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\concurrency.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\cpp_rest.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\stl.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Data.Json.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Devices.Geolocation.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Devices.Sensors.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Media.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\windows.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\winrt.natvis'
+
+--- stderr ---
+repro.hlsl:8:15: warning: Initializer of external global will be ignored
+int Test<ID>::Num = 2;
+              ^
+
+

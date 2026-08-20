@@ -1,0 +1,13 @@
+What to look for: this link shows only the `dxc.exe` (compiler) half of #5423, which is the
+reporter's own control, not the bug. Both panes fail identically with "error: expected member
+name or ';' after declaration specifiers" on `float4 position : SV_Position;` -- this is what
+proves `-D float4=0` really does get textually substituted for dxc.exe, confirming the shared
+-D-parsing/expansion machinery (used by both dxc.exe and dxr.exe) is fully functional.
+
+The actual bug -- `dxr.exe -D float4=0 -E PSMain` silently rewriting the source verbatim,
+with no error or warning, because dxr.exe's CLI never forwards its parsed -D options to the
+rewrite call -- cannot be shown here: Compiler Explorer has no dxr.exe/rewriter pane. That half
+is evidenced locally in variant-dxr-groundtruth-dxr-5290-release--match-dxr.txt (a Release
+`dxr.exe` build matching the exact ground-truth commit) and manual-case-release-history.txt
+(all 20 cached stable releases v1.4.1907..v1.9.2607, same result), plus source citation in
+notes.md.

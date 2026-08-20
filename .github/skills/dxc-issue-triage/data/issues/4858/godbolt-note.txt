@@ -1,0 +1,8 @@
+Look at the block reached only by the true arm of the branch that tests
+`all(uv < 0.5))` (source line 8). The source computes the level-of-detail value
+unconditionally, before that branch. In both DXC panes below, the compiled IR places the LOD
+calculation itself inside that conditionally-reached block instead -- after the branch, not
+before it -- even though nothing about its inputs depends on the branch condition. That is the
+illegal code motion the issue reports: the LOD calculation has been sunk into non-uniform
+control flow. The Clang pane cannot corroborate or refute this: it rejects the shader earlier,
+at Sema, because its HLSL front end does not yet recognise `InterlockedMin` as a free function.

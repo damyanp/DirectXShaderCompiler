@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-11-30T18:44:26Z",
+  "godbolt_skip": "CI/pipeline enhancement request; no shader or dxc invocation to compile, nothing to show on Compiler Explorer",
+  "history": "n/a",
+  "labels": "enhancement,ci",
+  "labels_now": "enhancement,ci",
+  "notes_path": "issues/6084/notes.md",
+  "number": 6084,
+  "repro_quality": "prose-only",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "CI enhancement request (add clang-cl Windows build to the regular pipeline, not just release). Not compiler-verifiable. At ground truth (89e2f98e2) azure-pipelines.yml has no clang-cl job at all -- not even the release-only one the issue describes -- and no GitHub Actions workflow builds DXC either. PR #6107 ('Fixes: #6084') would have added it but was never merged; closed 2026-01-22 as part of a stale-PR sweep, not on its merits. Prerequisite #5480 closed 2024-01-29. Request remains fully open and unaddressed.",
+  "title": "[CI] Add clang-cl on windows build to test pipeline",
+  "triaged_at": "2026-08-20T05:15:34+00:00",
+  "triaged_by": "GPT-5.1-Copilot-CLI (batch-019)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/6084"
+}

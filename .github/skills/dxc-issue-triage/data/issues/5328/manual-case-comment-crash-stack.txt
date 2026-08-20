@@ -1,0 +1,49 @@
+# compiler: main-debug
+# command: cdb -c "sxe -c \"kb 20; gh\" e0000001; g; q" dxc.exe -T cs_6_0 -E main variant-comment-repro.hlsl
+#
+# This captures the crash from the 2026-04-27 comment on issue #5328
+# (variant-comment-repro.hlsl, the reporter mandryskowski's tint-generated
+# HLSL). It is NOT a reproduction of the issue's own reported defect
+# (the IRBuilder<>(LI)/(ST) typo in HLMatrixBitcastLowerPass.cpp). See
+# notes.md: the fault is in a different file, different pass, different
+# function, and different root cause. Kept as a documented, separate
+# finding rather than corroborating evidence for the primary verdict.
+
+CommandLine: <repo>\build\Debug\bin\dxc.exe -T cs_6_0 -E main variant-comment-repro.hlsl
+
+(9b00.8248): Break instruction exception - code 80000003 (first chance)
+0:000> cdb: Reading initial command 'sxe -c "kb 20; gh" e0000001; g; q'
+Error: assert(Ty && "Invalid GetElementPtrInst indices for type!")
+File:
+<repo>\include\llvm/IR/Instructions.h(823)
+Func:	llvm::checkGEPType
+(9b00.8248): Unknown exception - code e0000001 (first chance)
+RetAddr               : Call Site
+00007ffd`97771741     : KERNELBASE!RaiseException+0x8a
+00007ffd`9706822e     : dxcompiler!llvm_assert+0x51
+00007ffd`9706bf42     : dxcompiler!llvm::checkGEPType+0x3e
+00007ffd`97062f3b     : dxcompiler!llvm::GetElementPtrInst::getGEPReturnType+0x62
+00007ffd`97066a8e     : dxcompiler!llvm::GetElementPtrInst::GetElementPtrInst+0x6b
+00007ffd`971b8e2a     : dxcompiler!llvm::GetElementPtrInst::Create+0x12e
+00007ffd`971b8cae     : dxcompiler!llvm::IRBuilder<...>::CreateGEP+0x16a
+00007ffd`973b500c     : dxcompiler!llvm::IRBuilder<...>::CreateGEP+0x4e
+00007ffd`973b4b24     : dxcompiler!`anonymous namespace'::HLMatrixLowerPass::replaceAllVariableUses+0x67c
+00007ffd`973b4947     : dxcompiler!`anonymous namespace'::HLMatrixLowerPass::replaceAllVariableUses+0x194
+00007ffd`973b5eaf     : dxcompiler!`anonymous namespace'::HLMatrixLowerPass::replaceAllVariableUses+0x167
+00007ffd`973b3285     : dxcompiler!`anonymous namespace'::HLMatrixLowerPass::lowerAlloca+0x1cf
+00007ffd`973b30d7     : dxcompiler!`anonymous namespace'::HLMatrixLowerPass::runOnFunction+0xf5
+00007ffd`99bf84a8     : dxcompiler!`anonymous namespace'::HLMatrixLowerPass::runOnModule+0x337
+00007ffd`99bf92e5     : dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+00007ffd`99befc2c     : dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+...
+(gh continues past the first assert; a second, related assert follows)
+Error: assert(EltTy && "Can't get a pointer to <null> type!")
+File:
+<repo>\lib\IR\Type.cpp(739)
+Func:	llvm::PointerType::get
+(9b00.8248): Unknown exception - code e0000001 (first chance)
+... (same HLMatrixLowerPass::replaceAllVariableUses -> lowerAlloca -> runOnFunction call chain)
+(9b00.8248): Access violation - code c0000005 (first chance)
+
+# exit: 0xE0000001 (via cdb `gh`/exception-continuation harness; a direct,
+#       non-debugger run of the same command also exits -536870911 == 0xE0000001)

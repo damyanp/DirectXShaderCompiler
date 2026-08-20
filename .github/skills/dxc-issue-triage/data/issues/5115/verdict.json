@@ -1,0 +1,23 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-03-25T17:30:21Z",
+  "expected_symptom": "f(1) against overloads f(unsigned int)/f(int) reports 'call to f is ambiguous' naming both candidates; f(1u) compiles cleanly",
+  "godbolt_url": "https://godbolt.org/z/xPz8ndv7T",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (linear scan, 20 stable releases, 0 invalid probes) plus main-debug",
+  "labels": "bug,hlsl-next",
+  "labels_add": "diagnostic, type-system",
+  "labels_now": "bug,hlsl-next",
+  "notes_path": "issues/5115/notes.md",
+  "number": 5115,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Confirmed on main (89e2f98e2) and on all 20 probeable stable releases v1.4.1907..v1.9.2607: f(1) is rejected as ambiguous between f(unsigned int) and f(int), while f(1u) compiles cleanly, matching the issue exactly. Maintainer (llvm-beanz) already confirmed same-day this is DXC's broken overload resolution, to be fixed by the planned HLSL 202x C++-overload-rules adoption. New finding: the successor Clang-based HLSL front end (hlsl_clang_trunk on Compiler Explorer) already compiles the identical source with no diagnostic, while still correctly rejecting a genuinely-ambiguous control (f(1.0f)) with identical wording to classic dxc -- so the fix is real and already realized there, just not in classic dxc.exe.",
+  "title": "signed/unsigned overload resolution error seems unjustified",
+  "triaged_at": "2026-08-20T05:15:16+00:00",
+  "triaged_by": "GitHub Copilot CLI",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5115"
+}

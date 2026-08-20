@@ -1,0 +1,5 @@
+{
+  "kind": "contains",
+  "value": "Cannot find definition of function main",
+  "note": "Secondary predicate tracking a DIFFERENT, unrelated regression discovered while triaging #5704: on current main, compiling the literal repro.hlsl (numthreads only, no [shader(\"compute\")] attribute) to lib_6_3 produces a library with zero surviving functions (the unattributed, unreferenced function is now internal-linkage and dead-code-eliminated at the initial lib compile step), so the subsequent -link step cannot find 'main' and fails outright before the -Qstrip_reflect question can even be tested. On v1.7.2308 (the reporter's own version) the identical literal command sequence succeeds: the unattributed function is still recognized, kept, and finalized as the compute entry. A match here means the pipeline never reached the reflection question at all -- match.json's result on the same run must be treated as invalid-probe, not as a clean pass."
+}

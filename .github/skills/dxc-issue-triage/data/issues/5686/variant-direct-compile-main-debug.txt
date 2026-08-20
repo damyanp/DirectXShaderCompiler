@@ -1,0 +1,102 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T21:58:54+00:00
+# cmd: -T as_6_6 repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: direct-compile (repro.hlsl)
+# expect: no-match
+
+$ dxc -T as_6_6 repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader hash: 880053eefe175d6817d795a403e2db79
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Amplification Shader
+; NumThreads=(1,1,1)
+; NumBytesGroupSharedMemory: 4
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%struct.payloadStruct = type { i32 }
+
+@"\01?p@@3UpayloadStruct@@A" = external addrspace(3) global %struct.payloadStruct, align 4
+
+define void @main() {
+  %1 = call i32 @dx.op.groupId.i32(i32 94, i32 2)  ; GroupId(component)
+  store i32 %1, i32 addrspace(3)* getelementptr inbounds (%struct.payloadStruct, %struct.payloadStruct addrspace(3)* @"\01?p@@3UpayloadStruct@@A", i32 0, i32 0), align 4, !tbaa !8
+  call void @dx.op.dispatchMesh.struct.payloadStruct(i32 173, i32 1, i32 1, i32 1, %struct.payloadStruct addrspace(3)* nonnull @"\01?p@@3UpayloadStruct@@A")  ; DispatchMesh(threadGroupCountX,threadGroupCountY,threadGroupCountZ,payload)
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.groupId.i32(i32, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.dispatchMesh.struct.payloadStruct(i32, i32, i32, i32, %struct.payloadStruct addrspace(3)*) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.entryPoints = !{!4}
+
+!0 = !{!"dxc(private) 1.9.0.5465 (triage, 7665270b9)"}
+!1 = !{i32 1, i32 6}
+!2 = !{i32 1, i32 10}
+!3 = !{!"as", i32 6, i32 6}
+!4 = !{void ()* @main, !"main", null, null, !5}
+!5 = !{i32 10, !6}
+!6 = !{!7, i32 4}
+!7 = !{i32 1, i32 1, i32 1}
+!8 = !{!9, !9, i64 0}
+!9 = !{!"int", !10, i64 0}
+!10 = !{!"omnipotent char", !11, i64 0}
+!11 = !{!"Simple C/C++ TBAA"}
+
+
+--- stderr ---
+

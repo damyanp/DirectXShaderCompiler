@@ -1,0 +1,30 @@
+# Compiler Explorer panes for #5573, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_6 -E CSMain
+# exit:     5
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+error: validation errors
+<source>:1: error: External declaration '\01?buffer@@3URWByteAddressBuffer@@A' is unused.
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_6 -E CSMain
+# exit:     5
+
+error: validation errors
+<source>:1: error: External declaration '\01?buffer@@3URWByteAddressBuffer@@A' is unused.
+Validation failed.
+
+
+<Compilation failed>

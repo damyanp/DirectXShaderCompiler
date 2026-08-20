@@ -1,0 +1,10 @@
+What to look for: `Func` is an empty `inout` function -- its body never touches
+its parameter. `PSMain` pre-decrements `i` exactly once and passes that as
+Func's argument: `Func(--i)`. A correct compile therefore subtracts one input
+unit from the loaded value before storing it to the output. Compare the
+operand of the arithmetic instruction generated for the `--i` expression (near
+the DXIL disassembly's `StoreOutput`/`bufferStore` call) across the dxc panes:
+it currently subtracts two input units, not one -- the pre-decrement is
+applied twice. This does not depend on optimisation level or shader stage; it
+reproduces identically in the pixel-shader source tested locally and in the
+compute-shader restatement shown here.

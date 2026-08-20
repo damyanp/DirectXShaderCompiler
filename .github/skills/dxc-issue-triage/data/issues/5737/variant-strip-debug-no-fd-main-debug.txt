@@ -1,0 +1,27 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# cmd: -T lib_6_3 -Zi -Qstrip_reflect -Qembed_debug -Fd testc.pdb -Fo test.lib repro.hlsl ; -link -T lib_6_3 -Zi -Qstrip_reflect -Qstrip_debug -Fo test.bin test.lib
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: strip-debug-no-fd (control-cmd, -Fd removed from link line, -Qstrip_debug kept)
+# expect: match
+
+$ dxc -T lib_6_3 -Zi -Qstrip_reflect -Qembed_debug -Fd testc.pdb -Fo test.lib repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -link -T lib_6_3 -Zi -Qstrip_reflect -Qstrip_debug -Fo test.bin test.lib
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 1
+--- stdout ---
+
+
+--- stderr ---
+dxc failed : DXIL container does not contain the given part.
+

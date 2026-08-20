@@ -1,0 +1,59 @@
+# manual capture: assert message + stack, then continuing past both asserts
+# compiler: main-debug  (<repo>\build\Debug\bin\dxc.exe)
+# version:  dxcompiler.dll: 1.10(5465-7665270b)(1.9.0.5465) - 1.9.0.5465 (triage, 7665270b9)
+# harness:  assert-stack.cmd   (cdb 10.0.26100.6584, x64)  -- re-runnable
+# ran:      2026-08-19T19:44 (local)
+# why:      a plain run of the repro already exits 0xE0000001 ("Internal compiler error: LLVM
+#           Assert"), because dxc's llvm_assert handler raises a C++ exception rather than
+#           trapping -- so the message, file and line need a debugger to see. `gh` ("go
+#           handled") continues past each assert, emulating what an NDEBUG/Release build does,
+#           which is what shows this is not merely "an assert fires": the SPIR-V module DXC
+#           goes on to build is itself invalid, and its own embedded validator rejects it.
+# NOTE:     hand-driven capture, not a probe. Not scored by match.json.
+#           Stacks trimmed to the frames that matter; module-load and symbol-path noise removed.
+#
+# repro.hlsl, with the exact arguments in cmd.txt. Two chained asserts fire in the same
+# visitor, both from an out-of-range access into the multisample resource's SPIR-V
+# StructType field list, then the code that continues past both still cannot produce a
+# valid module.
+
+### assert 1: PreciseVisitor.cpp:72, isAccessingPrecise
+Error: assert(indexValue < fields.size())
+File:
+<repo>\tools\clang\lib\SPIRV\PreciseVisitor.cpp(72)
+Func:	`anonymous-namespace'::isAccessingPrecise
+(pid.tid): Unknown exception - code e0000001 (first chance)
+RetAddr               : Call Site
+...                    : KERNELBASE!RaiseException+0x8a
+...                    : dxcompiler!llvm_assert+0x51
+...                    : dxcompiler!`anonymous namespace'::isAccessingPrecise+0x3c8
+...                    : dxcompiler!clang::spirv::PreciseVisitor::visit+0x6f
+...                    : dxcompiler!clang::spirv::SpirvStore::invokeVisitor+0x42
+...                    : dxcompiler!clang::spirv::SpirvBasicBlock::invokeVisitor+0x270
+...                    : dxcompiler!clang::spirv::SpirvFunction::invokeVisitor+0x6c5
+...                    : dxcompiler!clang::spirv::SpirvModule::invokeVisitor+0x13b
+
+### assert 2 (after `gh` past assert 1, same visitor call): ArrayRef.h:197
+Error: assert(Index < Length && "Invalid index!")
+File:
+<repo>\include\llvm/ADT/ArrayRef.h(197)
+Func:	llvm::ArrayRef<struct clang::spirv::StructType::FieldInfo>::operator []
+(pid.tid): Unknown exception - code e0000001 (first chance)
+RetAddr               : Call Site
+...                    : KERNELBASE!RaiseException+0x8a
+...                    : dxcompiler!llvm_assert+0x51
+...                    : dxcompiler!llvm::ArrayRef<clang::spirv::StructType::FieldInfo>::operator[]+0x4b
+...                    : dxcompiler!`anonymous namespace'::isAccessingPrecise+0x3e0
+...                    : dxcompiler!clang::spirv::PreciseVisitor::visit+0x6f
+...                    : dxcompiler!clang::spirv::SpirvStore::invokeVisitor+0x42
+...                    : dxcompiler!clang::spirv::SpirvBasicBlock::invokeVisitor+0x270
+...                    : dxcompiler!clang::spirv::SpirvFunction::invokeVisitor+0x6c5
+
+### after `gh` past BOTH asserts (emulates NDEBUG/Release -- the checks are compiled out,
+### so the codegen bug that both asserts were guarding against is what actually reaches
+### DXC's own embedded SPIRV-Tools validator):
+fatal error: generated SPIR-V is invalid: [VUID-StandaloneSpirv-UniformConstant-04655] UniformConstant OpVariable <id> '7[%gUav]' has illegal type.
+Variables identified with the UniformConstant storage class are used only as handles to refer to opaque resources. Such variables must be typed as OpTypeImage, OpTypeSampler, OpTypeSampledImage, OpTypeAccelerationStructureKHR, or an array of one of these types.
+  %gUav = OpVariable %_ptr_UniformConstant_RWTexture2DMS UniformConstant
+
+note: please file a bug report on https://github.com/Microsoft/DirectXShaderCompiler/issues with source code if possible

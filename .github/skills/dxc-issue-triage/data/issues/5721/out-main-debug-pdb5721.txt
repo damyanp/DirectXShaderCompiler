@@ -1,0 +1,45 @@
+# compiler: main-debug-pdb5721
+# exe: <triage>/issues/5721/run-pdb5721.cmd
+# ran: 2026-08-19T22:37:22+00:00
+# cmd: repro.hlsl
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc repro.hlsl
+[exe] <triage>/issues/5721/run-pdb5721.cmd
+[exit] 0
+--- stdout ---
+$ <skill>/data/issues/5721/_build/harness_x64.exe <skill>/.cache/scratch/probe-5721-29888-1787179040404408900/repro.hlsl
+source: <cache>\scratch\probe-5721-29888-1787179040404408900\repro.hlsl (508 bytes)
+
+DxcCreateInstance(CLSID_DxcCompiler) = 0x00000000 (S_OK)
+
+Compile(lib_6_3 -Zi) = 0x00000000 (S_OK)
+  lib compile status = 0x00000000 (S_OK)
+  lib object size: 3312 bytes
+
+DxcCreateInstance(CLSID_DxcLinker) = 0x00000000 (S_OK)
+RegisterLibrary(lib5721) = 0x00000000 (S_OK)
+Link("main", "cs_6_3", args={-Zi,-Qstrip_debug}) = 0x00000000 (S_OK)
+  link status = 0x00000000 (S_OK)
+
+QueryInterface(link result, IID_IDxcResult) = 0x00000000 (S_OK)
+HasOutput(DXC_OUT_PDB) on linked result = FALSE
+GetOutput(DXC_OUT_PDB) on linked result = 0x80070057 (E_INVALIDARG)
+
+SELF-TEST GetOutput(DXC_OUT_OBJECT) on linked result = 0x00000000 (S_OK)
+  linked object size: 2668 bytes (self-test proves GetOutput works on this result object)
+
+CONTROL Compile(cs_6_3 -Zi -Qstrip_debug, no linker) = 0x00000000 (S_OK)
+  direct compile status = 0x00000000 (S_OK)
+  CONTROL HasOutput(DXC_OUT_PDB) on direct compile = TRUE
+  CONTROL GetOutput(DXC_OUT_PDB) on direct compile = 0x00000000 (S_OK)
+  direct PDB blob size: 6144 bytes
+
+SUMMARY: linked HasOutput(DXC_OUT_PDB)=FALSE  linked GetOutput(DXC_OUT_PDB) hr=0x80070057  self-test GetOutput(DXC_OUT_OBJECT) hr=0x00000000
+[exit 0]
+
+--- stderr ---
+

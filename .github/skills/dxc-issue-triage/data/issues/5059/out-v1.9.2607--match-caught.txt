@@ -1,0 +1,30 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-19T19:22:45+00:00
+# cmd: -T cs_6_3 -ECSMain repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-caught.json
+# verdict: repro
+
+$ dxc -T cs_6_3 -ECSMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+error: Int type 'i33' has an invalid width.
+Validation failed.
+
+
+

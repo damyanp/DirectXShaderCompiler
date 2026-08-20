@@ -1,0 +1,23 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-02-17T00:23:48Z",
+  "expected_symptom": "Compiling the filed ByteAddressBuffer.Load(X) shader with an uninitialized index X succeeds silently (exit 0): no front-end diagnostic by default, and the bundled DXIL validator does not flag the resulting i32 undef, i32 undef bufferLoad operands. Per damyanp's 2024-08-27 comment the issue is now scoped to the validator gap, not the (already-answered) front-end-default-warning question.",
+  "godbolt_url": "https://godbolt.org/z/cP8cW1v3x",
+  "history": "always-repro'd across v1.4.1907..v1.9.2607 (full --linear scan, 20/20 probeable stable releases; 5 prereleases excluded by policy); reproduces on main-debug and on CE dxc_1_6_2112/dxc_trunk",
+  "labels": "bug,dxil,incorrect-code,validation",
+  "labels_add": "fxc-disagrees",
+  "labels_now": "bug,dxil,incorrect-code,validation",
+  "notes_path": "issues\\5040\\notes.md",
+  "number": 5040,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still reproduces on main-debug (89e2f98e29c289ae8ad9e00dd310104fea9fd7df): the filed repro (ByteAddressBuffer.Load of an uninitialized uint index, ps_6_0) compiles cleanly, exit 0, with no diagnostic and DXIL keeping the buffer-load index as i32 undef, i32 undef (both coordinate operands) -- matching the issue body's quoted line exactly. The default (non-Vd) DXIL validator does not flag it either, confirming @damyanp's 2024-08-27 re-scoping of the issue onto the validator. -Wuninitialized still catches it (spot-checking @llvm-beanz's 2023 comment) but remains off by default, a deliberate policy choice (not re-litigated here) tied to closed issues #2494/#5377. bisect --linear: all 20 probeable stable releases from v1.4.1907 through v1.9.2607 reproduce (5 prereleases excluded by policy) -- always-repro'd, not a regression. Controls: an initialized-index variant does not match (proving the fully-undef anchor is not vacuous, since ByteAddressBuffer.Load's second bufferLoad coordinate is always undef regardless of the bug), and adding -Wuninitialized flips the absence clause as expected. Compiler Explorer (dxc_1_6_2112 + dxc_trunk) corroborates: identical undef shape, no diagnostic on either pane.",
+  "title": "Undefined value allowed for buffer load index",
+  "triaged_at": "2026-08-20T05:15:15+00:00",
+  "triaged_by": "GitHub Copilot CLI (model not self-identifiable)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5040"
+}

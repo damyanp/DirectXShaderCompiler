@@ -1,0 +1,3 @@
+-T lib_6_3 -Zi -Qstrip_reflect -Qembed_debug -Fd testc.pdb -Fo test.lib repro.hlsl
+-link -T lib_6_3 -Zi -Qstrip_reflect -Fd test.pdb -Fo test.bin test.lib
+-dumpbin test.pdb

@@ -1,0 +1,24 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T23:30:28+00:00
+# cmd: -HV 202x -T ps_6_7 -E PSMain -spirv variant-full-explicit-spec.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: full-spec-spirv (variant-full-explicit-spec.hlsl)
+# expect: no-match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc -HV 202x -T ps_6_7 -E PSMain -spirv variant-full-explicit-spec.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-full-explicit-spec.hlsl:15:1: error: 'const' is not a valid modifier for a field
+const float GaussLegendreValues<2,float>::wi[2] = {1.0, 1.0};
+^
+
+

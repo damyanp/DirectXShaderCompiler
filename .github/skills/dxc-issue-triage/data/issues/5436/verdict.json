@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-07-18T19:35:52Z",
+  "godbolt_skip": "not a compiler behavior/bug -- the ask is to add a DXASSERT to the empty default case of two switch statements in lib/DxilValidation/DxilValidation.cpp (ValidateDxilOperationCallInProfile, ValidateHandleArgs/ValidateHandleArgsForInstruction). There is no HLSL input or dxc invocation whose observable output would change whether or not that assert exists -- an unhandled opcode is validated as clean either way; only a Debug assert build touching that exact opcode would ever show a difference, and no known opcode currently falls through silently in a way that would demonstrate it. A CE link showing dxc compiling something fine would not speak to whether the assert was added.",
+  "history": "n/a - no shader/dxc invocation applies; source-only. Both named opcode switches' default cases (ValidateDxilOperationCallInProfile, lib/DxilValidation/DxilValidation.cpp) still lack the requested assert/comment at ground truth (89e2f98e2). Ancestor-scoped git history (not --all) shows both entered this repo's lineage together in one large synthetic commit (8a8b29f96, #7353); 24 later commits touch the file, all adding new case labels, none touching the default block.",
+  "labels": "enhancement,tech-debt,validation",
+  "labels_now": "enhancement,tech-debt,validation",
+  "notes_path": "issues/5436/notes.md",
+  "number": 5436,
+  "repro_quality": "prose-only",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "not-compiler-verifiable",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Still unaddressed on main (89e2f98e2). Neither ValidateDxilOperationCallInProfile's nor ValidateHandleArgs's opcode-switch default case has the requested DXASSERT or a comment justifying its absence; the former's default is only a TODO acknowledging the exact gap, the latter's default runs real generic handle-argument validation but documents no reasoning for why that is sufficient. Confirmed still-open via a live GitHub cross-reference: bob80905 (the reporter) linked this same issue from a PR #5982 review thread on 2023-11-08 in reply to a maintainer asking whether a tracking issue existed for this same switch.",
+  "title": "[Validation] Add an assert to make sure no dxil opcodes are left unvalidated.",
+  "triaged_at": "2026-08-20T05:15:23+00:00",
+  "triaged_by": "Claude Sonnet 4.6 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5436"
+}

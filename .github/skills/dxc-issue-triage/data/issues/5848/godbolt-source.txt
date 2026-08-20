@@ -1,0 +1,1 @@
+godbolt-source-silent-skip.hlsl

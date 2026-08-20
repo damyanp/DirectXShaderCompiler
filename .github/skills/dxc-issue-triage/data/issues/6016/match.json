@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Crash-shaped issue: dxc hits llvm_unreachable (\"Failed to allocate all input signature elements in available space.\") in HLSignatureLower.cpp::AllocateDxilInputOutputs when a hull-shader input struct's flattened, packed signature does not fit in the 32-row x4-component space. Use internal_failure per the skill's exit-code table rather than a text match: on Windows a Debug build traps at 0x80000003 (or STATUS_LLVM_UNREACHABLE-shaped codes), while the reporter's Linux build aborts via SIGABRT (134) with 'UNREACHABLE executed at ... !'; is_internal_failure()'s POSIX-signal clause and its INTERNAL_MARKERS text fallback ('UNREACHABLE executed') both already cover this without a custom regex."
+}

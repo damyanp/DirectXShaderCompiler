@@ -1,0 +1,26 @@
+# Compiler Explorer panes for #5807, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E PSMain
+# exit:     5
+
+<source>:17:22: error: cannot convert from 'unsigned int' to 'E'
+    uint e = E::A << 1u;
+                     ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E PSMain
+# exit:     5
+
+<source>:17:22: error: cannot convert from 'unsigned int' to 'E'
+    uint e = E::A << 1u;
+                     ^
+
+<Compilation failed>

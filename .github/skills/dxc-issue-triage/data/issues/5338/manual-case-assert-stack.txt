@@ -1,0 +1,42 @@
+# manual capture: assert message + stack, for the primary repro
+# compiler: main-debug  (<repo>\build\Debug\bin\dxc.exe)
+# version:  dxcompiler.dll: 1.10(5465-7665270b)(1.9.0.5465) - 1.9.0.5465 (triage, 7665270b9)
+# harness:  assert-stack.cmd   (cdb 10.0.26100.6584, x64)  -- re-runnable
+# ran:      2026-08-19T20:12:00Z
+# why:      a plain run (out-main-debug.txt) only shows "Internal compiler
+#           error: Terminal Error 0x80000003" because the assert text is not
+#           on stderr. This trap-style DXASSERT needs "g;kn 40;q" (SKILL.md:
+#           "just run to it") rather than the sxe-based launch used for
+#           exception-style (0xE0000001) asserts elsewhere in this repo.
+# NOTE:     hand-driven capture, not a probe. Not scored by match.json.
+#
+# CASE 1 is repro.hlsl with the exact arguments in cmd.txt (-T vs_6_0).
+### CASE 1: repro.hlsl (-T vs_6_0) -- the issue as filed
+Error: 	!(onlyUsedByLifetimeMarkers(BCI))
+File:
+<repo>\lib\Transforms\Scalar\ScalarReplAggregatesHLSL.cpp(2630)
+Func:	`anonymous-namespace'::SROA_Helper::RewriteBitCast.
+	expected struct bitcast to only be used by lifetime intrinsics
+(9a2c.8ef0): Break instruction exception - code 80000003 (first chance)
+*** WARNING: Unable to verify checksum for <repo>\build\Debug\bin\dxcompiler.dll
+ # Child-SP          RetAddr               Call Site
+00 00000022`737846d0 00007ffd`9ce20566     dxcompiler!`anonymous namespace'::SROA_Helper::RewriteBitCast+0x19c
+01 00000022`73784b60 00007ffd`9ce1e520     dxcompiler!`anonymous namespace'::SROA_Helper::RewriteForScalarRepl+0x286
+02 00000022`73784c50 00007ffd`9ce2c8f8     dxcompiler!`anonymous namespace'::SROA_Helper::DoScalarReplacement+0xd20
+03 00000022`73785180 00007ffd`9ce35317     dxcompiler!`anonymous namespace'::SROAGlobalAndAllocas+0xa48
+04 00000022`73785ff0 00007ffd`9f3384a8     dxcompiler!`anonymous namespace'::SROA_Parameter_HLSL::runOnModule+0x8a7
+05 00000022`73786570 00007ffd`9f3392e5     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+06 00000022`73786920 00007ffd`9f32fc2c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+07 00000022`737869d0 00007ffd`9d044a26     dxcompiler!llvm::legacy::PassManager::run+0x2c
+08 00000022`73786a10 00007ffd`9d041fb8     dxcompiler!`anonymous namespace'::EmitAssemblyHelper::EmitAssembly+0x616
+09 00000022`73786bf0 00007ffd`9d01a211     dxcompiler!clang::EmitBackendOutput+0x158
+0a 00000022`73787040 00007ffd`9e8ae7c8     dxcompiler!clang::BackendConsumer::HandleTranslationUnit+0x521
+0b 00000022`73787260 00007ffd`9d3d9e4e     dxcompiler!clang::ParseAST+0x608
+0c 00000022`73787530 00007ffd`9d013c65     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+0d 00000022`73787590 00007ffd`9d3d98b8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+0e 00000022`73787ae0 00007ffd`9c5fb7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+0f 00000022`73787b50 00007ffd`9c5dbb80     dxcompiler!DxcCompiler::Compile+0x41a2
+10 00000022`7378c390 00007ffd`9c5dd3d8     dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+11 00000022`7378daa0 00007ffd`9c5fec2e     dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+*** WARNING: Unable to verify checksum for dxc.exe
+12 00000022`7378db20 00007ff6`fc09f65d     dxcompiler!hlsl::DxcCompilerAdapter::Compile+0xce

@@ -1,0 +1,30 @@
+# compiler: v1.4.1907
+# exe: <cache>/compilers/releases/v1.4.1907/dxc.exe
+# ran: 2026-08-19T23:48:56+00:00
+# cmd: -T ps_6_0 -E PSMain repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "use of undeclared identifier", so this build did not reach the code under test
+
+$ dxc -T ps_6_0 -E PSMain repro.hlsl
+[exe] <cache>/compilers/releases/v1.4.1907/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:7:1: error: 'template' is a reserved keyword in HLSL
+template<typename float_t>
+^
+repro.hlsl:19:23: error: use of undeclared identifier 'StyleClipper'
+        return input.color + StyleClipper<float>::func(input.color.x).x;
+                             ^
+repro.hlsl:19:41: error: expected '(' for function-style cast or type construction
+        return input.color + StyleClipper<float>::func(input.color.x).x;
+                                          ~~~~~^
+repro.hlsl:19:44: error: no member named 'func' in the global namespace
+        return input.color + StyleClipper<float>::func(input.color.x).x;
+                                                ~~^
+
+

@@ -1,0 +1,19 @@
+# The "compiler" here is run-handler4805.cmd, not dxc.exe.
+#
+# The issue is about IDxcCompiler::Compile with a caller-supplied
+# IDxcIncludeHandler, which dxc.exe's command-line driver never exposes: it
+# always builds its own disk-backed default handler, so the substitution
+# point the bug lives in can never be reached from the CLI no matter how
+# CWD/-I are varied. The harness implements the simplest possible custom,
+# non-disk-backed IDxcIncludeHandler and calls the real API the reporter's
+# application calls.
+#
+# cs_6_0 is an arbitrary, unremarkable profile: the issue is not shader-stage
+# specific, and nothing about compute shaders is special here beyond being a
+# simple, minimal stage to compile. -fspv-debug=vulkan-with-source requests
+# the NonSemantic.Shader.DebugInfo.100 rich debug info whose per-file
+# DebugSource embedding is where the defect lives (SPIRV debugInfoVulkan
+# path in EmitVisitor.cpp; -Zi alone selects a different, OpenCL.DebugInfo.100
+# shaped path not covered here -- see notes.md for why -Zi/-fspv-debug=source
+# were not also probed as separate variants).
+-T cs_6_0 -E main -spirv -fspv-debug=vulkan-with-source repro.hlsl

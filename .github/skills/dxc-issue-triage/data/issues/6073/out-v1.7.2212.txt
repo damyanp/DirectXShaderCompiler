@@ -1,0 +1,30 @@
+# compiler: v1.7.2212
+# exe: <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+# ran: 2026-08-20T00:44:14+00:00
+# cmd: -T cs_6_0 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "use of undeclared identifier", so this build did not reach the code under test
+
+$ dxc -T cs_6_0 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:1:1: error: 'template' is a reserved keyword in HLSL
+template<int ID>
+^
+repro.hlsl:7:1: error: 'template' is a reserved keyword in HLSL
+template<int ID>
+^
+repro.hlsl:15:35: error: use of undeclared identifier 'Test'
+   MyBuffer[DispatchThreadId.x] = Test<42>::Num;
+                                  ^
+repro.hlsl:15:45: error: no member named 'Num' in the global namespace
+   MyBuffer[DispatchThreadId.x] = Test<42>::Num;
+                                          ~~^
+
+

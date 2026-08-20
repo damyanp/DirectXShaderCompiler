@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "error: use of undeclared identifier 'badIdentifierNotDeclared'",
+  "note": "Anti-vacuity control for match.json (baseline-no-md variant, run --args without -MD/-MF on repro.hlsl). Proves the primary repro is genuinely rejected by dxc when -MD/-MF is not on the command line -- naming the exact diagnostic dxc emits, not just 'some error' -- so a clean/silent result WITH the flag on the identical source is the flag suppressing a real diagnostic, not a source that always compiled."
+}

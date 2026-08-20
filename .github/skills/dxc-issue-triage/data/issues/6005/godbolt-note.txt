@@ -1,0 +1,7 @@
+This is a Debug-build-only assert: `MaybeODRUseExprs.empty() && "Leftover expressions for
+odr-use checking"` in clang::Sema::ActOnFinishFunctionBody (tools/clang/lib/Sema/SemaDecl.cpp).
+Compiler Explorer only runs Release DXC builds, which compile asserts out under NDEBUG, so
+every pane below is expected to succeed cleanly and print valid SPIR-V/DXIL. That is real
+evidence that Release binaries are unaffected -- it is NOT evidence the underlying assert is
+fixed. The assert reproduces on a local assert-enabled Debug build of main and is unrelated to
+`-spirv`: removing it still trips the same assert.

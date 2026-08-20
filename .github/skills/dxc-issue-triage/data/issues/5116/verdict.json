@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-03-27T08:35:56Z",
+  "expected_symptom": "issues\\5116\\expected.md",
+  "godbolt_url": "https://godbolt.org/z/eE8co66vG",
+  "history": "always-repro'd",
+  "labels": "dxil,correctness,incorrect-code",
+  "labels_now": "dxil,correctness,incorrect-code",
+  "notes_path": "issues\\5116\\notes.md",
+  "number": 5116,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "SM 6.6 silently accepts what SM 6.5 correctly rejects: repro.hlsl compiles clean at -T cs_6_6 but -T cs_6_5 fails with 'local resource not guaranteed to map to unique global resource'. Confirmed on main-debug (89e2f98e2), on both probed SM-6.6-shipping endpoints (v1.6.2104, v1.9.2607, agreeing), and on dxc_trunk via Compiler Explorer. Negative control (unambiguous resource index) compiles clean at both profiles, ruling out a vacuous match. Matches maintainer's 2023-11-01 finding (1); finding (2), full CF flattening of the phi/undef, is a separate unresolved ask not re-measured here.",
+  "title": "Weird behavior when returning texture",
+  "triaged_at": "2026-08-20T05:15:16+00:00",
+  "triaged_by": "claude-sonnet-4.6 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5116"
+}

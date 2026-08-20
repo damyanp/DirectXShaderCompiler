@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-06-14T12:13:27Z",
+  "godbolt_skip": "the defect is in the dxr rewriter tool (IDxcRewriter2::RewriteWithOptions), which Compiler Explorer's dxc panes never invoke -- CE only drives ordinary single dxc compiles, so there is no CE surface that can exercise -remove-unused-globals/-remove-unused-functions or reproduce this symptom",
+  "history": "always-repro'd",
+  "labels": "bug,rewriter",
+  "labels_now": "bug,rewriter",
+  "notes_path": "data\\issues\\5292\\notes.md",
+  "number": 5292,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "dxr's unused-declaration removal drops struct PSOutput (unreachable from ps_main) but never considers typedef PSOutput PSPointOutput for removal, since CollectRewriteHelper only tracks VarDecl/FunctionDecl/TagDecl, never TypedefDecl -- leaving a dangling typedef that fails to recompile, exactly as reported. Reproduces on every stable release able to run this exact probe (v1.5.2010 through v1.9.2607) plus main-debug; v1.4.1907/v1.5.2003 are invalid probes (rewriter API/flag unavailable), not clean results.",
+  "title": "Rewriter : does not remove unused typedef statements and it lead to compile error",
+  "triaged_at": "2026-08-20T05:15:20+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5292"
+}

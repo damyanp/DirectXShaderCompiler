@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-08-03T18:46:40Z",
+  "expected_symptom": "A wave-intrinsic call (WaveReadLaneFirst) whose result is discarded should be removed by DCE; instead the call survives in the final DXIL with no users.",
+  "godbolt_url": "https://godbolt.org/z/1T6e4zWsf",
+  "history": "always-repro'd (v1.4.1907..v1.9.2607; 20/20 probeable stable releases)",
+  "labels": "bug,performance,dxil",
+  "labels_now": "bug,performance,dxil",
+  "notes_path": "issues/5491/notes.md",
+  "number": 5491,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Confirmed on main (89e2f98e29c289ae8ad9e00dd310104fea9fd7df) and on all 20 probeable stable releases back to v1.4.1907 -- always-repro'd, not a regression. The wave call's result (%2) has no users before ret void. DxilOperations.cpp declares every wave/quad DXIL op with Attribute::None (only nounwind, never readnone/readonly), which the emitted DXIL itself confirms (declare ... #1 / attributes #1 = { nounwind }); ordinary LLVM DCE only removes calls it can prove side-effect-free, so this is the declared attribute working as intended, not an oversight. WaveSensitivityAnalysis.cpp documents why: a wave op's result depends on which lanes are active, so treating it as an ordinary pure value is not obviously safe in general -- matching a maintainer's own filed concern ('not convinced there isn't a correctness bug lurking here too'). DXC separately erases a wave op inside a provably-dead loop (EraseDeadRegion, tested by wave_intrinsic_dead_loop.hlsl) but that is a narrower, different proof than this issue's straight-line unused-result case; the linked PR #5559 is unmerged and is itself a workaround for that other mechanism over-deleting a wave op, evidence the surrounding design space is still unsettled. #5177 (duplicate, WaveActiveMax(0)) was closed in favor of this issue by a maintainer.",
+  "title": "DXC does not eliminate wave intrinsic calls even when the result is unused",
+  "triaged_at": "2026-08-20T05:15:24+00:00",
+  "triaged_by": "GitHub Copilot CLI",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5491"
+}

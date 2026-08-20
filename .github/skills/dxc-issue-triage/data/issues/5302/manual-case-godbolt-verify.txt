@@ -1,0 +1,906 @@
+# Compiler Explorer panes for #5302, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T vs_6_0 -E main -DOUTPUT=Z
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Note: shader requires additional functionality:
+;       Wave level operations
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; A                        0   x           0     NONE     int   x   
+; B                        0   x           1     NONE     int   x   
+; C                        0   x           2     NONE     int       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; Z                        0   x           0     NONE     int   x   
+;
+; shader debug name: 3b24f2b4ab789858e92fad6740fedf56.pdb
+; shader hash: 3b24f2b4ab789858e92fad6740fedf56
+;
+; Pipeline Runtime Information: 
+;
+; Vertex Shader
+; OutputPositionPresent=0
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; A                        0                              
+; B                        0                              
+; C                        0                              
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; Z                        0        nointerpolation       
+;
+; Buffer Definitions:
+;
+; Resource bind info for mainBuf
+; {
+;
+;   int $Element;                                     ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; mainBuf                           texture  struct         r/o      T0             t2unbounded
+;
+;
+; ViewId state:
+;
+; Number of inputs: 9, outputs: 1
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0, 4 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%"class.StructuredBuffer<int>" = type { i32 }
+
+define void @main() {
+  %1 = call i32 @dx.op.loadInput.i32(i32 4, i32 0, i32 0, i8 0, i32 undef), !dbg !48 ; line:20 col:25  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata i32 %5, i64 0, metadata !49, metadata !50), !dbg !48 ; var:"b" !DIExpression() func:"main"
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !51, metadata !50), !dbg !52 ; var:"a" !DIExpression() func:"main"
+  call void @llvm.dbg.value(metadata i32 0, i64 0, metadata !53, metadata !50), !dbg !54 ; var:"res" !DIExpression() func:"main"
+  br label %2, !dbg !55 ; line:24 col:3
+
+; <label>:2                                       ; preds = %2, %0
+  %WaveReadLaneFirst = call i32 @dx.op.waveReadLaneFirst.i32(i32 118, i32 %1), !dbg !56 ; line:25 col:15  ; WaveReadLaneFirst(value)
+  call void @llvm.dbg.value(metadata i32 %WaveReadLaneFirst, i64 0, metadata !60, metadata !50), !dbg !61 ; var:"u" !DIExpression() func:"main"
+  %3 = icmp eq i32 %1, %WaveReadLaneFirst, !dbg !62 ; line:26 col:13
+  br i1 %3, label %4, label %2, !dbg !64 ; line:26 col:11
+
+; <label>:4                                       ; preds = %2
+  %5 = call i32 @dx.op.loadInput.i32(i32 4, i32 1, i32 0, i8 0, i32 undef), !dbg !48 ; line:20 col:25  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %6 = add i32 %WaveReadLaneFirst, 2, !dbg !65 ; line:27 col:18
+  %mainBuf_texture_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 %6, i1 false), !dbg !65 ; line:27 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %7 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %mainBuf_texture_structbuf, i32 %5, i32 0), !dbg !65 ; line:27 col:18  ; BufferLoad(srv,index,wot)
+  %8 = extractvalue %dx.types.ResRet.i32 %7, 0, !dbg !65 ; line:27 col:18
+  call void @llvm.dbg.value(metadata i32 %8, i64 0, metadata !53, metadata !50), !dbg !54 ; var:"res" !DIExpression() func:"main"
+  call void @dx.op.storeOutput.i32(i32 5, i32 0, i32 0, i8 0, i32 %8), !dbg !67 ; line:31 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !67 ; line:31 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.loadInput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind
+declare i32 @dx.op.waveReadLaneFirst.i32(i32, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i32) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!16, !17}
+!llvm.ident = !{!18}
+!dx.source.contents = !{!19}
+!dx.source.defines = !{!20}
+!dx.source.mainFileName = !{!21}
+!dx.source.args = !{!22}
+!dx.version = !{!23}
+!dx.valver = !{!24}
+!dx.shaderModel = !{!25}
+!dx.resources = !{!26}
+!dx.typeAnnotations = !{!30, !33}
+!dx.viewIdState = !{!36}
+!dx.entryPoints = !{!37}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !8)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 20, type: !5, isLocal: false, isDefinition: true, scopeLine: 21, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !7, !7, !7}
+!7 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!8 = !{!9}
+!9 = !DIGlobalVariable(name: "mainBuf", linkageName: "\01?mainBuf@@3PAV?$StructuredBuffer@H@@A", scope: !0, file: !1, line: 17, type: !10, isLocal: false, isDefinition: true)
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 32, align: 32, elements: !14)
+!11 = !DICompositeType(tag: DW_TAG_class_type, name: "StructuredBuffer<int>", file: !1, line: 17, size: 32, align: 32, elements: !2, templateParams: !12)
+!12 = !{!13}
+!13 = !DITemplateTypeParameter(name: "element", type: !7)
+!14 = !{!15}
+!15 = !DISubrange(count: 1)
+!16 = !{i32 2, !"Dwarf Version", i32 4}
+!17 = !{i32 2, !"Debug Info Version", i32 3}
+!18 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!19 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: this source is compiled four times -- `vs_6_0` on two DXC versions, then\0A// `ps_6_0` on the same two versions, with the same waterfall-loop body (WaveReadLaneFirst +\0A// conditional break around a resource load).\0A//\0A// In the `ps_6_0` panes, the loop keeps a phi-based accumulator and the resource load stays\0A// inside the loop, guarded by an extra branch fed from a module-level internal constant array\0A// declared just before `define void @main()`. In the `vs_6_0` panes there is no such constant,\0A// no extra guard branch, and no accumulator phi: the resource load and its dependent input load\0A// are hoisted out of the loop into a single straight-line pass. Same source, same optimizer,\0A// different shader stage -- only the stage changes which shape comes out.\0A//==========================================================================//\0A\0A// From issue #5302 (verbatim, with the reporter's own compile lines kept as comments):\0A// dxc /Tps_6_0 .\5Cbreak.hlsl /DOUTPUT=SV_Target\0A// dxc /Tvs_6_0 .\5Cbreak.hlsl /DOUTPUT=Z\0AStructuredBuffer<int> mainBuf[]: register(t2, space0);\0A\0A[RootSignature(\22DescriptorTable(SRV(t2, numDescriptors=UNBOUNDED))\22)]\0Aint main(int a : A, int b : B, int c : C) : OUTPUT\0A{\0A  int res = 0;\0A\0A  for (;;) {\0A      int u = WaveReadLaneFirst(a);\0A      if (a == u) {\0A          res += mainBuf[u][b];\0A          break;\0A        }\0A    }\0A  return res;\0A}\0A"}
+!20 = !{!"OUTPUT=Z", !"OUTPUT=Z"}
+!21 = !{!"/app/example.hlsl"}
+!22 = !{!"-E", !"main", !"-T", !"vs_6_0", !"-Zi", !"-Qembed_debug", !"-D", !"OUTPUT=Z", !"-D", !"OUTPUT=Z"}
+!23 = !{i32 1, i32 0}
+!24 = !{i32 1, i32 6}
+!25 = !{!"vs", i32 6, i32 0}
+!26 = !{!27, null, null, null}
+!27 = !{!28}
+!28 = !{i32 0, [0 x %"class.StructuredBuffer<int>"]* undef, !"mainBuf", i32 0, i32 2, i32 -1, i32 12, i32 0, !29}
+!29 = !{i32 1, i32 4}
+!30 = !{i32 0, %"class.StructuredBuffer<int>" undef, !31}
+!31 = !{i32 4, !32}
+!32 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 4}
+!33 = !{i32 1, void ()* @main, !34}
+!34 = !{!35}
+!35 = !{i32 0, !2, !2}
+!36 = !{[11 x i32] [i32 9, i32 1, i32 1, i32 0, i32 0, i32 0, i32 1, i32 0, i32 0, i32 0, i32 0]}
+!37 = !{void ()* @main, !"main", !38, !26, !47}
+!38 = !{!39, !45, null}
+!39 = !{!40, !43, !44}
+!40 = !{i32 0, !"A", i8 4, i8 0, !41, i8 0, i32 1, i8 1, i32 0, i8 0, !42}
+!41 = !{i32 0}
+!42 = !{i32 3, i32 1}
+!43 = !{i32 1, !"B", i8 4, i8 0, !41, i8 0, i32 1, i8 1, i32 1, i8 0, !42}
+!44 = !{i32 2, !"C", i8 4, i8 0, !41, i8 0, i32 1, i8 1, i32 2, i8 0, null}
+!45 = !{!46}
+!46 = !{i32 0, !"Z", i8 4, i8 0, !41, i8 1, i32 1, i8 1, i32 0, i8 0, !42}
+!47 = !{i32 0, i64 524304}
+!48 = !DILocation(line: 20, column: 25, scope: !4)
+!49 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "b", arg: 2, scope: !4, file: !1, line: 20, type: !7)
+!50 = !DIExpression()
+!51 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "a", arg: 1, scope: !4, file: !1, line: 20, type: !7)
+!52 = !DILocation(line: 20, column: 14, scope: !4)
+!53 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "res", scope: !4, file: !1, line: 22, type: !7)
+!54 = !DILocation(line: 22, column: 7, scope: !4)
+!55 = !DILocation(line: 24, column: 3, scope: !4)
+!56 = !DILocation(line: 25, column: 15, scope: !57)
+!57 = distinct !DILexicalBlock(scope: !58, file: !1, line: 24, column: 12)
+!58 = distinct !DILexicalBlock(scope: !59, file: !1, line: 24, column: 3)
+!59 = distinct !DILexicalBlock(scope: !4, file: !1, line: 24, column: 3)
+!60 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "u", scope: !57, file: !1, line: 25, type: !7)
+!61 = !DILocation(line: 25, column: 11, scope: !57)
+!62 = !DILocation(line: 26, column: 13, scope: !63)
+!63 = distinct !DILexicalBlock(scope: !57, file: !1, line: 26, column: 11)
+!64 = !DILocation(line: 26, column: 11, scope: !57)
+!65 = !DILocation(line: 27, column: 18, scope: !66)
+!66 = distinct !DILexicalBlock(scope: !63, file: !1, line: 26, column: 19)
+!67 = !DILocation(line: 31, column: 3, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T vs_6_0 -E main -DOUTPUT=Z
+# exit:     0
+
+;
+; Note: shader requires additional functionality:
+;       Wave level operations
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; A                        0   x           0     NONE     int   x   
+; B                        0   x           1     NONE     int   x   
+; C                        0   x           2     NONE     int       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; Z                        0   x           0     NONE     int   x   
+;
+; shader debug name: f3e084bce68ed4ad2a3b6f541bc6fbac.pdb
+; shader hash: f3e084bce68ed4ad2a3b6f541bc6fbac
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Vertex Shader
+; OutputPositionPresent=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 3
+; SigOutputElements: 1
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 3
+; SigOutputVectors[0]: 1
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; A                        0                              
+; B                        0                              
+; C                        0                              
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; Z                        0        nointerpolation       
+;
+; Buffer Definitions:
+;
+; Resource bind info for mainBuf
+; {
+;
+;   int $Element;                                     ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; mainBuf                           texture  struct         r/o      T0             t2unbounded
+;
+;
+; ViewId state:
+;
+; Number of inputs: 9, outputs: 1
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0, 4 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%"class.StructuredBuffer<int>" = type { i32 }
+
+define void @main() {
+  %1 = call i32 @dx.op.loadInput.i32(i32 4, i32 0, i32 0, i8 0, i32 undef), !dbg !48 ; line:20 col:25  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata i32 %5, i64 0, metadata !49, metadata !50), !dbg !48 ; var:"b" !DIExpression() func:"main"
+  call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !51, metadata !50), !dbg !52 ; var:"a" !DIExpression() func:"main"
+  call void @llvm.dbg.value(metadata i32 0, i64 0, metadata !53, metadata !50), !dbg !54 ; var:"res" !DIExpression() func:"main"
+  br label %2, !dbg !55 ; line:24 col:3
+
+; <label>:2                                       ; preds = %2, %0
+  %WaveReadLaneFirst = call i32 @dx.op.waveReadLaneFirst.i32(i32 118, i32 %1), !dbg !56 ; line:25 col:15  ; WaveReadLaneFirst(value)
+  call void @llvm.dbg.value(metadata i32 %WaveReadLaneFirst, i64 0, metadata !60, metadata !50), !dbg !61 ; var:"u" !DIExpression() func:"main"
+  %3 = icmp eq i32 %1, %WaveReadLaneFirst, !dbg !62 ; line:26 col:13
+  br i1 %3, label %4, label %2, !dbg !64 ; line:26 col:11
+
+; <label>:4                                       ; preds = %2
+  %5 = call i32 @dx.op.loadInput.i32(i32 4, i32 1, i32 0, i8 0, i32 undef), !dbg !48 ; line:20 col:25  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %6 = add i32 %WaveReadLaneFirst, 2, !dbg !65 ; line:27 col:18
+  %mainBuf_texture_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 %6, i1 false), !dbg !65 ; line:27 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %7 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %mainBuf_texture_structbuf, i32 %5, i32 0), !dbg !65 ; line:27 col:18  ; BufferLoad(srv,index,wot)
+  %8 = extractvalue %dx.types.ResRet.i32 %7, 0, !dbg !65 ; line:27 col:18
+  call void @llvm.dbg.value(metadata i32 %8, i64 0, metadata !53, metadata !50), !dbg !54 ; var:"res" !DIExpression() func:"main"
+  call void @dx.op.storeOutput.i32(i32 5, i32 0, i32 0, i8 0, i32 %8), !dbg !67 ; line:31 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !67 ; line:31 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.loadInput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind
+declare i32 @dx.op.waveReadLaneFirst.i32(i32, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i32) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!16, !17}
+!llvm.ident = !{!18}
+!dx.source.contents = !{!19}
+!dx.source.defines = !{!20}
+!dx.source.mainFileName = !{!21}
+!dx.source.args = !{!22}
+!dx.version = !{!23}
+!dx.valver = !{!24}
+!dx.shaderModel = !{!25}
+!dx.resources = !{!26}
+!dx.typeAnnotations = !{!30, !33}
+!dx.viewIdState = !{!36}
+!dx.entryPoints = !{!37}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !8)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 20, type: !5, isLocal: false, isDefinition: true, scopeLine: 21, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !7, !7, !7}
+!7 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!8 = !{!9}
+!9 = !DIGlobalVariable(name: "mainBuf", linkageName: "\01?mainBuf@@3PAV?$StructuredBuffer@H@@A", scope: !0, file: !1, line: 17, type: !10, isLocal: false, isDefinition: true)
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 32, align: 32, elements: !14)
+!11 = !DICompositeType(tag: DW_TAG_class_type, name: "StructuredBuffer<int>", file: !1, line: 17, size: 32, align: 32, elements: !2, templateParams: !12)
+!12 = !{!13}
+!13 = !DITemplateTypeParameter(name: "element", type: !7)
+!14 = !{!15}
+!15 = !DISubrange(count: 1)
+!16 = !{i32 2, !"Dwarf Version", i32 4}
+!17 = !{i32 2, !"Debug Info Version", i32 3}
+!18 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!19 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: this source is compiled four times -- `vs_6_0` on two DXC versions, then\0A// `ps_6_0` on the same two versions, with the same waterfall-loop body (WaveReadLaneFirst +\0A// conditional break around a resource load).\0A//\0A// In the `ps_6_0` panes, the loop keeps a phi-based accumulator and the resource load stays\0A// inside the loop, guarded by an extra branch fed from a module-level internal constant array\0A// declared just before `define void @main()`. In the `vs_6_0` panes there is no such constant,\0A// no extra guard branch, and no accumulator phi: the resource load and its dependent input load\0A// are hoisted out of the loop into a single straight-line pass. Same source, same optimizer,\0A// different shader stage -- only the stage changes which shape comes out.\0A//==========================================================================//\0A\0A// From issue #5302 (verbatim, with the reporter's own compile lines kept as comments):\0A// dxc /Tps_6_0 .\5Cbreak.hlsl /DOUTPUT=SV_Target\0A// dxc /Tvs_6_0 .\5Cbreak.hlsl /DOUTPUT=Z\0AStructuredBuffer<int> mainBuf[]: register(t2, space0);\0A\0A[RootSignature(\22DescriptorTable(SRV(t2, numDescriptors=UNBOUNDED))\22)]\0Aint main(int a : A, int b : B, int c : C) : OUTPUT\0A{\0A  int res = 0;\0A\0A  for (;;) {\0A      int u = WaveReadLaneFirst(a);\0A      if (a == u) {\0A          res += mainBuf[u][b];\0A          break;\0A        }\0A    }\0A  return res;\0A}\0A"}
+!20 = !{!"OUTPUT=Z", !"OUTPUT=Z"}
+!21 = !{!"/app/example.hlsl"}
+!22 = !{!"-E", !"main", !"-T", !"vs_6_0", !"-Zi", !"-Qembed_debug", !"-D", !"OUTPUT=Z", !"-D", !"OUTPUT=Z"}
+!23 = !{i32 1, i32 0}
+!24 = !{i32 1, i32 10}
+!25 = !{!"vs", i32 6, i32 0}
+!26 = !{!27, null, null, null}
+!27 = !{!28}
+!28 = !{i32 0, [0 x %"class.StructuredBuffer<int>"]* undef, !"mainBuf", i32 0, i32 2, i32 -1, i32 12, i32 0, !29}
+!29 = !{i32 1, i32 4}
+!30 = !{i32 0, %"class.StructuredBuffer<int>" undef, !31}
+!31 = !{i32 4, !32}
+!32 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 4}
+!33 = !{i32 1, void ()* @main, !34}
+!34 = !{!35}
+!35 = !{i32 0, !2, !2}
+!36 = !{[11 x i32] [i32 9, i32 1, i32 1, i32 0, i32 0, i32 0, i32 1, i32 0, i32 0, i32 0, i32 0]}
+!37 = !{void ()* @main, !"main", !38, !26, !47}
+!38 = !{!39, !45, null}
+!39 = !{!40, !43, !44}
+!40 = !{i32 0, !"A", i8 4, i8 0, !41, i8 0, i32 1, i8 1, i32 0, i8 0, !42}
+!41 = !{i32 0}
+!42 = !{i32 3, i32 1}
+!43 = !{i32 1, !"B", i8 4, i8 0, !41, i8 0, i32 1, i8 1, i32 1, i8 0, !42}
+!44 = !{i32 2, !"C", i8 4, i8 0, !41, i8 0, i32 1, i8 1, i32 2, i8 0, null}
+!45 = !{!46}
+!46 = !{i32 0, !"Z", i8 4, i8 0, !41, i8 1, i32 1, i8 1, i32 0, i8 0, !42}
+!47 = !{i32 0, i64 524304}
+!48 = !DILocation(line: 20, column: 25, scope: !4)
+!49 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "b", arg: 2, scope: !4, file: !1, line: 20, type: !7)
+!50 = !DIExpression()
+!51 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "a", arg: 1, scope: !4, file: !1, line: 20, type: !7)
+!52 = !DILocation(line: 20, column: 14, scope: !4)
+!53 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "res", scope: !4, file: !1, line: 22, type: !7)
+!54 = !DILocation(line: 22, column: 7, scope: !4)
+!55 = !DILocation(line: 24, column: 3, scope: !4)
+!56 = !DILocation(line: 25, column: 15, scope: !57)
+!57 = distinct !DILexicalBlock(scope: !58, file: !1, line: 24, column: 12)
+!58 = distinct !DILexicalBlock(scope: !59, file: !1, line: 24, column: 3)
+!59 = distinct !DILexicalBlock(scope: !4, file: !1, line: 24, column: 3)
+!60 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "u", scope: !57, file: !1, line: 25, type: !7)
+!61 = !DILocation(line: 25, column: 11, scope: !57)
+!62 = !DILocation(line: 26, column: 13, scope: !63)
+!63 = distinct !DILexicalBlock(scope: !57, file: !1, line: 26, column: 11)
+!64 = !DILocation(line: 26, column: 11, scope: !57)
+!65 = !DILocation(line: 27, column: 18, scope: !66)
+!66 = distinct !DILexicalBlock(scope: !63, file: !1, line: 26, column: 19)
+!67 = !DILocation(line: 31, column: 3, scope: !4)
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+# exit:     0
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+
+;
+; Note: shader requires additional functionality:
+;       Wave level operations
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; A                        0   x           0     NONE     int   x   
+; B                        0    y          0     NONE     int    y  
+; C                        0     z         0     NONE     int       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   x           0   TARGET     int   x   
+;
+; shader debug name: a8226345548613e31112d8b6a1bd2cb5.pdb
+; shader hash: a8226345548613e31112d8b6a1bd2cb5
+;
+; Pipeline Runtime Information: 
+;
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; A                        0        nointerpolation       
+; B                        0        nointerpolation       
+; C                        0        nointerpolation       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+; Resource bind info for mainBuf
+; {
+;
+;   int $Element;                                     ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; mainBuf                           texture  struct         r/o      T0             t2unbounded
+;
+;
+; ViewId state:
+;
+; Number of inputs: 3, outputs: 1
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0, 1 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%"class.StructuredBuffer<int>" = type { i32 }
+
+@dx.break.cond = internal constant [1 x i32] zeroinitializer
+
+define void @main() {
+  %1 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.break.cond, i32 0, i32 0)
+  %2 = icmp eq i32 %1, 0
+  %3 = call i32 @dx.op.loadInput.i32(i32 4, i32 1, i32 0, i8 0, i32 undef), !dbg !48 ; line:20 col:25  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %4 = call i32 @dx.op.loadInput.i32(i32 4, i32 0, i32 0, i8 0, i32 undef), !dbg !48 ; line:20 col:25  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata i32 %3, i64 0, metadata !49, metadata !50), !dbg !48 ; var:"b" !DIExpression() func:"main"
+  call void @llvm.dbg.value(metadata i32 %4, i64 0, metadata !51, metadata !50), !dbg !52 ; var:"a" !DIExpression() func:"main"
+  call void @llvm.dbg.value(metadata i32 0, i64 0, metadata !53, metadata !50), !dbg !54 ; var:"res" !DIExpression() func:"main"
+  br label %.backedge, !dbg !55 ; line:24 col:3
+
+.backedge:                                        ; preds = %.backedge.backedge, %0
+  %res.0 = phi i32 [ 0, %0 ], [ %res.0.be, %.backedge.backedge ]
+  call void @llvm.dbg.value(metadata i32 %res.0, i64 0, metadata !53, metadata !50), !dbg !54 ; var:"res" !DIExpression() func:"main"
+  %WaveReadLaneFirst = call i32 @dx.op.waveReadLaneFirst.i32(i32 118, i32 %4), !dbg !56 ; line:25 col:15  ; WaveReadLaneFirst(value)
+  call void @llvm.dbg.value(metadata i32 %WaveReadLaneFirst, i64 0, metadata !60, metadata !50), !dbg !61 ; var:"u" !DIExpression() func:"main"
+  %5 = icmp eq i32 %4, %WaveReadLaneFirst, !dbg !62 ; line:26 col:13
+  br i1 %5, label %6, label %.backedge.backedge, !dbg !64 ; line:26 col:11
+
+; <label>:6                                       ; preds = %.backedge
+  %7 = add i32 %WaveReadLaneFirst, 2, !dbg !65 ; line:27 col:18
+  %mainBuf_texture_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 %7, i1 false), !dbg !65 ; line:27 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %8 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %mainBuf_texture_structbuf, i32 %3, i32 0), !dbg !65 ; line:27 col:18  ; BufferLoad(srv,index,wot)
+  %9 = extractvalue %dx.types.ResRet.i32 %8, 0, !dbg !65 ; line:27 col:18
+  %10 = add nsw i32 %9, %res.0, !dbg !67 ; line:27 col:15
+  call void @llvm.dbg.value(metadata i32 %10, i64 0, metadata !53, metadata !50), !dbg !54 ; var:"res" !DIExpression() func:"main"
+  br i1 %2, label %11, label %.backedge.backedge, !dbg !68 ; line:28 col:11
+
+.backedge.backedge:                               ; preds = %6, %.backedge
+  %res.0.be = phi i32 [ %10, %6 ], [ %res.0, %.backedge ]
+  br label %.backedge, !dbg !54 ; line:22 col:7
+
+; <label>:11                                      ; preds = %6
+  call void @dx.op.storeOutput.i32(i32 5, i32 0, i32 0, i8 0, i32 %10), !dbg !69 ; line:31 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !69 ; line:31 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.loadInput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind
+declare i32 @dx.op.waveReadLaneFirst.i32(i32, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i32) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!16, !17}
+!llvm.ident = !{!18}
+!dx.source.contents = !{!19}
+!dx.source.defines = !{!20}
+!dx.source.mainFileName = !{!21}
+!dx.source.args = !{!22}
+!dx.version = !{!23}
+!dx.valver = !{!24}
+!dx.shaderModel = !{!25}
+!dx.resources = !{!26}
+!dx.typeAnnotations = !{!30, !33}
+!dx.viewIdState = !{!36}
+!dx.entryPoints = !{!37}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang version 3.7 (tags/RELEASE_370/final)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !8)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 20, type: !5, isLocal: false, isDefinition: true, scopeLine: 21, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !7, !7, !7}
+!7 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!8 = !{!9}
+!9 = !DIGlobalVariable(name: "mainBuf", linkageName: "\01?mainBuf@@3PAV?$StructuredBuffer@H@@A", scope: !0, file: !1, line: 17, type: !10, isLocal: false, isDefinition: true)
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 32, align: 32, elements: !14)
+!11 = !DICompositeType(tag: DW_TAG_class_type, name: "StructuredBuffer<int>", file: !1, line: 17, size: 32, align: 32, elements: !2, templateParams: !12)
+!12 = !{!13}
+!13 = !DITemplateTypeParameter(name: "element", type: !7)
+!14 = !{!15}
+!15 = !DISubrange(count: 1)
+!16 = !{i32 2, !"Dwarf Version", i32 4}
+!17 = !{i32 2, !"Debug Info Version", i32 3}
+!18 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
+!19 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: this source is compiled four times -- `vs_6_0` on two DXC versions, then\0A// `ps_6_0` on the same two versions, with the same waterfall-loop body (WaveReadLaneFirst +\0A// conditional break around a resource load).\0A//\0A// In the `ps_6_0` panes, the loop keeps a phi-based accumulator and the resource load stays\0A// inside the loop, guarded by an extra branch fed from a module-level internal constant array\0A// declared just before `define void @main()`. In the `vs_6_0` panes there is no such constant,\0A// no extra guard branch, and no accumulator phi: the resource load and its dependent input load\0A// are hoisted out of the loop into a single straight-line pass. Same source, same optimizer,\0A// different shader stage -- only the stage changes which shape comes out.\0A//==========================================================================//\0A\0A// From issue #5302 (verbatim, with the reporter's own compile lines kept as comments):\0A// dxc /Tps_6_0 .\5Cbreak.hlsl /DOUTPUT=SV_Target\0A// dxc /Tvs_6_0 .\5Cbreak.hlsl /DOUTPUT=Z\0AStructuredBuffer<int> mainBuf[]: register(t2, space0);\0A\0A[RootSignature(\22DescriptorTable(SRV(t2, numDescriptors=UNBOUNDED))\22)]\0Aint main(int a : A, int b : B, int c : C) : OUTPUT\0A{\0A  int res = 0;\0A\0A  for (;;) {\0A      int u = WaveReadLaneFirst(a);\0A      if (a == u) {\0A          res += mainBuf[u][b];\0A          break;\0A        }\0A    }\0A  return res;\0A}\0A"}
+!20 = !{!"OUTPUT=SV_Target", !"OUTPUT=SV_Target"}
+!21 = !{!"/app/example.hlsl"}
+!22 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug", !"-D", !"OUTPUT=SV_Target", !"-D", !"OUTPUT=SV_Target"}
+!23 = !{i32 1, i32 0}
+!24 = !{i32 1, i32 6}
+!25 = !{!"ps", i32 6, i32 0}
+!26 = !{!27, null, null, null}
+!27 = !{!28}
+!28 = !{i32 0, [0 x %"class.StructuredBuffer<int>"]* undef, !"mainBuf", i32 0, i32 2, i32 -1, i32 12, i32 0, !29}
+!29 = !{i32 1, i32 4}
+!30 = !{i32 0, %"class.StructuredBuffer<int>" undef, !31}
+!31 = !{i32 4, !32}
+!32 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 4}
+!33 = !{i32 1, void ()* @main, !34}
+!34 = !{!35}
+!35 = !{i32 0, !2, !2}
+!36 = !{[5 x i32] [i32 3, i32 1, i32 1, i32 1, i32 0]}
+!37 = !{void ()* @main, !"main", !38, !26, !47}
+!38 = !{!39, !45, null}
+!39 = !{!40, !43, !44}
+!40 = !{i32 0, !"A", i8 4, i8 0, !41, i8 1, i32 1, i8 1, i32 0, i8 0, !42}
+!41 = !{i32 0}
+!42 = !{i32 3, i32 1}
+!43 = !{i32 1, !"B", i8 4, i8 0, !41, i8 1, i32 1, i8 1, i32 0, i8 1, !42}
+!44 = !{i32 2, !"C", i8 4, i8 0, !41, i8 1, i32 1, i8 1, i32 0, i8 2, null}
+!45 = !{!46}
+!46 = !{i32 0, !"SV_Target", i8 4, i8 16, !41, i8 0, i32 1, i8 1, i32 0, i8 0, !42}
+!47 = !{i32 0, i64 524304}
+!48 = !DILocation(line: 20, column: 25, scope: !4)
+!49 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "b", arg: 2, scope: !4, file: !1, line: 20, type: !7)
+!50 = !DIExpression()
+!51 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "a", arg: 1, scope: !4, file: !1, line: 20, type: !7)
+!52 = !DILocation(line: 20, column: 14, scope: !4)
+!53 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "res", scope: !4, file: !1, line: 22, type: !7)
+!54 = !DILocation(line: 22, column: 7, scope: !4)
+!55 = !DILocation(line: 24, column: 3, scope: !4)
+!56 = !DILocation(line: 25, column: 15, scope: !57)
+!57 = distinct !DILexicalBlock(scope: !58, file: !1, line: 24, column: 12)
+!58 = distinct !DILexicalBlock(scope: !59, file: !1, line: 24, column: 3)
+!59 = distinct !DILexicalBlock(scope: !4, file: !1, line: 24, column: 3)
+!60 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "u", scope: !57, file: !1, line: 25, type: !7)
+!61 = !DILocation(line: 25, column: 11, scope: !57)
+!62 = !DILocation(line: 26, column: 13, scope: !63)
+!63 = distinct !DILexicalBlock(scope: !57, file: !1, line: 26, column: 11)
+!64 = !DILocation(line: 26, column: 11, scope: !57)
+!65 = !DILocation(line: 27, column: 18, scope: !66)
+!66 = distinct !DILexicalBlock(scope: !63, file: !1, line: 26, column: 19)
+!67 = !DILocation(line: 27, column: 15, scope: !66)
+!68 = !DILocation(line: 28, column: 11, scope: !66)
+!69 = !DILocation(line: 31, column: 3, scope: !4)
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+# exit:     0
+
+;
+; Note: shader requires additional functionality:
+;       Wave level operations
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; A                        0   x           0     NONE     int   x   
+; B                        0    y          0     NONE     int    y  
+; C                        0     z         0     NONE     int       
+;
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; SV_Target                0   x           0   TARGET     int   x   
+;
+; shader debug name: 7a618e8144635a915ea5eef12aa51856.pdb
+; shader hash: 7a618e8144635a915ea5eef12aa51856
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Pixel Shader
+; DepthOutput=0
+; SampleFrequency=0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 3
+; SigOutputElements: 1
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 1
+; SigOutputVectors[0]: 1
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Input signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; A                        0        nointerpolation       
+; B                        0        nointerpolation       
+; C                        0        nointerpolation       
+;
+; Output signature:
+;
+; Name                 Index             InterpMode DynIdx
+; -------------------- ----- ---------------------- ------
+; SV_Target                0                              
+;
+; Buffer Definitions:
+;
+; Resource bind info for mainBuf
+; {
+;
+;   int $Element;                                     ; Offset:    0 Size:     4
+;
+; }
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+; mainBuf                           texture  struct         r/o      T0             t2unbounded
+;
+;
+; ViewId state:
+;
+; Number of inputs: 3, outputs: 1
+; Outputs dependent on ViewId: {  }
+; Inputs contributing to computation of Outputs:
+;   output 0 depends on inputs: { 0, 1 }
+;
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%"class.StructuredBuffer<int>" = type { i32 }
+
+@dx.break.cond = internal constant [1 x i32] zeroinitializer
+
+define void @main() {
+  %1 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.break.cond, i32 0, i32 0)
+  %2 = icmp eq i32 %1, 0
+  %3 = call i32 @dx.op.loadInput.i32(i32 4, i32 1, i32 0, i8 0, i32 undef), !dbg !48 ; line:20 col:25  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  %4 = call i32 @dx.op.loadInput.i32(i32 4, i32 0, i32 0, i8 0, i32 undef), !dbg !48 ; line:20 col:25  ; LoadInput(inputSigId,rowIndex,colIndex,gsVertexAxis)
+  call void @llvm.dbg.value(metadata i32 %3, i64 0, metadata !49, metadata !50), !dbg !48 ; var:"b" !DIExpression() func:"main"
+  call void @llvm.dbg.value(metadata i32 %4, i64 0, metadata !51, metadata !50), !dbg !52 ; var:"a" !DIExpression() func:"main"
+  call void @llvm.dbg.value(metadata i32 0, i64 0, metadata !53, metadata !50), !dbg !54 ; var:"res" !DIExpression() func:"main"
+  br label %.backedge, !dbg !55 ; line:24 col:3
+
+.backedge:                                        ; preds = %.backedge.backedge, %0
+  %res.0 = phi i32 [ 0, %0 ], [ %res.0.be, %.backedge.backedge ]
+  call void @llvm.dbg.value(metadata i32 %res.0, i64 0, metadata !53, metadata !50), !dbg !54 ; var:"res" !DIExpression() func:"main"
+  %WaveReadLaneFirst = call i32 @dx.op.waveReadLaneFirst.i32(i32 118, i32 %4), !dbg !56 ; line:25 col:15  ; WaveReadLaneFirst(value)
+  call void @llvm.dbg.value(metadata i32 %WaveReadLaneFirst, i64 0, metadata !60, metadata !50), !dbg !61 ; var:"u" !DIExpression() func:"main"
+  %5 = icmp eq i32 %4, %WaveReadLaneFirst, !dbg !62 ; line:26 col:13
+  br i1 %5, label %6, label %.backedge.backedge, !dbg !64 ; line:26 col:11
+
+; <label>:6                                       ; preds = %.backedge
+  %7 = add i32 %WaveReadLaneFirst, 2, !dbg !65 ; line:27 col:18
+  %mainBuf_texture_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 %7, i1 false), !dbg !65 ; line:27 col:18  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %8 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %mainBuf_texture_structbuf, i32 %3, i32 0), !dbg !65 ; line:27 col:18  ; BufferLoad(srv,index,wot)
+  %9 = extractvalue %dx.types.ResRet.i32 %8, 0, !dbg !65 ; line:27 col:18
+  %10 = add nsw i32 %9, %res.0, !dbg !67 ; line:27 col:15
+  call void @llvm.dbg.value(metadata i32 %10, i64 0, metadata !53, metadata !50), !dbg !54 ; var:"res" !DIExpression() func:"main"
+  br i1 %2, label %11, label %.backedge.backedge, !dbg !68 ; line:28 col:11
+
+.backedge.backedge:                               ; preds = %6, %.backedge
+  %res.0.be = phi i32 [ %10, %6 ], [ %res.0, %.backedge ]
+  br label %.backedge, !dbg !54 ; line:22 col:7
+
+; <label>:11                                      ; preds = %6
+  call void @dx.op.storeOutput.i32(i32 5, i32 0, i32 0, i8 0, i32 %10), !dbg !69 ; line:31 col:3  ; StoreOutput(outputSigId,rowIndex,colIndex,value)
+  ret void, !dbg !69 ; line:31 col:3
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.loadInput.i32(i32, i32, i32, i8, i32) #0
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.i32(i32, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind
+declare i32 @dx.op.waveReadLaneFirst.i32(i32, i32) #1
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #2
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i32) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind }
+attributes #2 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!16, !17}
+!llvm.ident = !{!18}
+!dx.source.contents = !{!19}
+!dx.source.defines = !{!20}
+!dx.source.mainFileName = !{!21}
+!dx.source.args = !{!22}
+!dx.version = !{!23}
+!dx.valver = !{!24}
+!dx.shaderModel = !{!25}
+!dx.resources = !{!26}
+!dx.typeAnnotations = !{!30, !33}
+!dx.viewIdState = !{!36}
+!dx.entryPoints = !{!37}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc(private) 1.9.0.10001 (main, 3bc198b5)", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !8)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 20, type: !5, isLocal: false, isDefinition: true, scopeLine: 21, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7, !7, !7, !7}
+!7 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+!8 = !{!9}
+!9 = !DIGlobalVariable(name: "mainBuf", linkageName: "\01?mainBuf@@3PAV?$StructuredBuffer@H@@A", scope: !0, file: !1, line: 17, type: !10, isLocal: false, isDefinition: true)
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 32, align: 32, elements: !14)
+!11 = !DICompositeType(tag: DW_TAG_class_type, name: "StructuredBuffer<int>", file: !1, line: 17, size: 32, align: 32, elements: !2, templateParams: !12)
+!12 = !{!13}
+!13 = !DITemplateTypeParameter(name: "element", type: !7)
+!14 = !{!15}
+!15 = !DISubrange(count: 1)
+!16 = !{i32 2, !"Dwarf Version", i32 4}
+!17 = !{i32 2, !"Debug Info Version", i32 3}
+!18 = !{!"dxc(private) 1.9.0.10001 (main, 3bc198b5)"}
+!19 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for: this source is compiled four times -- `vs_6_0` on two DXC versions, then\0A// `ps_6_0` on the same two versions, with the same waterfall-loop body (WaveReadLaneFirst +\0A// conditional break around a resource load).\0A//\0A// In the `ps_6_0` panes, the loop keeps a phi-based accumulator and the resource load stays\0A// inside the loop, guarded by an extra branch fed from a module-level internal constant array\0A// declared just before `define void @main()`. In the `vs_6_0` panes there is no such constant,\0A// no extra guard branch, and no accumulator phi: the resource load and its dependent input load\0A// are hoisted out of the loop into a single straight-line pass. Same source, same optimizer,\0A// different shader stage -- only the stage changes which shape comes out.\0A//==========================================================================//\0A\0A// From issue #5302 (verbatim, with the reporter's own compile lines kept as comments):\0A// dxc /Tps_6_0 .\5Cbreak.hlsl /DOUTPUT=SV_Target\0A// dxc /Tvs_6_0 .\5Cbreak.hlsl /DOUTPUT=Z\0AStructuredBuffer<int> mainBuf[]: register(t2, space0);\0A\0A[RootSignature(\22DescriptorTable(SRV(t2, numDescriptors=UNBOUNDED))\22)]\0Aint main(int a : A, int b : B, int c : C) : OUTPUT\0A{\0A  int res = 0;\0A\0A  for (;;) {\0A      int u = WaveReadLaneFirst(a);\0A      if (a == u) {\0A          res += mainBuf[u][b];\0A          break;\0A        }\0A    }\0A  return res;\0A}\0A"}
+!20 = !{!"OUTPUT=SV_Target", !"OUTPUT=SV_Target"}
+!21 = !{!"/app/example.hlsl"}
+!22 = !{!"-E", !"main", !"-T", !"ps_6_0", !"-Zi", !"-Qembed_debug", !"-D", !"OUTPUT=SV_Target", !"-D", !"OUTPUT=SV_Target"}
+!23 = !{i32 1, i32 0}
+!24 = !{i32 1, i32 10}
+!25 = !{!"ps", i32 6, i32 0}
+!26 = !{!27, null, null, null}
+!27 = !{!28}
+!28 = !{i32 0, [0 x %"class.StructuredBuffer<int>"]* undef, !"mainBuf", i32 0, i32 2, i32 -1, i32 12, i32 0, !29}
+!29 = !{i32 1, i32 4}
+!30 = !{i32 0, %"class.StructuredBuffer<int>" undef, !31}
+!31 = !{i32 4, !32}
+!32 = !{i32 6, !"h", i32 3, i32 0, i32 7, i32 4}
+!33 = !{i32 1, void ()* @main, !34}
+!34 = !{!35}
+!35 = !{i32 0, !2, !2}
+!36 = !{[5 x i32] [i32 3, i32 1, i32 1, i32 1, i32 0]}
+!37 = !{void ()* @main, !"main", !38, !26, !47}
+!38 = !{!39, !45, null}
+!39 = !{!40, !43, !44}
+!40 = !{i32 0, !"A", i8 4, i8 0, !41, i8 1, i32 1, i8 1, i32 0, i8 0, !42}
+!41 = !{i32 0}
+!42 = !{i32 3, i32 1}
+!43 = !{i32 1, !"B", i8 4, i8 0, !41, i8 1, i32 1, i8 1, i32 0, i8 1, !42}
+!44 = !{i32 2, !"C", i8 4, i8 0, !41, i8 1, i32 1, i8 1, i32 0, i8 2, null}
+!45 = !{!46}
+!46 = !{i32 0, !"SV_Target", i8 4, i8 16, !41, i8 0, i32 1, i8 1, i32 0, i8 0, !42}
+!47 = !{i32 0, i64 524304}
+!48 = !DILocation(line: 20, column: 25, scope: !4)
+!49 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "b", arg: 2, scope: !4, file: !1, line: 20, type: !7)
+!50 = !DIExpression()
+!51 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "a", arg: 1, scope: !4, file: !1, line: 20, type: !7)
+!52 = !DILocation(line: 20, column: 14, scope: !4)
+!53 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "res", scope: !4, file: !1, line: 22, type: !7)
+!54 = !DILocation(line: 22, column: 7, scope: !4)
+!55 = !DILocation(line: 24, column: 3, scope: !4)
+!56 = !DILocation(line: 25, column: 15, scope: !57)
+!57 = distinct !DILexicalBlock(scope: !58, file: !1, line: 24, column: 12)
+!58 = distinct !DILexicalBlock(scope: !59, file: !1, line: 24, column: 3)
+!59 = distinct !DILexicalBlock(scope: !4, file: !1, line: 24, column: 3)
+!60 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "u", scope: !57, file: !1, line: 25, type: !7)
+!61 = !DILocation(line: 25, column: 11, scope: !57)
+!62 = !DILocation(line: 26, column: 13, scope: !63)
+!63 = distinct !DILexicalBlock(scope: !57, file: !1, line: 26, column: 11)
+!64 = !DILocation(line: 26, column: 11, scope: !57)
+!65 = !DILocation(line: 27, column: 18, scope: !66)
+!66 = distinct !DILexicalBlock(scope: !63, file: !1, line: 26, column: 19)
+!67 = !DILocation(line: 27, column: 15, scope: !66)
+!68 = !DILocation(line: 28, column: 11, scope: !66)
+!69 = !DILocation(line: 31, column: 3, scope: !4)

@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "contains", "value": "storeOutput" },
+    { "kind": "not_contains", "value": "dx.break" }
+  ],
+  "note": "Symptom is that the wave-sensitive buffer load in this waterfall loop is NOT protected by the dx.break mechanism (PR #2795) when compiled for a non-PS/CS/Lib stage such as vs_6_0, letting the optimizer hoist it out of the loop. `dx.break.cond`/`dx.break()` machinery appearing anywhere in the output (as a global constant, a declared/called dx.break function, or the lowered load-from-global form) is the compiler engaging the protection; its absence combined with a successful compile (storeOutput present, so the absence is not just a failed/empty compile) is the bug. `storeOutput` is the anti-vacuity anchor: a release that fails to compile the repro (e.g. rejects the profile or an intrinsic) also lacks 'dx.break' and would otherwise satisfy this predicate for free -- requiring a successful store rules that out. Confirmed against ground-truth main-debug (89e2f98e2): -T vs_6_0 output contains 'storeOutput' and no 'dx.break' anywhere (matches); -T ps_6_0 on the identical source contains both 'storeOutput' and '@dx.break.cond'/'dx.break.cond' (no-match), reproducing the reporter's own quoted IR byte-for-byte for both stages."
+}

@@ -1,0 +1,4 @@
+What to look for: this used to hang forever (Release CE builds) or assert
+"cannot flatten hlsl intrinsic" (Debug builds) between dxc v1.7.2212 and v1.8.2502. Both
+panes here compile cleanly and exit 0 -- the DXC pane should show the RayDesc load lowered
+into ordinary rawBufferLoad ops rather than hanging or diagnosing anything.

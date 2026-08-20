@@ -1,0 +1,24 @@
+=== as-filed (vulkan1.3, rejected value) ===
+$ <repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe -spirv -fspv-target-env=vulkan1.3 -T ps_6_2 -E ps_main -fvk-use-dx-layout -fspv-debug=vulkan-with-source repro.hlsl
+[exit] 2147500037 (0x80004005)
+--- stdout ---
+
+--- stderr ---
+error: unknown SPIR-V target environment 'vulkan1.3'
+note: allowed options are:
+ vulkan1.0
+ vulkan1.1
+ vulkan1.2
+ universal1.5
+
+
+
+=== substituted (vulkan1.0, oldest accepted value) ===
+$ <repo>\build\tools\clang\test\dxc_releases\v1.6.2112\dxc_2021_12_08\bin\x64\dxc.exe -spirv -fspv-target-env=vulkan1.0 -T ps_6_2 -E ps_main -fvk-use-dx-layout -fspv-debug=vulkan-with-source repro.hlsl
+[exit] 3221225477 (0xC0000005)
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: access violation. Attempted to read from address 0x0000000000000000
+
+

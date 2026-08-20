@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "payload size \\d+ is greater than declared size of \\d+ bytes",
+  "note": "The reported symptom: DXIL validation rejects the linked amplification shader with a payload-size mismatch that the direct (non-lib) compile of the identical source does not produce. Anchored on the validator's own wording rather than the specific byte counts (8 vs 4), since those could in principle differ across builds while the underlying mismatch persists. A direct -T as_6_6 compile of the same source is used as a negative control (--expect no-match): it must validate cleanly, which is what establishes that lib+link, not the shader itself, is where the mismatch is introduced."
+}

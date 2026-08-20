@@ -1,0 +1,5 @@
+# manual capture: confirm v1.4.1907's bisect timeout (60s default) is a genuine hang, not a slow-start artefact
+# harness:  hang-check.py -- re-runnable
+$ <cache>/compilers/releases/v1.4.1907/dxc.exe -T vs_6_0 repro.hlsl
+# timeout: 240.0s (tool default is 60s; this is 4x that)
+# TIMED OUT after 240.0s -- process killed, no output produced

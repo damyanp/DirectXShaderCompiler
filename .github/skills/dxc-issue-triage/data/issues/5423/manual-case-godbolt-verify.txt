@@ -1,0 +1,56 @@
+# Compiler Explorer panes for #5423, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -D float4=0 -T ps_6_0 -E PSMain
+# exit:     5
+
+<source>:3:5: error: expected member name or ';' after declaration specifiers
+    float4 position : SV_Position;
+    ^
+<built-in>:66:16: note: expanded from here
+#define float4 0
+               ^
+<source>:4:5: error: expected member name or ';' after declaration specifiers
+    float4 color    : COLOR0;
+    ^
+<built-in>:66:16: note: expanded from here
+#define float4 0
+               ^
+<source>:7:1: error: expected unqualified-id
+float4 PSMain(PSInput input) : SV_Target0
+^
+<built-in>:66:16: note: expanded from here
+#define float4 0
+               ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -D float4=0 -T ps_6_0 -E PSMain
+# exit:     5
+
+<source>:3:5: error: expected member name or ';' after declaration specifiers
+    float4 position : SV_Position;
+    ^
+<built-in>:66:16: note: expanded from here
+#define float4 0
+               ^
+<source>:4:5: error: expected member name or ';' after declaration specifiers
+    float4 color    : COLOR0;
+    ^
+<built-in>:66:16: note: expanded from here
+#define float4 0
+               ^
+<source>:7:1: error: expected unqualified-id
+float4 PSMain(PSInput input) : SV_Target0
+^
+<built-in>:66:16: note: expanded from here
+#define float4 0
+               ^
+
+<Compilation failed>

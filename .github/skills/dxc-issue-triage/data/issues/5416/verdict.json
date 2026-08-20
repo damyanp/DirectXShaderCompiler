@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-07-13T19:20:37Z",
+  "godbolt_url": "https://godbolt.org/z/3jn1eM9K4",
+  "history": "always-repro'd: 6 pre-2021.12.21 releases invalid-probe (Unknown argument '-MD', predates -M/-MD/-MF, PR #4017); all 15 stable releases v1.7.2207..v1.9.2607 plus main-debug (16 total) reproduce with zero clean results; CE dxc_trunk corroborates; introducing commit ff270c74b (#4017, merged 2021-12-21)",
+  "labels": "bug,high-impact",
+  "labels_add": "diagnostic",
+  "labels_now": "bug,high-impact",
+  "notes_path": "issues/5416/notes.md",
+  "number": 5416,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Always reproduces: -MD/-MF silently makes dxc skip -Fo output (exit 0, no diagnostic) for any ordinary compile, not just -P. Root cause: DxcContext::ActOnBlob returns unconditionally after writing the depfile, before reaching the -Fo write (dxc.cpp:305-323), present since -M/-MD/-MF was added in #4017 (2021-12-21). Reproduces on main-debug, all 15 probeable stable releases (v1.7.2207-v1.9.2607), and CE dxc_trunk; zero clean results anywhere in range. Related to but distinct from #4723 (-P specific) and #5117 (swallowed diagnostic on invalid source, same code region).",
+  "title": "depfile generation isn't supported in the same invocation as compilation",
+  "triaged_at": "2026-08-20T05:15:22+00:00",
+  "triaged_by": "claude-sonnet-4.6",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5416"
+}

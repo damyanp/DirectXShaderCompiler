@@ -1,0 +1,39 @@
+# Compiler Explorer panes for #5115, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E PSMain
+# exit:     5
+
+<source>:11:5: error: call to 'f' is ambiguous
+    f(1.0f);
+    ^
+<source>:1:6: note: candidate function
+void f(unsigned int){}
+     ^
+<source>:2:6: note: candidate function
+void f(int){}
+     ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T ps_6_0 -E PSMain
+# exit:     1
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[1m<source>:11:5: [0m[0;1;31merror: [0m[1mcall to 'f' is ambiguous[0m
+   11 |     f([0;32m1.0f[0m);[0m
+      | [0;1;32m    ^
+[0m[1m<source>:1:6: [0m[0;1;36mnote: [0mcandidate function[0m
+    1 | [0;34mvoid[0m f([0;34munsigned[0m [0;34mint[0m){}[0m
+      | [0;1;32m     ^
+[0m[1m<source>:2:6: [0m[0;1;36mnote: [0mcandidate function[0m
+    2 | [0;34mvoid[0m f([0;34mint[0m){}[0m
+      | [0;1;32m     ^
+[0m1 error generated.
+<Compilation failed>

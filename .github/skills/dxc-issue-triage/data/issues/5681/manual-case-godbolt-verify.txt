@@ -1,0 +1,30 @@
+# Compiler Explorer panes for #5681, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T cs_6_6 -E main
+# exit:     139  CRASH
+
+Program terminated with signal: SIGSEGV
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T cs_6_6 -E main
+# exit:     5
+
+warning: function 'RWByteAddressBuffer::Load<T, unsigned int>' has internal linkage but is not defined [-Wundefined-internal]
+<source>:18:20: note: used here
+  InterlockedMax(b.Load<T>(0).value, 1, original);
+                   ^
+note: Debug information is disabled which may impact diagnostic location accuracy. Re-run without -fdisable-loc-tracking to improve accuracy.
+
+error: cannot map resource to handle.
+<source>:18:3: error: Atomic operation targets must be groupshared, Node Record or UAV.
+  InterlockedMax(b.Load<T>(0).value, 1, original);
+  ^
+
+<Compilation failed>

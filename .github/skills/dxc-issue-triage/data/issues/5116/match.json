@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "note": "Repros the SM6.5/SM6.6 asymmetry the maintainer (llvm-beanz, 2023-11-01) identified as the real defect in #5116: this exact shader is diagnosed at -T cs_6_5 with 'local resource not guaranteed to map to unique global resource' (DXILCondenseResources cannot prove the resource path is unique across the inout-copy-out branch) but is silently accepted at -T cs_6_6, where the same analysis is believed not to look through the SM6.6 resource-handle annotations. cmd.txt runs both profiles against the identical repro.hlsl, so 'present' requires both halves of the asymmetry in the same capture: the cs_6_6 arm actually reached SampleGrad codegen (positive anchor -- rules out a vacuous match from an unrelated early failure) AND the cs_6_5 arm produced the specific diagnostic. Negative control: control-single-path.hlsl removes the inout/branch ambiguity (direct NonUniformResourceIndex, no copy-out) and compiles cleanly with SampleGrad present at BOTH cs_6_5 and cs_6_6 -- confirmed by hand, so the diagnostic-presence clause is false there and the whole predicate scores no-match, proving this is not simply 'any SampleGrad shader compiles cleanly at 6.6'.",
+  "value": [
+    { "kind": "contains", "value": "dx.op.sampleGrad" },
+    { "kind": "contains", "value": "local resource not guaranteed to map to unique global resource" }
+  ]
+}

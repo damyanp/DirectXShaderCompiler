@@ -1,0 +1,23 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-01-05T22:32:30Z",
+  "expected_symptom": "dxc fails to compile a member function that returns or copies the whole 'this' value (not this.member) with 'cannot compile this aggregate expression yet', while FXC accepts the same construct",
+  "godbolt_url": "https://godbolt.org/z/jbqesq9P1",
+  "history": "always-repro'd",
+  "labels": "enhancement,question,dxil,fxc-disagrees",
+  "labels_add": "bug",
+  "labels_now": "enhancement,question,dxil,fxc-disagrees",
+  "notes_path": "issues/4914/notes.md",
+  "number": 4914,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main-debug (89e2f98e29c289ae8ad9e00dd310104fea9fd7df) and on all 20 stable releases v1.4.1907..v1.9.2607, full linear scan, no invalid probes: a member function returning 'this' by value or assigning it into an out-param fails 'cannot compile this aggregate expression yet'. Source-traced to AggExprEmitter (CGExprAgg.cpp) lacking a VisitCXXThisExpr override, unlike the scalar emitter; Sema itself raises no diagnostic (existing -fsyntax-only -verify test cpp-errors.hlsl already contains the construct with no expected-error). Controls: this.member access is unaffected (no-match); the identical repro compiles cleanly with -spirv (no-match), directly confirming Keenuts's 2023 comment; FXC compiles the identical shape cleanly; hlsl_clang_trunk reproduces the byte-identical diagnostic, so the successor front end shares the gap. A narrow, unimplemented CodeGen path rather than a language-design question.",
+  "title": "[feature request] Copying \"this\" fails",
+  "triaged_at": "2026-08-20T05:15:14+00:00",
+  "triaged_by": "GitHub Copilot CLI (agent session)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4914"
+}

@@ -1,0 +1,12 @@
+What to look for: both DXC panes fail to produce DXIL for this hull shader, even though
+neither of the two globals this file declares (the float3x3 arithmetic-initialised matrix and
+the static Texture2D<float4> array) is ever referenced by mainHS or constHS. dxc_1_6_2112
+(CE's oldest DXC) terminates with SIGSEGV; dxc_trunk instead reports
+"error: cast<X>() argument of incompatible type!" and exits 5 -- that message is the
+llvm::cast<X>() type-mismatch form of an internal failure (thrown as hlsl::Exception and
+reported as E_FAIL/exit 5 on Linux), not an ordinary diagnosed error. Both panes are CRASH.
+Locally, a Debug build of the same commit as dxc_trunk traps an assert instead:
+`assert(Index < Length && "Invalid index!")` in llvm::ArrayRef<Value*>::operator[], called
+from StoreVectorOrStructArray during HLSL's SROA pass (SROA_Helper::RewriteForStore) -- the
+Debug trap and the Release/CE cast-error are the same defect surfacing through different
+build configurations, not two different bugs.

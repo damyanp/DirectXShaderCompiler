@@ -1,0 +1,140 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T22:20:04+00:00
+# cmd: -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro-shader-attr.hlsl ; -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc ; -dumpbin linked.bc
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: shader-attr (repro-shader-attr.hlsl)
+# expect: no-match
+
+$ dxc -T lib_6_3 -Qstrip_reflect -O3 -Fo lib.bc repro-shader-attr.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -link lib.bc -T cs_6_3 -E main -Qstrip_reflect -O3 -Fo linked.bc
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -dumpbin linked.bc
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+;
+; Note: shader requires additional functionality:
+;       64 UAV slots
+;
+;
+; Input signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+;
+; Output signature:
+;
+; Name                 Index   Mask Register SysValue  Format   Used
+; -------------------- ----- ------ -------- -------- ------- ------
+; no parameters
+; shader debug name: bccb824491424807338e2e71aa15b6d5.pdb
+; shader hash: bccb824491424807338e2e71aa15b6d5
+;
+; Pipeline Runtime Information: 
+;
+;PSVRuntimeInfo:
+; Compute Shader
+; NumThreads=(8,8,1)
+; NumBytesGroupSharedMemory: 0
+; MinimumExpectedWaveLaneCount: 0
+; MaximumExpectedWaveLaneCount: 4294967295
+; UsesViewID: false
+; SigInputElements: 0
+; SigOutputElements: 0
+; SigPatchConstOrPrimElements: 0
+; SigInputVectors: 0
+; SigOutputVectors[0]: 0
+; SigOutputVectors[1]: 0
+; SigOutputVectors[2]: 0
+; SigOutputVectors[3]: 0
+; EntryFunctionName: main
+;
+;
+; Buffer Definitions:
+;
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ------
+;                                   texture     u32          2d      T0           t900     1
+;                                       UAV     u32          2d      U0   u0,space2400unbounded
+;
+target triple = "dxil-ms-dx"
+
+%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
+%dx.types.Handle = type { i8* }
+%"class.Texture2D<unsigned int>" = type { i32, %"class.Texture2D<unsigned int>::mips_type" }
+%"class.Texture2D<unsigned int>::mips_type" = type { i32 }
+%"class.RWTexture2D<unsigned int>" = type { i32 }
+
+; Function Attrs: nounwind readnone
+declare i32 @dx.op.threadId.i32(i32, i32) #0
+
+; Function Attrs: nounwind readonly
+declare %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.textureStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i32, i8) #2
+
+define void @main() {
+  %1 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 0, i32 0, i32 900, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %2 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
+  %3 = call i32 @dx.op.threadId.i32(i32 93, i32 1)  ; ThreadId(component)
+  %4 = call i32 @dx.op.threadId.i32(i32 93, i32 2)  ; ThreadId(component)
+  %5 = call %dx.types.ResRet.i32 @dx.op.textureLoad.i32(i32 66, %dx.types.Handle %1, i32 %4, i32 %2, i32 %3, i32 undef, i32 undef, i32 undef, i32 undef)  ; TextureLoad(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)
+  %6 = extractvalue %dx.types.ResRet.i32 %5, 0
+  %7 = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  call void @dx.op.textureStore.i32(i32 67, %dx.types.Handle %7, i32 %2, i32 %3, i32 undef, i32 %6, i32 %6, i32 %6, i32 %6, i8 15)  ; TextureStore(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask)
+  ret void
+}
+
+; Function Attrs: nounwind readonly
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.ident = !{!0}
+!dx.version = !{!1}
+!dx.valver = !{!2}
+!dx.shaderModel = !{!3}
+!dx.resources = !{!4}
+!dx.entryPoints = !{!10}
+
+!0 = !{!"dxc(private) 1.9.0.5465 (triage, 7665270b9)"}
+!1 = !{i32 1, i32 3}
+!2 = !{i32 1, i32 10}
+!3 = !{!"cs", i32 6, i32 3}
+!4 = !{!5, !8, null, null}
+!5 = !{!6}
+!6 = !{i32 0, %"class.Texture2D<unsigned int>"* undef, !"", i32 0, i32 900, i32 1, i32 2, i32 0, !7}
+!7 = !{i32 0, i32 5}
+!8 = !{!9}
+!9 = !{i32 0, [0 x %"class.RWTexture2D<unsigned int>"]* undef, !"", i32 2400, i32 0, i32 -1, i32 2, i1 false, i1 false, i1 false, !7}
+!10 = !{void ()* @main, !"main", null, !4, !11}
+!11 = !{i32 0, i64 32768, i32 4, !12}
+!12 = !{i32 8, i32 8, i32 1}
+
+
+--- stderr ---
+

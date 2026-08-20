@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-11-09T19:48:01Z",
+  "godbolt_url": "https://godbolt.org/z/E16q13zKa",
+  "history": "always-repro'd across v1.7.2308..v1.9.2607 (8 older stable releases invalid-probe: HLSL function templates unsupported before v1.7.2308)",
+  "labels": "bug,hlsl2021,shader-linking,type-system",
+  "labels_now": "bug,hlsl2021,shader-linking,type-system",
+  "notes_path": "data\\issues\\5999\\notes.md",
+  "number": 5999,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "globallycoherent is still dropped from a template parameter's deduced type on main (89e2f98e2), with a compiler warning naming the loss; maintainers already correctly diagnosed this in-thread as a known qualifier-vs-attribute canonicalization limitation, not a false positive; reproduces on every stable release able to parse HLSL function templates (v1.7.2308 onward)",
+  "title": "An issue with template type deduction and globallycoherent?",
+  "triaged_at": "2026-08-20T05:15:33+00:00",
+  "triaged_by": "claude-sonnet-4.6 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5999"
+}

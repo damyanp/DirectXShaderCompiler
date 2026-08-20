@@ -1,0 +1,1 @@
+-T ps_6_0 -E PSMain -D float4=0 repro.hlsl

@@ -1,0 +1,123 @@
+
+************* Preparing the environment for Debugger Extensions Gallery repositories **************
+   ExtensionRepository : Implicit
+   UseExperimentalFeatureForNugetShare : true
+   AllowNugetExeUpdate : true
+   NonInteractiveNuget : true
+   AllowNugetMSCredentialProviderInstall : true
+   AllowParallelInitializationOfLocalRepositories : true
+
+   EnableRedirectToV8JsProvider : false
+
+   -- Configuring repositories
+      ----> Repository : LocalInstalled, Enabled: true
+      ----> Repository : UserExtensions, Enabled: true
+
+>>>>>>>>>>>>> Preparing the environment for Debugger Extensions Gallery repositories completed, duration 0.000 seconds
+
+************* Waiting for Debugger Extensions Gallery to Initialize **************
+
+>>>>>>>>>>>>> Waiting for Debugger Extensions Gallery to Initialize completed, duration 0.031 seconds
+   ----> Repository : UserExtensions, Enabled: true, Packages count: 0
+   ----> Repository : LocalInstalled, Enabled: true, Packages count: 29
+
+Microsoft (R) Windows Debugger Version 10.0.26100.6584 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+CommandLine: <repo>\build\Debug\bin\dxc.exe -T cs_6_6 -E CSMain repro.hlsl
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       srv*
+Symbol search path is: srv*
+Executable search path is: 
+
++------------------------------------------------------------------------+
+| This target supports Hardware-enforced Stack Protection. A HW based    |
+| "Shadow Stack" may be available to assist in debugging and analysis.   |
+| See aka.ms/userhsp for more info.                                      |
+|                                                                        |
+| dps @ssp                                                               |
+|                                                                        |
++------------------------------------------------------------------------+
+
+ModLoad: 00007ff6`fc090000 00007ff6`fc78b000   dxc.exe 
+ModLoad: 00007ffe`3fc20000 00007ffe`3fe86000   ntdll.dll
+ModLoad: 00007ffe`3ec90000 00007ffe`3ed59000   C:\Windows\System32\KERNEL32.DLL
+ModLoad: 00007ffe`3ce40000 00007ffe`3d23e000   C:\Windows\System32\KERNELBASE.dll
+ModLoad: 00007ffe`3f240000 00007ffe`3f407000   C:\Windows\System32\USER32.dll
+ModLoad: 00007ffe`3d250000 00007ffe`3d277000   C:\Windows\System32\win32u.dll
+ModLoad: 00007ffe`3eea0000 00007ffe`3eecb000   C:\Windows\System32\GDI32.dll
+ModLoad: 00007ffe`3d280000 00007ffe`3d3aa000   C:\Windows\System32\gdi32full.dll
+ModLoad: 00007ffe`3d660000 00007ffe`3d703000   C:\Windows\System32\msvcp_win.dll
+ModLoad: 00007ffe`3d440000 00007ffe`3d58c000   C:\Windows\System32\ucrtbase.dll
+ModLoad: 00007ffe`3e960000 00007ffe`3eaf9000   C:\Windows\System32\ole32.dll
+ModLoad: 00007ffe`3cc70000 00007ffe`3cda6000   gdi32full.dll
+ModLoad: 00007ffe`3e580000 00007ffe`3e903000   C:\Windows\System32\combase.dll
+ModLoad: 00007ffe`3eb70000 00007ffe`3ec88000   C:\Windows\System32\RPCRT4.dll
+ModLoad: 00007ffe`3f570000 00007ffe`3f649000   C:\Windows\System32\OLEAUT32.dll
+ModLoad: 00007ffe`3c890000 00007ffe`3cc3c000   combase.dll
+ModLoad: 00007ffe`127a0000 00007ffe`127af000   C:\Windows\SYSTEM32\VCRUNTIME140_1D.dll
+ModLoad: 00007ffe`2f750000 00007ffe`2f75b000   C:\Windows\SYSTEM32\VERSION.dll
+ModLoad: 00007ffd`fee70000 00007ffd`feea0000   C:\Windows\SYSTEM32\VCRUNTIME140D.dll
+ModLoad: 00007ffd`d5070000 00007ffd`d514a000   C:\Windows\SYSTEM32\MSVCP140D.dll
+ModLoad: 00007ffe`3f4c0000 00007ffe`3f569000   C:\Windows\System32\msvcrt.dll
+ModLoad: 00007ffd`c60f0000 00007ffd`c62f4000   C:\Windows\SYSTEM32\ucrtbased.dll
+ModLoad: 00000268`eb5d0000 00000268`eb7d4000   C:\Windows\SYSTEM32\ucrtbased.dll
+ModLoad: 00000268`eb3c0000 00000268`eb5c4000   C:\Windows\SYSTEM32\ucrtbased.dll
+ModLoad: 00000268`eb7e0000 00000268`eb9e4000   C:\Windows\SYSTEM32\ucrtbased.dll
+(1568.3060): Break instruction exception - code 80000003 (first chance)
+ntdll!LdrpDoDebuggerBreak+0x35:
+00007ffe`3fd3d7bd cc              int     3
+0:000> cdb: Reading initial command 'g;kn 40;q'
+ModLoad: 00007ffe`3e910000 00007ffe`3e942000   C:\Windows\System32\IMM32.DLL
+ModLoad: 00007ffd`9c5a0000 00007ffd`a0e22000   <repo>\build\Debug\bin\dxcompiler.dll
+ModLoad: 00007ffe`3eed0000 00007ffe`3ef87000   C:\Windows\System32\ADVAPI32.dll
+ModLoad: 00007ffe`3edf0000 00007ffe`3ee9a000   C:\Windows\System32\sechost.dll
+Error: 	!(GV->user_empty())
+File:
+<repo>\lib\HLSL\DxilCondenseResources.cpp(1984)
+Func:	`anonymous-namespace'::DxilLowerCreateHandleForLib::UpdateResourceSymbols::<lambda_544bc7e939c8ea03ecdc3ce91b1f2484>::operator ().
+	else resource not lowered
+(1568.3060): Break instruction exception - code 80000003 (first chance)
+*** WARNING: Unable to verify checksum for <repo>\build\Debug\bin\dxcompiler.dll
+ # Child-SP          RetAddr               Call Site
+00 000000c5`5d586250 00007ffd`9ca4153b     dxcompiler!<lambda_544bc7e939c8ea03ecdc3ce91b1f2484>::operator()+0x7a
+01 000000c5`5d5862a0 00007ffd`9ca40fb2     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::UpdateResourceSymbols+0x1ab
+02 000000c5`5d586370 00007ffd`9f3384a8     dxcompiler!`anonymous namespace'::DxilLowerCreateHandleForLib::runOnModule+0x542
+03 000000c5`5d586480 00007ffd`9f3392e5     dxcompiler!`anonymous namespace'::MPPassManager::runOnModule+0x518
+04 000000c5`5d586830 00007ffd`9f32fc2c     dxcompiler!llvm::legacy::PassManagerImpl::run+0x165
+05 000000c5`5d5868e0 00007ffd`9d044a26     dxcompiler!llvm::legacy::PassManager::run+0x2c
+06 000000c5`5d586920 00007ffd`9d041fb8     dxcompiler!`anonymous namespace'::EmitAssemblyHelper::EmitAssembly+0x616
+07 000000c5`5d586b00 00007ffd`9d01a211     dxcompiler!clang::EmitBackendOutput+0x158
+08 000000c5`5d586f50 00007ffd`9e8ae7c8     dxcompiler!clang::BackendConsumer::HandleTranslationUnit+0x521
+09 000000c5`5d587170 00007ffd`9d3d9e4e     dxcompiler!clang::ParseAST+0x608
+0a 000000c5`5d587440 00007ffd`9d013c65     dxcompiler!clang::ASTFrontendAction::ExecuteAction+0x13e
+0b 000000c5`5d5874a0 00007ffd`9d3d98b8     dxcompiler!clang::CodeGenAction::ExecuteAction+0x805
+0c 000000c5`5d5879f0 00007ffd`9c5fb7c2     dxcompiler!clang::FrontendAction::Execute+0xa8
+0d 000000c5`5d587a60 00007ffd`9c5dbb80     dxcompiler!DxcCompiler::Compile+0x41a2
+0e 000000c5`5d58c2a0 00007ffd`9c5dd3d8     dxcompiler!hlsl::DxcCompilerAdapter::WrapCompile+0xbe0
+0f 000000c5`5d58d9b0 00007ffd`9c5fec2e     dxcompiler!hlsl::DxcCompilerAdapter::CompileWithDebug+0x138
+*** WARNING: Unable to verify checksum for dxc.exe
+10 000000c5`5d58da30 00007ff6`fc09f65d     dxcompiler!hlsl::DxcCompilerAdapter::Compile+0xce
+11 000000c5`5d58dac0 00007ff6`fc09a06e     dxc!DxcContext::Compile+0xe2d
+12 000000c5`5d58e690 00007ff6`fc098ebc     dxc!dxc::main+0xa1e
+13 000000c5`5d58f760 00007ff6`fc3a8ec9     dxc!wmain+0x1c
+14 000000c5`5d58f790 00007ff6`fc3a8de2     dxc!invoke_main+0x39
+15 000000c5`5d58f7e0 00007ff6`fc3a8c9e     dxc!__scrt_common_main_seh+0x132
+16 000000c5`5d58f850 00007ff6`fc3a8f3e     dxc!__scrt_common_main+0xe
+17 000000c5`5d58f880 00007ffe`3ecbe957     dxc!wmainCRTStartup+0xe
+18 000000c5`5d58f8b0 00007ffe`3fccad6c     KERNEL32!BaseThreadInitThunk+0x17
+19 000000c5`5d58f8e0 00000000`00000000     ntdll!RtlUserThreadStart+0x2c
+quit:
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\atlmfc.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\ObjectiveC.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\concurrency.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\cpp_rest.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\stl.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Data.Json.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Devices.Geolocation.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Devices.Sensors.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Media.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\windows.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\winrt.natvis'

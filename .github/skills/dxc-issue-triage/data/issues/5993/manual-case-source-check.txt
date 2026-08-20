@@ -1,0 +1,44 @@
+$ git log -1 "--format=%H %ci %s" 89e2f98e29c289ae8ad9e00dd310104fea9fd7df
+# exit: 0
+89e2f98e29c289ae8ad9e00dd310104fea9fd7df 2026-08-12 06:06:23 +1200 [HLSL] Add LinAlg descriptor I/O offset, stride and layout coverage (#8762)
+
+$ git show 89e2f98e29c289ae8ad9e00dd310104fea9fd7df:tools/clang/tools/libclang/CIndex.cpp
+# exit: 0
+--- tools/clang/tools/libclang/CIndex.cpp @ 89e2f98e29c289ae8ad9e00dd310104fea9fd7df, lines 2947-2970 ---
+ 2947: CXTranslationUnit clang_createTranslationUnit(CXIndex CIdx,
+ 2948:                                               const char *ast_filename) {
+ 2949:   CXTranslationUnit TU;
+ 2950:   enum CXErrorCode Result =
+ 2951:       clang_createTranslationUnit2(CIdx, ast_filename, &TU);
+ 2952:   (void)Result;
+ 2953:   assert((TU && Result == CXError_Success) ||
+ 2954:          (!TU && Result != CXError_Success));
+ 2955:   return TU;
+ 2956: }
+ 2957: 
+ 2958: enum CXErrorCode clang_createTranslationUnit2(CXIndex CIdx,
+ 2959:                                               const char *ast_filename,
+ 2960:                                               CXTranslationUnit *out_TU) {
+ 2961: #if 1 // HLSL Change Starts - no support for serialization
+ 2962:   return CXError_Failure;
+ 2963: #else  
+ 2964:   if (out_TU)
+ 2965:     *out_TU = nullptr;
+ 2966: 
+ 2967:   if (!CIdx || !ast_filename || !out_TU)
+ 2968:     return CXError_InvalidArguments;
+ 2969: 
+ 2970:   LOG_FUNC_SECTION {
+
+--- structural checks (self-test) ---
+declares uninitialized `CXTranslationUnit TU;`: True
+passes &TU into clang_createTranslationUnit2:   True
+active arm is `#if 1` HLSL-disabled branch:     True
+active arm returns CXError_Failure immediately: True
+active arm ever assigns *out_TU:                False
+
+VERDICT: pattern-present=True
+
+--- control: PR #6002's proposed fix text (not applied to this checkout) ---
+fixed shape (PR #6002) assigns *out_TU on active arm: False  (expected False; it just returns a value, no branch reads TU uninitialized)
+SELF-TEST: fixed-shape-detected-as-different-from-current=True

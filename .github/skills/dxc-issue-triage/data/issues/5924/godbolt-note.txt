@@ -1,0 +1,16 @@
+What to look for in this Compiler Explorer link:
+
+- The dxc_1_6_2112 pane (CE's oldest DXC) rejects the whole source with
+  "'template' is a reserved keyword in HLSL" -- this release predates DXC's
+  template support (first shipped in v1.7.2308) and is not evidence about
+  this bug; it is an invalid probe, not a clean compile.
+- The dxc_trunk pane is the one that matters: it fails at the `return t.xx;`
+  line inside StyleClipper::func with "member reference base type 'float' is
+  not a structure or union", reached only when func is instantiated for
+  float_t = float. The same swizzle on a parameter whose static type is
+  written literally as `float` (not a template type parameter) compiles fine
+  -- see the issue body's own comparison.
+- The hlsl_clang_trunk pane compiles cleanly to DXIL: two fadd instructions
+  computing color.x + color.x, i.e. the `t.xx` swizzle the classic DXC
+  frontend rejects. Compare exit codes (5, 5, 0) before reading any line of
+  output.

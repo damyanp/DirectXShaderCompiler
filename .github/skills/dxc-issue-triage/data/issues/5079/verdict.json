@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-03-04T19:04:02Z",
+  "godbolt_skip": "C++ header/build-system conflict between DXC's dxc/WinAdapter.h and DirectX-Headers' wsl/winadapter.h (both non-Windows Windows-type shims) -- not an HLSL shader, nothing for dxc.exe to compile. Compiler Explorer cannot host a repro combining two C++ header trees outside the dxc binary; the faithful repro is the clang manual-case captured locally (see repro.cpp / manual-case-clang-conflict.txt).",
+  "history": "always-repro'd since filed (2023-03-04); DirectX-Headers submodule pin (980971e835876dc0cde415e8f9bc646e64667bf7) unchanged since it was first added 2022-11-23 (PR #4810), before the issue existed; DXC's own conflicting shim dates to the original 2018-06-17 Linux port (PR #1314); no dxc.exe release bisect applies since every stable release ships the same WinAdapter.h design and the conflict is entirely with a different project's headers; open, mergeable, stalled fix in PR #8431 (opened 2026-05-08, last activity 2026-05-11)",
+  "labels": "build",
+  "labels_add": "linux",
+  "notes_path": "issues/5079/notes.md",
+  "number": 5079,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "needs-human-judgement",
+  "summary": "Still reproduces on main: DXC's own non-Windows shim (WinAdapter.h) and DirectX-Headers' own non-Windows shim independently redefine the same Windows base types with different underlying types (e.g. BOOL as bool vs uint32_t), producing clang typedef-redefinition/_GUID-redefinition errors whenever both are combined in one TU with _WIN32 undefined. Reproduced locally with this repo's own vendored headers (clang -U_WIN32); no dxc.exe/HLSL angle applies. A fix already exists as open PR #8431 but is stalled on an unresolved ABI/dependency-model tradeoff that needs a maintainer decision, not further investigation.",
+  "title": "Conflict with DirectX-Headers",
+  "triaged_at": "2026-08-20T05:15:16+00:00",
+  "triaged_by": "GitHub Copilot CLI (model not self-identifiable)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5079"
+}

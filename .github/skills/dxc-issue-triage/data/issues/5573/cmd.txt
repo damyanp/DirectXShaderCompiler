@@ -1,0 +1,1 @@
+-T cs_6_6 -E CSMain repro.hlsl

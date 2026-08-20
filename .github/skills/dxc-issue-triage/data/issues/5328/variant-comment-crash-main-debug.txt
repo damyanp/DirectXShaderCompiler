@@ -1,0 +1,18 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T20:31:15+00:00
+# cmd: -T cs_6_0 -E main variant-comment-repro.hlsl
+# exit: 3758096385
+# timed_out: 0
+# match: match.json
+# verdict: unscored
+# variant: comment-crash (variant-comment-repro.hlsl)
+
+$ dxc -T cs_6_0 -E main variant-comment-repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 3758096385
+--- stdout ---
+
+--- stderr ---
+Internal compiler error: LLVM Assert
+

@@ -1,0 +1,12 @@
+What to look for: this shader compiles with exit 0 on both panes (dxc 1.6.2112, the release
+that introduced -HV 2021 support, and dxc_trunk) and neither pane prints a
+`-Wfor-redefinition` / "shadows declaration in the outer scope" warning about the inner
+`for (uint i = ...)` shadowing the outer `uint i = 7`. Compile the same source with `-HV 2018`
+instead (see variant-hv2018-control-main-debug.txt) and that warning appears. The absence is
+not a regression in the warning logic: with `-HV 2021` genuine block scoping applies (grep
+`ParseStmt.cpp` for `HLSLVersion < hlsl::LangStd::v2021`), so the loop's `i` is a distinct
+variable in its own scope rather than a same-scope redefinition of the outer `i`, and the
+merge-conflict code path that emits this warning is only reached pre-2021 for the legacy
+"for-loop variable leaks into the enclosing scope" behaviour it exists to soften. DXC has no
+general shadow warning for ordinary block-scope shadowing in either language mode (see
+variant-block-shadow-hv2021-main-debug.txt and variant-block-shadow-hv2018-main-debug.txt).

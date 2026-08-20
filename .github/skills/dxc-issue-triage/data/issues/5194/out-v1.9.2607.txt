@@ -1,0 +1,26 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-19T19:40:47+00:00
+# cmd: -spirv -HV 2021 -T cs_6_2 -E main repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+
+$ dxc -spirv -HV 2021 -T cs_6_2 -E main repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:11:5: error: no matching function for call to object of type 'Test'
+    t(5);
+    ^
+repro.hlsl:12:7: error: unexpected type name 'uint': expected expression
+    t<uint>(5);
+      ^
+repro.hlsl:13:7: error: no matching member function for call to 'operator()'
+    t.operator()<uint>(5);
+    ~~^~~~~~~~~~~~~~~~
+
+

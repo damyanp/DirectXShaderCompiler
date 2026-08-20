@@ -1,0 +1,30 @@
+# Compiler Explorer panes for #5768, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T vs_6_0 -E main
+# exit:     5
+
+warning: DXIL.dll not found.  Resulting DXIL will not be signed for use in release environments.
+
+error: validation errors
+error: SV_VertexID must be uint.
+Validation failed.
+
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T vs_6_0 -E main
+# exit:     5
+
+error: validation errors
+error: SV_VertexID must be uint.
+Validation failed.
+
+
+<Compilation failed>

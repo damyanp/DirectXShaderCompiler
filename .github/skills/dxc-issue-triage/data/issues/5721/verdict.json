@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-14T22:06:48Z",
+  "expected_symptom": "IDxcLinker::Link's result, QueryInterface'd to IDxcResult, never carries a DXC_OUT_PDB output when linked with -Zi -Qstrip_debug: HasOutput(DXC_OUT_PDB) is FALSE and GetOutput(DXC_OUT_PDB, ...) returns E_INVALIDARG.",
+  "godbolt_skip": "linker-only defect (no DXC_OUT_PDB output object set by IDxcLinker::Link); Compiler Explorer exposes one dxc invocation per pane and no dxl/linker equivalent, and even the dxc/dxl CLI never reaches DXC_OUT_PDB on a linked result, so the symptom cannot be produced there",
+  "history": "always-repro'd",
+  "labels": "bug,shader-linking",
+  "labels_now": "bug,shader-linking",
+  "notes_path": "data/issues/5721/notes.md",
+  "number": 5721,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Confirmed via a raw COM harness (registered as compiler main-debug-pdb5721, since no dxc/dxl command line reaches IDxcResult::GetOutput on a linked result): IDxcLinker::Link(...,-Zi,-Qstrip_debug) succeeds, but the linked IDxcResult never has a DXC_OUT_PDB output (HasOutput=FALSE, GetOutput=E_INVALIDARG), while a same-object self-test (GetOutput(DXC_OUT_OBJECT) succeeds) and a same-flags/same-source direct-compile control (produces a real PDB) both isolate the gap specifically to the linker path. Root cause: tools/clang/tools/dxcompiler/dxclinker.cpp's Link() sets DXC_OUT_OBJECT/DXC_OUT_ROOT_SIGNATURE/DXC_OUT_SHADER_HASH/DXC_OUT_REFLECTION (added by PR 5678) but never DXC_OUT_PDB, marked only by a bare TODO comment. An open, unmerged PR (6834, 'Add PDB output to linker') already targets this fix. Reproduces unchanged on ground truth 89e2f98e2.",
+  "title": "DXC linker API doesn't include DXC_OUT_PDB in the result",
+  "triaged_at": "2026-08-20T05:15:27+00:00",
+  "triaged_by": "claude-opus-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5721"
+}

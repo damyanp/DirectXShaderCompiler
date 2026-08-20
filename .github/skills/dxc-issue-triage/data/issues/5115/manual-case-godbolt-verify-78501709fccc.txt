@@ -1,0 +1,108 @@
+# Compiler Explorer panes for #5115, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E PSMain
+# exit:     5
+
+<source>:6:5: error: call to 'f' is ambiguous
+    f(1);
+    ^
+<source>:1:6: note: candidate function
+void f(unsigned int){}
+     ^
+<source>:2:6: note: candidate function
+void f(int){}
+     ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E PSMain
+# exit:     5
+
+<source>:6:5: error: call to 'f' is ambiguous
+    f(1);
+    ^
+<source>:1:6: note: candidate function
+void f(unsigned int){}
+     ^
+<source>:2:6: note: candidate function
+void f(int){}
+     ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T ps_6_0 -E PSMain
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+;
+; ModuleID = '/app/example.hlsl'
+source_filename = "/app/example.hlsl"
+target datalayout = "e-m:e-ve-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxilv1.0-unknown-shadermodel6.0-pixel"
+
+; Function Attrs: convergent noinline nounwind
+define void @PSMain() local_unnamed_addr #0 {
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float 0.000000e+00)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float 0.000000e+00)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float 0.000000e+00)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float 0.000000e+00)
+  ret void
+}
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #1
+
+attributes #0 = { convergent noinline nounwind }
+attributes #1 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!dx.valver = !{!12}
+!dx.source.contents = !{!13}
+!dx.source.defines = !{!14}
+!dx.source.mainFileName = !{!15}
+!dx.source.args = !{!16}
+!llvm.ident = !{!17}
+!dx.shaderModel = !{!18}
+!dx.version = !{!19}
+!dx.entryPoints = !{!20}
+!llvm.module.flags = !{!21, !22, !23, !24}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_HLSL, file: !1, producer: "clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, retainedTypes: !2, splitDebugInlining: false, nameTableKind: None)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{!3}
+!3 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", scope: !5, file: !4, line: 96, baseType: !6)
+!4 = !DIFile(filename: "/cefs/ed/edec7da708b32073a16376f7_clang-trunk-20260818/lib/clang/24/include/hlsl/hlsl_basic_types.h", directory: "")
+!5 = !DINamespace(name: "hlsl", scope: null)
+!6 = !DIDerivedType(tag: DW_TAG_typedef, name: "vector<float, 4>", scope: !5, file: !7, baseType: !8)
+!7 = !DIFile(filename: "example.hlsl", directory: "/app")
+!8 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 128, flags: DIFlagVector, elements: !10)
+!9 = !DIBasicType(name: "float", size: 32, encoding: DW_ATE_float)
+!10 = !{!11}
+!11 = !DISubrange(count: 4)
+!12 = !{i32 1, i32 8}
+!13 = !{!"/app/example.hlsl", !"void f(unsigned int){}\0Avoid f(int){}\0A\0Afloat4 PSMain() : SV_TARGET\0A{\0A    f(1);\0A    return (float4)0;\0A}\0A"}
+!14 = !{}
+!15 = !{!"example.hlsl"}
+!16 = !{!"--driver-mode=dxc", !"-g", !"-Qembed_debug", !"-Fc", !"/app/output.s", !"-fcolor-diagnostics", !"-gen-reproducer=off", !"-T", !"ps_6_0", !"-hlsl-entry", !"PSMain", !"/app/example.hlsl", !"-S", !"-O3"}
+!17 = !{!"clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)"}
+!18 = !{!"ps", i32 6, i32 0}
+!19 = !{i32 1, i32 0}
+!20 = !{ptr @PSMain, !"PSMain", null, null, null}
+!21 = !{i32 2, !"Dwarf Version", i32 4}
+!22 = !{i32 2, !"Debug Info Version", i32 3}
+!23 = !{i32 2, !"frame-pointer", i32 2}
+!24 = !{i32 2, !"debug-info-assignment-tracking", i1 true}

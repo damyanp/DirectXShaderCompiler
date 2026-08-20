@@ -1,0 +1,14 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "contains",
+      "value": "SELF-TEST GetOutput(DXC_OUT_OBJECT) on linked result = 0x00000000 (S_OK)"
+    },
+    {
+      "kind": "contains",
+      "value": "HasOutput(DXC_OUT_PDB) on linked result = FALSE"
+    }
+  ],
+  "note": "Present == the reported symptom: IDxcLinker::Link produced a result whose IDxcResult surface never carries a DXC_OUT_PDB output (HasOutput is FALSE, and GetOutput(DXC_OUT_PDB,...) -- not asserted directly here, since its exact HRESULT spelling is a secondary detail -- returns E_INVALIDARG per the captured text). The first clause is a required anti-vacuity self-test: GetOutput(DXC_OUT_OBJECT,...) on the SAME linked IDxcResult object must succeed, proving GetOutput/QueryInterface work on this exact object and the absence is not an artifact of a failed link, a failed QueryInterface, or a broken harness. Without that clause, any early failure (e.g. a library that fails to compile, or an entry name the linker can't find) would print neither line and satisfy a bare not_contains just as well as the real absence -- the control-badentry.hlsl variant exercises exactly that failure mode and must NOT match this predicate."
+}

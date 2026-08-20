@@ -1,0 +1,103 @@
+{
+    "url": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/branches/main/protection",
+    "required_status_checks": {
+        "url": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/branches/main/protection/required_status_checks",
+        "strict": false,
+        "contexts": [
+            "license/cla",
+            "microsoft.DirectXShaderCompiler"
+        ],
+        "contexts_url": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/branches/main/protection/required_status_checks/contexts",
+        "checks": [
+            {
+                "context": "license/cla",
+                "app_id": null
+            },
+            {
+                "context": "microsoft.DirectXShaderCompiler",
+                "app_id": 9426
+            }
+        ]
+    },
+    "required_pull_request_reviews": {
+        "url": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/branches/main/protection/required_pull_request_reviews",
+        "dismiss_stale_reviews": false,
+        "require_code_owner_reviews": false,
+        "require_last_push_approval": false,
+        "required_approving_review_count": 1,
+        "bypass_pull_request_allowances": {
+            "users": [
+                {
+                    "login": "llvm-beanz",
+                    "id": 15788759,
+                    "node_id": "MDQ6VXNlcjE1Nzg4NzU5",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/15788759?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/llvm-beanz",
+                    "html_url": "https://github.com/llvm-beanz",
+                    "followers_url": "https://api.github.com/users/llvm-beanz/followers",
+                    "following_url": "https://api.github.com/users/llvm-beanz/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/llvm-beanz/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/llvm-beanz/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/llvm-beanz/subscriptions",
+                    "organizations_url": "https://api.github.com/users/llvm-beanz/orgs",
+                    "repos_url": "https://api.github.com/users/llvm-beanz/repos",
+                    "events_url": "https://api.github.com/users/llvm-beanz/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/llvm-beanz/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                }
+            ],
+            "teams": [
+                {
+                    "name": "DirectX Shader Compiler Team",
+                    "id": 2189363,
+                    "node_id": "MDQ6VGVhbTIxODkzNjM=",
+                    "slug": "directx-shader-compiler-team",
+                    "description": "Contributors to the DirectX Shader Compiler project",
+                    "privacy": "closed",
+                    "notification_setting": "notifications_enabled",
+                    "url": "https://api.github.com/organizations/6154722/team/2189363",
+                    "html_url": "https://github.com/orgs/microsoft/teams/directx-shader-compiler-team",
+                    "members_url": "https://api.github.com/organizations/6154722/team/2189363/members{/member}",
+                    "repositories_url": "https://api.github.com/organizations/6154722/team/2189363/repos",
+                    "type": "organization",
+                    "organization_id": 6154722,
+                    "permission": "pull",
+                    "parent": null
+                }
+            ],
+            "apps": []
+        }
+    },
+    "required_signatures": {
+        "url": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/branches/main/protection/required_signatures",
+        "enabled": false
+    },
+    "enforce_admins": {
+        "url": "https://api.github.com/repos/microsoft/DirectXShaderCompiler/branches/main/protection/enforce_admins",
+        "enabled": false
+    },
+    "required_linear_history": {
+        "enabled": true
+    },
+    "allow_force_pushes": {
+        "enabled": false
+    },
+    "allow_deletions": {
+        "enabled": false
+    },
+    "block_creations": {
+        "enabled": false
+    },
+    "required_conversation_resolution": {
+        "enabled": false
+    },
+    "lock_branch": {
+        "enabled": false
+    },
+    "allow_fork_syncing": {
+        "enabled": false
+    }
+}

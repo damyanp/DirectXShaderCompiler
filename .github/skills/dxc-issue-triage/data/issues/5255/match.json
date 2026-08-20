@@ -1,0 +1,16 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "InstanceDataStructType\\s+mData\\[2\\]",
+      "note": "positive anchor: proves the rewritten cbuffer still declares a field of type InstanceDataStructType (i.e. the compile did not fail before reaching the point where this matters, and the reference to the type survived removal of the fully-unused sibling struct/cbuffer)."
+    },
+    {
+      "kind": "not_regex",
+      "value": "struct\\s+InstanceDataStructType\\b",
+      "note": "absence: the struct's own declaration must be present somewhere in the output for the emitted HLSL to be self-consistent. Its disappearance while still being referenced as a field type is exactly the defect quoted in the issue body."
+    }
+  ],
+  "note": "Symptom is 'referenced struct declaration removed, cbuffer field of that type kept' -- an incorrect-code / self-consistency bug in dxr's -remove-unused-globals/-remove-unused-functions, not a crash. The all_of composition guards against the not_regex clause being satisfied for free by a failed/empty compile (see control-fail.hlsl / control-scalar.hlsl)."
+}

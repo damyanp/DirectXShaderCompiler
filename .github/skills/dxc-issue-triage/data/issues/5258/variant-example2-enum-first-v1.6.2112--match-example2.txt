@@ -1,0 +1,24 @@
+# compiler: v1.6.2112
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+# ran: 2026-08-19T20:11:04+00:00
+# cmd: -T lib_6_6 -HV 2021 repro2.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match-example2.json
+# verdict: repro
+# variant: example2-enum-first (repro2.hlsl)
+# expect: match
+# expectation-kind: hypothesis
+# outcome: supported
+
+$ dxc -T lib_6_6 -HV 2021 repro2.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro2.hlsl:20:28: error: cannot convert from 'literal int' to 'SomeStructWithEnum'
+    SomeStructWithEnum s = (SomeStructWithEnum)0;
+                           ^
+
+

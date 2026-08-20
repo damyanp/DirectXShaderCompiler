@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2022-11-16T09:46:26Z",
+  "godbolt_skip": "concurrency/thread-safety defect requiring many threads to call the SAME loaded compiler instance concurrently; Compiler Explorer runs one compile per pane request and cannot express concurrent invocation, so it cannot show the hang or its absence",
+  "history": "always-repro'd (source-level: never fixed)",
+  "labels": "",
+  "labels_add": "bug, api",
+  "labels_now": "",
+  "notes_path": "issues/4792/notes.md",
+  "number": 4792,
+  "repro_quality": "agent-constructed",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "CALL_ONCE_INITIALIZATION in include/llvm/PassSupport.h is unchanged since the repo's first commit; PR #4818 (the discussed static-initializer fix, D19271) was closed unmerged with the concurrency problem still open per the thread. A 13-attempt multithreaded harness against main-debug's dxcompiler.dll (8-512 threads) did not reproduce a hang on Windows/MSVC Debug, a bounded negative result on a different platform than the reporter's Linux/glibc traces, not a fix.",
+  "title": "`libdxcompiler.so` locks up when used in many threads at once",
+  "triaged_at": "2026-08-20T05:15:13+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/4792"
+}

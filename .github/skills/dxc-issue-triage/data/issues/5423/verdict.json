@@ -1,0 +1,21 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-07-14T23:44:16Z",
+  "godbolt_url": "https://godbolt.org/z/GzETMvxvs",
+  "history": "always-repro'd v1.4.1907..v1.9.2607 (dxr.exe half; dxc.exe control also unconditional)",
+  "labels": "bug,rewriter",
+  "labels_now": "bug,rewriter",
+  "notes_path": "data\\issues\\5423\\notes.md",
+  "number": 5423,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "dxr.exe still silently ignores -D on the exact ground-truth commit (89e2f98e2) and on all 20 cached stable releases v1.4.1907..v1.9.2607: dxr.cpp hardcodes RewriteWithOptions(..., nullptr, 0, ...) so parsed opts.Defines are never forwarded to the rewrite functions. dxc.exe's -D float4=0 parse-failure (the reporter's own control) still reproduces identically, confirming the -D machinery itself works. An unmerged fix (PR #5424, Fixes #5423) exists but stalled on an unresolved design question (see #4357) and was closed as inactive, not rejected.",
+  "title": "`dxr.exe` doesn't support macro definitions via its CLI",
+  "triaged_at": "2026-08-20T05:15:22+00:00",
+  "triaged_by": "claude-sonnet-4.6 (Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5423"
+}

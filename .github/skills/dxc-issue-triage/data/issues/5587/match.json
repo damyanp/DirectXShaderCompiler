@@ -1,0 +1,5 @@
+{
+  "kind": "regex",
+  "value": "cannot convert from 'literal int' to 'SomeBitfield'",
+  "note": "Primary defect claim from the issue: with SomeBitfield declared as { SomeEnum field1 : 2; uint32_t rest : 30; } (enum bitfield first), '(SomeBitfield)0' is rejected with this exact diagnostic quoted in the issue body. Anchored on the literal diagnostic text (quote_from-eligible) rather than a generic 'cannot convert' regex, because the issue's own symptom IS this diagnostic (see step 6 note on diagnostic-quality issues: markers must not demote a probe whose reported symptom is itself the diagnostic). The reordered struct (control-reordered.hlsl, 'uint32_t rest : 30; SomeEnum field1 : 2;') is expected --expect no-match: the reporter says the same cast compiles cleanly once the fields are swapped, which is the order-dependence this issue is about."
+}

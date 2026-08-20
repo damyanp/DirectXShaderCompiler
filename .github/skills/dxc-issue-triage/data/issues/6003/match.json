@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "This issue's actual symptom (Valgrind/memcheck 'Conditional jump or move depends on uninitialised value(s)' in clang::TypeLoc::getBeginLoc()) cannot be observed through dxc's own exit status or stdout/stderr text -- it requires a Linux build run under Valgrind or an equivalent sanitizer (e.g. MSan), which this Windows environment does not have, and no rebuild is permitted for this triage. This predicate is a sanity/scope probe only: it confirms the repro shader is valid HLSL that dxc accepts and does not crash on the ground-truth build (an internal_failure would indicate an unrelated regression, not evidence one way or the other about the reported uninitialised read). A clean 'no-match' here is expected regardless of whether the Valgrind-reported bug is fixed, and must not be read as 'does not reproduce'."
+}

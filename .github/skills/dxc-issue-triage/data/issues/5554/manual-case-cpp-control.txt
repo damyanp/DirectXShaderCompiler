@@ -1,0 +1,36 @@
+=== array-index-no-cast ===
+$ POST https://godbolt.org/api/compiler/g132/compile
+source:
+enum class KEK : unsigned { WAIT = 69 };
+int arr[128];
+int main(){ return arr[KEK::WAIT]; }
+
+--- response ---
+# Compilation provided by Compiler Explorer at https://godbolt.org/
+<Compilation failed>
+# Compiler exited with result code 1
+Standard error:
+[01m[K<source>:[m[K In function '[01m[Kint[01;32m[K main[m[K()[m[K':
+[01m[K<source>:3:33:[m[K [01;31m[Kerror: [m[Karray subscript is not an integer
+    3 | int main(){ return arr[KEK::WAIT[01;31m[K][m[K; }
+      |                                 [01;31m[K^[m[K
+
+
+=== enum-as-exact-nontype-template-arg ===
+$ POST https://godbolt.org/api/compiler/g132/compile
+source:
+template<typename T, T val> struct integral_constant { static const T value = val; };
+enum class ENUM : unsigned { TRUE_ = 0 };
+typedef integral_constant<ENUM, ENUM::TRUE_> test_t;
+int main(){ return (int)test_t::value; }
+
+--- response ---
+# Compilation provided by Compiler Explorer at https://godbolt.org/
+main:
+        push    rbp
+        mov     rbp, rsp
+        mov     eax, 0
+        pop     rbp
+        ret
+
+

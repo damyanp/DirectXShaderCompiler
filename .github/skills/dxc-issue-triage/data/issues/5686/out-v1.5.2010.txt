@@ -1,0 +1,26 @@
+# compiler: v1.5.2010
+# exe: <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+# ran: 2026-08-19T22:11:10+00:00
+# cmd: -T lib_6_x -Fo as.lib repro.hlsl ; -T as_6_6 -link as.lib
+# exit: 1
+# timed_out: 0
+# match: match.json
+# verdict: invalid-probe
+# invalid-probe-reason: output matched the feature-absence marker "Unknown argument", so this build did not reach the code under test
+
+$ dxc -T lib_6_x -Fo as.lib repro.hlsl
+[exe] <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -T as_6_6 -link as.lib
+[exe] <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+[exit] 1
+--- stdout ---
+
+--- stderr ---
+dxc failed : Unknown argument: '-link'
+

@@ -1,0 +1,143 @@
+# Compiler Explorer panes for #5924, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: dxc_1_6_2112
+# args:     -T ps_6_0 -E PSMain
+# exit:     5
+
+<source>:26:1: error: 'template' is a reserved keyword in HLSL
+template<typename float_t>
+^
+<source>:38:23: error: use of undeclared identifier 'StyleClipper'
+        return input.color + StyleClipper<float>::func(input.color.x).x;
+                             ^
+<source>:38:41: error: expected '(' for function-style cast or type construction
+        return input.color + StyleClipper<float>::func(input.color.x).x;
+                                          ~~~~~^
+<source>:38:44: error: no member named 'func' in the global namespace
+        return input.color + StyleClipper<float>::func(input.color.x).x;
+                                                ~~^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: dxc_trunk
+# args:     -T ps_6_0 -E PSMain
+# exit:     5
+
+<source>:32:17: error: member reference base type 'float' is not a structure or union
+        return t.xx;
+               ~^~~
+<source>:38:44: note: in instantiation of member function 'StyleClipper<float>::func' requested here
+        return input.color + StyleClipper<float>::func(input.color.x).x;
+                                                  ^
+
+<Compilation failed>
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -T ps_6_0 -E PSMain
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+;
+; Resource Bindings:
+;
+; Name                                 Type  Format         Dim      ID      HLSL Bind     Count
+; ------------------------------ ---------- ------- ----------- ------- -------------- ---------
+;
+; ModuleID = '/app/example.hlsl'
+source_filename = "/app/example.hlsl"
+target datalayout = "e-m:e-ve-p:32:32-i1:32-i8:8-i16:16-i32:32-i64:64-f16:16-f32:32-f64:64-n8:16:32:64"
+target triple = "dxilv1.0-unknown-shadermodel6.0-pixel"
+
+; Function Attrs: convergent noinline nounwind
+define void @PSMain() local_unnamed_addr #0 {
+  %1 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 0, i32 poison), !dx.precise !15
+  %2 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 1, i32 poison), !dx.precise !15
+  %3 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 2, i32 poison), !dx.precise !15
+  %4 = call float @dx.op.loadInput.f32(i32 4, i32 0, i32 0, i8 3, i32 poison), !dx.precise !15
+  %5 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 0, i32 poison), !dbg !16, !dx.precise !15
+  %6 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 1, i32 poison), !dx.precise !15
+  %7 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 2, i32 poison), !dx.precise !15
+  %8 = call float @dx.op.loadInput.f32(i32 4, i32 1, i32 0, i8 3, i32 poison), !dx.precise !15
+  %9 = fadd reassoc nnan ninf nsz arcp afn float %5, %5, !dbg !35
+  %10 = fadd reassoc nnan ninf nsz arcp afn float %5, %6, !dbg !35
+  %11 = fadd reassoc nnan ninf nsz arcp afn float %5, %7, !dbg !35
+  %12 = fadd reassoc nnan ninf nsz arcp afn float %5, %8, !dbg !35
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 0, float %9)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 1, float %10)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 2, float %11)
+  call void @dx.op.storeOutput.f32(i32 5, i32 0, i32 0, i8 3, float %12)
+  ret void
+}
+
+; Function Attrs: nounwind memory(read)
+declare float @dx.op.loadInput.f32(i32, i32, i32, i8, i32) #1
+
+; Function Attrs: nounwind
+declare void @dx.op.storeOutput.f32(i32, i32, i32, i8, float) #2
+
+; Function Attrs: nounwind memory(none)
+declare void @llvm.dbg.value(metadata, metadata, metadata) #3
+
+attributes #0 = { convergent noinline nounwind }
+attributes #1 = { nounwind memory(read) }
+attributes #2 = { nounwind }
+attributes #3 = { nounwind memory(none) }
+
+!llvm.dbg.cu = !{!0}
+!dx.valver = !{!2}
+!dx.source.contents = !{!3}
+!dx.source.defines = !{!4}
+!dx.source.mainFileName = !{!5}
+!dx.source.args = !{!6}
+!llvm.ident = !{!7}
+!dx.shaderModel = !{!8}
+!dx.version = !{!9}
+!dx.entryPoints = !{!10}
+!llvm.module.flags = !{!11, !12, !13, !14}
+
+; DXIL: !0: additional data: !36
+!0 = distinct !DICompileUnit(language: DW_LANG_HLSL, file: !1, producer: "clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+!1 = !DIFile(filename: "/app/example.hlsl", directory: "/app")
+!2 = !{i32 1, i32 8}
+!3 = !{!"/app/example.hlsl", !"//==========================================================================//\0A// What to look for in this Compiler Explorer link:\0A//\0A// - The dxc_1_6_2112 pane (CE's oldest DXC) rejects the whole source with\0A//   \22'template' is a reserved keyword in HLSL\22 -- this release predates DXC's\0A//   template support (first shipped in v1.7.2308) and is not evidence about\0A//   this bug; it is an invalid probe, not a clean compile.\0A// - The dxc_trunk pane is the one that matters: it fails at the `return t.xx;`\0A//   line inside StyleClipper::func with \22member reference base type 'float' is\0A//   not a structure or union\22, reached only when func is instantiated for\0A//   float_t = float. The same swizzle on a parameter whose static type is\0A//   written literally as `float` (not a template type parameter) compiles fine\0A//   -- see the issue body's own comparison.\0A// - The hlsl_clang_trunk pane compiles cleanly to DXIL: two fadd instructions\0A//   computing color.x + color.x, i.e. the `t.xx` swizzle the classic DXC\0A//   frontend rejects. Compare exit codes (5, 5, 0) before reading any line of\0A//   output.\0A//==========================================================================//\0A\0Astruct PSInput\0A{\0A    float4 position : SV_Position;\0A    float4 color    : COLOR0;\0A};\0A\0Atemplate<typename float_t>\0Astruct StyleClipper\0A{\0A    using float_t2 = vector<float_t, 2>;\0A    static float_t2 func(float_t t)\0A    {\0A        return t.xx;\0A    }\0A};\0A\0Afloat4 PSMain(PSInput input) : SV_TARGET\0A{\0A\09return input.color + StyleClipper<float>::func(input.color.x).x;\0A}\0A"}
+!4 = !{}
+!5 = !{!"example.hlsl"}
+!6 = !{!"--driver-mode=dxc", !"-g", !"-Qembed_debug", !"-Fc", !"/app/output.s", !"-fcolor-diagnostics", !"-gen-reproducer=off", !"-T", !"ps_6_0", !"-hlsl-entry", !"PSMain", !"/app/example.hlsl", !"-S", !"-O3"}
+!7 = !{!"clang version 24.0.0git (https://github.com/llvm/llvm-project.git ecdcdf0577c18c327c5883d0fc1cee36a5cc6f1c)"}
+!8 = !{!"ps", i32 6, i32 0}
+!9 = !{i32 1, i32 0}
+!10 = !{ptr @PSMain, !"PSMain", null, null, null}
+!11 = !{i32 2, !"Dwarf Version", i32 4}
+!12 = !{i32 2, !"Debug Info Version", i32 3}
+!13 = !{i32 2, !"frame-pointer", i32 2}
+!14 = !{i32 2, !"debug-info-assignment-tracking", i1 true}
+!15 = !{i32 1}
+!16 = !DILocation(line: 38, column: 23, scope: !17)
+; DXIL: !17: to be replaced by: !37
+!17 = distinct !DISubprogram(name: "PSMain", linkageName: "_Z6PSMain7PSInput", scope: !18, file: !18, line: 36, type: !19, scopeLine: 37, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !33)
+!18 = !DIFile(filename: "example.hlsl", directory: "/app")
+!19 = !DISubroutineType(types: !20)
+!20 = !{!21, !29}
+!21 = !DIDerivedType(tag: DW_TAG_typedef, name: "float4", scope: !23, file: !22, line: 96, baseType: !24)
+!22 = !DIFile(filename: "/cefs/ed/edec7da708b32073a16376f7_clang-trunk-20260818/lib/clang/24/include/hlsl/hlsl_basic_types.h", directory: "")
+!23 = !DINamespace(name: "hlsl", scope: null)
+!24 = !DIDerivedType(tag: DW_TAG_typedef, name: "vector<float, 4>", scope: !23, file: !18, baseType: !25)
+!25 = !DICompositeType(tag: DW_TAG_array_type, baseType: !26, size: 128, flags: DIFlagVector, elements: !27)
+!26 = !DIBasicType(name: "float", size: 32, encoding: DW_ATE_float)
+!27 = !{!28}
+!28 = !DISubrange(count: 4)
+!29 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "PSInput", file: !18, line: 20, size: 256, flags: DIFlagTypePassByReference | DIFlagNonTrivial, elements: !30)
+!30 = !{!31, !32}
+!31 = !DIDerivedType(tag: DW_TAG_member, name: "position", scope: !29, file: !18, line: 22, baseType: !21, size: 128)
+!32 = !DIDerivedType(tag: DW_TAG_member, name: "color", scope: !29, file: !18, line: 23, baseType: !21, size: 128, offset: 128)
+!33 = !{!34}
+!34 = !DILocalVariable(name: "input", arg: 1, scope: !17, file: !18, line: 36, type: !29)
+!35 = !DILocation(line: 38, column: 21, scope: !17)
+!36 = !{!17}
+!37 = !DISubprogram(name: "PSMain", linkageName: "_Z6PSMain7PSInput", scope: !18, file: !18, line: 36, type: !19, scopeLine: 37, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !33)

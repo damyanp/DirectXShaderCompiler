@@ -1,0 +1,25 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# cmd: -T lib_6_3 -Zi -Qstrip_reflect -Qembed_debug -Fd testc.pdb -Fo test.lib repro.hlsl ; -link -T lib_6_3 -Zi -Qstrip_reflect -Fd test.pdb -Fo test.bin test.lib
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: no-strip-debug (control-cmd, -Qstrip_debug removed from link line)
+# expect: no-match
+
+$ dxc -T lib_6_3 -Zi -Qstrip_reflect -Qembed_debug -Fd testc.pdb -Fo test.lib repro.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+
+
+$ dxc -link -T lib_6_3 -Zi -Qstrip_reflect -Fd test.pdb -Fo test.bin test.lib
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

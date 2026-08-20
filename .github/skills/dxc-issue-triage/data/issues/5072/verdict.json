@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-03-01T20:07:37Z",
+  "godbolt_skip": "The defect is entirely in -Fh's file-only header output (the sentinel identifier never reaches stdout/stderr/asm, confirmed empirically: default disassembly of the same repro.hlsl under -T lib_6_3 with no -Fh contains no trace of 'lib.no::entry' anywhere in its text). CE's /api/compiler/.../compile endpoint only returns stdout/stderr/asm text, with no channel for an arbitrary output file a flag asked dxc to write, so a CE pane cannot surface this symptom at all -- it would show only a successful compile with no observable difference from any other -Fh-free case, which reads as false reassurance rather than evidence.",
+  "history": "always-repro'd across all 21 cached releases (v1.4.1907 2019-07-15 through v1.9.2607 2026-07-29) plus main-debug; see manual-case-release-history.txt / release-matrix.json. triage.py bisect refuses this issue (ground truth is the main-debug-fh harness, not dxc); release-matrix.py drives each release's OWN dxc.exe directly (the -Fh code lives in the dxc.exe driver, not dxcompiler.dll, so no DLL can be swapped under a fixed harness). git log -S on the HLSLOptions.cpp sentinel dates it to 8e21407ca (2017-05-12), never edited since -- predates the bisection floor, no regression to bisect.",
+  "labels": "bug,low-hanging-fruit",
+  "labels_add": "shader-linking",
+  "labels_now": "bug,low-hanging-fruit",
+  "notes_path": "issues/5072/notes.md",
+  "number": 5072,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Reproduces on main (89e2f98e2, dxc --version 1.9.0.5465) and on all 21 measured releases v1.4.1907..v1.9.2607: -T lib_<n> -Fh <file> with no -Vn declares the header's byte array under the literal identifier g_lib.no::entry, which is not a legal C or C++ identifier (confirmed both by a harness reading back the -Fh file and by feeding the generated header directly to cl.exe, which rejects it as both C and C++; the -Vn workaround header compiles clean under both). HLSLOptions.cpp assigns the lib.no::entry sentinel unconditionally for every library profile (introduced 2017-05-12, unmodified since); dxc.cpp's -Fh default-name logic has no library-profile case. #8074, closed 2026-01-20 as a duplicate, shows the maintainer position (workaround exists, no proactive fix planned, PR welcome) was unchanged about ten months after the original 2024-08-27 comment.",
+  "title": "Header output option `-Fh` results in invalid default identifier for library targets",
+  "triaged_at": "2026-08-20T05:15:15+00:00",
+  "triaged_by": "GitHub Copilot CLI (model not self-identifiable)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5072"
+}

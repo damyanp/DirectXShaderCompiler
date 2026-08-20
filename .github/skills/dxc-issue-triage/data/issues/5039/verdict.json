@@ -1,0 +1,23 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-02-16T22:04:29Z",
+  "expected_symptom": "internal_failure: llvm::cast<X>() argument of incompatible type! (or its Debug-trap/HRESULT equivalents) when compiling repro.hlsl -T ps_6_0; fixed means this predicate stops matching, whether by a clean compile or by a comprehensible replacement diagnostic",
+  "godbolt_url": "https://godbolt.org/z/aM54EnbzT",
+  "history": "always-repro'd v1.4.1907..v1.9.2607 (wording changed twice: access-violation -> DXC_E_LLVM_CAST_ERROR HRESULT -> plain E_FAIL text; never fixed)",
+  "labels": "bug,crash,incorrect-code",
+  "labels_add": "diagnostic",
+  "labels_now": "bug,crash,incorrect-code",
+  "notes_path": "issues/5039/notes.md",
+  "number": 5039,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Repros on main (89e2f98e2) and every stable release v1.4.1907..v1.9.2607, always. The diagnostic text drifts three times (access-violation crash on the oldest releases, a dedicated DXC_E_LLVM_CAST_ERROR HRESULT with an Internal Compiler error prefix on v1.6.2106-v1.6.2112, plain E_FAIL error: text from v1.7.2207 onward matching the reporter's exact 2023 quote) but none of the rewordings is the requested uninitialized-value diagnostic. Control with the index initialized compiles cleanly, isolating the defect to the uninitialized read rather than structured-buffer array-member codegen generally. CE (dxc_1_6_2112, dxc_trunk) corroborates with the Linux cast<X>() spelling.",
+  "title": "Nonsensical error message when using undef offset in structured buffer",
+  "triaged_at": "2026-08-20T05:15:15+00:00",
+  "triaged_by": "GitHub Copilot CLI",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5039"
+}

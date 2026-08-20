@@ -1,0 +1,16 @@
+# The issue's CE short link (73so7qzzW, resolved via api/shortlinkinfo) records
+# "-fspv-target-env=universal1.5", but no "-spirv" flag, so the compile still
+# targets DXIL, not SPIR-V -- the reported "add i32 ..., -2" text is DXIL/LLVM
+# IR, matching the issue body. A byte-for-byte control (with vs. without
+# -fspv-target-env, otherwise identical) confirms the flag is inert here and
+# is dropped for clarity; cmd-as-filed.txt preserves the original.
+#
+# Profile lowered from the reporter's "ps_6_7" to "ps_6_0": the defect is an
+# AST/CodeGen-level inout-parameter bug with no dependency on shader-model
+# version, and ps_6_7 does not exist before v1.7.2207, which would otherwise
+# make every earlier release an unprobeable invalid-probe (SKILL.md step 6
+# "target the repro at the oldest profile ... that still shows the symptom").
+# variant-as-filed-ps67-main-debug.txt is a control proving ps_6_0 and ps_6_7
+# produce the identical "-2" defect, so lowering the profile changes nothing
+# about what is being measured.
+-T ps_6_0 -E PSMain -Zi -Qembed_debug repro.hlsl

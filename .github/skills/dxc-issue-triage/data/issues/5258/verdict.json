@@ -1,0 +1,23 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-06-01T00:14:44Z",
+  "fixed_in": "v1.8.2505 (Example 2 only; Examples 1 and 3 unfixed)",
+  "godbolt_url": "https://godbolt.org/z/b9vP5dhMK",
+  "history": "Mixed, per-example: Example 1 (struct-to-struct cast, equal total storage, wrongly rejected) always-repro'd v1.6.2112..v1.9.2607, unfixed. Example 2 (cast from 0 to a struct whose first bit-field is enum-typed) fixed between v1.8.2502 (repro) and v1.8.2505 (clean); 162-commit/41-file window, release-level attribution only, not isolated to one commit. Example 3 (no diagnostic narrowing a >32-bit bit-field struct to uint) always-repro'd v1.6.2112..v1.9.2607, unfixed. v1.4.1907/v1.5.2010/v1.6.2104/v1.6.2106 are invalid-probe for all three (-HV 2021 unsupported).",
+  "labels": "bug,hlsl2021",
+  "labels_add": "type-system, diagnostic",
+  "labels_now": "bug,hlsl2021",
+  "notes_path": "issues/5258/notes.md",
+  "number": 5258,
+  "repro_quality": "partial",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Three-part issue. Examples 1 and 3 (wrong cast rejection; missing narrowing diagnostic) still reproduce on main (89e2f98e2, 1.9.0.5465) and on every stable release back to v1.6.2112, the first to support -HV 2021. Example 2 (cast from 0 to an enum-first bit-field struct) is fixed: errors through v1.8.2502, clean from v1.8.2505 onward including main; the reporter's own plain-field-first control stays clean throughout. Fix is release-bracketed, not commit-isolated (162-commit/41-file window overlapping an unrelated long-vector/SM6.9 refactor). CE verified for Example 1 only (godbolt.org/z/b9vP5dhMK); Examples 2/3 measured via full local per-release history instead.",
+  "title": "SemaHLSL's FlattenedTypeIterator does not handle bit fields properly.",
+  "triaged_at": "2026-08-20T05:15:19+00:00",
+  "triaged_by": "GitHub Copilot CLI agent",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5258"
+}

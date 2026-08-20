@@ -1,0 +1,20 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-09-15T20:56:05Z",
+  "godbolt_skip": "the repro is a two-invocation compile-then-link chain (compile to a lib_6_3 container, then a separate 'dxc -link' pass over that container); Compiler Explorer's DXC pane runs exactly one dxc invocation over one HLSL source and has no way to feed a previously-produced DXIL container back in as -link input, so the two-step -Fd/-Qstrip_debug interaction under test cannot be expressed in a single pane",
+  "history": "always-repro'd across every -link-capable release (v1.6.2106..v1.9.2607) and main-debug; v1.4.1907/v1.5.2010/v1.6.2104 predate the -link flag itself (Unknown argument: '-link') and are invalid probes",
+  "labels": "bug,shader-linking",
+  "notes_path": "issues/5737/notes.md",
+  "number": 5737,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Link with -Qstrip_debug fails with 'DXIL container does not contain the given part' -- reproduces on main (13730886e); broader than the filed title, since -Qstrip_debug alone at link time (no -Fd needed) triggers it too. Always-repro'd across the entire -link-capable release history (v1.6.2106..v1.9.2607). PR #6833 claims a fix but is still open/unmerged.",
+  "title": "Link fails when using -Fd with -Qstrip_debug",
+  "triaged_at": "2026-08-20T05:15:28+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5737"
+}

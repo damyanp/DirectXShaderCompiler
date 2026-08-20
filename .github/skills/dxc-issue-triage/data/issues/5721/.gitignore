@@ -1,0 +1,5 @@
+# Compiled by pdb5721.py's ensure_built(), out-of-tree, outside build/.
+# Contains harness_x64.exe plus a copy of the registered main-debug build's
+# dxcompiler.dll/dxil.dll it is paired with. Rebuilt automatically whenever
+# pdb5721-harness.cpp is newer than the cached exe.
+_build/

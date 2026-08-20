@@ -1,0 +1,29 @@
+# compiler: v1.9.2607
+# exe: <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+# ran: 2026-08-19T22:59:26+00:00
+# cmd: -T lib_6_3 repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+
+$ dxc -T lib_6_3 repro.hlsl
+[exe] <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+error: validation errors
+
+repro.hlsl:32:16: error: Thread Group Shared Memory not supported from non-compute entry points.
+note: at '%1 = load float, float addrspace(3)* @"\01?gs@@3V?$vector@M$03@@A.0", align 4' in block '#0' of function '?HSPatch@@YA?AUPCStruct@@V?$InputPatch@UPosStruct@@$02@@V?$OutputPatch@UPosStruct@@$02@@I@Z'.
+repro.hlsl:33:16: error: Thread Group Shared Memory not supported from non-compute entry points.
+note: at '%2 = load float, float addrspace(3)* @"\01?gs@@3V?$vector@M$03@@A.1", align 4' in block '#0' of function '?HSPatch@@YA?AUPCStruct@@V?$InputPatch@UPosStruct@@$02@@V?$OutputPatch@UPosStruct@@$02@@I@Z'.
+repro.hlsl:34:16: error: Thread Group Shared Memory not supported from non-compute entry points.
+note: at '%3 = load float, float addrspace(3)* @"\01?gs@@3V?$vector@M$03@@A.2", align 4' in block '#0' of function '?HSPatch@@YA?AUPCStruct@@V?$InputPatch@UPosStruct@@$02@@V?$OutputPatch@UPosStruct@@$02@@I@Z'.
+repro.hlsl:35:14: error: Thread Group Shared Memory not supported from non-compute entry points.
+note: at '%4 = load float, float addrspace(3)* @"\01?gs@@3V?$vector@M$03@@A.3", align 4' in block '#0' of function '?HSPatch@@YA?AUPCStruct@@V?$InputPatch@UPosStruct@@$02@@V?$OutputPatch@UPosStruct@@$02@@I@Z'.
+Validation failed.
+
+
+

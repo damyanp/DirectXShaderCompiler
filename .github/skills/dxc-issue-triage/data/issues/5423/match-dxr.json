@@ -1,0 +1,8 @@
+{
+  "kind": "all_of",
+  "value": [
+    { "kind": "regex", "value": "PSMain\\(PSInput input\\)" },
+    { "kind": "contains", "value": "float4 position" }
+  ],
+  "note": "Predicate for the dxr.exe (rewriter) half of #5423, applied to labelled dxr.exe variants only (dxr.exe is not the ground-truth compiler and is scored via `run --compiler <id> --label ... --match match-dxr.json`, never as the primary main-debug capture). Present (match) means the reported bug is occurring: `-D float4=0` was silently NOT applied by the rewriter. The first clause is a positive anchor proving the rewrite actually completed and reached the function signature (so a crashed/errored run cannot vacuously satisfy the second, absence-shaped clause) -- see the #3009/#2792/#8732 absence-predicate traps in SKILL.md. The second clause is the literal un-substituted token: if the fix in (unmerged) PR #5424 were applied, `float4` would be replaced by `0` throughout, matching main-debug's own -D float4=0 parse-error behaviour recorded in out-main-debug.txt/match.json, and this predicate would then read no-match while match.json's parse-error clause would instead fire on the dxr.exe output. Self-test: the SAME repro.hlsl run through main-debug (dxc.exe, see out-main-debug.txt) DOES apply -D float4=0 and fails to parse with 'expected member name or ; after declaration specifiers' -- proving the -D-expansion machinery in the shared HLSLOptions/frontend is fully functional and the absence seen here is specific to the rewriter's call site, not a broken instrument."
+}

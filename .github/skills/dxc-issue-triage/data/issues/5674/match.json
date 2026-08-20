@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Crash-shaped issue (access violation reported by the reporter). Use internal_failure rather than matching the crash message text: the same defect can present as an access violation (0xC0000005) in Release, a trapped assert (0x80000003/0xE0000001) in Debug, or with no message at all on some releases -- see SKILL.md 'Use internal_failure for anything crash-shaped' and 'An internal failure may print nothing at all'. Matching only the literal 'access violation' string would falsely score a Debug build (which asserts instead of AV'ing, if a check exists) or a release with empty stderr as clean."
+}

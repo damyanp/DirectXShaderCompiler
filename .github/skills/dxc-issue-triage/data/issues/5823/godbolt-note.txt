@@ -1,0 +1,12 @@
+What to look for: this is the exact 2023-10-03 repro as filed (the out-of-line static-const
+array member definition illegally repeats `static`). Compare exit codes across panes:
+dxc_1_6_2112 rejects `-HV 202x` outright (invalid-probe, too old to express the shader-model
+version used here) -- it is NOT evidence the defect is absent. dxc_trunk (public, Release,
+built later than 1.6.2112) exits with an ordinary diagnosed compiler error (not a crash) whose
+message is the non-crashing shape of the same defect the issue's own thread root-caused in
+2023: an `InitListExpr` node produced with type `void`. The exact wording of that diagnostic is
+not stable across builds -- a locally built, more recent `main` (commit cited in the issue
+comment) instead prints `'const' is not a valid modifier for a field` for the identical input,
+which is a different message for what local testing confirms is the same underlying defect: no
+build compiles this input successfully. Neither pane's exit code is a hardware fault (SIGSEGV);
+the original 2023 SIGSEGV report itself does not reproduce on any currently probeable build.

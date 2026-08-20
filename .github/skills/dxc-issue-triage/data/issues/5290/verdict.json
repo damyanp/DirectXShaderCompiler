@@ -1,0 +1,22 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-06-14T09:14:44Z",
+  "godbolt_skip": "dxr.exe / IDxcRewriter2 -remove-unused-* surface is not one of the compile modes Compiler Explorer's DXC panes drive (confirmed: dxc.exe itself rejects these flags as 'Unknown argument', see variant-dxc-rejects-rewrite-flags-main-debug.txt); no CE surface can run this repro",
+  "history": "always-repro'd across every checkable release (v1.5.2010..v1.9.2607, 20 stable releases) and main (89e2f98e29c289ae8ad9e00dd310104fea9fd7df); v1.4.1907 is invalid-probe (predates the rewriter's -remove-unused-* option surface)",
+  "labels": "bug,rewriter",
+  "labels_add": "bug, rewriter, correctness",
+  "labels_now": "bug,rewriter",
+  "notes_path": "issues/5290/notes.md",
+  "number": 5290,
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "dxr -remove-unused-functions -remove-unused-globals -E ps_main removes a struct declaration that is still referenced -- either as the type of the entry point's own (unread) parameter, or via a local variable's declaration/cast that is itself never subsequently read. Root-caused to VarReferenceVisitor only marking a type used via a later DeclRefExpr to an already-declared variable, never via the declaration/parameter itself (entryFnDecl->parameters() is never walked in this file's history); one root cause for both reported shapes, confirmed by used-vs-unused controls that flip the verdict identically for each.",
+  "title": "Rewriter: entrypoint function's param referenced types are removed when param is not used.",
+  "triaged_at": "2026-08-20T05:15:20+00:00",
+  "triaged_by": "claude-sonnet-4.6 (GitHub Copilot CLI)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5290"
+}

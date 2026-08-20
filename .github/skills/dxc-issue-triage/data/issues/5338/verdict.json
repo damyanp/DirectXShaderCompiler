@@ -1,0 +1,23 @@
+{
+  "batch": "batch-019",
+  "confidence": "high",
+  "created_at": "2023-06-28T11:01:15Z",
+  "expected_symptom": "dxc fails internally (assert on Debug / llvm::cast E_FAIL text on Release) compiling castFunc's out-array reinterpret-cast; a clean compile or an unrelated ordinary diagnostic is not the symptom",
+  "godbolt_url": "https://godbolt.org/z/5nqjfhfve",
+  "history": "non-monotonic: repro (hang) v1.4.1907 -> no-repro (crash predicate)/still-fails (validation-diagnostic predicate) v1.5.2010..v1.6.2112 -> regressed-in v1.7.2207, repro through v1.9.2607 and main-debug",
+  "labels": "bug,crash,fxc-disagrees",
+  "labels_now": "bug,crash,fxc-disagrees",
+  "notes_path": "issues/5338/notes.md",
+  "number": 5338,
+  "regressed_in": "v1.7.2207",
+  "repro_quality": "complete",
+  "reviewed_by": "gpt-5.3-codex (independent batch-019 step-10 review; applied selectively at collation)",
+  "status": "repros",
+  "suggested_action": "still-valid-keep-open",
+  "summary": "Non-monotonic and never actually fixed: v1.4.1907 hangs (confirmed at 240s, not a 60s timeout artefact); v1.5.2010..v1.6.2112 (5 releases) reject with an ordinary diagnosed DXIL-validation error 'Not all elements of output SV_ClipDistance were written' (match-diagnostic.json), not a clean compile; v1.7.2207 onward through v1.9.2607 and main-debug reproduce the reporter's exact 'llvm::cast<X>() argument of incompatible type!' (Release) / the maintainer's exact RewriteBitCast assertion (Debug, ScalarReplAggregatesHLSL.cpp:2630, line only moved from 2548). FXC (/T vs_5_0) compiles cleanly and constant-folds the loop to the correct n*n values -- DXC has never once compiled this input successfully. Candidate regression commit ed717499a (#4456) identified by source search but not built/confirmed (task scope excludes rebuilds).",
+  "title": "Arrays cast compiler error",
+  "triaged_at": "2026-08-20T05:15:21+00:00",
+  "triaged_by": "GitHub Copilot CLI (model not self-identifiable)",
+  "triaged_with_commit": "89e2f98e29c289ae8ad9e00dd310104fea9fd7df",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/issues/5338"
+}

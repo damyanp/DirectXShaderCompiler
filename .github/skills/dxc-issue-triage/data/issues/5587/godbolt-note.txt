@@ -1,0 +1,9 @@
+What to look for: this shader casts a bitfield struct (SomeEnum field1 : 2; uint32_t
+rest : 30;) from the integer literal 0. The dxc_1_6_2112 pane (CE's oldest DXC,
+predating the fix) rejects the cast with a type-conversion error at the
+`(SomeBitfield)0` line. dxc_trunk compiles the identical source cleanly, and its
+`rawBufferStore` call's first stored value operand is a concrete zero rather than
+`undef`, matching the requested zero-initialization. Compare the two panes' exit
+status and whether the conversion diagnostic appears at all; do not judge by whether
+the DXIL "looks right" alone, since CE cannot show the v1.4.1907..v1.8.2502 window
+where dxc also rejected this cast.

@@ -1,0 +1,125 @@
+=== v1.4.1907   <cache>/compilers/releases/v1.4.1907/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+
+=== v1.5.2010   <cache>/compilers/releases/v1.5.2010/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.6.2104   <cache>/compilers/releases/v1.6.2104/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.6.2106   <cache>/compilers/releases/v1.6.2106/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.6.2112   <repo>/build/tools/clang/test/dxc_releases/v1.6.2112/dxc_2021_12_08/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.7.2207   <cache>/compilers/releases/v1.7.2207/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.7.2212   <cache>/compilers/releases/v1.7.2212/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.7.2212.1   <cache>/compilers/releases/v1.7.2212.1/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.7.2308   <repo>/build/tools/clang/test/dxc_releases/v1.7.2308/dxc_2023_08_14/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.8.2403   <cache>/compilers/releases/v1.8.2403/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.8.2403.1   <cache>/compilers/releases/v1.8.2403.1/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.8.2403.2   <cache>/compilers/releases/v1.8.2403.2/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.8.2405   <cache>/compilers/releases/v1.8.2405/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.8.2407   <cache>/compilers/releases/v1.8.2407/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.8.2502   <repo>/build/tools/clang/test/dxc_releases/v1.8.2502/dxc_2025_02_20/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.8.2505   <cache>/compilers/releases/v1.8.2505/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.8.2505.1   <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.9.2602   <cache>/compilers/releases/v1.9.2602/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.9.2602.24   <cache>/compilers/releases/v1.9.2602.24/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== v1.9.2607   <cache>/compilers/releases/v1.9.2607/bin/x64/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT
+
+=== main-debug   <repo>/build/Debug/bin/dxc.exe
+$ dxc -T vs_6_0 -E main -DOUTPUT=Z repro.hlsl
+  exit=0  dx.break absent (compiled clean)
+$ dxc -T ps_6_0 -E main -DOUTPUT=SV_Target repro.hlsl
+  exit=0  dx.break PRESENT

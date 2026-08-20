@@ -713,6 +713,19 @@ Add `"invert": true` to negate.
 > `re.MULTILINE`, not `DOTALL`: `.` never crosses a line, so use `[\s\S]` or an explicit
 > line-by-line gap when matching across IR lines.
 
+> **An unbounded "X appears after Y" regex over full DXIL disassembly will match the trailing
+> `declare` line, not just a real occurrence in the block you meant.** Every disassembly ends
+> with a `declare <ret> @dx.op.<name>...` line for every intrinsic the module calls, regardless
+> of where the call sites are — so a non-greedy `[\s\S]*?` scanning for a bare opcode name after
+> a branch keeps matching straight through the block boundary, the next label, and the closing
+> `}`, and finds it there instead. Measured on #4858: a first-draft predicate for "does the call
+> appear inside the branch's successor block" matched even the `-Od` control (which does not
+> sink the call at all), because the scan never stopped at the block it was supposed to be
+> confined to. Bound the scan with a negative lookahead that excludes the next `; <label>:` and
+> the function's closing `}` before trusting a "appears somewhere after" pattern over full
+> module disassembly, and require `call` immediately before the opcode name so a bare mention in
+> a `declare` or comment cannot satisfy it either.
+
 **An issue may need more than one predicate.** When the reported symptom differs from current
 behaviour, add e.g. `match-crash.json` and bisect each separately. That is how you distinguish
 "this was fixed" from "this changed shape but is still broken" — a distinction that collapses
@@ -921,6 +934,43 @@ python scripts/triage.py run --issue <N> --match match-crash.json   # extra pred
 > have different labels. Give each arm a distinct output path via labelled `--args`, or use a
 > matrix harness that owns and records its output names.
 
+> **A multi-line `cmd.txt` pipeline shares its intermediate files across an entire release
+> sweep, and a failed step downstream hides that fact.** This is the same family as the
+> "several variants can overwrite the same produced artifact" trap above, but it does not need
+> a labelled variant to trigger — it fires inside `run`/`bisect`'s own ordinary sweep over one
+> issue's single primary `cmd.txt`. Every release probed in one sweep shares the issue directory
+> as its scratch seed, and dxc only rewrites a `-Fo`-style target on success. A pipeline shaped
+> "compile → link → dumpbin the link's output" therefore has a release-dependent failure mode
+> nothing in the capture header flags: if a release's own `-link` step fails, its `linked.bc` is
+> never written, but the following `-dumpbin linked.bc` line still runs — against whichever
+> *earlier* release's `linked.bc` is still sitting in the directory — and a well-formed
+> disassembly of someone else's output scores exactly like a reproduction.
+>
+> Measured on #5704: `out-v1.6.2106.txt` (link exit 0) and `out-v1.9.2607.txt` (link exit 1,
+> `Cannot find definition of function main`) were captured in the same sweep, and both
+> `-dumpbin` sections are byte-identical — same shader hash, same embedded
+> `"clang version 3.7 (tags/RELEASE_370/final)"` string, even the same `!dx.valver` — because
+> v1.9.2607 disassembled v1.6.2106's leftover container instead of its own (never-produced)
+> one. Both captures are kept exactly as produced, as the proof; they are not evidence for this
+> issue's release history. The corrected history came from an issue-local matrix
+> (`measure.py`/`measure-variant.py`) that gives every release its own freshly created and
+> freshly deleted scratch directory and scores a release `invalid-probe` whenever its own
+> `-link` failed to produce the file the next step needs, rather than silently falling through
+> to whatever is already on disk.
+>
+> `run`/`bisect` now protect against this directly: before each probe, any file that is both
+> written by one line of the command list (an `OUTPUT_VALUE_FLAGS` target such as `-Fo`/`-Fd`)
+> and read by another line (a plain positional argument or a non-output flag's value, anywhere
+> else in the same `cmd.txt`) is deleted from that probe's isolated scratch copy first. A
+> release whose own earlier step fails to regenerate it then meets a genuine absence — an
+> ordinary "file not found" from the next line — instead of a stranger's leftover. A file named
+> only once, as a single line's own output, is untouched by this (see the `-P`/`-Fi`
+> spelling-retry test in `test_predicates.py`, which depends on exactly such a file being
+> pre-armed to test an old release's parser, not on a downstream line reading it). This closes
+> the gap for every future multi-line pipeline; it does not and cannot retroactively repair
+> `out-v1.6.2106.txt`/`out-v1.9.2607.txt` above, since `reindex` re-scores captured text and
+> never re-runs the compiler — a corrected capture only comes from re-running the probe.
+
 Then classify against `expected.md`:
 
 | status | meaning |
@@ -952,6 +1002,20 @@ aborted on unbuilt targets. Pre-register predicates about the artifact, prefer a
 A/B over code reading, and keep a self-test in any parser or harness. `match.json` and
 `cmd.txt` may be deliberately absent when compiler output cannot answer the question; do not
 manufacture a hollow predicate merely to make the directory look complete.
+
+> **When the affected mechanism is not built here at all, isolate the narrow, externally
+> checkable claim into a standalone compile outside the CMake tree, rather than settling for
+> source reading alone.** This is not "compiling dxc" and must not be mistaken for it, but it
+> is strictly stronger than reading source, and it touches no shared build target. Measured
+> independently, in the same batch, on two different questions: #4786 confirmed an x86-vs-x64
+> ABI claim (a `float` returned by value silently quiets a signalling NaN on x86 cdecl) with a
+> few-line `.cpp` compiled directly via `cl.exe`/`vcvarsall.bat` into a scratch directory; #5309
+> confirmed a specific Win32 error code (`HRESULT_FROM_WIN32(ERROR_MOD_NOT_FOUND)` from
+> `LoadLibraryExW` on a guaranteed-missing module) the same way. Neither `dxbc2dxil`/`dxilconv`
+> (#5309) nor a 32-bit `dxilconv` build (#4786) exists in this environment, and building either
+> would be a new shared target — out of scope. A tiny external-language repro compiled outside
+> the tree answers the narrow question with the same evidentiary weight as running `dxc`
+> itself, at a fraction of the cost of building the real component.
 
 For reflection questions, try `dxa -dumpreflection` before writing a host program. It drives
 `ID3D12ShaderReflection` through DXC's own `D3DReflectionDumper`; read that dumper's source
@@ -1372,6 +1436,18 @@ the same diagnostic; without the explicit link, sibling predicates remain isolat
 > Query the release table for each executable, print and validate `--version`, and run repro
 > and control on the same binary. #3414 and #3044 independently needed this pattern.
 
+> **`--linear`'s own result line used to call a single clean transition "non-monotonic
+> history", which reads like a fix that was later reverted — and it was not.** A scan with
+> exactly one transition (a plain regression or a plain fix) and a scan with three or more
+> (genuine oscillation) both had `len(runs) != 1`, so both printed the same alarming label.
+> Measured on #4871: one clean regression at v1.5.2010, no reversion through v1.9.2607, printed
+> as "non-monotonic history … transitions at v1.5.2010 -> repro" — accurate about the run count,
+> misleading about the shape. `bisect --linear` now names a single transition the same way
+> binary search does (`regressed-in <tag> (last good: <tag>)` / `fixed-in <tag> (last repro:
+> <tag>)`) and reserves "non-monotonic" for a run of three or more, where more than one
+> transition actually happened. Read `notes.md`'s own history description against this, not
+> the tool's label alone, for anything triaged before this fix.
+
 > **Search `tools/clang/test/` before bisecting an accept/reject issue.** On #3708, one test
 > already asserted the exact diagnostic, marked it `fxc-pass`, and said support was desirable.
 > That established the known divergence, its source-side history and the test a fix must update
@@ -1516,6 +1592,12 @@ line 1.
 >
 > **FXC panes need controls too.** The control discipline above is written about Clang, but an
 > FXC pane is a different compiler with its own failure modes and the same reasoning applies.
+> That includes the profile you give it: FXC has no Shader Model 6 family at all, so reusing
+> the repro's own `-T vs_6_0`-style argument verbatim produces `Unsupported shader model
+> specified`, not a verdict about the construct under test. Measured on #5338: the fix was
+> giving the FXC pane an FXC-supported profile (`vs_5_0`) rather than the repro's `-T`, which is
+> what let the pane actually test whether older compilers accept the construct instead of
+> merely rejecting an SM6 profile.
 >
 > CE gives every pane one shared source. For a one-variable A/B, put the construct behind a
 > preprocessor guard and add a second pane with `-D<CONTROL>`; #3872 used this after selecting
@@ -1810,6 +1892,30 @@ When dating the introduction of a symbol, start with a repository-wide
 starts only after a move or refactor and can report a later preservation commit
 as the introduction. #2952's RDAT payload field appeared in February 2018; a
 current-path search incorrectly dated it to the April file move.
+
+> **`--all` can also surface a commit that is not an ancestor of ground truth at all, and its
+> date can look completely plausible.** This checkout carries multiple remotes and a shallow
+> fetch boundary, so `git log --all -S <symbol>` searches history lines a real introduction
+> could never have come from. Measured independently on two issues in this batch: #5172 and
+> #5436 each dated a different symbol to the same commit, `8a8b29f96` ("[spirv] AMD work graphs
+> extension", dated 2025-06-03 in this repo's clock) — and in both cases `git show --stat` on
+> that commit shows the entire containing file as `new file mode 100644`, the signature of a
+> shallow-fetch graft or an unrelated branch's synthetic history rewrite, not a real edit.
+> `git merge-base --is-ancestor 8a8b29f96 <ground-truth-sha>` fails for both. Two workers
+> hitting the identical false "introduction" independently is exactly the repeated-trap signal
+> this skill treats as justifying a rule, not just a reminder: **before citing any commit found
+> by `--all` as an origin, run `git merge-base --is-ancestor <found-sha> <ground-truth-sha>`
+> and require exit 0.** A plausible date is not evidence of ancestry, and `git show --stat` on
+> the candidate (unrestricted, so rename/whole-file detection applies) is a cheap first filter
+> — a commit that shows your target file as wholly new is far more likely a graft or foreign
+> branch than a real introduction. This is a variant of "verify by tree, not by SHA" one layer
+> out: there the SHA was genuine but rewritten; here the SHA is genuine but simply not on the
+> line of history ground truth descends from. #5993 hit the same root constraint from a
+> different angle — this checkout is shallow enough that `git rev-list --count HEAD` from
+> ground truth reports only ~200 commits total, so a bare "no commits touch this file" reading
+> from local `git log` can be a shallow-clone artifact rather than a real finding; check
+> `git rev-parse --is-shallow-repository` before trusting a local history search for either
+> dating or a "nothing changed" claim.
 
 > **A negative result from a command that errored is not a negative result.** Attributing
 > #3038's fix to a PR, `git merge-base --is-ancestor <sha> origin/release-1.8.2505` exited

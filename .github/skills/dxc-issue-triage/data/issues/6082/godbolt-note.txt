@@ -1,0 +1,7 @@
+What to look for: in the DXC pane(s), find the payload struct's bool-matrix field access.
+The compiler emits a pointer bitcast from the bool-matrix-backed field to a pointer of a
+32-bit-per-lane integer vector of the same lane count, then loads through that wider-vector
+pointer and compares each extracted lane against zero. Compare this to what you'd expect if
+the same field held individual scalar bools packed one bit apart (as the LLVM vector data
+layout used here specifies): the load reads lanes 32 bits apart, not 1 bit apart. This shape
+is unchanged between DXC's oldest lib_6_6-capable release and current trunk.

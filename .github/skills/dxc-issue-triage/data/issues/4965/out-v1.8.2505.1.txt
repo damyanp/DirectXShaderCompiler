@@ -1,0 +1,23 @@
+# compiler: v1.8.2505.1
+# exe: <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe
+# ran: 2026-08-19T18:37:23+00:00
+# cmd: -T ps_6_2 -E f repro.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# attempts: 5
+# hits: 0
+
+$ dxc -T ps_6_2 -E f repro.hlsl
+[exe] <repo>/build/tools/clang/test/dxc_releases/v1.8.2505.1/dxc_2025_07_14/bin/x64/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+repro.hlsl:1:1: error: recursive functions are not allowed: function 'f' calls recursive function 'f'
+int f( int)
+^
+repro.hlsl:1:1: note: recursive function located here:
+
+

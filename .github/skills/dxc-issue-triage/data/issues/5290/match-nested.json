@@ -1,0 +1,16 @@
+{
+  "kind": "all_of",
+  "value": [
+    {
+      "kind": "regex",
+      "value": "Material\\s+mtl\\s*=\\s*\\(Material\\)0",
+      "note": "positive anchor: proves the rewrite completed and the local variable's declaration/cast still names the Material type."
+    },
+    {
+      "kind": "not_regex",
+      "value": "struct\\s+Material\\b",
+      "note": "absence: struct Material's own declaration must be present for the retained local-variable cast to remain self-consistent HLSL. Its disappearance while still cast-to by a retained (but itself unread) local variable is the second ask's defect."
+    }
+  ],
+  "note": "Ask 2 (second comment): dxr -remove-unused-functions -remove-unused-globals -E ps_main removes struct Material even though a local variable in ps_main's own body is declared with (and cast to) that type. Scored as a separate predicate from match.json per the skill's 'decompose multi-ask issues' guidance -- this is a different AST path (a local VarDecl's initializer, not a function parameter) from ask 1, though code reading in notes.md shows both share one root cause. all_of guards the absence clause against a failed/empty rewrite."
+}

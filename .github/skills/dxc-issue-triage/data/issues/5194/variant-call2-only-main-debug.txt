@@ -1,0 +1,22 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T19:45:35+00:00
+# cmd: -spirv -HV 2021 -T cs_6_2 -E main variant-clang-call2.hlsl
+# exit: 2147500037
+# timed_out: 0
+# match: match.json
+# verdict: repro
+# variant: call2-only (variant-clang-call2.hlsl)
+# expect: match
+
+$ dxc -spirv -HV 2021 -T cs_6_2 -E main variant-clang-call2.hlsl
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 2147500037
+--- stdout ---
+
+--- stderr ---
+variant-clang-call2.hlsl:11:7: error: unexpected type name 'uint': expected expression
+    t<uint>(5);
+      ^
+
+

@@ -1,0 +1,41 @@
+# Compiler Explorer panes for #5194, full output.
+# Written by `triage.py godbolt` -- rerun it to re-derive.
+# CE runs Linux Release builds: it corroborates the local
+# Debug build and never overrules it.
+
+==========================================================================
+# compiler: hlsl_clang_trunk
+# args:     -spirv -HV 2021 -T cs_6_2 -E main
+# exit:     0
+
+clang: [0;1;35mwarning: [0m[1margument unused during compilation: '-Qembed_debug' [-Wunused-command-line-argument][0m
+[0;1;35mwarning: [0m[1msupport for HLSL language version hlsl2021 is incomplete, recommend using hlsl202x instead[0m
+1 warning generated.
+        OpCapability Shader
+        OpExtension "SPV_KHR_non_semantic_info"
+        %8 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+        OpMemoryModel Logical GLSL450
+        OpEntryPoint GLCompute %7 "main" %6
+        OpExecutionMode %7 LocalSize 32 1 1
+        OpSource Unknown 0
+        %9 = OpString "/app/example.hlsl"
+        %10 = OpString ""
+        OpName %7 "main"
+        %1 = OpTypeVoid
+        %2 = OpTypeFunction %1
+        %3 = OpTypeInt 32 0
+        %4 = OpTypePointer Private %3
+        %5 = OpConstant %3 0
+        %6 = OpVariable %4 Private %5
+        %11 = OpExtInst %1 %8 DebugInfoNone
+        %12 = OpConstant %3 100
+        %13 = OpConstant %3 4
+        %14 = OpConstant %3 5
+        %15 = OpExtInst %1 %8 DebugSource %9
+        %16 = OpExtInst %1 %8 DebugCompilationUnit %12 %13 %15 %14
+        %17 = OpConstant %3 0
+        %7 = OpFunction %1 DontInline|Pure %2   ; -- Begin function main
+        %18 = OpLabel
+        OpReturn
+        OpFunctionEnd
+                                        ; -- End function

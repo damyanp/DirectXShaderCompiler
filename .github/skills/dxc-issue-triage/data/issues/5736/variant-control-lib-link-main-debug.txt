@@ -1,0 +1,18 @@
+# compiler: main-debug
+# exe: <repo>/build/Debug/bin/dxc.exe
+# ran: 2026-08-19T22:27:03+00:00
+# cmd: -link -T cs_6_3 -Fo control-lib2.bin control-lib.bin
+# exit: 0
+# timed_out: 0
+# match: match.json
+# verdict: no-repro
+# variant: control-lib-link (?)
+# expect: no-match
+
+$ dxc -link -T cs_6_3 -Fo control-lib2.bin control-lib.bin
+[exe] <repo>/build/Debug/bin/dxc.exe
+[exit] 0
+--- stdout ---
+
+--- stderr ---
+

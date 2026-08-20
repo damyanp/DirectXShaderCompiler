@@ -1,0 +1,4 @@
+{
+  "kind": "internal_failure",
+  "note": "Issue #5681: reporter says dxc ICEs/segfaults when InterlockedMax's first operand is a field of a templated RWByteAddressBuffer::Load<T>() result. Use internal_failure (crash/assert/access-violation exit-status class), not a text match on any particular crash message: the same underlying defect can print a trapped assert (0x80000003), an access violation (0xC0000005) or a DXC internal-error HRESULT depending on build config, and a message-keyed predicate would report a fixed build as still-crashing or vice versa. See skill 'Use internal_failure for anything crash-shaped'."
+}

@@ -1,0 +1,383 @@
+# generator: gen-manual-case.py
+# command: "C:\Program Files\LLVM\bin\clang.exe" -fsyntax-only -std=c++17 -U_WIN32 -I<repo>\external\DirectX-Headers\include -I<repo>\external\DirectX-Headers\include\wsl\stubs -I<repo>\include -I<triage>\issues\5079\posix-shim -include<triage>\issues\5079\posix-locale-prelude.h <triage>\issues\5079\control-directx-headers-only.cpp
+# exit: 0 (0x00000000)
+# stdout+stderr follows
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:166:9: warning: '_In_' macro redefined [-Wmacro-redefined]
+  166 | #define _In_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:305:9: note: previous definition is here
+  305 | #define _In_                            _SAL2_Source_(_In_, (), _Pre1_impl_(__notnull_impl_notref) _Pre_valid_impl_ _Deref_pre1_impl_(__readaccess_impl_notref))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:167:9: warning: '_In_z_' macro redefined [-Wmacro-redefined]
+  167 | #define _In_z_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:310:9: note: previous definition is here
+  310 | #define _In_z_                          _SAL2_Source_(_In_z_, (),     _In_     _Pre1_impl_(__zterm_impl))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:168:9: warning: '_In_opt_' macro redefined [-Wmacro-redefined]
+  168 | #define _In_opt_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:306:9: note: previous definition is here
+  306 | #define _In_opt_                        _SAL2_Source_(_In_opt_, (), _Pre1_impl_(__maybenull_impl_notref) _Pre_valid_impl_ _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:169:9: warning: '_In_opt_z_' macro redefined [-Wmacro-redefined]
+  169 | #define _In_opt_z_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:311:9: note: previous definition is here
+  311 | #define _In_opt_z_                      _SAL2_Source_(_In_opt_z_, (), _In_opt_ _Pre1_impl_(__zterm_impl))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:170:9: warning: '_In_reads_' macro redefined [-Wmacro-redefined]
+  170 | #define _In_reads_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:316:9: note: previous definition is here
+  316 | #define _In_reads_(size)               _SAL2_Source_(_In_reads_, (size), _Pre_count_(size)          _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:171:9: warning: '_In_reads_opt_' macro redefined [-Wmacro-redefined]
+  171 | #define _In_reads_opt_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:317:9: note: previous definition is here
+  317 | #define _In_reads_opt_(size)           _SAL2_Source_(_In_reads_opt_, (size), _Pre_opt_count_(size)      _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:172:9: warning: '_In_reads_bytes_' macro redefined [-Wmacro-redefined]
+  172 | #define _In_reads_bytes_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:318:9: note: previous definition is here
+  318 | #define _In_reads_bytes_(size)         _SAL2_Source_(_In_reads_bytes_, (size), _Pre_bytecount_(size)      _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:173:9: warning: '_In_reads_bytes_opt_' macro redefined [-Wmacro-redefined]
+  173 | #define _In_reads_bytes_opt_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:319:9: note: previous definition is here
+  319 | #define _In_reads_bytes_opt_(size)     _SAL2_Source_(_In_reads_bytes_opt_, (size), _Pre_opt_bytecount_(size)  _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:174:9: warning: '_In_range_' macro redefined [-Wmacro-redefined]
+  174 | #define _In_range_(x, y)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:568:9: note: previous definition is here
+  568 | #define _In_range_(lb,ub)           _SAL2_Source_(_In_range_, (lb,ub), _In_range_impl_(lb,ub))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:175:9: warning: '_In_bytecount_' macro redefined [-Wmacro-redefined]
+  175 | #define _In_bytecount_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:809:9: note: previous definition is here
+  809 | #define _In_bytecount_(size)           _SAL1_1_Source_(_In_bytecount_, (size), _Pre_bytecount_(size)     _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:176:9: warning: '_Out_' macro redefined [-Wmacro-redefined]
+  176 | #define _Out_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:342:9: note: previous definition is here
+  342 | #define _Out_                                  _SAL2_Source_(_Out_, (),     _Out_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:177:9: warning: '_Out_opt_' macro redefined [-Wmacro-redefined]
+  177 | #define _Out_opt_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:343:9: note: previous definition is here
+  343 | #define _Out_opt_                              _SAL2_Source_(_Out_opt_, (), _Out_opt_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:178:9: warning: '_Outptr_' macro redefined [-Wmacro-redefined]
+  178 | #define _Outptr_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:424:9: note: previous definition is here
+  424 | #define _Outptr_                         _SAL2_Source_(_Outptr_, (),                      _Out_impl_     _Deref_post2_impl_(__notnull_impl_notref,   __count_impl(1)))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:179:9: warning: '_Outptr_opt_result_z_' macro redefined [-Wmacro-redefined]
+  179 | #define _Outptr_opt_result_z_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:432:9: note: previous definition is here
+  432 | #define _Outptr_opt_result_z_            _SAL2_Source_(_Outptr_opt_result_z_, (),           _Out_opt_impl_ _Deref_post_z_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:180:9: warning: '_Outptr_opt_result_bytebuffer_' macro redefined [-Wmacro-redefined]
+  180 | #define _Outptr_opt_result_bytebuffer_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:470:9: note: previous definition is here
+  470 | #define _Outptr_opt_result_bytebuffer_(size)                 _SAL2_Source_(_Outptr_opt_result_bytebuffer_, (size),                 _Out_opt_impl_ _Deref_post2_impl_(__notnull_impl_notref, __bytecap_impl(size)))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:181:9: warning: '_COM_Outptr_' macro redefined [-Wmacro-redefined]
+  181 | #define _COM_Outptr_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:446:9: note: previous definition is here
+  446 | #define _COM_Outptr_                        _SAL2_Source_(_COM_Outptr_, (),                      _Outptr_                      _On_failure_(_Deref_post_null_))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:182:9: warning: '_COM_Outptr_result_maybenull_' macro redefined [-Wmacro-redefined]
+  182 | #define _COM_Outptr_result_maybenull_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:447:9: note: previous definition is here
+  447 | #define _COM_Outptr_result_maybenull_       _SAL2_Source_(_COM_Outptr_result_maybenull_, (),     _Outptr_result_maybenull_     _On_failure_(_Deref_post_null_))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:183:9: warning: '_COM_Outptr_opt_' macro redefined [-Wmacro-redefined]
+  183 | #define _COM_Outptr_opt_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:448:9: note: previous definition is here
+  448 | #define _COM_Outptr_opt_                    _SAL2_Source_(_COM_Outptr_opt_, (),                  _Outptr_opt_                  _On_failure_(_Deref_post_null_))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:184:9: warning: '_COM_Outptr_opt_result_maybenull_' macro redefined [-Wmacro-redefined]
+  184 | #define _COM_Outptr_opt_result_maybenull_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:449:9: note: previous definition is here
+  449 | #define _COM_Outptr_opt_result_maybenull_   _SAL2_Source_(_COM_Outptr_opt_result_maybenull_, (), _Outptr_opt_result_maybenull_ _On_failure_(_Deref_post_null_))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:185:9: warning: '_Out_writes_' macro redefined [-Wmacro-redefined]
+  185 | #define _Out_writes_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:345:9: note: previous definition is here
+  345 | #define _Out_writes_(size)                     _SAL2_Source_(_Out_writes_, (size), _Pre_cap_(size)            _Post_valid_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:186:9: warning: '_Out_writes_z_' macro redefined [-Wmacro-redefined]
+  186 | #define _Out_writes_z_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:349:9: note: previous definition is here
+  349 | #define _Out_writes_z_(size)                   _SAL2_Source_(_Out_writes_z_, (size), _Pre_cap_(size)            _Post_valid_impl_ _Post_z_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:187:9: warning: '_Out_writes_opt_' macro redefined [-Wmacro-redefined]
+  187 | #define _Out_writes_opt_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:346:9: note: previous definition is here
+  346 | #define _Out_writes_opt_(size)                 _SAL2_Source_(_Out_writes_opt_, (size), _Pre_opt_cap_(size)        _Post_valid_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:188:9: warning: '_Out_writes_all_' macro redefined [-Wmacro-redefined]
+  188 | #define _Out_writes_all_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:354:9: note: previous definition is here
+  354 | #define _Out_writes_all_(size)                 _SAL2_Source_(_Out_writes_all_, (size), _Out_writes_to_(_Old_(size), _Old_(size)))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:189:9: warning: '_Out_writes_all_opt_' macro redefined [-Wmacro-redefined]
+  189 | #define _Out_writes_all_opt_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:355:9: note: previous definition is here
+  355 | #define _Out_writes_all_opt_(size)             _SAL2_Source_(_Out_writes_all_opt_, (size), _Out_writes_to_opt_(_Old_(size), _Old_(size)))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:190:9: warning: '_Out_writes_to_opt_' macro redefined [-Wmacro-redefined]
+  190 | #define _Out_writes_to_opt_(x, y)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:353:9: note: previous definition is here
+  353 | #define _Out_writes_to_opt_(size,count)        _SAL2_Source_(_Out_writes_to_opt_, (size,count), _Pre_opt_cap_(size)        _Post_valid_impl_ _Post_count_(count))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:191:9: warning: '_Out_writes_bytes_' macro redefined [-Wmacro-redefined]
+  191 | #define _Out_writes_bytes_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:347:9: note: previous definition is here
+  347 | #define _Out_writes_bytes_(size)               _SAL2_Source_(_Out_writes_bytes_, (size), _Pre_bytecap_(size)        _Post_valid_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:192:9: warning: '_Out_writes_bytes_all_' macro redefined [-Wmacro-redefined]
+  192 | #define _Out_writes_bytes_all_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:359:9: note: previous definition is here
+  359 | #define _Out_writes_bytes_all_(size)           _SAL2_Source_(_Out_writes_bytes_all_, (size), _Out_writes_bytes_to_(_Old_(size), _Old_(size)))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:193:9: warning: '_Out_writes_bytes_all_opt_' macro redefined [-Wmacro-redefined]
+  193 | #define _Out_writes_bytes_all_opt_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:360:9: note: previous definition is here
+  360 | #define _Out_writes_bytes_all_opt_(size)       _SAL2_Source_(_Out_writes_bytes_all_opt_, (size), _Out_writes_bytes_to_opt_(_Old_(size), _Old_(size)))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:194:9: warning: '_Out_writes_bytes_opt_' macro redefined [-Wmacro-redefined]
+  194 | #define _Out_writes_bytes_opt_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:348:9: note: previous definition is here
+  348 | #define _Out_writes_bytes_opt_(size)           _SAL2_Source_(_Out_writes_bytes_opt_, (size), _Pre_opt_bytecap_(size)    _Post_valid_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:195:9: warning: '_Inout_' macro redefined [-Wmacro-redefined]
+  195 | #define _Inout_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:375:9: note: previous definition is here
+  375 | #define _Inout_                                _SAL2_Source_(_Inout_, (), _Prepost_valid_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:196:9: warning: '_Inout_opt_' macro redefined [-Wmacro-redefined]
+  196 | #define _Inout_opt_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:376:9: note: previous definition is here
+  376 | #define _Inout_opt_                            _SAL2_Source_(_Inout_opt_, (), _Prepost_opt_valid_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:197:9: warning: '_Inout_updates_' macro redefined [-Wmacro-redefined]
+  197 | #define _Inout_updates_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:384:9: note: previous definition is here
+  384 | #define _Inout_updates_(size)                  _SAL2_Source_(_Inout_updates_, (size), _Pre_cap_(size)         _Pre_valid_impl_ _Post_valid_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:198:9: warning: '_Inout_updates_bytes_' macro redefined [-Wmacro-redefined]
+  198 | #define _Inout_updates_bytes_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:396:9: note: previous definition is here
+  396 | #define _Inout_updates_bytes_(size)            _SAL2_Source_(_Inout_updates_bytes_, (size), _Pre_bytecap_(size)     _Pre_valid_impl_ _Post_valid_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:199:9: warning: '_Field_size_' macro redefined [-Wmacro-redefined]
+  199 | #define _Field_size_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:590:9: note: previous definition is here
+  590 | #define _Field_size_(size)                         _SAL2_Source_(_Field_size_, (size), _Notnull_   _Writable_elements_(size))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:200:9: warning: '_Field_size_opt_' macro redefined [-Wmacro-redefined]
+  200 | #define _Field_size_opt_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:591:9: note: previous definition is here
+  591 | #define _Field_size_opt_(size)                     _SAL2_Source_(_Field_size_opt_, (size), _Maybenull_ _Writable_elements_(size))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:201:9: warning: '_Field_size_bytes_' macro redefined [-Wmacro-redefined]
+  201 | #define _Field_size_bytes_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:597:9: note: previous definition is here
+  597 | #define _Field_size_bytes_(size)                   _SAL2_Source_(_Field_size_bytes_, (size), _Notnull_   _Writable_bytes_(size))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:202:9: warning: '_Field_size_full_' macro redefined [-Wmacro-redefined]
+  202 | #define _Field_size_full_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:594:9: note: previous definition is here
+  594 | #define _Field_size_full_(size)                    _SAL2_Source_(_Field_size_full_, (size), _Field_size_part_(size, size))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:203:9: warning: '_Field_size_full_opt_' macro redefined [-Wmacro-redefined]
+  203 | #define _Field_size_full_opt_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:595:9: note: previous definition is here
+  595 | #define _Field_size_full_opt_(size)                _SAL2_Source_(_Field_size_full_opt_, (size), _Field_size_part_opt_(size, size))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:204:9: warning: '_Field_size_bytes_full_' macro redefined [-Wmacro-redefined]
+  204 | #define _Field_size_bytes_full_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:601:9: note: previous definition is here
+  601 | #define _Field_size_bytes_full_(size)              _SAL2_Source_(_Field_size_bytes_full_, (size), _Field_size_bytes_part_(size, size))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:205:9: warning: '_Field_size_bytes_full_opt_' macro redefined [-Wmacro-redefined]
+  205 | #define _Field_size_bytes_full_opt_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:602:9: note: previous definition is here
+  602 | #define _Field_size_bytes_full_opt_(size)          _SAL2_Source_(_Field_size_bytes_full_opt_, (size), _Field_size_bytes_part_opt_(size, size))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:206:9: warning: '_Field_size_bytes_part_' macro redefined [-Wmacro-redefined]
+  206 | #define _Field_size_bytes_part_(x, y)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:599:9: note: previous definition is here
+  599 | #define _Field_size_bytes_part_(size, count)       _SAL2_Source_(_Field_size_bytes_part_, (size, count), _Notnull_   _Writable_bytes_(size) _Readable_bytes_(count))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:207:9: warning: '_Field_range_' macro redefined [-Wmacro-redefined]
+  207 | #define _Field_range_(x, y)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:606:9: note: previous definition is here
+  606 | #define _Field_range_(min,max)                     _SAL2_Source_(_Field_range_, (min,max), _Field_range_impl_(min,max))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:208:9: warning: '_Field_z_' macro redefined [-Wmacro-redefined]
+  208 | #define _Field_z_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:604:9: note: previous definition is here
+  604 | #define _Field_z_                                  _SAL2_Source_(_Field_z_, (), _Null_terminated_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:209:9: warning: '_Check_return_' macro redefined [-Wmacro-redefined]
+  209 | #define _Check_return_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:554:9: note: previous definition is here
+  554 | #define _Check_return_           _SAL2_Source_(_Check_return_, (), _Check_return_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:213:9: warning: '_At_' macro redefined [-Wmacro-redefined]
+  213 | #define _At_(x, y)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:241:9: note: previous definition is here
+  241 | #define _At_(target, annos)            _At_impl_(target, annos _SAL_nop_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:214:9: warning: '_Always_' macro redefined [-Wmacro-redefined]
+  214 | #define _Always_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:267:9: note: previous definition is here
+  267 | #define _Always_(annos)                  _Always_impl_(annos _SAL_nop_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:215:9: warning: '_Return_type_success_' macro redefined [-Wmacro-redefined]
+  215 | #define _Return_type_success_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:260:9: note: previous definition is here
+  260 | #define _Return_type_success_(expr)      _SAL2_Source_(_Return_type_success_, (expr), _Success_impl_(expr))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:217:9: warning: '_Maybenull_' macro redefined [-Wmacro-redefined]
+  217 | #define _Maybenull_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:656:9: note: previous definition is here
+  656 | #define _Maybenull_                       _SAL2_Source_(_Maybenull_, (), _Maybenull_impl_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:218:9: warning: '_Outptr_result_maybenull_' macro redefined [-Wmacro-redefined]
+  218 | #define _Outptr_result_maybenull_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:425:9: note: previous definition is here
+  425 | #define _Outptr_result_maybenull_        _SAL2_Source_(_Outptr_result_maybenull_, (),     _Out_impl_     _Deref_post2_impl_(__maybenull_impl_notref, __count_impl(1)))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:219:9: warning: '_Outptr_result_nullonfailure_' macro redefined [-Wmacro-redefined]
+  219 | #define _Outptr_result_nullonfailure_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:438:9: note: previous definition is here
+  438 | #define _Outptr_result_nullonfailure_       _SAL2_Source_(_Outptr_result_nullonfailure_, (),     _Outptr_      _On_failure_(_Deref_post_null_))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:221:9: warning: '_Success_' macro redefined [-Wmacro-redefined]
+  221 | #define _Success_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:256:9: note: previous definition is here
+  256 | #define _Success_(expr)                  _SAL2_Source_(_Success_, (expr), _Success_impl_(expr))
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:222:9: warning: '_In_count_' macro redefined [-Wmacro-redefined]
+  222 | #define _In_count_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:807:9: note: previous definition is here
+  807 | #define _In_count_(size)               _SAL1_1_Source_(_In_count_, (size), _Pre_count_(size)         _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:223:9: warning: '_In_opt_count_' macro redefined [-Wmacro-redefined]
+  223 | #define _In_opt_count_(x)
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:808:9: note: previous definition is here
+  808 | #define _In_opt_count_(size)           _SAL1_1_Source_(_In_opt_count_, (size), _Pre_opt_count_(size)     _Deref_pre_readonly_)
+      |         ^
+In file included from <triage>\issues\5079\control-directx-headers-only.cpp:13:
+<repo>\external\DirectX-Headers\include\wsl/winadapter.h:224:9: warning: '_Use_decl_annotations_' macro redefined [-Wmacro-redefined]
+  224 | #define _Use_decl_annotations_
+      |         ^
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\sal.h:272:9: note: previous definition is here
+  272 | #define _Use_decl_annotations_         _Use_decl_anno_impl_
+      |         ^
+54 warnings generated.
