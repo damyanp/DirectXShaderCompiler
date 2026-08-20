@@ -10,6 +10,7 @@
 #include "dxc/DXIL/DxilOperations.h"
 #include "dxc/DXIL/DxilUtil.h"
 
+#include "dxc/DXIL/DxilConstants.h"
 #include "dxc/DXIL/DxilInstructions.h"
 #include "dxc/DXIL/DxilModule.h"
 #include "dxc/DxilPIXPasses/DxilPIXPasses.h"
@@ -98,6 +99,12 @@ bool DxilPIXAddTidToAmplificationShaderPayload::runOnModule(Module &M) {
           OriginalPayloadStructPointerType->getPointerElementType();
       ExpandedStruct expanded =
           ExpandStructType(Ctx, OriginalPayloadStructType);
+      unsigned expandedPayloadSizeInBytes =
+          (unsigned)M.getDataLayout().getTypeAllocSize(
+              expanded.ExpandedPayloadStructType);
+      if (expandedPayloadSizeInBytes > DXIL::kMaxMSASPayloadBytes) {
+        return false;
+      }
 
       llvm::IRBuilder<> B(&*I);
 
@@ -185,6 +192,15 @@ bool DxilPIXAddTidToAmplificationShaderPayload::runOnModule(Module &M) {
                     DispatchMesh.get_threadGroupCountZ(), NewStructAlloca});
       I->removeFromParent();
       delete &*I;
+
+      // The payload struct was expanded with three extra i32 values, so the
+      // entry point's declared payload size must grow to match. Use the
+      // expanded struct's alloc size (which includes tail padding) so it
+      // matches D3D payload-size semantics and stays equal to the size the
+      // mesh shader reads back.
+      DM.GetDxilFunctionProps(entryFunction).ShaderProps.AS.payloadSizeInBytes =
+          expandedPayloadSizeInBytes;
+
       // Validation requires exactly one DispatchMesh in an AS, so we can exit
       // after the first one:
       DM.ReEmitDxilResources();

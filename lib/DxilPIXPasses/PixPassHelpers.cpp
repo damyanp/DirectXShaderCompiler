@@ -194,10 +194,9 @@ static std::vector<uint8_t> SerializeRootSignatureToVector(
 }
 
 constexpr uint32_t toolsRegisterSpace = static_cast<uint32_t>(-2);
-constexpr uint32_t toolsUAVRegister = 0;
 
 template <typename RootSigDesc, typename RootParameterDesc>
-void ExtendRootSig(RootSigDesc &rootSigDesc) {
+void ExtendRootSig(RootSigDesc &rootSigDesc, uint32_t toolsUAVRegister) {
   auto *existingParams = rootSigDesc.pParameters;
   for (uint32_t i = 0; i < rootSigDesc.NumParameters; ++i) {
     if (rootSigDesc.pParameters[i].ParameterType ==
@@ -229,17 +228,19 @@ void ExtendRootSig(RootSigDesc &rootSigDesc) {
   rootSigDesc.NumParameters++;
 }
 
-static std::vector<uint8_t> AddUAVParamterToRootSignature(const void *Data,
-                                                          uint32_t Size) {
+static std::vector<uint8_t> AddUAVParamterToRootSignature(
+    const void *Data, uint32_t Size, uint32_t toolsUAVRegister) {
   DxilVersionedRootSignature rootSignature;
   DeserializeRootSignature(Data, Size, rootSignature.get_address_of());
   auto *rs = rootSignature.get_mutable();
   switch (rootSignature->Version) {
   case DxilRootSignatureVersion::Version_1_0:
-    ExtendRootSig<DxilRootSignatureDesc, DxilRootParameter>(rs->Desc_1_0);
+    ExtendRootSig<DxilRootSignatureDesc, DxilRootParameter>(rs->Desc_1_0,
+                                                           toolsUAVRegister);
     break;
   case DxilRootSignatureVersion::Version_1_1:
-    ExtendRootSig<DxilRootSignatureDesc1, DxilRootParameter1>(rs->Desc_1_1);
+    ExtendRootSig<DxilRootSignatureDesc1, DxilRootParameter1>(
+        rs->Desc_1_1, toolsUAVRegister);
     rs->Desc_1_1.pParameters[rs->Desc_1_1.NumParameters - 1].Descriptor.Flags =
         hlsl::DxilRootDescriptorFlags::None;
     break;
@@ -247,16 +248,24 @@ static std::vector<uint8_t> AddUAVParamterToRootSignature(const void *Data,
   return SerializeRootSignatureToVector(rs);
 }
 
-static void AddUAVToShaderAttributeRootSignature(DxilModule &DM) {
+static void AddUAVToShaderAttributeRootSignature(DxilModule &DM,
+                                                 uint32_t toolsUAVRegister) {
   auto rs = DM.GetSerializedRootSignature();
   if (!rs.empty()) {
     std::vector<uint8_t> asVector = AddUAVParamterToRootSignature(
-        rs.data(), static_cast<uint32_t>(rs.size()));
+        rs.data(), static_cast<uint32_t>(rs.size()), toolsUAVRegister);
     DM.ResetSerializedRootSignature(asVector);
   }
 }
 
-static void AddUAVToDxilDefinedGlobalRootSignatures(DxilModule &DM) {
+static void AddUAVToDxilDefinedGlobalRootSignatures(
+    DxilModule &DM, uint32_t toolsUAVRegister) {
+  struct ReplacementRootSignature {
+    std::string Name;
+    std::vector<uint8_t> Data;
+  };
+
+  std::vector<ReplacementRootSignature> replacementRootSignatures;
   auto *subObjects = DM.GetSubobjects();
   if (subObjects != nullptr) {
     for (auto const &subObject : subObjects->GetSubobjects()) {
@@ -267,15 +276,20 @@ static void AddUAVToDxilDefinedGlobalRootSignatures(DxilModule &DM) {
         constexpr bool notALocalRS = false;
         if (subObject.second->GetRootSignature(notALocalRS, Data, Size,
                                                nullptr)) {
-          auto extendedRootSig = AddUAVParamterToRootSignature(Data, Size);
-          auto rootSignatureSubObjectName = subObject.first;
-          subObjects->RemoveSubobject(rootSignatureSubObjectName);
-          subObjects->CreateRootSignature(
-              rootSignatureSubObjectName, notALocalRS, extendedRootSig.data(),
-              static_cast<uint32_t>(extendedRootSig.size()));
-          break;
+          replacementRootSignatures.push_back(
+              {subObject.first.str(),
+               AddUAVParamterToRootSignature(Data, Size, toolsUAVRegister)});
         }
       }
+    }
+
+    constexpr bool notALocalRS = false;
+    for (auto const &replacementRootSignature : replacementRootSignatures) {
+      subObjects->RemoveSubobject(replacementRootSignature.Name);
+      subObjects->CreateRootSignature(
+          replacementRootSignature.Name, notALocalRS,
+          replacementRootSignature.Data.data(),
+          static_cast<uint32_t>(replacementRootSignature.Data.size()));
     }
   }
 }
@@ -295,10 +309,8 @@ hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
     UAVStructTy = llvm::StructType::create(Elements, PIXStructTypeName);
   }
 
-  // Since this function should only be called once per module,
-  // we can modify the root sig at the same time:
-  AddUAVToDxilDefinedGlobalRootSignatures(DM);
-  AddUAVToShaderAttributeRootSignature(DM);
+  AddUAVToDxilDefinedGlobalRootSignatures(DM, hlslBindIndex);
+  AddUAVToShaderAttributeRootSignature(DM, hlslBindIndex);
 
   unsigned int Id = static_cast<unsigned int>(DM.GetUAVs().size());
   std::unique_ptr<DxilResource> pUAV = llvm::make_unique<DxilResource>();
@@ -351,6 +363,14 @@ hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
 
   auto *ret = pUAV.get();
   DM.AddUAV(std::move(pUAV));
+
+  // The UAV we just added is a raw buffer, and the module's declared shader
+  // flags were computed before it existed. Nothing downstream recomputes them,
+  // so without this the instrumented shader declares that it uses no raw or
+  // structured buffers while plainly containing one - a mismatch the standalone
+  // validator reports as "Flags declared=0, actual=16".
+  DM.m_ShaderFlags.SetEnableRawAndStructuredBuffers(true);
+
   return ret;
 }
 
@@ -478,6 +498,38 @@ void ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
   delete Instr;
 }
 
+// The row the upstream stage used for SV_Position is only a hint: each stage
+// packs its signature independently, so that row may already be taken by one of
+// this shader's own input elements. Appending on top of it produces a signature
+// with two elements overlapping the same register, which a strict driver
+// rejects outright and a lenient one resolves by feeding the colliding
+// attribute to whatever reads the position.
+static bool IsSignatureRowOccupied(
+    std::vector<std::unique_ptr<DxilSignatureElement>> const &Elements,
+    unsigned int Row) {
+  for (auto const &Element : Elements) {
+    if (!Element->IsAllocated())
+      continue;
+    unsigned int FirstRow = static_cast<unsigned int>(Element->GetStartRow());
+    if (Row >= FirstRow && Row < FirstRow + Element->GetRows())
+      return true;
+  }
+  return false;
+}
+
+static unsigned int FindFirstUnoccupiedSignatureRow(
+    std::vector<std::unique_ptr<DxilSignatureElement>> const &Elements) {
+  unsigned int Row = 0;
+  for (auto const &Element : Elements) {
+    if (!Element->IsAllocated())
+      continue;
+    Row = std::max<unsigned>(
+        Row, static_cast<unsigned int>(Element->GetStartRow()) +
+                 Element->GetRows());
+  }
+  return Row;
+}
+
 unsigned int FindOrAddSV_Position(hlsl::DxilModule &DM,
                                   unsigned UpStreamSVPosRow) {
   hlsl::DxilSignature &InputSignature = DM.GetInputSignature();
@@ -497,12 +549,18 @@ unsigned int FindOrAddSV_Position(hlsl::DxilModule &DM,
     unsigned int StartColumn = 0;
     unsigned int RowCount = 1;
     unsigned int ColumnCount = 4;
+    // Prefer the upstream row, since keeping the two stages aligned is what the
+    // caller asked for, but never at the cost of overlapping an element this
+    // shader already declared.
+    unsigned int Row = UpStreamSVPosRow;
+    if (IsSignatureRowOccupied(InputElements, Row)) {
+      Row = FindFirstUnoccupiedSignatureRow(InputElements);
+    }
     auto Added_SV_Position =
         llvm::make_unique<DxilSignatureElement>(DXIL::SigPointKind::PSIn);
     Added_SV_Position->Initialize("Position", hlsl::CompType::getF32(),
                                   hlsl::DXIL::InterpolationMode::Linear,
-                                  RowCount, ColumnCount, UpStreamSVPosRow,
-                                  StartColumn);
+                                  RowCount, ColumnCount, Row, StartColumn);
     Added_SV_Position->AppendSemanticIndex(0);
     Added_SV_Position->SetKind(hlsl::DXIL::SemanticKind::Position);
     // AppendElement sets the element's ID by default

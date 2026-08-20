@@ -33,7 +33,9 @@
 #include <atlfile.h>
 #endif
 
+#include "dxc/DXIL/DxilConstants.h"
 #include "dxc/DXIL/DxilModule.h"
+#include "dxc/DXIL/DxilSubobject.h"
 
 #include "dxc/Test/DxcTestUtils.h"
 #include "dxc/Test/HLSLTestData.h"
@@ -65,6 +67,7 @@
 #include <fstream>
 
 #include <../lib/DxilDia/DxcPixLiveVariables_FragmentIterator.h>
+#include <../lib/DxilPIXPasses/PixPassHelpers.h>
 #include <dxc/DxilPIXPasses/DxilPIXVirtualRegisters.h>
 
 #include "PixTestUtils.h"
@@ -107,6 +110,10 @@ public:
   TEST_METHOD(CompileDebugDisasmPDB)
 
   TEST_METHOD(AddToASPayload)
+  TEST_METHOD(AddToASPayload_TailPadding)
+  TEST_METHOD(AddToASPayload_NearLimitPayloadIsNotExpanded)
+  TEST_METHOD(MeshShaderOutput_EmptyPayloadStillInstruments)
+  TEST_METHOD(MeshShaderOutput_NearLimitPayloadSkipsExpansion)
   TEST_METHOD(AddToASGroupSharedPayload)
   TEST_METHOD(AddToASGroupSharedPayload_MeshletCullSample)
   TEST_METHOD(SignatureModification_Empty)
@@ -117,6 +124,12 @@ public:
   TEST_METHOD(AccessTracking_ModificationReport_Read)
   TEST_METHOD(AccessTracking_ModificationReport_Write)
   TEST_METHOD(AccessTracking_ModificationReport_SM66)
+  TEST_METHOD(AccessTracking_MultipleDynamicRangesSameTypeAndSpace)
+  TEST_METHOD(AccessTracking_DynamicRangeRegisterIndex_SM66)
+  TEST_METHOD(AccessTracking_ConstantIndexAtRangeLimit)
+  TEST_METHOD(AccessTracking_SamplerAccessInLibrary)
+  TEST_METHOD(AccessTracking_OobBindlessUsesFunctionShaderKind)
+  TEST_METHOD(AccessTracking_LibraryNonEntryFunction)
 
   TEST_METHOD(PixStructAnnotation_Lib_DualRaygen)
 
@@ -146,11 +159,29 @@ public:
 
   TEST_METHOD(DxilPIXDXRInvocationsLog_SanityTest)
   TEST_METHOD(DxilPIXDXRInvocationsLog_EmbeddedRootSigs)
+  TEST_METHOD(DxilPIXDXRInvocationsLog_GlobalRootSignatureIncludesBothToolsUavs)
+  TEST_METHOD(DxilPIXDXRInvocationsLog_ExtendsEveryGlobalRootSignatureSubobject)
 
   TEST_METHOD(DebugInstrumentation_TextOutput)
   TEST_METHOD(DebugInstrumentation_BlockReport)
 
   TEST_METHOD(DebugInstrumentation_VectorAllocaWrite_Structs)
+
+  // Regression tests for defects in the PIX instrumentation passes.
+  TEST_METHOD(DebugInstrumentation_DynamicallyIndexed64BitAllocaStore)
+  TEST_METHOD(DebugInstrumentation_ShaderModel60UsesBufferStore)
+  TEST_METHOD(PixDbgValueToDbgDeclare_ConstantInitialisedLocal)
+  TEST_METHOD(PixDbgValueToDbgDeclare_MultiDimensionalStaticGlobalArray)
+  TEST_METHOD(PixDbgValueToDbgDeclare_PaddedBitfieldOffsets)
+  TEST_METHOD(PixelHitInstrumentation_ReturnOutsideEntryBlock)
+  TEST_METHOD(PixelHitInstrumentation_SVPositionRowAlreadyOccupied)
+  TEST_METHOD(DebugInstrumentation_HullShaderPatchConstantFunction)
+  TEST_METHOD(DebugInstrumentation_RawBufferShaderFlagDeclared)
+  TEST_METHOD(ConstantColor_FromConstantBufferIsWellFormed)
+  TEST_METHOD(ConstantColor_UnusedIntOverloadIsErased)
+  TEST_METHOD(RemoveDiscards_UnusedDiscardOverloadIsErased)
+  TEST_METHOD(ReduceMSAAToSingleSample_SM66)
+  TEST_METHOD(ReduceMSAAToSingleSample_HalfLoad)
 
   TEST_METHOD(DebugBreakInstrumentation_Basic)
   TEST_METHOD(DebugBreakInstrumentation_NoDebugBreak)
@@ -230,6 +261,28 @@ public:
     Options.push_back(debugArg.c_str());
     Options.push_back(L"-viewid-state");
     Options.push_back(L"-hlsl-dxilemit");
+
+    CComPtr<IDxcBlob> pOptimizedModule;
+    CComPtr<IDxcBlobEncoding> pText;
+    VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(
+        dxil, Options.data(), Options.size(), &pOptimizedModule, &pText));
+
+    std::string outputText = BlobToUtf8(pText);
+
+    return {
+        std::move(pOptimizedModule), {}, Tokenize(outputText.c_str(), "\n")};
+  }
+
+  PassOutput RunPixelHitPass(IDxcBlob *dxil, int RTWidth, int NumPixels) {
+    CComPtr<IDxcOptimizer> pOptimizer;
+    VERIFY_SUCCEEDED(
+        m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+    std::vector<LPCWSTR> Options;
+    Options.push_back(L"-opt-mod-passes");
+    std::wstring pixelHitArg =
+        L"-hlsl-dxil-add-pixel-hit-instrmentation,rt-width=" +
+        std::to_wstring(RTWidth) + L",num-pixels=" + std::to_wstring(NumPixels);
+    Options.push_back(pixelHitArg.c_str());
 
     CComPtr<IDxcBlob> pOptimizedModule;
     CComPtr<IDxcBlobEncoding> pText;
@@ -468,10 +521,27 @@ public:
                                            const wchar_t *profile = L"as_6_5");
   void ValidateAllocaWrite(std::vector<AllocaWrite> const &allocaWrites,
                            size_t index, const char *name);
-  PassOutput RunShaderAccessTrackingPass(IDxcBlob *blob);
-  std::string RunDxilPIXAddTidToAmplificationShaderPayloadPass(IDxcBlob *blob);
+  PassOutput RunShaderAccessTrackingPass(
+      IDxcBlob *blob,
+      const wchar_t *config = L"U0:0:10i0;U0:1:2i0;.0;0;0.");
+  CComPtr<IDxcBlob>
+  RunDxilPIXAddTidToAmplificationShaderPayloadPass(IDxcBlob *blob);
   CComPtr<IDxcBlob> RunDxilPIXMeshShaderOutputPass(IDxcBlob *blob);
+  void
+  VerifyDeclaredPayloadSizeMatchesExpandedStruct(IDxcBlob *optimizedModule);
+  void VerifyPayloadWasNotExpandedAndPayloadSizeIsInBounds(
+      IDxcBlob *optimizedModule);
+  void LoadSubobjectsFromContainerIntoModule(IDxcBlob *container,
+                                             DxilModule &DM);
+  void VerifyGlobalRootSignaturesHaveToolsUAVs(
+      DxilSubobjects *subObjects,
+      const std::vector<std::string> &expectedRootSignatureNames,
+      const std::vector<uint32_t> &expectedShaderRegisters);
+  void VerifyGlobalRootSignaturesHaveToolsUAVs(
+      IDxcBlob *optimizedContainer,
+      const std::vector<std::string> &expectedRootSignatureNames);
   CComPtr<IDxcBlob> RunDxilPIXDXRInvocationsLog(IDxcBlob *blob);
+  CComPtr<IDxcBlob> RunReduceMSAAToSingleSamplePass(IDxcBlob *blob);
   std::vector<std::string>
   RunDxilNonUniformResourceIndexInstrumentation(IDxcBlob *blob,
                                                 std::string &outputText);
@@ -621,14 +691,17 @@ TEST_F(PixTest, CompileDebugDisasmPDB) {
   VERIFY_SUCCEEDED(pCompiler->Disassemble(pPdbBlob, &pDisasm));
 }
 
-PassOutput PixTest::RunShaderAccessTrackingPass(IDxcBlob *blob) {
+PassOutput PixTest::RunShaderAccessTrackingPass(IDxcBlob *blob,
+                                                  const wchar_t *config) {
   CComPtr<IDxcOptimizer> pOptimizer;
   VERIFY_SUCCEEDED(
       m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
   std::vector<LPCWSTR> Options;
   Options.push_back(L"-opt-mod-passes");
-  Options.push_back(L"-hlsl-dxil-pix-shader-access-instrumentation,config=U0:0:"
-                    L"10i0;U0:1:2i0;.0;0;0.");
+  std::wstring passOption =
+      L"-hlsl-dxil-pix-shader-access-instrumentation,config=";
+  passOption += config;
+  Options.push_back(passOption.c_str());
 
   CComPtr<IDxcBlob> pOptimizedModule;
   CComPtr<IDxcBlobEncoding> pText;
@@ -727,7 +800,7 @@ std::vector<std::string> PixTest::RunDxilNonUniformResourceIndexInstrumentation(
   return Tokenize(disassembly, "\n");
 }
 
-std::string
+CComPtr<IDxcBlob>
 PixTest::RunDxilPIXAddTidToAmplificationShaderPayloadPass(IDxcBlob *blob) {
   CComPtr<IDxcBlob> dxil = FindModule(DFCC_ShaderDebugInfoDXIL, blob);
   CComPtr<IDxcOptimizer> pOptimizer;
@@ -743,12 +816,148 @@ PixTest::RunDxilPIXAddTidToAmplificationShaderPayloadPass(IDxcBlob *blob) {
   VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(
       dxil, Options.data(), Options.size(), &pOptimizedModule, &pText));
 
-  std::string outputText;
-  if (pText->GetBufferSize() != 0) {
-    outputText = reinterpret_cast<const char *>(pText->GetBufferPointer());
+  return pOptimizedModule;
+}
+
+// Both passes expand the AS->MS payload struct, so both must grow the entry
+// point's declared payloadSizeInBytes to match. ExpandStructType names the
+// expanded type, so we can pull it out of the module and check its alloc size
+// against what the pass wrote into the function props.
+void PixTest::VerifyDeclaredPayloadSizeMatchesExpandedStruct(
+    IDxcBlob *optimizedModule) {
+  CComPtr<IDxcBlob> container =
+      WrapInNewContainer(m_dllSupport, optimizedModule);
+  ModuleAndHangersOn moduleEtc(container);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  llvm::Module *M = DM.GetModule();
+
+  llvm::StructType *expandedType = M->getTypeByName("PIX_AS2MS_Expanded_Type");
+  VERIFY_IS_NOT_NULL(expandedType);
+
+  unsigned allocSize =
+      (unsigned)M->getDataLayout().getTypeAllocSize(expandedType);
+
+  const DxilFunctionProps &props =
+      DM.GetDxilFunctionProps(DM.GetEntryFunction());
+  unsigned declaredSize = props.IsAS()
+                              ? props.ShaderProps.AS.payloadSizeInBytes
+                              : props.ShaderProps.MS.payloadSizeInBytes;
+
+  VERIFY_ARE_EQUAL(allocSize, declaredSize);
+}
+
+void PixTest::VerifyPayloadWasNotExpandedAndPayloadSizeIsInBounds(
+    IDxcBlob *optimizedModule) {
+  CComPtr<IDxcBlob> container =
+      WrapInNewContainer(m_dllSupport, optimizedModule);
+  ModuleAndHangersOn moduleEtc(container);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  llvm::Module *M = DM.GetModule();
+
+  llvm::StructType *expandedType = M->getTypeByName("PIX_AS2MS_Expanded_Type");
+  VERIFY_IS_NULL(expandedType);
+
+  const DxilFunctionProps &props =
+      DM.GetDxilFunctionProps(DM.GetEntryFunction());
+  unsigned declaredSize = props.IsAS()
+                              ? props.ShaderProps.AS.payloadSizeInBytes
+                              : props.ShaderProps.MS.payloadSizeInBytes;
+  VERIFY_IS_TRUE(declaredSize <= DXIL::kMaxMSASPayloadBytes);
+}
+
+static bool RootSignatureHasToolsUAV(
+    const DxilVersionedRootSignatureDesc *rootSignature,
+    uint32_t shaderRegister) {
+  switch (rootSignature->Version) {
+  case DxilRootSignatureVersion::Version_1_0: {
+    const DxilRootSignatureDesc &desc = rootSignature->Desc_1_0;
+    for (uint32_t i = 0; i < desc.NumParameters; ++i) {
+      const DxilRootParameter &param = desc.pParameters[i];
+      if (param.ParameterType == DxilRootParameterType::UAV &&
+          param.Descriptor.RegisterSpace == static_cast<uint32_t>(-2) &&
+          param.Descriptor.ShaderRegister == shaderRegister) {
+        return true;
+      }
+    }
+    break;
+  }
+  case DxilRootSignatureVersion::Version_1_1: {
+    const DxilRootSignatureDesc1 &desc = rootSignature->Desc_1_1;
+    for (uint32_t i = 0; i < desc.NumParameters; ++i) {
+      const DxilRootParameter1 &param = desc.pParameters[i];
+      if (param.ParameterType == DxilRootParameterType::UAV &&
+          param.Descriptor.RegisterSpace == static_cast<uint32_t>(-2) &&
+          param.Descriptor.ShaderRegister == shaderRegister) {
+        return true;
+      }
+    }
+    break;
+  }
+  }
+  return false;
+}
+
+void PixTest::LoadSubobjectsFromContainerIntoModule(IDxcBlob *container,
+                                                     DxilModule &DM) {
+  const char *pBlobContent =
+      reinterpret_cast<const char *>(container->GetBufferPointer());
+  unsigned blobSize = container->GetBufferSize();
+  const hlsl::DxilContainerHeader *pContainerHeader =
+      hlsl::IsDxilContainerLike(pBlobContent, blobSize);
+  VERIFY_ARE_NOT_EQUAL(pContainerHeader, nullptr);
+
+  const hlsl::DxilPartHeader *pPartHeader =
+      GetDxilPartByType(pContainerHeader, hlsl::DFCC_RuntimeData);
+  VERIFY_ARE_NOT_EQUAL(pPartHeader, nullptr);
+
+  hlsl::RDAT::DxilRuntimeData rdat(GetDxilPartData(pPartHeader),
+                                   pPartHeader->PartSize);
+  std::unique_ptr<DxilSubobjects> subObjects(new DxilSubobjects());
+  VERIFY_IS_TRUE(LoadSubobjectsFromRDAT(*subObjects, rdat));
+  DM.ResetSubobjects(subObjects.release());
+}
+
+void PixTest::VerifyGlobalRootSignaturesHaveToolsUAVs(
+    DxilSubobjects *subObjects,
+    const std::vector<std::string> &expectedRootSignatureNames,
+    const std::vector<uint32_t> &expectedShaderRegisters) {
+  VERIFY_IS_NOT_NULL(subObjects);
+
+  std::map<std::string, bool> foundRootSignatures;
+  for (const std::string &rootSignatureName : expectedRootSignatureNames) {
+    foundRootSignatures[rootSignatureName] = false;
   }
 
-  return outputText;
+  for (auto const &subObject : subObjects->GetSubobjects()) {
+    if (subObject.second->GetKind() !=
+        hlsl::DXIL::SubobjectKind::GlobalRootSignature) {
+      continue;
+    }
+
+    const std::string subObjectName = subObject.first.str();
+    if (foundRootSignatures.find(subObjectName) == foundRootSignatures.end()) {
+      continue;
+    }
+
+    const void *Data = nullptr;
+    uint32_t Size = 0;
+    constexpr bool notALocalRS = false;
+    VERIFY_IS_TRUE(subObject.second->GetRootSignature(notALocalRS, Data, Size,
+                                                      nullptr));
+
+    DxilVersionedRootSignatureDesc const *rootSignature = nullptr;
+    DeserializeRootSignature(Data, Size, &rootSignature);
+    for (uint32_t expectedShaderRegister : expectedShaderRegisters) {
+      VERIFY_IS_TRUE(
+          RootSignatureHasToolsUAV(rootSignature, expectedShaderRegister));
+    }
+    DeleteRootSignature(rootSignature);
+    foundRootSignatures[subObjectName] = true;
+  }
+
+  for (const auto &foundRootSignature : foundRootSignatures) {
+    VERIFY_IS_TRUE(foundRootSignature.second);
+  }
 }
 
 TEST_F(PixTest, AddToASPayload) {
@@ -792,10 +1001,165 @@ void MSMain(
   )";
 
   auto as = Compile(m_dllSupport, hlsl, L"as_6_6", {}, L"ASMain");
-  RunDxilPIXAddTidToAmplificationShaderPayloadPass(as);
+  auto asOutput = RunDxilPIXAddTidToAmplificationShaderPayloadPass(as);
+  VerifyDeclaredPayloadSizeMatchesExpandedStruct(asOutput);
 
   auto ms = Compile(m_dllSupport, hlsl, L"ms_6_6", {}, L"MSMain");
-  RunDxilPIXMeshShaderOutputPass(ms);
+  auto msOutput = RunDxilPIXMeshShaderOutputPass(ms);
+  VerifyDeclaredPayloadSizeMatchesExpandedStruct(msOutput);
+}
+
+TEST_F(PixTest, AddToASPayload_TailPadding) {
+
+  // The leading double forces 8-byte alignment, so after the pass appends its
+  // three i32s the expanded struct ends with tail padding: its alloc size is
+  // larger than the sum of its fields. That is the shape that made the original
+  // bug so confusing (one added field landed in the tail padding and survived,
+  // the other two were truncated to zero), and it is why the passes must derive
+  // the declared size from getTypeAllocSize rather than adding up field widths.
+  // Don't "simplify" the double away - it is what gives this test its teeth.
+  const char *hlsl = R"(
+struct MyPayload
+{
+    double d;
+    float f1;
+    float f2;
+};
+
+[numthreads(1, 1, 1)]
+void ASMain(uint gid : SV_GroupID)
+{
+    MyPayload payload;
+    payload.d = (double)gid;
+    payload.f1 = (float)gid / 4.f;
+    payload.f2 = (float)gid * 4.f;
+    DispatchMesh(1, 1, 1, payload);
+}
+
+struct PSInput
+{
+    float4 position : SV_POSITION;
+};
+
+
+[outputtopology("triangle")]
+[numthreads(3,1,1)]
+void MSMain(
+    in payload MyPayload small,
+    in uint tid : SV_GroupThreadID,
+    in uint3 dtid : SV_DispatchThreadID,
+    out vertices PSInput verts[3],
+    out indices uint3 triangles[1])
+{
+    SetMeshOutputCounts(3, 1);
+    verts[tid].position = float4(small.f1, small.f2, (float)small.d, 0);
+    triangles[0] = uint3(0, 1, 2);
+}
+
+  )";
+
+  auto as = Compile(m_dllSupport, hlsl, L"as_6_6", {}, L"ASMain");
+  auto asOutput = RunDxilPIXAddTidToAmplificationShaderPayloadPass(as);
+  VerifyDeclaredPayloadSizeMatchesExpandedStruct(asOutput);
+
+  auto ms = Compile(m_dllSupport, hlsl, L"ms_6_6", {}, L"MSMain");
+  auto msOutput = RunDxilPIXMeshShaderOutputPass(ms);
+  VerifyDeclaredPayloadSizeMatchesExpandedStruct(msOutput);
+}
+
+TEST_F(PixTest, AddToASPayload_NearLimitPayloadIsNotExpanded) {
+  const char *hlsl = R"(
+struct NearLimitPayload
+{
+    uint values[4094];
+};
+
+[numthreads(1, 1, 1)]
+void ASMain()
+{
+    NearLimitPayload payload;
+    payload.values[0] = 1;
+    DispatchMesh(1, 1, 1, payload);
+}
+
+  )";
+
+  auto as = Compile(m_dllSupport, hlsl, L"as_6_6", {}, L"ASMain");
+  auto asOutput = RunDxilPIXAddTidToAmplificationShaderPayloadPass(as);
+  VerifyPayloadWasNotExpandedAndPayloadSizeIsInBounds(asOutput);
+}
+
+TEST_F(PixTest, MeshShaderOutput_EmptyPayloadStillInstruments) {
+  const char *hlsl = R"(
+struct EmptyPayload
+{
+};
+
+struct PSInput
+{
+    float4 position : SV_POSITION;
+};
+
+[outputtopology("triangle")]
+[numthreads(3, 1, 1)]
+void MSMain(
+    in payload EmptyPayload payload,
+    in uint tid : SV_GroupThreadID,
+    out vertices PSInput verts[3],
+    out indices uint3 triangles[1])
+{
+    SetMeshOutputCounts(3, 1);
+    verts[tid].position = float4((float)tid, 0, 0, 1);
+    triangles[0] = uint3(0, 1, 2);
+}
+
+  )";
+
+  auto ms = Compile(m_dllSupport, hlsl, L"ms_6_6", {}, L"MSMain");
+  auto msOutput = RunDxilPIXMeshShaderOutputPass(ms);
+  const std::string disassembly = Disassemble(msOutput);
+  VERIFY_IS_TRUE(disassembly.find("PIX_DebugUAV_Handle") !=
+                 std::string::npos);
+  VERIFY_IS_TRUE(disassembly.find("dx.op.bufferStore") != std::string::npos);
+  VERIFY_IS_TRUE(disassembly.find("PIX_AS2MS_Expanded_Type") ==
+                 std::string::npos);
+}
+
+TEST_F(PixTest, MeshShaderOutput_NearLimitPayloadSkipsExpansion) {
+  const char *hlsl = R"(
+struct NearLimitPayload
+{
+    uint values[4094];
+};
+
+struct PSInput
+{
+    float4 position : SV_POSITION;
+};
+
+[outputtopology("triangle")]
+[numthreads(1, 1, 1)]
+void MSMain(
+    in payload NearLimitPayload payload,
+    out vertices PSInput verts[3],
+    out indices uint3 triangles[1])
+{
+    SetMeshOutputCounts(3, 1);
+    verts[0].position = float4((float)payload.values[0], 0, 0, 1);
+    verts[1].position = float4(0, 1, 0, 1);
+    verts[2].position = float4(0, 0, 1, 1);
+    triangles[0] = uint3(0, 1, 2);
+}
+
+  )";
+
+  auto ms = Compile(m_dllSupport, hlsl, L"ms_6_6", {}, L"MSMain");
+  auto msOutput = RunDxilPIXMeshShaderOutputPass(ms);
+  VerifyPayloadWasNotExpandedAndPayloadSizeIsInBounds(msOutput);
+  const std::string disassembly = Disassemble(msOutput);
+  VERIFY_IS_TRUE(disassembly.find("PIX_DebugUAV_Handle") !=
+                 std::string::npos);
+  VERIFY_IS_TRUE(disassembly.find("dx.op.bufferStore") != std::string::npos);
 }
 unsigned FindOrAddVSInSignatureElementForInstanceOrVertexID(
     hlsl::DxilSignature &InputSignature, hlsl::DXIL::SemanticKind semanticKind);
@@ -943,6 +1307,191 @@ float main() : SV_Target
 }
 )";
   ValidateAccessTrackingMods(hlsl, true);
+}
+
+std::vector<std::string> Split(std::string str, char delimeter);
+
+static std::string JoinLines(std::vector<std::string> const &lines) {
+  std::string joined;
+  for (auto const &line : lines) {
+    joined += line;
+    joined += '\n';
+  }
+  return joined;
+}
+
+static bool HasBufferStoreWithByteOffset(std::vector<std::string> const &lines,
+                                         unsigned byteOffset) {
+  std::string needle = "i32 " + std::to_string(byteOffset);
+  for (auto const &line : lines) {
+    if (line.find("dx.op.bufferStore") != std::string::npos &&
+        line.find(needle) != std::string::npos) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool HasBufferStoreValueMatchingMask(std::vector<std::string> const &lines,
+                                            uint32_t mask,
+                                            uint32_t maskedValue) {
+  for (auto const &line : lines) {
+    if (line.find("dx.op.bufferStore") == std::string::npos) {
+      continue;
+    }
+
+    size_t position = 0;
+    while ((position = line.find("i32 ", position)) != std::string::npos) {
+      position += 4;
+      char *end = nullptr;
+      uint32_t value = static_cast<uint32_t>(
+          strtoul(line.c_str() + position, &end, 10));
+      if (end != line.c_str() + position && (value & mask) == maskedValue) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+TEST_F(PixTest, AccessTracking_MultipleDynamicRangesSameTypeAndSpace) {
+  const char *hlsl = R"(
+ByteAddressBuffer g_indices : register(t0);
+RWByteAddressBuffer g_firstRange[2] : register(u4);
+RWByteAddressBuffer g_secondRange[2] : register(u6);
+
+[numthreads(1, 1, 1)]
+void CSMain()
+{
+    uint index = g_indices.Load(0);
+    g_firstRange[index].Store(0, 1);
+    g_secondRange[index].Store(0, 2);
+}
+)";
+
+  auto compiled = Compile(m_dllSupport, hlsl, L"cs_6_0", {L"-Od"}, L"CSMain");
+  auto output = RunShaderAccessTrackingPass(
+      compiled, L"S0:0:2i0;U0:0:10i0;.0;0;0.");
+  auto text = JoinLines(output.lines);
+  VERIFY_IS_TRUE(text.find("U0:4;") != std::string::npos);
+  VERIFY_IS_TRUE(text.find("U0:6;") != std::string::npos);
+}
+
+TEST_F(PixTest, AccessTracking_DynamicRangeRegisterIndex_SM66) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+RWByteAddressBuffer g_buffers[] : register(u5);
+
+[numthreads(1, 1, 1)]
+void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    g_buffers[dispatchThreadId.x].Store(0, 1);
+}
+)";
+
+  auto compiled = Compile(m_dllSupport, hlsl, L"cs_6_6", {L"-Od"}, L"CSMain");
+  auto output = RunShaderAccessTrackingPass(compiled, L"U0:0:10i0;.0;0;0.");
+  auto text = JoinLines(output.lines);
+  VERIFY_IS_TRUE(text.find("U0:5;") != std::string::npos);
+  VERIFY_IS_TRUE(text.find("U0:0;") == std::string::npos);
+}
+
+TEST_F(PixTest, AccessTracking_ConstantIndexAtRangeLimit) {
+  const char *hlsl = R"(
+RWByteAddressBuffer g_buffers[] : register(u0);
+
+[numthreads(1, 1, 1)]
+void CSMain()
+{
+    g_buffers[1].Store(0, 1);
+}
+)";
+
+  auto compiled = Compile(m_dllSupport, hlsl, L"cs_6_0", {L"-Od"}, L"CSMain");
+  auto output = RunShaderAccessTrackingPass(compiled, L"U0:0:1i0;.0;0;0.");
+  auto lines = Split(Disassemble(output.blob), '\n');
+  VERIFY_IS_TRUE(HasBufferStoreWithByteOffset(lines, 4));
+  VERIFY_IS_TRUE(!HasBufferStoreWithByteOffset(lines, 16));
+}
+
+TEST_F(PixTest, AccessTracking_SamplerAccessInLibrary) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+Texture2D<float4> g_texture : register(t0);
+SamplerState g_sampler : register(s2);
+RWByteAddressBuffer g_output : register(u0);
+
+[shader("raygeneration")]
+void RayGen()
+{
+    float4 value = g_texture.SampleLevel(g_sampler, float2(0, 0), 0);
+    g_output.Store(0, asuint(value.x));
+}
+)";
+
+  auto compiled = Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  auto output = RunShaderAccessTrackingPass(
+      compiled, L"S0:0:4i0;M0:20:4i0;U0:40:4i0;.0;0;0.");
+  auto lines = Split(Disassemble(output.blob), '\n');
+  VERIFY_IS_TRUE(HasBufferStoreWithByteOffset(lines, 264));
+}
+
+TEST_F(PixTest, AccessTracking_OobBindlessUsesFunctionShaderKind) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+[shader("raygeneration")]
+void RayGen()
+{
+    RWByteAddressBuffer output = ResourceDescriptorHeap[1];
+    output.Store(0, 1);
+}
+)";
+
+  auto compiled = Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  auto output = RunShaderAccessTrackingPass(compiled, L".0;0;0.");
+  auto lines = Split(Disassemble(output.blob), '\n');
+  VERIFY_IS_TRUE(
+      HasBufferStoreValueMatchingMask(lines, 0xF8000000, 0x78000000));
+  VERIFY_IS_TRUE(
+      !HasBufferStoreValueMatchingMask(lines, 0xF8000000, 0x68000000));
+}
+
+TEST_F(PixTest, AccessTracking_LibraryNonEntryFunction) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+Texture2D<float4> g_texture : register(t0);
+RWByteAddressBuffer g_output : register(u0);
+
+export float4 Helper(uint index)
+{
+    float4 value = g_texture.Load(int3(index, 0, 0));
+    g_output.Store(0, asuint(value.x));
+    return value;
+}
+
+[shader("raygeneration")]
+void RayGen()
+{
+    Helper(0);
+}
+)";
+
+  auto compiled = Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  auto output = RunShaderAccessTrackingPass(
+      compiled, L"S0:0:4i0;U0:4:4i0;.0;0;0.");
+  VERIFY_IS_NOT_NULL(output.blob);
 }
 
 TEST_F(PixTest, AddToASGroupSharedPayload) {
@@ -1220,6 +1769,22 @@ std::string PixTest::Disassemble(IDxcBlob *pProgram) {
   CComPtr<IDxcBlobEncoding> pDisassembly;
   VERIFY_SUCCEEDED(pCompiler->Disassemble(pProgram, &pDisassembly));
   return BlobToUtf8(pDisassembly);
+}
+
+CComPtr<IDxcBlob> PixTest::RunReduceMSAAToSingleSamplePass(IDxcBlob *blob) {
+  CComPtr<IDxcOptimizer> pOptimizer;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+  std::vector<LPCWSTR> Options;
+  Options.push_back(L"-opt-mod-passes");
+  Options.push_back(L"-hlsl-dxil-reduce-msaa-to-single");
+  Options.push_back(L"-hlsl-dxilemit");
+
+  CComPtr<IDxcBlob> pOptimizedModule;
+  CComPtr<IDxcBlobEncoding> pText;
+  VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(
+      blob, Options.data(), Options.size(), &pOptimizedModule, &pText));
+  return pOptimizedModule;
 }
 
 // This function lives in lib\DxilPIXPasses\DxilAnnotateWithVirtualRegister.cpp
@@ -1542,14 +2107,26 @@ void main()
     // 2 in unoptimized case (one for each instance of smallPayload)
     // 1 in optimized case (cuz p2 aliases over p)
     VERIFY_IS_TRUE(Testables.OffsetAndSizes.size() >= 1);
-
     for (const auto &os : Testables.OffsetAndSizes) {
       VERIFY_ARE_EQUAL(1u, os.countOfMembers);
       VERIFY_ARE_EQUAL(0u, os.offset);
       VERIFY_ARE_EQUAL(32u, os.size);
     }
 
-    VERIFY_ARE_EQUAL(1u, Testables.AllocaWrites.size());
+    // dummy is assigned a constant, so each instance of smallPayload gets its
+    // own shadow store of that constant, and the two counts track each other.
+    VERIFY_ARE_EQUAL(Testables.OffsetAndSizes.size(),
+                     Testables.AllocaWrites.size());
+    // Each instance occupies one register, and between them they cover the
+    // whole register range, whatever order the writes were discovered in.
+    std::vector<uint64_t> writtenRegisters;
+    for (auto const &write : Testables.AllocaWrites) {
+      writtenRegisters.push_back(write.regBase + write.index);
+    }
+    std::sort(writtenRegisters.begin(), writtenRegisters.end());
+    for (uint64_t i = 0; i < writtenRegisters.size(); ++i) {
+      VERIFY_ARE_EQUAL(i, writtenRegisters[i]);
+    }
   }
 }
 
@@ -2944,6 +3521,90 @@ void MyMiss(inout MyPayload payload)
   RunDxilPIXDXRInvocationsLog(compiledLib);
 }
 
+TEST_F(PixTest, DxilPIXDXRInvocationsLog_GlobalRootSignatureIncludesBothToolsUavs) {
+  const char *source = R"x(
+GlobalRootSignature grs = {"CBV(b0)"};
+
+struct MyPayload
+{
+    float4 color;
+};
+
+[shader("raygeneration")]
+void MyRayGen()
+{
+}
+
+[shader("closesthit")]
+void MyClosestHit(inout MyPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+{
+}
+
+[shader("miss")]
+void MyMiss(inout MyPayload payload)
+{
+}
+
+)x";
+
+  auto compiledLib = Compile(m_dllSupport, source, L"lib_6_6", {});
+  ModuleAndHangersOn moduleEtc(compiledLib);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  LoadSubobjectsFromContainerIntoModule(compiledLib, DM);
+  PIXPassHelpers::CreateGlobalUAVResource(DM, 0, "PIX_CountUAV_Handle");
+  PIXPassHelpers::CreateGlobalUAVResource(DM, 1, "PIX_UAV_Handle");
+  VerifyGlobalRootSignaturesHaveToolsUAVs(DM.GetSubobjects(), {"grs"},
+                                          {0, 1});
+}
+
+TEST_F(PixTest, DxilPIXDXRInvocationsLog_ExtendsEveryGlobalRootSignatureSubobject) {
+  const char *source = R"x(
+GlobalRootSignature firstRootSignature = {"CBV(b0)"};
+GlobalRootSignature secondRootSignature = {"SRV(t0)"};
+
+SubobjectToExportsAssociation firstAssociation =
+{
+    "firstRootSignature",
+    "MyClosestHit"
+};
+
+SubobjectToExportsAssociation secondAssociation =
+{
+    "secondRootSignature",
+    "MyMiss"
+};
+
+struct MyPayload
+{
+    float4 color;
+};
+
+[shader("raygeneration")]
+void MyRayGen()
+{
+}
+
+[shader("closesthit")]
+void MyClosestHit(inout MyPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+{
+}
+
+[shader("miss")]
+void MyMiss(inout MyPayload payload)
+{
+}
+
+)x";
+
+  auto compiledLib = Compile(m_dllSupport, source, L"lib_6_6", {});
+  ModuleAndHangersOn moduleEtc(compiledLib);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  LoadSubobjectsFromContainerIntoModule(compiledLib, DM);
+  PIXPassHelpers::CreateGlobalUAVResource(DM, 0, "PIX_CountUAV_Handle");
+  VerifyGlobalRootSignaturesHaveToolsUAVs(
+      DM.GetSubobjects(), {"firstRootSignature", "secondRootSignature"}, {0});
+}
+
 uint32_t NuriGetWaveInstructionCount(const std::vector<std::string> &lines) {
   // This is the instruction we'll insert into the shader if we detect dynamic
   // resource indexing
@@ -3386,6 +4047,696 @@ void RaygenInternalName()
   // Check that coverage for every element was emitted:
   for (auto const &b : RayPayloadElementCoverage)
     VERIFY_IS_TRUE(b);
+}
+
+// Sums the byte counts passed to the debug UAV's atomic "reserve space"
+// increments. Each such call is emitted by reserveDebugEntrySpace, and the
+// increment is the last operand.
+static uint32_t
+SumReservedDebugSpace(std::vector<std::string> const &disassemblyLines) {
+  uint32_t total = 0;
+  for (auto const &line : disassemblyLines) {
+    if (line.find("@dx.op.atomicBinOp.i32") == std::string::npos ||
+        line.find("%PIX_DebugUAV_Handle") == std::string::npos) {
+      continue;
+    }
+    auto lastComma = line.rfind(", i32 ");
+    if (lastComma == std::string::npos) {
+      continue;
+    }
+    total += static_cast<uint32_t>(atoi(line.data() + lastComma + 6));
+  }
+  return total;
+}
+
+// Counts the stores the debug pass emits into the debug UAV. Every one of them
+// writes exactly one dword, whatever the type of the source value: 64-bit values
+// are split into two halves before being written. Stores the shader itself makes
+// into its own resources use a different handle and are not counted.
+static uint32_t
+CountDebugUAVStores(std::vector<std::string> const &disassemblyLines) {
+  uint32_t count = 0;
+  for (auto const &line : disassemblyLines) {
+    if (line.find("%PIX_DebugUAV_Handle") == std::string::npos) {
+      continue;
+    }
+    if (line.find("@dx.op.rawBufferStore") != std::string::npos ||
+        line.find("@dx.op.bufferStore") != std::string::npos) {
+      count++;
+    }
+  }
+  return count;
+}
+
+// A store into a local array at a non-constant index writes the *index* to the
+// debug UAV, not the stored value, so it always occupies one dword. The space
+// reserved for it has to match: sizing the reservation from the stored value's
+// type instead reserves eight bytes for a 64-bit array while only four are
+// written, and every subsequent block in the trace is then misaligned by the
+// difference.
+TEST_F(PixTest, DebugInstrumentation_DynamicallyIndexed64BitAllocaStore) {
+  const char *source = R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    double local_array[4];
+    local_array[RawUAV.Load(0)] = 8.0;
+    local_array[RawUAV.Load(4)] = 9.0;
+    local_array[RawUAV.Load(8)] = 10.0;
+    local_array[RawUAV.Load(12)] = 11.0;
+
+    double accumulated = 0;
+    [loop]
+    for (uint i = 0; i < 4; ++i)
+    {
+        accumulated += local_array[i];
+    }
+    RawUAV.Store(16, asuint((float)accumulated));
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"cs_6_0", {L"-Od"});
+  auto output = RunDebugPass(compiled);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  // Confirm the shader really does contain dynamically-indexed stores into a
+  // 64-bit local array, so that a change in DXC's codegen can't quietly turn
+  // this into a test of nothing.
+  bool foundDynamic64BitAllocaStore = false;
+  for (auto const &line : output.lines) {
+    if (line.find("d,") != std::string::npos &&
+        line.find(",d,") != std::string::npos) {
+      foundDynamic64BitAllocaStore = true;
+    }
+  }
+  VERIFY_IS_TRUE(foundDynamic64BitAllocaStore);
+
+  // Every byte reserved must be written, or the reader's cursor and the data
+  // the shader actually emits drift apart.
+  VERIFY_ARE_EQUAL(SumReservedDebugSpace(lines), CountDebugUAVStores(lines) * 4);
+}
+
+// RawBufferStore is only legal from shader model 6.2. PIX instruments 6.0 and
+// 6.1 shaders too, so those have to use BufferStore instead; emitting the 6.2
+// opcode produces a container whose declared shader model does not permit the
+// opcodes it contains, which strict drivers reject.
+TEST_F(PixTest, DebugInstrumentation_ShaderModel60UsesBufferStore) {
+  const char *source = R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    float scaled = (float)RawUAV.Load(0) * 3.f;
+    RawUAV.Store(4, asuint(scaled));
+})x";
+
+  auto compiledSm60 = Compile(m_dllSupport, source, L"cs_6_0", {L"-Od"});
+  auto sm60Lines = Split(Disassemble(RunDebugPass(compiledSm60).blob), '\n');
+  bool foundRawBufferStoreInSm60 = false;
+  bool foundBufferStoreInSm60 = false;
+  for (auto const &line : sm60Lines) {
+    if (line.find("@dx.op.rawBufferStore") != std::string::npos)
+      foundRawBufferStoreInSm60 = true;
+    if (line.find("@dx.op.bufferStore") != std::string::npos)
+      foundBufferStoreInSm60 = true;
+  }
+  VERIFY_IS_FALSE(foundRawBufferStoreInSm60);
+  VERIFY_IS_TRUE(foundBufferStoreInSm60);
+
+  // 6.2 and above should keep using RawBufferStore.
+  auto compiledSm62 = Compile(m_dllSupport, source, L"cs_6_2", {L"-Od"});
+  auto sm62Lines = Split(Disassemble(RunDebugPass(compiledSm62).blob), '\n');
+  bool foundRawBufferStoreInSm62 = false;
+  for (auto const &line : sm62Lines) {
+    if (line.find("@dx.op.rawBufferStore") != std::string::npos)
+      foundRawBufferStoreInSm62 = true;
+  }
+  VERIFY_IS_TRUE(foundRawBufferStoreInSm62);
+}
+
+// Counts stores of the given value into a shadow alloca, i.e. stores whose
+// destination is a local pointer rather than a module-scope global.
+static uint32_t
+CountStoresToAllocaOfValue(std::vector<std::string> const &disassemblyLines,
+                           const char *value) {
+  uint32_t count = 0;
+  for (auto const &line : disassemblyLines) {
+    if (line.find("store ") == std::string::npos) {
+      continue;
+    }
+    if (line.find(value) == std::string::npos) {
+      continue;
+    }
+    // A store into the original global names the global; the shadow stores this
+    // pass emits target an alloca reached through a local GEP.
+    if (line.find('@') != std::string::npos) {
+      continue;
+    }
+    count++;
+  }
+  return count;
+}
+
+// A local initialised from a literal is described by a dbg.value whose operand
+// is a Constant rather than an Instruction. The variable still gets a shadow
+// alloca and a dbg.declare, so it is named, typed and in scope in the debugger,
+// but without a store its register is never written and it reads as
+// unavailable for the whole invocation.
+TEST_F(PixTest, PixDbgValueToDbgDeclare_ConstantInitialisedLocal) {
+  const char *source = R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main(uint3 tid : SV_DispatchThreadID)
+{
+    float bias = 0.5;
+    bool hitFlag = true;
+    float fromDerivation = (float)tid.x + 1.0;
+    RawUAV.Store(0, asuint(bias + fromDerivation + (hitFlag ? 2.0 : 3.0)));
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"cs_6_0", {L"-Od"});
+  CComPtr<IDxcBlob> dxilPart = FindModule(DFCC_ShaderDebugInfoDXIL, compiled);
+  auto output = RunValueToDeclarePass(dxilPart);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  // The constant-initialised float must get a shadow store...
+  VERIFY_ARE_EQUAL(1u,
+                   CountStoresToAllocaOfValue(lines, "5.000000e-01"));
+  // ...and so must the constant-initialised bool.
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "store i32 1"));
+}
+
+// A static global holding a multi-dimensional array is flattened by DXC into a
+// single one-dimensional global, so the pass has to treat the array's extent as
+// the product of its dimensions. Treating each dimension as the whole extent
+// matches no offset at all, and every element of the array then has a shadow
+// alloca that is never stored to.
+TEST_F(PixTest, PixDbgValueToDbgDeclare_MultiDimensionalStaticGlobalArray) {
+  const char *source = R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+struct StaticGlobalHolder
+{
+    float twoD[2][3];
+    float oneD[3];
+    float count;
+};
+static StaticGlobalHolder g_staticGlobalHolder;
+[numthreads(1, 1, 1)]
+void main()
+{
+    g_staticGlobalHolder.oneD[0] = 4.0;
+    g_staticGlobalHolder.oneD[1] = 5.0;
+    g_staticGlobalHolder.oneD[2] = 6.0;
+    g_staticGlobalHolder.twoD[1][0] = 40.0;
+    g_staticGlobalHolder.twoD[1][2] = 42.0;
+    g_staticGlobalHolder.count = 1;
+
+    float accumulator = 0;
+    uint index = 0;
+    [loop]
+    while (true)
+    {
+        accumulator += g_staticGlobalHolder.twoD[index % 2][index % 3];
+        accumulator += g_staticGlobalHolder.oneD[index % 3];
+        if (index++ == 4)
+        {
+            break;
+        }
+    }
+    RawUAV.Store(64, asuint(accumulator + g_staticGlobalHolder.count));
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"cs_6_0", {L"-Od"});
+  CComPtr<IDxcBlob> dxilPart = FindModule(DFCC_ShaderDebugInfoDXIL, compiled);
+  auto output = RunValueToDeclarePass(dxilPart);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  // The one-dimensional array in the same struct is the control: it is handled
+  // correctly whether or not the multi-dimensional case is.
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+00"));
+  // The two writes into the two-dimensional array are the point of the test.
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+01"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.200000e+01"));
+}
+
+// Returns the DW_OP_bit_piece offsets of every dbg.declare in the module.
+static std::vector<int>
+FindBitPieceOffsets(std::vector<std::string> const &disassemblyLines) {
+  std::vector<int> offsets;
+  for (auto const &line : disassemblyLines) {
+    if (line.find("llvm.dbg.declare") == std::string::npos) {
+      continue;
+    }
+    auto bitPiece = line.find("DW_OP_bit_piece, ");
+    if (bitPiece == std::string::npos) {
+      continue;
+    }
+    offsets.push_back(atoi(line.data() + bitPiece + 17));
+  }
+  return offsets;
+}
+
+// The shadow allocas are keyed on each member's aligned offset, and PIX looks
+// members up by the aligned offset from the debug info, so the bit_piece in the
+// emitted dbg.declare has to describe the aligned offset too. Describing
+// bitfields by their packed offset instead makes the two disagree as soon as the
+// struct's layout contains padding, and the member is then looked up at an
+// offset that was never emitted.
+TEST_F(PixTest, PixDbgValueToDbgDeclare_PaddedBitfieldOffsets) {
+  const char *source = R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+struct PaddedBitfield
+{
+    float Lead;
+    double Pad;
+    uint32_t Small : 3;
+    uint32_t Wide : 5;
+};
+[numthreads(1, 1, 1)]
+void main()
+{
+    PaddedBitfield bitfield;
+    bitfield.Lead = (float)RawUAV.Load(1 * 4);
+    bitfield.Pad = (double)RawUAV.Load(2 * 4);
+    bitfield.Small = RawUAV.Load(5 * 4);
+    bitfield.Wide = RawUAV.Load(17 * 4);
+    RawUAV.Store(64 * 4, bitfield.Small + bitfield.Wide + bitfield.Lead +
+                             (float)bitfield.Pad);
+})x";
+
+  auto compiled =
+      Compile(m_dllSupport, source, L"cs_6_6", {L"-Od", L"-HV", L"2021"});
+  CComPtr<IDxcBlob> dxilPart = FindModule(DFCC_ShaderDebugInfoDXIL, compiled);
+  auto output = RunValueToDeclarePass(dxilPart);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  auto offsets = FindBitPieceOffsets(lines);
+
+  // Lead sits at 0, Pad at 64 (the 32-bit hole after Lead is padding), and the
+  // bitfields share the storage unit that starts at 128, with Wide occupying the
+  // five bits from 131. Before the fix the two bitfields were described at their
+  // packed offsets of 96 and 99, which no lookup ever asks for.
+  std::vector<int> const expectedOffsets{0, 64, 128, 131};
+  VERIFY_ARE_EQUAL(expectedOffsets, offsets);
+}
+
+// Counts the pixel-hit counter increments the instrumentation emitted. Every
+// increment is an atomic add against the pass's own counter UAV, so keying off
+// that handle name keeps any atomic the shader itself performs out of the
+// count.
+static int CountPixelHitIncrements(std::vector<std::string> const &lines) {
+  int increments = 0;
+  for (auto const &line : lines) {
+    if (line.find("dx.op.atomicBinOp") != std::string::npos &&
+        line.find("%PIX_CountUAV_Handle") != std::string::npos)
+      increments++;
+  }
+  return increments;
+}
+
+// Regression test: the pixel-hit pass used to look for the shader's return
+// instruction in the entry block alone. A pixel shader containing a loop ends
+// its entry block in a branch, so no return was found and the pass emitted no
+// counter increment at all - leaving PIX's Overdraw, Depth Complexity and Pixel
+// Cost visualizers reporting, with no error of any kind, that a draw which
+// plainly covered pixels had touched none.
+TEST_F(PixTest, PixelHitInstrumentation_ReturnOutsideEntryBlock) {
+  const char *source = R"x(
+float4 main(float4 pos : SV_Position, nointerpolation uint count : COUNT)
+    : SV_Target
+{
+    float4 accumulated = 0;
+    [loop] for (uint index = 0; index < count; ++index)
+    {
+        accumulated += pos * index;
+    }
+    return accumulated;
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+
+  // The whole point of the shader is that its return does not live in the entry
+  // block, so confirm the loop really did survive into the DXIL rather than
+  // being flattened away.
+  auto uninstrumentedLines = Split(Disassemble(compiled), '\n');
+  int labelCount = 0;
+  for (auto const &line : uninstrumentedLines) {
+    if (line.find("; preds = ") != std::string::npos)
+      labelCount++;
+  }
+  VERIFY_IS_TRUE(labelCount > 0);
+
+  auto output = RunPixelHitPass(compiled, 16, 64);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  // One increment per exit point. Before the fix this was zero.
+  VERIFY_IS_TRUE(CountPixelHitIncrements(lines) > 0);
+}
+
+// Pulls a named input-signature element's start row out of the DXIL signature
+// metadata, whose fields are
+// {ID, Name, ComponentType, SemanticKind, SemanticIndexes, InterpolationMode,
+//  Rows, Cols, StartRow, StartCol, NameValueList}.
+static int FindSignatureElementStartRow(std::vector<std::string> const &lines,
+                                        char const *name) {
+  std::string const needle = std::string("!\"") + name + "\"";
+  for (auto const &line : lines) {
+    if (line.find(needle) == std::string::npos)
+      continue;
+    auto fields = Split(line, ',');
+    if (fields.size() < 10)
+      continue;
+    constexpr size_t StartRowField = 8;
+    auto const &startRowField = fields[StartRowField];
+    auto valueStart = startRowField.find("i32 ");
+    if (valueStart == std::string::npos)
+      continue;
+    return atoi(startRowField.c_str() + valueStart + 4);
+  }
+  return -1;
+}
+
+// Regression test: the pixel-hit pass places SV_Position at the row the
+// upstream stage used, which is only a hint - each stage packs its signature
+// independently. When the pixel shader has already packed one of its own inputs
+// at that row, appending on top of it leaves two elements overlapping the same
+// register.
+TEST_F(PixTest, PixelHitInstrumentation_SVPositionRowAlreadyOccupied) {
+  const char *source = R"x(
+float4 main(float4 col : COLOR) : SV_Target
+{
+    return col;
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+
+  // The default upstream row of 0 is exactly the row COLOR occupies.
+  auto output = RunPixelHitPass(compiled, 16, 64);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  int const colorRow = FindSignatureElementStartRow(lines, "COLOR");
+  int const positionRow = FindSignatureElementStartRow(lines, "SV_Position");
+
+  VERIFY_ARE_EQUAL(0, colorRow);
+  // Before the fix SV_Position was also appended at row 0, overlapping COLOR.
+  VERIFY_ARE_NOT_EQUAL(colorRow, positionRow);
+}
+
+// Regression test: a hull shader's patch-constant function is numbered by the
+// virtual-register annotation pass and advertised to PIX as its own steppable
+// instruction range, but the debug instrumentation only ever visited the entry
+// (control-point) function. The advertised range therefore emitted no trace
+// records, leaving the patch-constant body visible in the debugger but empty of
+// any values.
+TEST_F(PixTest, DebugInstrumentation_HullShaderPatchConstantFunction) {
+  const char *source = R"x(
+struct ControlPoint
+{
+    float4 position : SV_Position;
+};
+
+struct PatchConstants
+{
+    float edges[3]  : SV_TessFactor;
+    float inside    : SV_InsideTessFactor;
+    float extra     : EXTRA;
+};
+
+PatchConstants PatchConstantFunction(
+    const InputPatch<ControlPoint, 3> patch,
+    uint primitiveId : SV_PrimitiveID)
+{
+    PatchConstants constants;
+    constants.edges[0] = 1;
+    constants.edges[1] = 2;
+    constants.edges[2] = 3;
+    constants.inside = 4;
+    constants.extra = patch[0].position.x + primitiveId;
+    return constants;
+}
+
+[domain("tri")]
+[partitioning("fractional_odd")]
+[outputtopology("triangle_cw")]
+[patchconstantfunc("PatchConstantFunction")]
+[outputcontrolpoints(3)]
+ControlPoint main(
+    const InputPatch<ControlPoint, 3> patch,
+    uint controlPointId : SV_OutputControlPointID)
+{
+    return patch[controlPointId];
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"hs_6_0", {L"-Od"});
+  auto output = RunDebugPass(compiled);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  // Walk the disassembly a function at a time and look for the pass's counter
+  // increment inside the patch-constant function. Before the fix only the entry
+  // (control-point) function was ever visited, so nothing at all appeared here.
+  bool insidePatchConstantFunction = false;
+  bool patchConstantFunctionWritesRecords = false;
+  for (auto const &line : lines) {
+    if (line.find("define ") == 0) {
+      insidePatchConstantFunction =
+          line.find("PatchConstantFunction") != std::string::npos;
+    } else if (insidePatchConstantFunction &&
+               line.find("dx.op.atomicBinOp") != std::string::npos &&
+               line.find("%PIX_DebugUAV_Handle") != std::string::npos) {
+      patchConstantFunctionWritesRecords = true;
+    }
+  }
+
+  VERIFY_IS_TRUE(patchConstantFunctionWritesRecords);
+}
+
+// Regression test: every PIX pass that instruments a shader adds a raw-buffer
+// UAV to carry its output, but the module's declared shader flags were computed
+// before that UAV existed and nothing downstream recomputes them. The
+// instrumented shader then declares that it uses no raw or structured buffers
+// while plainly containing one, which the standalone validator rejects.
+TEST_F(PixTest, DebugInstrumentation_RawBufferShaderFlagDeclared) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main(uint threadId : SV_DispatchThreadID)
+{
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"cs_6_0", {L"-Od"});
+  auto output = RunDebugPass(compiled);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  // The entry point's tag list carries the declared shader flags as
+  // {i32 <kDxilShaderFlagsTag = 0>, i64 <flags>}.
+  constexpr uint64_t EnableRawAndStructuredBuffers = 0x10;
+  bool foundShaderFlags = false;
+  uint64_t shaderFlags = 0;
+  const std::string tagPrefix = "!{i32 0, i64 ";
+  for (auto const &line : lines) {
+    auto tagStart = line.find(tagPrefix);
+    if (tagStart == std::string::npos)
+      continue;
+    shaderFlags = strtoull(line.c_str() + tagStart + tagPrefix.length(),
+                           nullptr, 10);
+    foundShaderFlags = true;
+    break;
+  }
+
+  VERIFY_IS_TRUE(foundShaderFlags);
+  // Before the fix this bit was clear even though the pass had just added a raw
+  // buffer UAV to the module.
+  VERIFY_ARE_EQUAL(EnableRawAndStructuredBuffers,
+                   shaderFlags & EnableRawAndStructuredBuffers);
+}
+
+TEST_F(PixTest, ConstantColor_FromConstantBufferIsWellFormed) {
+  const char *source = R"x(
+float4 main(float4 position : SV_Position) : SV_Target
+{
+    return position;
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+
+  CComPtr<IDxcOptimizer> pOptimizer;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+  std::vector<LPCWSTR> Options;
+  Options.push_back(L"-opt-mod-passes");
+  Options.push_back(L"-hlsl-dxil-constantColor,mod-mode=1");
+  Options.push_back(L"-hlsl-dxilemit");
+
+  CComPtr<IDxcBlob> pOptimizedModule;
+  CComPtr<IDxcBlobEncoding> pText;
+  VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(compiled, Options.data(),
+                                            Options.size(), &pOptimizedModule,
+                                            &pText));
+
+  // Before the fix the constant-color CBuffer's global symbol was a bare struct
+  // rather than a pointer to one, so re-reading the module tripped a cast<>
+  // abort inside ValidateCBuffer.
+  CComPtr<IDxcAssembler> pAssembler;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcAssembler, &pAssembler));
+  CComPtr<IDxcOperationResult> pAssembleResult;
+  VERIFY_SUCCEEDED(
+      pAssembler->AssembleToContainer(pOptimizedModule, &pAssembleResult));
+  HRESULT assembleStatus;
+  VERIFY_SUCCEEDED(pAssembleResult->GetStatus(&assembleStatus));
+  VERIFY_SUCCEEDED(assembleStatus);
+
+  CComPtr<IDxcBlob> pNewContainer;
+  VERIFY_SUCCEEDED(pAssembleResult->GetResult(&pNewContainer));
+
+  // The CBuffer resource record's seventh field is its size in bytes. A float4
+  // row is 16 bytes; before the fix the pass declared 4.
+  auto lines = Split(Disassemble(pNewContainer), '\n');
+  bool foundConstantColorCBuffer = false;
+  for (auto const &line : lines) {
+    if (line.find("!\"PIX_ConstantColorCBName\"") == std::string::npos)
+      continue;
+    auto fields = Tokenize(line.c_str(), ",");
+    VERIFY_IS_TRUE(fields.size() > 6);
+    // Field 1 is the global symbol; it must be a pointer to the CB struct.
+    VERIFY_ARE_NOT_EQUAL(std::string::npos, fields[1].find('*'));
+    VERIFY_ARE_EQUAL(16, atoi(fields[6].c_str() + fields[6].find("i32 ") + 4));
+    foundConstantColorCBuffer = true;
+  }
+  VERIFY_IS_TRUE(foundConstantColorCBuffer);
+
+  // The struct annotation makes the reflection header describe the float4 row.
+  bool foundStructAnnotation = false;
+  for (auto const &line : lines) {
+    if (line.find("struct PIX_ConstantColorCB_Type") != std::string::npos)
+      foundStructAnnotation = true;
+  }
+  VERIFY_IS_TRUE(foundStructAnnotation);
+}
+
+// Runs a single named PIX pass and returns the emitted disassembly lines.
+static std::vector<std::string>
+RunSinglePassAndDisassemble(dxc::DxCompilerDllLoader &dllSupport,
+                            IDxcBlob *compiled, LPCWSTR passOption) {
+  CComPtr<IDxcOptimizer> pOptimizer;
+  VERIFY_SUCCEEDED(dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+  std::vector<LPCWSTR> Options;
+  Options.push_back(L"-opt-mod-passes");
+  Options.push_back(passOption);
+  Options.push_back(L"-hlsl-dxilemit");
+
+  CComPtr<IDxcBlob> pOptimizedModule;
+  CComPtr<IDxcBlobEncoding> pText;
+  VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(compiled, Options.data(),
+                                            Options.size(), &pOptimizedModule,
+                                            &pText));
+  return Split(BlobToUtf8(pText), '\n');
+}
+
+// Returns true if the disassembly declares the named dx.op function but never
+// calls it.
+static bool HasUnusedDeclaration(std::vector<std::string> const &lines,
+                                 std::string const &functionName) {
+  bool declared = false;
+  for (auto const &line : lines) {
+    if (line.find("declare") != std::string::npos &&
+        line.find(functionName) != std::string::npos) {
+      declared = true;
+    }
+    if (line.find("call") != std::string::npos &&
+        line.find(functionName) != std::string::npos) {
+      return false;
+    }
+  }
+  return declared;
+}
+
+TEST_F(PixTest, ConstantColor_UnusedIntOverloadIsErased) {
+  const char *source = R"x(
+float4 main() : SV_Target
+{
+    return float4(1, 2, 3, 4);
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  auto lines = RunSinglePassAndDisassemble(m_dllSupport, compiled,
+                                           L"-hlsl-dxil-constantColor");
+
+  // The float-only pixel shader never stores an int output, so the speculatively
+  // materialised storeOutput.i32 overload must not survive the pass.
+  VERIFY_IS_FALSE(HasUnusedDeclaration(lines, "dx.op.storeOutput.i32"));
+}
+
+TEST_F(PixTest, RemoveDiscards_UnusedDiscardOverloadIsErased) {
+  const char *source = R"x(
+float4 main() : SV_Target
+{
+    return float4(1, 2, 3, 4);
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  auto lines = RunSinglePassAndDisassemble(m_dllSupport, compiled,
+                                           L"-hlsl-dxil-remove-discards");
+
+  // The shader has no discard at all, so looking the overload up must not leave
+  // a dead dx.op.discard declaration behind.
+  VERIFY_IS_FALSE(HasUnusedDeclaration(lines, "dx.op.discard"));
+}
+
+static void VerifyMSAALoadSampleWasReduced(
+    std::vector<std::string> const &lines, const char *textureLoadOverload,
+    const char *originalSampleIndex) {
+  bool foundTextureLoad = false;
+  for (auto const &line : lines) {
+    if (line.find(" call ") == std::string::npos ||
+        line.find(textureLoadOverload) == std::string::npos) {
+      continue;
+    }
+
+    foundTextureLoad = true;
+    VERIFY_ARE_EQUAL(std::string::npos, line.find(originalSampleIndex));
+    VERIFY_ARE_NOT_EQUAL(std::string::npos, line.find(", i32 0,"));
+  }
+  VERIFY_IS_TRUE(foundTextureLoad);
+}
+
+TEST_F(PixTest, ReduceMSAAToSingleSample_SM66) {
+  if (m_ver.SkipDxilVersion(1, 6))
+    return;
+
+  const char *source = R"x(
+Texture2DMS<float4> tex : register(t0);
+float4 main(float4 position : SV_Position) : SV_Target
+{
+    return tex.Load(int2(position.xy), 3);
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_6", {L"-Od"});
+  auto reduced = RunReduceMSAAToSingleSamplePass(compiled);
+  auto lines = Split(Disassemble(reduced), '\n');
+
+  VerifyMSAALoadSampleWasReduced(lines, "dx.op.textureLoad.f32",
+                                 ", i32 3,");
+}
+
+TEST_F(PixTest, ReduceMSAAToSingleSample_HalfLoad) {
+  if (m_ver.SkipDxilVersion(1, 2))
+    return;
+
+  const char *source = R"x(
+Texture2DMS<half4> tex : register(t0);
+float4 main(float4 position : SV_Position) : SV_Target
+{
+    half4 color = tex.Load(int2(position.xy), 2);
+    return float4(color);
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_2",
+                          {L"-Od", L"-enable-16bit-types"});
+  auto reduced = RunReduceMSAAToSingleSamplePass(compiled);
+  auto lines = Split(Disassemble(reduced), '\n');
+
+  VerifyMSAALoadSampleWasReduced(lines, "dx.op.textureLoad.f16",
+                                 ", i32 2,");
 }
 
 TEST_F(PixTest, DebugBreakInstrumentation_Basic) {

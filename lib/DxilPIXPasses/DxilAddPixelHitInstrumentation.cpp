@@ -71,8 +71,6 @@ bool DxilAddPixelHitInstrumentation::runOnModule(Module &M) {
 
   auto EntryPointFunction = PIXPassHelpers::GetEntryFunction(DM);
 
-  auto &EntryBlock = EntryPointFunction->getEntryBlock();
-
   CallInst *HandleForUAV;
   {
     IRBuilder<> Builder(dxilutil::FirstNonAllocaInsertionPt(
@@ -83,18 +81,39 @@ bool DxilAddPixelHitInstrumentation::runOnModule(Module &M) {
 
     DM.ReEmitDxilResources();
   }
-  // todo: is it a reasonable assumption that there will be a "Ret" in the entry
-  // block, and that these are the only points from which the shader can exit
-  // (except for a pixel-kill?)
-  auto &Instructions = EntryBlock.getInstList();
-  auto It = Instructions.begin();
-  while (It != Instructions.end()) {
-    auto ThisInstruction = It++;
+
+  // Every point at which the shader completes has to bump the counter, and
+  // those points are spread across the whole function: only a straight-line
+  // shader keeps its Ret in the entry block. Any pixel shader containing a
+  // loop or an unflattened branch ends its entry block in a branch instead,
+  // so looking only there found no Ret and silently instrumented nothing,
+  // leaving the overdraw UAV reading zero for a draw that plainly covered
+  // pixels.
+  llvm::SmallVector<llvm::Instruction *, 4> ReturnInstructions;
+  bool FunctionHasWork = false;
+  for (auto &ThisBlock : EntryPointFunction->getBasicBlockList()) {
+    for (auto &ThisInstruction : ThisBlock) {
+      LlvmInst_Ret Ret(&ThisInstruction);
+      if (Ret) {
+        ReturnInstructions.push_back(&ThisInstruction);
+      } else if (!llvm::isa<llvm::TerminatorInst>(&ThisInstruction)) {
+        FunctionHasWork = true;
+      }
+    }
+  }
+
+  bool Modified = false;
+
+  for (auto ThisInstruction : ReturnInstructions) {
     LlvmInst_Ret Ret(ThisInstruction);
     if (Ret) {
-      // Check that there is at least one instruction preceding the Ret (no need
-      // to instrument it if there isn't)
-      if (ThisInstruction->getPrevNode() != nullptr) {
+      // A function that contains nothing but terminators has no pixel work
+      // worth counting. That is what the original "is there an instruction
+      // before the Ret" check meant; asked of a single block it is a question
+      // about the wrong part of a multi-block shader, so ask it of the whole
+      // function instead.
+      if (FunctionHasWork) {
+        Modified = true;
 
         // Start adding instructions right before the Ret:
         IRBuilder<> Builder(ThisInstruction);
@@ -224,8 +243,6 @@ bool DxilAddPixelHitInstrumentation::runOnModule(Module &M) {
       }
     }
   }
-
-  bool Modified = false;
 
   return Modified;
 }

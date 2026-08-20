@@ -53,6 +53,12 @@ bool DxilRemoveDiscards::runOnModule(Module &M) {
     Modified = true;
   }
 
+  // GetOpFunc materialises the declaration on demand, so a shader that never
+  // had a discard would otherwise be left carrying a dead external declaration.
+  if (DiscardFunction->user_empty()) {
+    DiscardFunction->eraseFromParent();
+  }
+
   return Modified;
 }
 

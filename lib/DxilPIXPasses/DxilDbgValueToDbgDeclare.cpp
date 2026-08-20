@@ -443,63 +443,64 @@ DescendTypeAndFindEmbeddedArrayElements(llvm::StringRef VariableName,
   } else if (auto *CompositeTy = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
     switch (CompositeTy->getTag()) {
     case llvm::dwarf::DW_TAG_array_type: {
+      // A multi-dimensional array is described by one DISubrange per dimension,
+      // and DXC flattens it to a single one-dimensional array in the module, so
+      // the array's real extent is the product of the dimensions. Treating each
+      // subrange as the whole extent on its own never matches the sought offset
+      // and size for anything but a one-dimensional array, which leaves the
+      // global with shadow allocas but no shadow stores.
+      uint64_t TotalElementCount = 1;
+      bool FoundSubrange = false;
       for (auto Element : CompositeTy->getElements()) {
-        // First element for an array is DISubrange
-        if (auto Subrange = llvm::dyn_cast<DISubrange>(Element)) {
-          auto ElementTy = CompositeTy->getBaseType().resolve(EmptyMap);
-          if (auto *BasicTy = llvm::dyn_cast<llvm::DIBasicType>(ElementTy)) {
-            bool CorrectLowerOffset = AccumulatedMemberOffset == OffsetToSeek;
-            bool CorrectUpperOffset =
-                AccumulatedMemberOffset +
-                    Subrange->getCount() * BasicTy->getSizeInBits() ==
-                OffsetToSeek + SizeToSeek;
-            if (BasicTy != nullptr && CorrectLowerOffset &&
-                CorrectUpperOffset) {
-              std::vector<GlobalEmbeddedArrayElementStorage> storage;
-              for (int64_t i = 0; i < Subrange->getCount(); ++i) {
-                auto ElementOffset =
-                    AccumulatedMemberOffset + i * BasicTy->getSizeInBits();
-                GlobalEmbeddedArrayElementStorage element;
-                element.Name = VariableName.str() + "." + std::to_string(i);
-                element.Offset = static_cast<OffsetInBits>(ElementOffset);
-                element.Size =
-                    static_cast<SizeInBits>(BasicTy->getSizeInBits());
-                storage.push_back(std::move(element));
-              }
-              return storage;
-            }
-          }
-
-          // If we didn't succeed and return above, then we need to process each
-          // element in the array
-          std::vector<GlobalEmbeddedArrayElementStorage> storage;
-          for (int64_t i = 0; i < Subrange->getCount(); ++i) {
-            auto elementStorage = DescendTypeAndFindEmbeddedArrayElements(
-                VariableName,
-                AccumulatedMemberOffset + ElementTy->getSizeInBits() * i,
-                ElementTy, OffsetToSeek, SizeToSeek);
-            std::move(elementStorage.begin(), elementStorage.end(),
-                      std::back_inserter(storage));
-          }
-          if (!storage.empty()) {
-            return storage;
-          }
+        if (auto *Subrange = llvm::dyn_cast<DISubrange>(Element)) {
+          TotalElementCount *= Subrange->getCount();
+          FoundSubrange = true;
         }
       }
-      for (auto Element : CompositeTy->getElements()) {
-        // First element for an array is DISubrange
-        if (auto Subrange = llvm::dyn_cast<DISubrange>(Element)) {
-          auto ElementType = CompositeTy->getBaseType().resolve(EmptyMap);
-          for (int64_t i = 0; i < Subrange->getCount(); ++i) {
-            auto storage = DescendTypeAndFindEmbeddedArrayElements(
-                VariableName,
-                AccumulatedMemberOffset + ElementType->getSizeInBits() * i,
-                ElementType, OffsetToSeek, SizeToSeek);
-            if (!storage.empty()) {
-              return storage;
-            }
+
+      if (!FoundSubrange) {
+        break;
+      }
+
+      auto ElementTy = CompositeTy->getBaseType().resolve(EmptyMap);
+      if (ElementTy == nullptr) {
+        break;
+      }
+
+      if (auto *BasicTy = llvm::dyn_cast<llvm::DIBasicType>(ElementTy)) {
+        const bool CorrectLowerOffset = AccumulatedMemberOffset == OffsetToSeek;
+        const bool CorrectUpperOffset =
+            AccumulatedMemberOffset +
+                TotalElementCount * BasicTy->getSizeInBits() ==
+            OffsetToSeek + SizeToSeek;
+        if (CorrectLowerOffset && CorrectUpperOffset) {
+          std::vector<GlobalEmbeddedArrayElementStorage> storage;
+          for (uint64_t i = 0; i < TotalElementCount; ++i) {
+            auto ElementOffset =
+                AccumulatedMemberOffset + i * BasicTy->getSizeInBits();
+            GlobalEmbeddedArrayElementStorage element;
+            element.Name = VariableName.str() + "." + std::to_string(i);
+            element.Offset = static_cast<OffsetInBits>(ElementOffset);
+            element.Size = static_cast<SizeInBits>(BasicTy->getSizeInBits());
+            storage.push_back(std::move(element));
           }
+          return storage;
         }
+      }
+
+      // The array's elements are themselves aggregates, so descend into each of
+      // them in turn looking for the sought offset.
+      std::vector<GlobalEmbeddedArrayElementStorage> storage;
+      for (uint64_t i = 0; i < TotalElementCount; ++i) {
+        auto elementStorage = DescendTypeAndFindEmbeddedArrayElements(
+            VariableName,
+            AccumulatedMemberOffset + ElementTy->getSizeInBits() * i, ElementTy,
+            OffsetToSeek, SizeToSeek);
+        std::move(elementStorage.begin(), elementStorage.end(),
+                  std::back_inserter(storage));
+      }
+      if (!storage.empty()) {
+        return storage;
       }
     } break;
     case llvm::dwarf::DW_TAG_structure_type:
@@ -554,11 +555,19 @@ GlobalStorageMap GatherGlobalEmbeddedArrayStorage(llvm::Module &M) {
         if (auto *DIGVDerivedType =
                 llvm::dyn_cast<llvm::DIDerivedType>(DIGVType)) {
           if (DIGVDerivedType->getTag() == llvm::dwarf::DW_TAG_member) {
-            // This type is embedded within the containing DIGSV type
+            // This type is embedded within the containing DIGSV type.
+            // When DXC flattens a multi-dimensional array member into a
+            // one-dimensional global it renames the module's global but leaves
+            // the debug info's name at the original, so only the linkage name
+            // still tracks the global that stores will be made through.
+            llvm::StringRef GlobalName = DIGV->getLinkageName();
+            if (GlobalName.empty()) {
+              GlobalName = DIGV->getName();
+            }
             const llvm::DITypeIdentifierMap EmptyMap;
             auto *Ty = HLSLStruct->getType().resolve(EmptyMap);
             auto Storage = DescendTypeAndFindEmbeddedArrayElements(
-                DIGV->getName(), 0, Ty, DIGVDerivedType->getOffsetInBits(),
+                GlobalName, 0, Ty, DIGVDerivedType->getOffsetInBits(),
                 DIGVDerivedType->getSizeInBits());
             auto &ArrayStorage = ret[HLSLStruct].ArrayElementStorage;
             std::move(Storage.begin(), Storage.end(),
@@ -932,6 +941,15 @@ void DxilDbgValueToDbgDeclare::handleDbgValue(llvm::Module &M,
 
   const OffsetInBits InitialOffset = PackedOffsetFromVar;
   auto *insertPt = llvm::dyn_cast<llvm::Instruction>(ValueFromDbgInst);
+  if (insertPt == nullptr) {
+    // The described value is a Constant or an Argument rather than the result of
+    // an instruction, so there is no defining instruction to anchor the store
+    // after. Both are available at every point in the function, so the store can
+    // go immediately after the dbg.value itself. Without this, the variable gets
+    // an alloca and a dbg.declare but is never written, and reads as unavailable
+    // for the whole invocation.
+    insertPt = DbgValue;
+  }
   if (insertPt != nullptr && !llvm::isa<TerminatorInst>(insertPt)) {
     insertPt = insertPt->getNextNode();
     // Drivers may crash if phi nodes aren't always at the top of a block,
@@ -1228,9 +1246,15 @@ void VariableRegisters::PopulateAllocaMap_BasicType(llvm::DIBasicType *Ty,
 
   auto *Storage = GetMetadataAsValue(llvm::ValueAsMetadata::get(Alloca));
   auto *Variable = GetMetadataAsValue(m_Variable);
+  // The alloca map above is keyed on the aligned offset, and PIX looks members
+  // up by the debug-info field's declared (aligned) offset, so the bit_piece has
+  // to describe the aligned offset too. Emitting the packed offset for bitfields
+  // (sizeOverride != 0) makes the two disagree as soon as the struct's layout
+  // contains any padding, and the member is then looked up at an offset that was
+  // never emitted.
   auto *Expression = GetMetadataAsValue(
-      GetDIExpression(Ty, sizeOverride == 0 ? offsets.Aligned : offsets.Packed,
-                      GetVariableSizeInbits(m_Variable), sizeOverride));
+      GetDIExpression(Ty, offsets.Aligned, GetVariableSizeInbits(m_Variable),
+                      sizeOverride));
   auto *DbgDeclare =
       m_B.CreateCall(m_DbgDeclareFn, {Storage, Variable, Expression});
   DbgDeclare->setDebugLoc(m_dbgLoc);

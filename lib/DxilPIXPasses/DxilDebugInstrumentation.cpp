@@ -719,9 +719,17 @@ void DxilDebugInstrumentation::addInvocationSelectionProlog(
   case DXIL::ShaderKind::Vertex:
     ParameterTestResult = addVertexShaderProlog(BC, SVIndices);
     break;
-  case DXIL::ShaderKind::Hull:
-    ParameterTestResult = addHullhaderProlog(BC);
-    break;
+  case DXIL::ShaderKind::Hull: {
+    // OutputControlPointID is only meaningful in the control-point phase, so
+    // the patch-constant function can only be selected by primitive.
+    llvm::Function *function = BC.Builder.GetInsertBlock()->getParent();
+    if (function == BC.DM.GetPatchConstantFunction()) {
+      ParameterTestResult =
+          addComparePrimitiveIdProlog(BC, m_Parameters.HullShader.PrimitiveId);
+    } else {
+      ParameterTestResult = addHullhaderProlog(BC);
+    }
+  } break;
   case DXIL::ShaderKind::Domain:
     ParameterTestResult =
         addComparePrimitiveIdProlog(BC, m_Parameters.DomainShader.PrimitiveId);
@@ -899,11 +907,19 @@ uint32_t DxilDebugInstrumentation::addDebugEntryValue(BuilderContext &BC,
         BC.Builder.CreateFPCast(TheValue, Type::getFloatTy(BC.Ctx), "AsFloat");
     BytesToBeEmitted += addDebugEntryValue(BC, AsFloat);
   } else {
+    // RawBufferStore is only legal from shader model 6.2 onwards. PIX also
+    // instruments 6.0 and 6.1 shaders, so fall back to BufferStore (legal from
+    // 6.0) on those. The two differ only in the trailing alignment operand.
+    const bool SupportsRawBufferStore =
+        BC.DM.GetShaderModel()->IsSM62Plus();
+    const OP::OpCode StoreOpCode = SupportsRawBufferStore
+                                       ? OP::OpCode::RawBufferStore
+                                       : OP::OpCode::BufferStore;
     Function *StoreValue =
-        BC.HlslOP->GetOpFunc(OP::OpCode::RawBufferStore,
+        BC.HlslOP->GetOpFunc(StoreOpCode,
                              TheValue->getType()); // Type::getInt32Ty(BC.Ctx));
     Constant *StoreValueOpcode =
-        BC.HlslOP->GetU32Const((unsigned)DXIL::OpCode::RawBufferStore);
+        BC.HlslOP->GetU32Const((unsigned)StoreOpCode);
     UndefValue *Undef32Arg = UndefValue::get(Type::getInt32Ty(BC.Ctx));
     UndefValue *UndefArg = nullptr;
     if (TheValueTypeID == Type::TypeID::IntegerTyID) {
@@ -920,16 +936,21 @@ uint32_t DxilDebugInstrumentation::addDebugEntryValue(BuilderContext &BC,
     auto &values = m_FunctionToValues[BC.Builder.GetInsertBlock()->getParent()];
     Constant *RawBufferStoreAlignment = BC.HlslOP->GetU32Const(4);
 
-    (void)BC.Builder.CreateCall(
-        StoreValue, {StoreValueOpcode,    // i32 opcode
-                     values.UAVHandle,    // %dx.types.Handle, ; resource handle
-                     values.CurrentIndex, // i32 c0: index in bytes into UAV
-                     Undef32Arg,          // i32 c1: unused
-                     TheValue,
-                     UndefArg, // unused values
-                     UndefArg, // unused values
-                     UndefArg, // unused values
-                     WriteMask_X, RawBufferStoreAlignment});
+    SmallVector<Value *, 10> StoreArgs{
+        StoreValueOpcode,    // i32 opcode
+        values.UAVHandle,    // %dx.types.Handle, ; resource handle
+        values.CurrentIndex, // i32 c0: index in bytes into UAV
+        Undef32Arg,          // i32 c1: unused
+        TheValue,
+        UndefArg, // unused values
+        UndefArg, // unused values
+        UndefArg, // unused values
+        WriteMask_X};
+    if (SupportsRawBufferStore) {
+      StoreArgs.push_back(RawBufferStoreAlignment);
+    }
+
+    (void)BC.Builder.CreateCall(StoreValue, StoreArgs);
 
     assert(m_RemainingReservedSpaceInBytes >= 4); // check for underflow
     m_RemainingReservedSpaceInBytes -= 4;
@@ -1231,6 +1252,19 @@ bool DxilDebugInstrumentation::runOnModule(Module &M) {
   } else {
     llvm::Function *entryFunction = PIXPassHelpers::GetEntryFunction(DM);
     modified = RunOnFunction(M, DM, uav, entryFunction);
+
+    // A hull shader's patch-constant function is a second function that the
+    // virtual-register annotation pass numbers and advertises to PIX as its own
+    // steppable instruction range. Leaving it uninstrumented advertises a range
+    // that emits no trace records at all, so a user stepping into the
+    // patch-constant body sees instructions with no values behind them.
+    llvm::Function *patchConstantFunction = DM.GetPatchConstantFunction();
+    if (patchConstantFunction != nullptr &&
+        patchConstantFunction != entryFunction) {
+      if (RunOnFunction(M, DM, uav, patchConstantFunction)) {
+        modified = true;
+      }
+    }
   }
   return modified;
 }
@@ -1371,6 +1405,13 @@ DxilDebugInstrumentation::FindInstrumentableInstructionsInBlock(
                                   std::to_string(MaxArraySize);
           DebugOutputForThisInstruction.ValueToWriteToDebugMemory =
               IandT->AllocaWriteIndex;
+          // The payload for a dynamically-indexed alloca store is the index, not
+          // the stored value. The index is always an i32, so the record type has
+          // to describe that and not the stored value's type: leaving it as, say,
+          // Double would reserve eight bytes in the block while the emitter only
+          // writes the four bytes of the index, and the reader only consumes four.
+          DebugOutputForThisInstruction.ValueType =
+              DebugShaderModifierRecordTypeDXILStepUint32;
         }
       } else {
         IndexingToken = "a"; // meaning an SSA assignment

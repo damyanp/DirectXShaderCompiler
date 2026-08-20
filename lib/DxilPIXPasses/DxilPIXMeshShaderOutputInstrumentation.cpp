@@ -13,6 +13,7 @@
 #include "dxc/DXIL/DxilOperations.h"
 #include "dxc/DXIL/DxilUtil.h"
 
+#include "dxc/DXIL/DxilConstants.h"
 #include "dxc/DXIL/DxilInstructions.h"
 #include "dxc/DXIL/DxilModule.h"
 #include "dxc/DxilPIXPasses/DxilPIXPasses.h"
@@ -298,34 +299,36 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
       }
     }
 
-    if (OriginalPayloadStructType == nullptr) {
-      // If the application used no payload, then we won't attempt to add one.
-      // TODO: Is there a credible use case with no AS->MS payload?
-      // PIX bug #35288335
-      return false;
-    }
-
-    if (expanded.ExpandedPayloadStructPtrType == nullptr) {
-      expanded = ExpandStructType(Ctx, OriginalPayloadStructType);
-    }
-
-    if (getMeshPayloadInstructions != nullptr) {
-
-      Function *DxilFunc = HlslOP->GetOpFunc(
-          OP::OpCode::GetMeshPayload, expanded.ExpandedPayloadStructPtrType);
-      Constant *opArg =
-          HlslOP->GetU32Const((unsigned)OP::OpCode::GetMeshPayload);
-      IRBuilder<> Builder(getMeshPayloadInstructions);
-      Value *args[] = {opArg};
-      Instruction *payload = Builder.CreateCall(DxilFunc, args);
-
-      if (FirstNewStructGetMeshPayload == nullptr) {
-        FirstNewStructGetMeshPayload = payload;
+    if (OriginalPayloadStructType != nullptr) {
+      if (expanded.ExpandedPayloadStructPtrType == nullptr) {
+        expanded = ExpandStructType(Ctx, OriginalPayloadStructType);
+        unsigned expandedPayloadSizeInBytes =
+            (unsigned)M.getDataLayout().getTypeAllocSize(
+                expanded.ExpandedPayloadStructType);
+        if (expandedPayloadSizeInBytes > DXIL::kMaxMSASPayloadBytes) {
+          expanded = {};
+        }
       }
 
-      ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
-          getMeshPayloadInstructions, payload,
-          expanded.ExpandedPayloadStructType);
+      if (expanded.ExpandedPayloadStructPtrType != nullptr &&
+          getMeshPayloadInstructions != nullptr) {
+
+        Function *DxilFunc = HlslOP->GetOpFunc(
+            OP::OpCode::GetMeshPayload, expanded.ExpandedPayloadStructPtrType);
+        Constant *opArg =
+            HlslOP->GetU32Const((unsigned)OP::OpCode::GetMeshPayload);
+        IRBuilder<> Builder(getMeshPayloadInstructions);
+        Value *args[] = {opArg};
+        Instruction *payload = Builder.CreateCall(DxilFunc, args);
+
+        if (FirstNewStructGetMeshPayload == nullptr) {
+          FirstNewStructGetMeshPayload = payload;
+        }
+
+        ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
+            getMeshPayloadInstructions, payload,
+            expanded.ExpandedPayloadStructType);
+      }
     }
   }
 
@@ -417,6 +420,17 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
                  Call->getOperand(1), Call->getOperand(2), ColumnIndex,
                  CoercedValue, Call->getOperand(5));
     }
+  }
+
+  // If the AS->MS payload struct was expanded, the entry point's declared
+  // payload size must grow to match the expanded struct. Use the expanded
+  // struct's alloc size (including tail padding) so it equals the size the
+  // amplification shader now writes, keeping the DXIL validator happy.
+  if (expanded.ExpandedPayloadStructType != nullptr) {
+    DM.GetDxilFunctionProps(PIXPassHelpers::GetEntryFunction(DM))
+        .ShaderProps.MS.payloadSizeInBytes =
+        (unsigned)M.getDataLayout().getTypeAllocSize(
+            expanded.ExpandedPayloadStructType);
   }
 
   DM.ReEmitDxilResources();

@@ -12,6 +12,7 @@
 
 #include "dxc/DXIL/DxilModule.h"
 #include "dxc/DXIL/DxilOperations.h"
+#include "dxc/DXIL/DxilTypeSystem.h"
 #include "dxc/DxilPIXPasses/DxilPIXPasses.h"
 #include "dxc/HLSL/DxilGenerationPass.h"
 #include "dxc/HLSL/DxilSpanAllocator.h"
@@ -24,6 +25,15 @@
 
 using namespace llvm;
 using namespace hlsl;
+
+// OP::GetOpFunc materialises a dx.op overload declaration on demand. Passes that
+// speculatively look up an overload must remove it again if nothing ended up
+// referring to it, otherwise the module carries a dead external declaration.
+static void EraseIfUnused(Function *OpFunction) {
+  if (OpFunction != nullptr && OpFunction->user_empty()) {
+    OpFunction->eraseFromParent();
+  }
+}
 
 class DxilOutputColorBecomesConstant : public ModulePass {
 
@@ -125,6 +135,11 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
       [&hasIntOutputs](CallInst *) { hasIntOutputs = true; });
 
   if (!hasFloatOutputs && !hasIntOutputs) {
+    // GetOpFunc materialises the declaration on demand, so erase whichever
+    // overload we ended up not using rather than leaving a dead external
+    // declaration behind.
+    EraseIfUnused(FloatOutputFunction);
+    EraseIfUnused(IntOutputFunction);
     return false;
   }
 
@@ -152,6 +167,9 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
   } break;
   case FromConstantBuffer: {
 
+    // A float4 constant buffer row is 16 bytes wide.
+    constexpr unsigned int ConstantColorCBufferSizeInBytes = 4 * sizeof(float);
+
     // Setup a constant buffer with a single float4 in it:
     SmallVector<llvm::Type *, 4> Elements{
         Type::getFloatTy(Ctx), Type::getFloatTy(Ctx), Type::getFloatTy(Ctx),
@@ -160,13 +178,34 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
         llvm::StructType::create(Elements, "PIX_ConstantColorCB_Type");
     std::unique_ptr<DxilCBuffer> pCBuf = llvm::make_unique<DxilCBuffer>();
     pCBuf->SetGlobalName("PIX_ConstantColorCBName");
-    pCBuf->SetGlobalSymbol(UndefValue::get(CBStructTy));
+    // The global symbol and HLSL type must both be pointers to the struct:
+    // ValidateCBuffer casts GetHLSLType() to a pointer type in order to reach
+    // the underlying struct annotation.
+    pCBuf->SetGlobalSymbol(UndefValue::get(CBStructTy->getPointerTo()));
+    pCBuf->SetHLSLType(CBStructTy->getPointerTo());
     pCBuf->SetID(static_cast<unsigned int>(DM.GetCBuffers().size()));
     pCBuf->SetSpaceID(
         (unsigned int)-2); // This is the reserved-for-tools register space
     pCBuf->SetLowerBound(0);
     pCBuf->SetRangeSize(1);
-    pCBuf->SetSize(4);
+    pCBuf->SetSize(ConstantColorCBufferSizeInBytes);
+
+    auto *StructAnnotation =
+        DM.GetTypeSystem().GetStructAnnotation(CBStructTy);
+    if (StructAnnotation == nullptr) {
+      StructAnnotation = DM.GetTypeSystem().AddStructAnnotation(CBStructTy);
+      StructAnnotation->SetCBufferSize(ConstantColorCBufferSizeInBytes);
+      static const char *const ComponentNames[] = {"r", "g", "b", "a"};
+      for (unsigned int ComponentIndex = 0; ComponentIndex < 4;
+           ++ComponentIndex) {
+        auto &FieldAnnotation =
+            StructAnnotation->GetFieldAnnotation(ComponentIndex);
+        FieldAnnotation.SetCBufferOffset(ComponentIndex *
+                                         sizeof(float));
+        FieldAnnotation.SetCompType(hlsl::DXIL::ComponentType::F32);
+        FieldAnnotation.SetFieldName(ComponentNames[ComponentIndex]);
+      }
+    }
 
     Instruction *entryPointInstruction =
         &*(PIXPassHelpers::GetEntryFunction(DM)->begin()->begin());
@@ -250,6 +289,9 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
               ReplacementColors[*OutputColumn.getRawData()]);
         });
   }
+
+  EraseIfUnused(FloatOutputFunction);
+  EraseIfUnused(IntOutputFunction);
 
   return Modified;
 }

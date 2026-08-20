@@ -174,8 +174,9 @@ struct RSRegisterIdentifier {
   unsigned Index;
 
   bool operator<(const RSRegisterIdentifier &o) const {
-    return static_cast<unsigned>(Type) < static_cast<unsigned>(o.Type) &&
-           Space < o.Space && Index < o.Index;
+    return static_cast<unsigned>(Type) < static_cast<unsigned>(o.Type) ||
+           (Type == o.Type &&
+            (Space < o.Space || (Space == o.Space && Index < o.Index)));
   }
 };
 
@@ -428,7 +429,7 @@ bool DxilShaderAccessTracking::EmitResourceAccess(DxilModule &DM,
 
       if (isa<ConstantInt>(res.index) && res.indexDynamicOffset == nullptr) {
         unsigned index = cast<ConstantInt>(res.index)->getLimitedValue();
-        if (index > slot->second.numSlots) {
+        if (index >= slot->second.numSlots) {
           // out-of-range accesses are written to slot zero:
           slotIndex = HlslOP->GetU32Const(0);
         } else {
@@ -544,11 +545,13 @@ bool DxilShaderAccessTracking::EmitResourceAccess(DxilModule &DM,
           Builder.CreateMul(ZeroIfOutOfBounds, EncodedFlags);
       uint32_t InstructionNumber = 0;
       (void)pix_dxil::PixDxilInstNum::FromInst(instruction, &InstructionNumber);
-      auto const *shaderModel = DM.GetShaderModel();
-      auto shaderKind = shaderModel->GetKind();
-      uint32_t EncodedInstructionNumber = InstructionNumber |
-                                          InstructionOrdinalndicator |
-                                          EncodeShaderModel(shaderKind);
+      auto *EncodedShaderKindConstant = cast<ConstantInt>(
+          m_FunctionToEncodedAccess.at(Builder.GetInsertBlock()->getParent())
+              .at(ResourceAccessStyle::None));
+      uint32_t EncodedShaderKind =
+          EncodedShaderKindConstant->getLimitedValue();
+      uint32_t EncodedInstructionNumber =
+          InstructionNumber | InstructionOrdinalndicator | EncodedShaderKind;
       auto *MultipliedOutOfBoundsValue = Builder.CreateMul(
           OneIfOutOfBounds, HlslOP->GetU32Const(EncodedInstructionNumber));
       auto *CombinedFlagOrInstructionValue =
@@ -659,6 +662,17 @@ DxilResourceAndClass DxilShaderAccessTracking::DetermineAccessForHandleForLib(
         }
       }
     }
+    if (ret.registerType == RegisterType::Invalid) {
+      auto const &Samplers = DM.GetSamplers();
+      for (auto &Sampler : Samplers) {
+        if (global == Sampler->GetGlobalSymbol()) {
+          binding = hlsl::resource_helper::loadBindingFromResourceBase(
+              Sampler.get());
+          ret.registerType = RegisterType::Sampler;
+          break;
+        }
+      }
+    }
     if (ret.registerType != RegisterType::Invalid) {
       ret.accessStyle = AccessStyle::FromRootSig;
       ret.RegisterID = binding.rangeLowerBound;
@@ -735,7 +749,7 @@ DxilShaderAccessTracking::GetResourceFromHandle(Value *resHandle,
         ret.index = createHandle.get_index();
         ret.registerType = registerType;
         ret.accessStyle = AccessStyle::FromRootSig;
-        ret.RegisterID = resource->GetID();
+        ret.RegisterID = resource->GetLowerBound();
         ret.RegisterSpace = resource->GetSpaceID();
       }
     }
@@ -757,6 +771,7 @@ DxilShaderAccessTracking::GetResourceFromHandle(Value *resHandle,
         ret.index = createHandleFromBinding.get_index();
         ret.registerType = RegisterTypeFromResourceClass(
             static_cast<hlsl::DXIL::ResourceClass>(binding.resourceClass));
+        ret.RegisterID = binding.rangeLowerBound;
         ret.RegisterSpace = binding.spaceID;
       } else if (hlsl::OP::IsDxilOpFuncCallInst(
                      handleCreation, hlsl::OP::OpCode::CreateHandleFromHeap)) {
@@ -840,9 +855,6 @@ bool DxilShaderAccessTracking::runOnModule(Module &M) {
       if (!DM.HasDxilFunctionProps(F)) {
         auto ShaderModel = DM.GetShaderModel();
         shaderKind = ShaderModel->GetKind();
-        if (shaderKind == DXIL::ShaderKind::Library) {
-          continue;
-        }
       } else {
         hlsl::DxilFunctionProps const &props = DM.GetDxilFunctionProps(F);
         shaderKind = props.shaderKind;
@@ -935,9 +947,13 @@ bool DxilShaderAccessTracking::runOnModule(Module &M) {
           }
 
           for (unsigned iParam : handleParams) {
+            auto uavHandle =
+                m_FunctionToUAVHandle.find(CallerParent->getParent());
+            if (uavHandle == m_FunctionToUAVHandle.end())
+              continue;
+
             // Don't instrument the accesses to the UAV that we just added
-            if (Call->getArgOperand(iParam) ==
-                m_FunctionToUAVHandle[CallerParent->getParent()])
+            if (Call->getArgOperand(iParam) == uavHandle->second)
               continue;
             auto res = GetResourceFromHandle(Call->getArgOperand(iParam), DM);
             if (res.accessStyle == AccessStyle::None) {
