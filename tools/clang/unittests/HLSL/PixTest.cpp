@@ -112,7 +112,7 @@ public:
   TEST_METHOD(AddToASPayload)
   TEST_METHOD(AddToASPayload_TailPadding)
   TEST_METHOD(AddToASPayload_NearLimitPayloadIsNotExpanded)
-  TEST_METHOD(MeshShaderOutput_EmptyPayloadStillInstruments)
+  TEST_METHOD(MeshShaderOutput_UnreadPayloadStillInstruments)
   TEST_METHOD(MeshShaderOutput_NearLimitPayloadSkipsExpansion)
   TEST_METHOD(AddToASGroupSharedPayload)
   TEST_METHOD(AddToASGroupSharedPayload_MeshletCullSample)
@@ -1089,10 +1089,15 @@ void ASMain()
   VerifyPayloadWasNotExpandedAndPayloadSizeIsInBounds(asOutput);
 }
 
-TEST_F(PixTest, MeshShaderOutput_EmptyPayloadStillInstruments) {
+TEST_F(PixTest, MeshShaderOutput_UnreadPayloadStillInstruments) {
+  // A mesh shader is free to accept an amplification-shader payload and never read it, in which
+  // case the compiler emits no GetMeshPayload call. PIX still asks for payload expansion whenever
+  // an AS is present, and the pass used to give up entirely at that point - throwing away the
+  // output capture, which doesn't need the payload at all. PIX bug #35288335.
   const char *hlsl = R"(
-struct EmptyPayload
+struct UnreadPayload
 {
+    uint value;
 };
 
 struct PSInput
@@ -1103,7 +1108,7 @@ struct PSInput
 [outputtopology("triangle")]
 [numthreads(3, 1, 1)]
 void MSMain(
-    in payload EmptyPayload payload,
+    in payload UnreadPayload payload,
     in uint tid : SV_GroupThreadID,
     out vertices PSInput verts[3],
     out indices uint3 triangles[1])
