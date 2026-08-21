@@ -606,6 +606,15 @@ GlobalStorageMap GatherGlobalEmbeddedArrayStorage(llvm::Module &M) {
 }
 
 bool DxilDbgValueToDbgDeclare::runOnModule(llvm::Module &M) {
+  // Inline before any shadow storage is synthesized. llvm::InlineFunction
+  // stamps the call site's debug location onto every inlined instruction that
+  // did not carry one, and the stores this pass emits deliberately carry none -
+  // so inlining afterwards would relocate the helper's stores to the line of
+  // the call, and PIX would read them as leaving the helper's scope on the way
+  // through its body. Synthesizing them after inlining puts them in the same
+  // shape as the entry function's own.
+  PIXPassHelpers::InlineNonEntryFunctions(M.GetOrCreateDxilModule());
+
   auto GlobalEmbeddedArrayStorage = GatherGlobalEmbeddedArrayStorage(M);
 
   bool Changed = false;

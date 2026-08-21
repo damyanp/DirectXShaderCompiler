@@ -65,8 +65,13 @@ GetAllInstrumentableFunctions(hlsl::DxilModule &DM);
 // already looks for it: the inlinedAt chain of the debug locations, which is
 // how a helper the front end inlined of its own accord is presented today.
 //
-// This has to run before anything numbers instructions, because the ordinals
-// PIX steps through are assigned to the module this leaves behind.
+// This has to run before anything numbers instructions or synthesizes shadow
+// storage, because the ordinals PIX steps through are assigned to the module
+// this leaves behind, and because llvm::InlineFunction stamps the call site's
+// debug location onto every inlined instruction that had none - which would
+// move a helper's shadow stores to the line of the call. Both of the passes
+// that can come first in a PIX pipeline therefore call it, and it is idempotent
+// so that the second finds nothing left to do.
 //
 // Library modules are left alone: every function they export is an invocation
 // in its own right, so there is no single entry point to inline into.

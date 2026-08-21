@@ -26,14 +26,21 @@
 
 // Being scoped to the helper is not enough on its own - the value has to be traced too,
 // or PIX reaches the helper's frame and reads "unavailable". main has no float local of
-// its own, so a float alloca carrying a virtual register, and a traced store into one,
-// can only have come from the inlined helper.
+// its own, so a float alloca carrying a virtual register can only be the inlined helper's.
 // TRACED: alloca [1 x float], i32 0, !pix-alloca-reg
-// TRACED: store float {{.*}}!pix-alloca-reg-write
 
 // The helper's local survives inlining still scoped to the helper, which is what puts
 // it under the right frame in PIX's locals view rather than under main's.
 // LOCALS: call void @llvm.dbg.declare({{.*}}; var:"scaled"
+
+// The store that traces it must carry no debug location, which is what requiring
+// !pix-dxil-inst-num to follow the pointer operand immediately checks.
+// llvm::InlineFunction stamps the call site's location onto every inlined instruction
+// that had none, so inlining after these stores are synthesized relocates the helper's
+// stores to the line of the call, and PIX reads the helper as handing control back to
+// its caller partway through its own body.
+// TRACED: store float %{{[0-9]+}}, float* %{{[0-9]+}}, !pix-dxil-inst-num {{![0-9]+}}, !pix-alloca-reg-write
+
 // LOCALS: ![[HELPER:[0-9]+]] = !DISubprogram(name: "ScaleHelper"
 // LOCALS: !DILocalVariable({{.*}}name: "scaled", scope: ![[HELPER]],
 
