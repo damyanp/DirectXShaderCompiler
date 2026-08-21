@@ -185,6 +185,13 @@ static std::vector<uint8_t> SerializeRootSignatureToVector(
   SerializeRootSignature(rootSignature, &serializedRootSignature, &errorBlob,
                          allowReservedRegisterSpace);
   std::vector<uint8_t> ret;
+  // SerializeRootSignature reports failure by leaving the blob null and filling
+  // in the error blob instead. Dereferencing it regardless turns a root
+  // signature PIX cannot serialize into an access violation inside
+  // dxcompiler.dll, with nothing to say which signature was at fault.
+  if (serializedRootSignature == nullptr) {
+    return ret;
+  }
   auto const *serializedData = reinterpret_cast<const uint8_t *>(
       serializedRootSignature->GetBufferPointer());
   ret.assign(serializedData,
@@ -254,7 +261,12 @@ static void AddUAVToShaderAttributeRootSignature(DxilModule &DM,
   if (!rs.empty()) {
     std::vector<uint8_t> asVector = AddUAVParamterToRootSignature(
         rs.data(), static_cast<uint32_t>(rs.size()), toolsUAVRegister);
-    DM.ResetSerializedRootSignature(asVector);
+    // An empty result means serialization failed. Installing it would replace
+    // the shader's real root signature with nothing, which is worse than
+    // leaving the tools UAV out of it.
+    if (!asVector.empty()) {
+      DM.ResetSerializedRootSignature(asVector);
+    }
   }
 }
 
@@ -276,9 +288,12 @@ static void AddUAVToDxilDefinedGlobalRootSignatures(
         constexpr bool notALocalRS = false;
         if (subObject.second->GetRootSignature(notALocalRS, Data, Size,
                                                nullptr)) {
-          replacementRootSignatures.push_back(
-              {subObject.first.str(),
-               AddUAVParamterToRootSignature(Data, Size, toolsUAVRegister)});
+          std::vector<uint8_t> extended =
+              AddUAVParamterToRootSignature(Data, Size, toolsUAVRegister);
+          if (!extended.empty()) {
+            replacementRootSignatures.push_back(
+                {subObject.first.str(), std::move(extended)});
+          }
         }
       }
     }
@@ -299,6 +314,27 @@ hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
                                             unsigned int hlslBindIndex,
                                             const char *name) {
   LLVMContext &Ctx = DM.GetModule()->getContext();
+
+  // Adding a second UAV record for a register+space that already has one is
+  // never what the caller wants: the two records claim the same binding while
+  // carrying different resource IDs, and which one a handle resolves to is
+  // whichever the reader happens to look at first. Passes reach here more than
+  // once for entirely ordinary reasons - DxilPIXDXRInvocationsLog asks for the
+  // tools UAVs once per exported entry function, and PIX can run a pass over a
+  // module some other pass already instrumented - so the call has to be
+  // idempotent rather than merely documented as run-once.
+  //
+  // Everything below this point is derived from hlslBindIndex, so an existing
+  // record at that binding is by construction the record this call would have
+  // built. The root signature work is separately idempotent - ExtendRootSig
+  // returns early when the parameter is already present - so skipping it here
+  // has the same result as running it again.
+  for (auto const &ExistingUAV : DM.GetUAVs()) {
+    if (ExistingUAV->GetSpaceID() == toolsRegisterSpace &&
+        ExistingUAV->GetLowerBound() == hlslBindIndex) {
+      return ExistingUAV.get();
+    }
+  }
 
   const char *PIXStructTypeName = ShaderModelHandleTypeName(DM);
   llvm::StructType *UAVStructTy =
@@ -332,8 +368,7 @@ hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
   }
   pUAV->SetGlobalName(name);
   pUAV->SetRW(true); // sets UAV class
-  pUAV->SetSpaceID(
-      (unsigned int)-2);   // This is the reserved-for-tools register space
+  pUAV->SetSpaceID(toolsRegisterSpace); // reserved-for-tools register space
   pUAV->SetSampleCount(0); // This is what compiler generates for a raw UAV
   pUAV->SetGloballyCoherent(false);
   pUAV->SetReorderCoherent(false);
@@ -393,7 +428,10 @@ void EraseIfUnused(hlsl::DxilModule &DM, llvm::Function *OpFunction) {
   }
 }
 
-// Set up a UAV with structure of a single int
+// Fetch (creating on first use) the module's tools UAV at the given bind index,
+// and return a handle to it created at the builder's current position. The
+// resource record is shared across calls; the handle is not, because a handle
+// is only usable within the function it was created in.
 llvm::CallInst *CreateUAVOnceForModule(hlsl::DxilModule &DM,
                                        llvm::IRBuilder<> &Builder,
                                        unsigned int hlslBindIndex,

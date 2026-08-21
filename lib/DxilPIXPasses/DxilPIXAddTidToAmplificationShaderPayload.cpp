@@ -129,7 +129,13 @@ bool DxilPIXAddTidToAmplificationShaderPayload::runOnModule(Module &M) {
       auto *NewStructAlloca =
           B.CreateAlloca(expanded.ExpandedPayloadStructType,
                          HlslOP->GetU32Const(1), "NewPayload");
-      NewStructAlloca->setAlignment(4);
+      // The expanded payload inherits the original's alignment requirement -
+      // a payload containing a double needs eight - and CopyAggregate below
+      // writes each field at its natural offset within that alignment. Pinning
+      // the alloca to four regardless understates it for every payload whose
+      // widest member is larger than a dword.
+      NewStructAlloca->setAlignment(M.getDataLayout().getABITypeAlignment(
+          expanded.ExpandedPayloadStructType));
       auto PayloadType =
           llvm::dyn_cast<PointerType>(DispatchMesh.get_payload()->getType());
       SmallVector<Value *, 16> GEPIndices;

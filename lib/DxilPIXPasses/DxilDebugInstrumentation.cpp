@@ -235,6 +235,7 @@ struct InstructionAndType {
   DebugShaderModifierRecordType Type;
   std::uint32_t RegisterNumber;
   std::uint32_t AllocaBase;
+  std::uint32_t AllocaRegisterSize = 0;
   Value *AllocaWriteIndex = nullptr;
   std::optional<uint64_t> ConstantAllocaStoreValue;
 };
@@ -1017,11 +1018,10 @@ std::optional<InstructionAndType>
 DxilDebugInstrumentation::addStoreStepDebugEntry(BuilderContext *BC,
                                                  StoreInst *Inst) {
   std::uint32_t ValueOrdinalBase;
-  std::uint32_t UnusedValueOrdinalSize;
+  std::uint32_t ValueOrdinalSize;
   llvm::Value *ValueOrdinalIndex;
-  if (!pix_dxil::PixAllocaRegWrite::FromInst(Inst, &ValueOrdinalBase,
-                                             &UnusedValueOrdinalSize,
-                                             &ValueOrdinalIndex)) {
+  if (!pix_dxil::PixAllocaRegWrite::FromInst(
+          Inst, &ValueOrdinalBase, &ValueOrdinalSize, &ValueOrdinalIndex)) {
     return std::nullopt;
   }
 
@@ -1043,6 +1043,7 @@ DxilDebugInstrumentation::addStoreStepDebugEntry(BuilderContext *BC,
         ret.Type = *Type;
         ret.RegisterNumber = RegNum;
         ret.AllocaBase = ValueOrdinalBase;
+        ret.AllocaRegisterSize = ValueOrdinalSize;
         ret.AllocaWriteIndex = ValueOrdinalIndex;
         return ret;
       }
@@ -1053,6 +1054,7 @@ DxilDebugInstrumentation::addStoreStepDebugEntry(BuilderContext *BC,
       ret.InstructionOrdinal = InstNum;
       ret.Type = *Type;
       ret.AllocaBase = ValueOrdinalBase;
+      ret.AllocaRegisterSize = ValueOrdinalSize;
       ret.AllocaWriteIndex = ValueOrdinalIndex;
 
       switch (ValueAsConst->getType()->getTypeID()) {
@@ -1232,6 +1234,8 @@ DxilDebugInstrumentation::addStepDebugEntryValue(BuilderContext *BC,
   return std::nullopt;
 }
 
+static bool IsInstrumentableShaderKind(DXIL::ShaderKind shaderKind);
+
 bool DxilDebugInstrumentation::runOnModule(Module &M) {
   DxilModule &DM = M.GetOrCreateDxilModule();
 
@@ -1242,19 +1246,18 @@ bool DxilDebugInstrumentation::runOnModule(Module &M) {
   auto ShaderModel = DM.GetShaderModel();
   auto shaderKind = ShaderModel->GetKind();
   auto HLSLBindId = 0;
-  auto *uav = PIXPassHelpers::CreateGlobalUAVResource(DM, HLSLBindId, "PIXUAV");
-  bool modified = false;
+
+  // Work out which functions will be instrumented before adding the UAV and
+  // extending the root signature, rather than after. Adding a resource and a
+  // root parameter to a shader and then returning false says "I changed
+  // nothing" about a module that now declares a UAV nobody writes to - and,
+  // for a shader carrying its own root signature, one whose signature no
+  // longer matches the one the application created its PSO with.
+  std::vector<llvm::Function *> functionsToInstrument;
   if (shaderKind == DXIL::ShaderKind::Library) {
-    auto instrumentableFunctions =
-        PIXPassHelpers::GetAllInstrumentableFunctions(DM);
-    for (auto *F : instrumentableFunctions) {
-      if (RunOnFunction(M, DM, uav, F)) {
-        modified = true;
-      }
-    }
+    functionsToInstrument = PIXPassHelpers::GetAllInstrumentableFunctions(DM);
   } else {
-    llvm::Function *entryFunction = PIXPassHelpers::GetEntryFunction(DM);
-    modified = RunOnFunction(M, DM, uav, entryFunction);
+    functionsToInstrument.push_back(PIXPassHelpers::GetEntryFunction(DM));
 
     // A hull shader's patch-constant function is a second function that the
     // virtual-register annotation pass numbers and advertises to PIX as its own
@@ -1263,10 +1266,30 @@ bool DxilDebugInstrumentation::runOnModule(Module &M) {
     // patch-constant body sees instructions with no values behind them.
     llvm::Function *patchConstantFunction = DM.GetPatchConstantFunction();
     if (patchConstantFunction != nullptr &&
-        patchConstantFunction != entryFunction) {
-      if (RunOnFunction(M, DM, uav, patchConstantFunction)) {
-        modified = true;
-      }
+        patchConstantFunction != functionsToInstrument.front()) {
+      functionsToInstrument.push_back(patchConstantFunction);
+    }
+  }
+
+  functionsToInstrument.erase(
+      std::remove_if(functionsToInstrument.begin(), functionsToInstrument.end(),
+                     [&DM](llvm::Function *function) {
+                       return function == nullptr ||
+                              !IsInstrumentableShaderKind(
+                                  PIXPassHelpers::GetFunctionShaderKind(
+                                      DM, function));
+                     }),
+      functionsToInstrument.end());
+
+  if (functionsToInstrument.empty()) {
+    return false;
+  }
+
+  auto *uav = PIXPassHelpers::CreateGlobalUAVResource(DM, HLSLBindId, "PIXUAV");
+  bool modified = false;
+  for (auto *function : functionsToInstrument) {
+    if (RunOnFunction(M, DM, uav, function)) {
+      modified = true;
     }
   }
   return modified;
@@ -1393,17 +1416,17 @@ DxilDebugInstrumentation::FindInstrumentableInstructionsInBlock(
           IndexingToken = "s"; // static indexing, no debug output required
         } else {
           IndexingToken = "d"; // dynamic indexing
-          int MaxArraySize = 1;
-          if (auto *Store = dyn_cast<StoreInst>(&Inst)) {
-            if (auto *GEP =
-                    dyn_cast<GetElementPtrInst>(Store->getPointerOperand())) {
-              if (auto *Alloca =
-                      dyn_cast<AllocaInst>(GEP->getPointerOperand())) {
-                MaxArraySize =
-                    Alloca->getAllocatedType()->getArrayNumElements();
-              }
-            }
-          }
+          // The register span a dynamic write can land in is whatever the
+          // annotation pass allotted this alloca, and it recorded that in the
+          // !pix-alloca-reg-write metadata this instruction was matched on.
+          // Rederiving it by walking back to the alloca and reading its LLVM
+          // type only agreed for the simplest shape - a GEP directly on an
+          // array alloca - and reported a one-element array for a member of an
+          // aggregate, a multi-dimensional array, or anything reached through a
+          // bitcast. PIX then clamped every dynamic index to zero and showed
+          // the shader reading and writing element 0 of an array it was plainly
+          // indexing across.
+          uint32_t MaxArraySize = std::max(1u, IandT->AllocaRegisterSize);
           RegisterOrStaticIndex = std::to_string(IandT->AllocaBase) + "-" +
                                   std::to_string(MaxArraySize);
           DebugOutputForThisInstruction.ValueToWriteToDebugMemory =
@@ -1442,12 +1465,10 @@ DxilDebugInstrumentation::FindInstrumentableInstructionsInBlock(
   return ret;
 }
 
-bool DxilDebugInstrumentation::RunOnFunction(Module &M, DxilModule &DM,
-                                             hlsl::DxilResource *uav,
-                                             llvm::Function *function) {
-  DXIL::ShaderKind shaderKind =
-      PIXPassHelpers::GetFunctionShaderKind(DM, function);
-
+// Whether this pass has anything to emit for a function of the given kind.
+// Kept separate from RunOnFunction so runOnModule can ask the question before
+// it mutates anything - see the comment at the call site.
+static bool IsInstrumentableShaderKind(DXIL::ShaderKind shaderKind) {
   switch (shaderKind) {
   case DXIL::ShaderKind::Amplification:
   case DXIL::ShaderKind::Mesh:
@@ -1463,8 +1484,19 @@ bool DxilDebugInstrumentation::RunOnFunction(Module &M, DxilModule &DM,
   case DXIL::ShaderKind::ClosestHit:
   case DXIL::ShaderKind::Miss:
   case DXIL::ShaderKind::Node:
-    break;
+    return true;
   default:
+    return false;
+  }
+}
+
+bool DxilDebugInstrumentation::RunOnFunction(Module &M, DxilModule &DM,
+                                             hlsl::DxilResource *uav,
+                                             llvm::Function *function) {
+  DXIL::ShaderKind shaderKind =
+      PIXPassHelpers::GetFunctionShaderKind(DM, function);
+
+  if (!IsInstrumentableShaderKind(shaderKind)) {
     return false;
   }
   llvm::SmallPtrSet<Value *, 16> RayQueryHandles;

@@ -21,6 +21,8 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/Transforms/Utils/Local.h"
 
+#include <limits>
+
 #include "PixPassHelpers.h"
 
 using namespace llvm;
@@ -30,8 +32,8 @@ class DxilAddPixelHitInstrumentation : public ModulePass {
 
   bool ForceEarlyZ = false;
   bool AddPixelCost = false;
-  int RTWidth = 1024;
-  int NumPixels = 128;
+  uint32_t RTWidth = 1024;
+  uint32_t NumPixels = 128;
 
 public:
   static char ID; // Pass identification, replacement for typeid
@@ -47,8 +49,8 @@ public:
 void DxilAddPixelHitInstrumentation::applyOptions(PassOptions O) {
   GetPassOptionBool(O, "force-early-z", &ForceEarlyZ, false);
   GetPassOptionBool(O, "add-pixel-cost", &AddPixelCost, false);
-  GetPassOptionInt(O, "rt-width", &RTWidth, 0);
-  GetPassOptionInt(O, "num-pixels", &NumPixels, 0);
+  GetPassOptionUInt32(O, "rt-width", &RTWidth, 0);
+  GetPassOptionUInt32(O, "num-pixels", &NumPixels, 0);
   GetPassOptionUnsigned(O, "upstream-sv-position-row", &m_upstreamSVPositionRow,
                         0);
 }
@@ -59,6 +61,19 @@ bool DxilAddPixelHitInstrumentation::runOnModule(Module &M) {
   DxilModule &DM = M.GetOrCreateDxilModule();
   LLVMContext &Ctx = M.getContext();
   OP *HlslOP = DM.GetOP();
+
+  // Every byte offset the instrumentation emits is a 32-bit UAV offset, and the
+  // largest one is the weight slot just past the two NumPixels-sized halves.
+  // This used to be computed in int - NumPixels * 2 * 4 signed-overflows at a
+  // 16384x16384 render target, which is a legal D3D size - so do the arithmetic
+  // wide and decline to instrument rather than emit offsets that have wrapped.
+  constexpr uint64_t BytesPerPixel = 4;
+  const uint64_t HighestByteOffsetTouched =
+      static_cast<uint64_t>(NumPixels) * 2 * BytesPerPixel + BytesPerPixel;
+  if (NumPixels == 0 ||
+      HighestByteOffsetTouched > std::numeric_limits<uint32_t>::max()) {
+    return false;
+  }
 
   // ForceEarlyZ is incompatible with the discard function (the Z has to be
   // tested/written, and may be written before the shader even runs)
@@ -129,7 +144,8 @@ bool DxilAddPixelHitInstrumentation::runOnModule(Module &M) {
         Constant *One32Arg = HlslOP->GetU32Const(1);
         Constant *One8Arg = HlslOP->GetI8Const(1);
         UndefValue *UndefArg = UndefValue::get(Type::getInt32Ty(Ctx));
-        Constant *NumPixelsByteOffsetArg = HlslOP->GetU32Const(NumPixels * 4);
+        Constant *NumPixelsByteOffsetArg = HlslOP->GetU32Const(
+            static_cast<unsigned>(NumPixels * BytesPerPixel));
 
         // Step 1: Convert SV_POSITION to UINT
         Value *XAsInt;
@@ -160,12 +176,30 @@ bool DxilAddPixelHitInstrumentation::runOnModule(Module &M) {
         // Step 2: Calculate pixel index
         Value *Index;
         {
-          Constant *RTWidthArg = HlslOP->GetI32Const(RTWidth);
+          Constant *RTWidthArg = HlslOP->GetU32Const(RTWidth);
           auto YOffset = Builder.CreateMul(YAsInt, RTWidthArg, "YOffset");
           auto Elementoffset =
               Builder.CreateAdd(XAsInt, YOffset, "ElementOffset");
-          Index = Builder.CreateMul(Elementoffset, HlslOP->GetU32Const(4),
-                                    "ByteIndex");
+          // SV_Position is only within the render target if the render target
+          // is the size PIX said it was. It isn't always: rt-width and
+          // num-pixels describe the view PIX set up, and a shader writing
+          // through a differently-sized view - or one whose SV_Position has
+          // been offset by a viewport - produces an element index past the end
+          // of the counter buffer. Unclamped, that is an atomic add landing on
+          // whatever follows the UAV. Clamp instead, so a mis-sized draw
+          // over-counts the last pixel rather than corrupting memory.
+          Constant *LastElementArg = HlslOP->GetU32Const(NumPixels - 1);
+          Function *UMinOpFunc =
+              HlslOP->GetOpFunc(OP::OpCode::UMin, Type::getInt32Ty(Ctx));
+          Constant *UMinOpCode =
+              HlslOP->GetU32Const((unsigned)OP::OpCode::UMin);
+          auto ClampedElementOffset = Builder.CreateCall(
+              UMinOpFunc, {UMinOpCode, Elementoffset, LastElementArg},
+              "ClampedElementOffset");
+          Index = Builder.CreateMul(
+              ClampedElementOffset,
+              HlslOP->GetU32Const(static_cast<unsigned>(BytesPerPixel)),
+              "ByteIndex");
         }
 
         // Insert the UAV increment instruction:
@@ -207,7 +241,8 @@ bool DxilAddPixelHitInstrumentation::runOnModule(Module &M) {
                                                      Type::getInt32Ty(Ctx));
             Constant *LoadWeightOpcode =
                 HlslOP->GetU32Const((unsigned)DXIL::OpCode::BufferLoad);
-            Constant *OffsetIntoUAV = HlslOP->GetU32Const(NumPixels * 2 * 4);
+            Constant *OffsetIntoUAV = HlslOP->GetU32Const(
+                static_cast<unsigned>(NumPixels * 2 * BytesPerPixel));
             auto WeightStruct = Builder.CreateCall(
                 LoadWeight,
                 {

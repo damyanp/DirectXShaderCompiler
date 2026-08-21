@@ -626,7 +626,10 @@ bool DxilDbgValueToDbgDeclare::runOnModule(llvm::Module &M) {
         // lists.
         for (auto &instruction : instructions) {
           if (auto *Store = llvm::dyn_cast<llvm::StoreInst>(instruction)) {
-            Changed =
+            // Accumulate: a plain assignment here discards the record of every
+            // earlier change, so a pass that did modify the module could still
+            // report false and have its work dropped by whatever runs next.
+            Changed |=
                 handleStoreIfDestIsGlobal(M, GlobalEmbeddedArrayStorage, Store);
           }
         }
@@ -983,11 +986,40 @@ void DxilDbgValueToDbgDeclare::handleDbgValue(llvm::Module &M,
           continue;
         }
 
-        if (AllocaInst->getAllocatedType()->getArrayElementType() ==
-            VO.m_V->getType()) {
-          auto *GEP = B.CreateGEP(AllocaInst, {Zero, Zero});
-          B.CreateStore(VO.m_V, GEP);
+        llvm::Type *ShadowElementType =
+            AllocaInst->getAllocatedType()->getArrayElementType();
+        llvm::Value *ValueToStore = VO.m_V;
+        if (ShadowElementType != ValueToStore->getType()) {
+          // The shadow alloca's element type comes from the variable's debug
+          // info while the value comes from the IR, and the two disagree
+          // whenever the shader reinterprets bits rather than converting them -
+          // asfloat/asuint being the obvious way to get there. Skipping the
+          // store on that basis leaves PIX with a register it believes is live
+          // but nothing ever wrote, so the debugger shows a stale or zero value
+          // for a variable that is plainly assigned on the line in front of the
+          // user.
+          //
+          // A same-width reinterpretation is exactly what a bitcast expresses,
+          // and it is what the shader itself did, so emit one and keep the
+          // store. Anything else is a genuine disagreement about what the
+          // variable is, and inventing a conversion would put a value in the
+          // debugger that the shader never computed.
+          const llvm::DataLayout &DataLayout = M.getDataLayout();
+          const bool SameWidth =
+              !ShadowElementType->isAggregateType() &&
+              !ValueToStore->getType()->isAggregateType() &&
+              !ShadowElementType->isPointerTy() &&
+              !ValueToStore->getType()->isPointerTy() &&
+              DataLayout.getTypeSizeInBits(ShadowElementType) ==
+                  DataLayout.getTypeSizeInBits(ValueToStore->getType());
+          if (!SameWidth) {
+            continue;
+          }
+          ValueToStore = B.CreateBitCast(ValueToStore, ShadowElementType);
         }
+
+        auto *GEP = B.CreateGEP(AllocaInst, {Zero, Zero});
+        B.CreateStore(ValueToStore, GEP);
       }
     }
   }

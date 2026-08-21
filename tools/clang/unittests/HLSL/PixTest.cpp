@@ -199,6 +199,20 @@ public:
   TEST_METHOD(Validation_NonUniformResourceIndex_WaveOpsFlag)
   TEST_METHOD(Validation_MeshShaderOutput_And_AmplificationPayload)
 
+  // The tools UAV lives at one fixed binding, so every pass that asks for it
+  // has to get the same one back.
+  TEST_METHOD(ToolsUav_DxrInvocationsLogWithTwoEntryPointsCreatesOnePair)
+  TEST_METHOD(ToolsUav_PixelHitInstrumentationIsIdempotent)
+  TEST_METHOD(ToolsUav_DebugInstrumentationIsIdempotent)
+
+  TEST_METHOD(DxrInvocationsLog_ZeroMaxEntriesEmitsNothing)
+  TEST_METHOD(DebugInstrumentation_NothingInstrumentableAddsNoUav)
+  TEST_METHOD(PixelHit_NumPixelsTooLargeToAddressDeclinesToInstrument)
+  TEST_METHOD(PixelHit_IndexIsClampedToTheCounterBuffer)
+  TEST_METHOD(PixelHit_RootSignatureAtTheDwordLimitIsInstrumentedSafely)
+  TEST_METHOD(AddToASPayload_ExpandedAllocaKeepsTheNaturalAlignment)
+  TEST_METHOD(DebugInstrumentation_DynamicIndexSpanMatchesAllocaRegisterCount)
+
   TEST_METHOD(DebugBreakInstrumentation_Basic)
   TEST_METHOD(DebugBreakInstrumentation_NoDebugBreak)
   TEST_METHOD(DebugBreakInstrumentation_Multiple)
@@ -650,7 +664,8 @@ public:
   void VerifyGlobalRootSignaturesHaveToolsUAVs(
       IDxcBlob *optimizedContainer,
       const std::vector<std::string> &expectedRootSignatureNames);
-  CComPtr<IDxcBlob> RunDxilPIXDXRInvocationsLog(IDxcBlob *blob);
+  CComPtr<IDxcBlob>
+  RunDxilPIXDXRInvocationsLog(IDxcBlob *blob, unsigned maxNumEntriesInLog = 24);
   CComPtr<IDxcBlob> RunReduceMSAAToSingleSamplePass(IDxcBlob *blob);
   std::vector<std::string>
   RunDxilNonUniformResourceIndexInstrumentation(IDxcBlob *blob,
@@ -864,15 +879,19 @@ CComPtr<IDxcBlob> PixTest::RunDxilPIXMeshShaderOutputPass(IDxcBlob *blob) {
   return pOptimizedModule;
 }
 
-CComPtr<IDxcBlob> PixTest::RunDxilPIXDXRInvocationsLog(IDxcBlob *blob) {
+CComPtr<IDxcBlob>
+PixTest::RunDxilPIXDXRInvocationsLog(IDxcBlob *blob,
+                                     unsigned maxNumEntriesInLog) {
 
   CComPtr<IDxcBlob> dxil = FindModule(DFCC_ShaderDebugInfoDXIL, blob);
   CComPtr<IDxcOptimizer> pOptimizer;
   VERIFY_SUCCEEDED(
       m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+  std::wstring logArg = L"-hlsl-dxil-pix-dxr-invocations-log,"
+                        L"maxNumEntriesInLog=" +
+                        std::to_wstring(maxNumEntriesInLog);
   std::vector<LPCWSTR> Options;
-  Options.push_back(
-      L"-hlsl-dxil-pix-dxr-invocations-log,maxNumEntriesInLog=24");
+  Options.push_back(logArg.c_str());
 
   CComPtr<IDxcBlob> pOptimizedModule;
   CComPtr<IDxcBlobEncoding> pText;
@@ -5255,4 +5274,398 @@ void MSMain(
   auto msOutput = RunDxilPIXMeshShaderOutputPass(ms);
   VerifyInstrumentedModuleIsValid(msOutput,
                                   "mesh shader output instrumentation");
+}
+
+// Counts the DxilResource records the PIX passes add. Every one of them is a
+// UAV in the reserved-for-tools register space (-2), and the disassembled
+// resource metadata records space and lower bound as adjacent i32 fields:
+//
+//   !6 = !{i32 0, %..., !"PIXUAV0", i32 -2, i32 0, i32 1, i32 11, ...}
+//                                   ^space   ^lower bound
+static int CountToolsUavRecords(std::vector<std::string> const &lines) {
+  int count = 0;
+  for (auto const &line : lines) {
+    if (line.empty() || line[0] != '!') {
+      continue;
+    }
+    if (line.find(", i32 -2, i32 ") != std::string::npos) {
+      count++;
+    }
+  }
+  return count;
+}
+
+// RC-2. The tools UAV lives at a fixed register and space, so a second record
+// for the same binding is never a second resource - it is two records fighting
+// over one binding, with different resource IDs, and whichever the reader
+// resolves first wins.
+//
+// This is the shape that fires in the product today rather than only on a
+// second run of a pass: the DXR invocations log asks for its two UAVs once per
+// exported raytracing entry function, so any library with more than one of them
+// used to emit a duplicate pair.
+TEST_F(PixTest, ToolsUav_DxrInvocationsLogWithTwoEntryPointsCreatesOnePair) {
+  const char *source = R"x(
+struct [raypayload] MyPayload
+{
+    float2 barycentrics : read(caller) : write(caller,anyhit);
+    uint primitiveIndex : read(caller) : write(caller,anyhit);
+};
+
+[shader("miss")]
+void MissOne(inout MyPayload payload)
+{
+    payload.primitiveIndex = 1;
+}
+
+[shader("miss")]
+void MissTwo(inout MyPayload payload)
+{
+    payload.primitiveIndex = 2;
+}
+)x";
+
+  auto compiledLib = Compile(m_dllSupport, source, L"lib_6_6", {});
+  auto output = RunDxilPIXDXRInvocationsLog(compiledLib);
+  auto lines = Split(Disassemble(output), '\n');
+
+  // Two entry functions, two tools UAVs (a counter at u0 and the log at u1) -
+  // not two per function.
+  VERIFY_ARE_EQUAL(2, CountToolsUavRecords(lines));
+}
+
+// RC-2, from the other direction: running a pass over a module some other pass
+// already instrumented has to leave the binding alone rather than stack a
+// second record on top of it.
+TEST_F(PixTest, ToolsUav_PixelHitInstrumentationIsIdempotent) {
+  const char *source = R"x(
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return pos;
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+
+  auto firstRun = RunPixelHitPass(compiled, 16, 64);
+  auto firstLines = Split(Disassemble(firstRun.blob), '\n');
+  VERIFY_ARE_EQUAL(1, CountToolsUavRecords(firstLines));
+
+  auto secondRun = RunPixelHitPass(firstRun.blob, 16, 64);
+  auto secondLines = Split(Disassemble(secondRun.blob), '\n');
+  VERIFY_ARE_EQUAL(1, CountToolsUavRecords(secondLines));
+}
+
+// RC-2 again, for the debug instrumentation pass, which is the one PIX is most
+// likely to run over an already-instrumented module.
+TEST_F(PixTest, ToolsUav_DebugInstrumentationIsIdempotent) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main(uint3 tid : SV_DispatchThreadID)
+{
+    float f = (float)tid.x;
+    f = f * 2;
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"cs_6_0", {L"-Od"});
+  CComPtr<IDxcBlob> dxil = FindModule(DFCC_ShaderDebugInfoDXIL, compiled);
+
+  auto firstRun = RunDebugPass(dxil);
+  auto firstLines = Split(Disassemble(firstRun.blob), '\n');
+  VERIFY_ARE_EQUAL(1, CountToolsUavRecords(firstLines));
+
+  auto secondRun = RunDebugPass(firstRun.blob);
+  auto secondLines = Split(Disassemble(secondRun.blob), '\n');
+  VERIFY_ARE_EQUAL(1, CountToolsUavRecords(secondLines));
+}
+
+// RT-12. maxNumEntriesInLog is turned into a clamp of maxNumEntriesInLog - 1,
+// so zero used to wrap to 0xffffffff and stop the clamp limiting anything: a
+// buffer sized for no entries would then receive a full record from every
+// invocation.
+TEST_F(PixTest, DxrInvocationsLog_ZeroMaxEntriesEmitsNothing) {
+  const char *source = R"x(
+struct [raypayload] MyPayload
+{
+    float2 barycentrics : read(caller) : write(caller,anyhit);
+    uint primitiveIndex : read(caller) : write(caller,anyhit);
+};
+
+[shader("miss")]
+void MissOne(inout MyPayload payload)
+{
+    payload.primitiveIndex = 1;
+}
+)x";
+
+  auto compiledLib = Compile(m_dllSupport, source, L"lib_6_6", {});
+
+  // A log with room for one entry instruments normally...
+  auto normalOutput = RunDxilPIXDXRInvocationsLog(compiledLib, 1);
+  auto normalLines = Split(Disassemble(normalOutput), '\n');
+  VERIFY_ARE_EQUAL(2, CountToolsUavRecords(normalLines));
+
+  // ...and a log with room for none instruments not at all.
+  auto emptyOutput = RunDxilPIXDXRInvocationsLog(compiledLib, 0);
+  auto emptyLines = Split(Disassemble(emptyOutput), '\n');
+  VERIFY_ARE_EQUAL(0, CountToolsUavRecords(emptyLines));
+}
+
+// DI-7. The pass used to add the tools UAV - and extend the root signature -
+// before it knew whether it had anything to instrument, then return "I changed
+// nothing" for a module it had just given a UAV nobody writes to.
+TEST_F(PixTest, DebugInstrumentation_NothingInstrumentableAddsNoUav) {
+  const char *source = R"x(
+export float Helper(float x)
+{
+    return x * 2;
+}
+)x";
+
+  auto compiled = Compile(m_dllSupport, source, L"lib_6_6", {L"-Od"});
+  CComPtr<IDxcBlob> dxil = FindModule(DFCC_ShaderDebugInfoDXIL, compiled);
+
+  auto output = RunDebugPass(dxil);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  // A library with no shader entry points has nothing to instrument, so it must
+  // come out of the pass exactly as it went in.
+  VERIFY_ARE_EQUAL(0, CountToolsUavRecords(lines));
+}
+
+// RS-11. Every UAV byte offset the pixel-hit pass emits is a 32-bit value, and
+// the offsets are derived from num-pixels. The arithmetic used to be done in
+// int, which signed-overflows at a 16384x16384 render target - a legal D3D
+// size - and produced wrapped offsets rather than declining the work.
+TEST_F(PixTest, PixelHit_NumPixelsTooLargeToAddressDeclinesToInstrument) {
+  const char *source = R"x(
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return pos;
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+
+  // A render target whose pixel count needs more than 32 bits of byte offset
+  // across the pass's two halves.
+  auto output = RunPixelHitPass(compiled, 65536, 0x40000000);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  VERIFY_ARE_EQUAL(0, CountToolsUavRecords(lines));
+  VERIFY_ARE_EQUAL(0, CountPixelHitIncrements(lines));
+}
+
+// RS-11, the in-range half: the element index is derived from SV_Position and
+// a render-target width PIX supplies, and the two do not have to agree - a
+// viewport offset or a mis-sized view puts the index past the end of the
+// counter buffer. Unclamped that is an atomic add landing on whatever follows
+// the UAV.
+TEST_F(PixTest, PixelHit_IndexIsClampedToTheCounterBuffer) {
+  const char *source = R"x(
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return pos;
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+  auto output = RunPixelHitPass(compiled, 16, 64);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  VERIFY_IS_TRUE(CountPixelHitIncrements(lines) > 0);
+
+  bool foundClamp = false;
+  for (auto const &line : lines) {
+    if (line.find("call ") != std::string::npos &&
+        line.find("dx.op.binary.i32") != std::string::npos &&
+        line.find("ClampedElementOffset") != std::string::npos) {
+      foundClamp = true;
+    }
+  }
+  VERIFY_IS_TRUE(foundClamp);
+}
+
+// PH-6. ExtendRootSig adds a root descriptor for the tools UAV, and
+// SerializeRootSignature reports a signature it cannot accept by leaving its
+// output blob null - which the pass used to dereference regardless, giving an
+// access violation inside dxcompiler.dll with nothing to say which signature
+// was at fault. The guard turns that into leaving the signature alone.
+//
+// This is a guard rather than a red/green repro: the null blob comes from the
+// root signature verifier, and a signature that fails it cannot be produced by
+// a shader that compiles in the first place. What the test does prove is that
+// a signature with no room left for another root parameter - 64 root constants
+// is exactly the 64-DWORD limit - still comes through instrumentation intact.
+TEST_F(PixTest, PixelHit_RootSignatureAtTheDwordLimitIsInstrumentedSafely) {
+  const char *source = R"x(
+cbuffer Constants : register(b0)
+{
+    uint4 values[16];
+};
+
+[RootSignature("RootConstants(num32BitConstants=64, b0)")]
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return pos + values[0].x;
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+
+  // The point of the test is that this returns at all.
+  auto output = RunPixelHitPass(compiled, 16, 64);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  // The instrumentation itself still goes in; only the root signature - which
+  // PIX supplies separately anyway - is left alone.
+  VERIFY_IS_TRUE(CountPixelHitIncrements(lines) > 0);
+}
+
+// PH-7. The expanded amplification payload inherits the original's alignment
+// requirement, and CopyAggregate writes each field at its natural offset within
+// it. The alloca used to be pinned to four bytes regardless, understating it
+// for every payload whose widest member is bigger than a dword.
+TEST_F(PixTest, AddToASPayload_ExpandedAllocaKeepsTheNaturalAlignment) {
+  const char *source = R"x(
+struct MyPayload
+{
+    double d;
+    float f;
+};
+
+[numthreads(1, 1, 1)]
+void main(uint gid : SV_GroupID)
+{
+    MyPayload payload;
+    payload.d = (double)gid;
+    payload.f = (float)gid;
+    DispatchMesh(1, 1, 1, payload);
+})x";
+
+  auto as = Compile(m_dllSupport, source, L"as_6_6", {});
+  auto output = RunDxilPIXAddTidToAmplificationShaderPayloadPass(as);
+  auto lines = Split(Disassemble(output), '\n');
+
+  bool foundAlloca = false;
+  for (auto const &line : lines) {
+    if (line.find("alloca") == std::string::npos ||
+        line.find("NewPayload") == std::string::npos) {
+      continue;
+    }
+    foundAlloca = true;
+    // The payload contains a double, so the expanded struct needs eight-byte
+    // alignment.
+    VERIFY_ARE_NOT_EQUAL(std::string::npos, line.find("align 8"));
+  }
+  VERIFY_IS_TRUE(foundAlloca);
+}
+
+// Pulls the register span out of every dynamically-indexed alloca write the
+// debug instrumentation pass reported. The per-block records it emits are
+// semicolon-separated and a dynamic alloca write looks like
+//
+//   <instruction ordinal>,<type>,<register>,d,<alloca base>-<register span>
+//
+// where the span is how many virtual registers the write could land in.
+static std::vector<int>
+FindDynamicAllocaWriteSpans(std::vector<std::string> const &passOutputLines) {
+  std::vector<int> spans;
+  for (auto const &line : passOutputLines) {
+    for (auto const &record : Split(line, ';')) {
+      auto tokens = Split(record, ',');
+      if (tokens.size() < 5 || tokens[3] != "d") {
+        continue;
+      }
+      auto const dash = tokens[4].find('-');
+      if (dash == std::string::npos) {
+        continue;
+      }
+      spans.push_back(atoi(tokens[4].substr(dash + 1).c_str()));
+    }
+  }
+  return spans;
+}
+
+// DI-8. PIX clamps a dynamic index to the span this record reports, so a span
+// that undercounts the alloca hides every element past it: the debugger shows
+// the shader reading and writing element 0 of an array it is plainly indexing
+// across. The pass used to rederive the span by walking back to the alloca and
+// reading its LLVM array length, which only agreed with the virtual-register
+// numbering for the simplest shape. The span is now taken from the
+// !pix-alloca-reg-write metadata the annotation pass attached to the very
+// instruction being reported, so the two cannot disagree by construction.
+//
+// This is a regression guard rather than a red/green repro: DXC's SROA
+// flattens every aggregate the front end emits, so the two derivations happen
+// to agree on the shapes it produces today. The point of the test is to notice
+// if that stops being true.
+TEST_F(PixTest,
+       DebugInstrumentation_DynamicIndexSpanMatchesAllocaRegisterCount) {
+  struct Case {
+    char const *description;
+    char const *source;
+    int expectedSpan;
+  };
+
+  const Case cases[] = {
+      {"one-dimensional float array", R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    float values[8];
+    for (uint i = 0; i < 8; ++i) values[i] = 0;
+    values[RawUAV.Load(0)] = 7;
+    RawUAV.Store(4, asuint(values[RawUAV.Load(8)]));
+})x",
+       8},
+      {"two-dimensional array is flattened to one register run", R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    float m[4][4];
+    for (uint i = 0; i < 4; ++i) for (uint j = 0; j < 4; ++j) m[i][j] = 0;
+    m[RawUAV.Load(0)][RawUAV.Load(4)] = 7;
+    RawUAV.Store(8, asuint(m[RawUAV.Load(12)][RawUAV.Load(16)]));
+})x",
+       16},
+      {"array member of a struct", R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+struct Container { float before; float values[8]; float after; };
+[numthreads(1, 1, 1)]
+void main()
+{
+    Container c;
+    c.before = 1;
+    c.after = 2;
+    for (uint i = 0; i < 8; ++i) c.values[i] = 0;
+    c.values[RawUAV.Load(0)] = 7;
+    RawUAV.Store(4, asuint(c.values[RawUAV.Load(8)] + c.before + c.after));
+})x",
+       8},
+      {"dynamically indexed vector", R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    float3 v = float3(1, 2, 3);
+    v[RawUAV.Load(0)] = 7;
+    RawUAV.Store(4, asuint(v.x + v.y + v.z));
+})x",
+       3},
+  };
+
+  for (auto const &testCase : cases) {
+    WEX::Logging::Log::Comment(
+        WEX::Common::String().Format(L"%S", testCase.description));
+
+    auto compiled = Compile(m_dllSupport, testCase.source, L"cs_6_0", {L"-Od"});
+    auto output = RunDebugPass(compiled);
+    auto spans = FindDynamicAllocaWriteSpans(output.lines);
+
+    // If DXC ever stops emitting a dynamically-indexed alloca store for these
+    // shaders the test would otherwise quietly become a test of nothing.
+    VERIFY_IS_TRUE(spans.size() > 0);
+    for (int span : spans) {
+      VERIFY_ARE_EQUAL(testCase.expectedSpan, span);
+    }
+  }
 }

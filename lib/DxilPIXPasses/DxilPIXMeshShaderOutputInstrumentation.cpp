@@ -112,9 +112,12 @@ Value *DxilPIXMeshShaderOutputInstrumentation::reserveDebugEntrySpace(
   // Check the previous caller didn't reserve too much space:
   assert(m_RemainingReservedSpaceInBytes == 0);
 
-  // Check that the caller didn't ask for so much memory that it will
-  // overwrite the offset counter:
-  assert(m_RemainingReservedSpaceInBytes < (int)CounterOffsetBeyondUsefulData);
+  // Check that the caller isn't asking for so much memory that the writes will
+  // run past the useful data and into the offset counter. Asking this of
+  // m_RemainingReservedSpaceInBytes - which the assertion above has just
+  // established is zero - tests a constant rather than the request, so it could
+  // never fire whatever the caller passed.
+  assert(SpaceInBytes < CounterOffsetBeyondUsefulData);
 
   m_RemainingReservedSpaceInBytes = SpaceInBytes;
 

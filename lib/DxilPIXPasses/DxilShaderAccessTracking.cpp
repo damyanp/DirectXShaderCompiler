@@ -548,10 +548,17 @@ bool DxilShaderAccessTracking::EmitResourceAccess(DxilModule &DM,
       auto *EncodedShaderKindConstant = cast<ConstantInt>(
           m_FunctionToEncodedAccess.at(Builder.GetInsertBlock()->getParent())
               .at(ResourceAccessStyle::None));
-      uint32_t EncodedShaderKind =
-          EncodedShaderKindConstant->getLimitedValue();
+      uint32_t EncodedShaderKind = EncodedShaderKindConstant->getLimitedValue();
+      // The ordinal occupies the low 24 bits of the encoded dword; the bits
+      // above it carry the access style, the instruction-ordinal indicator and
+      // the shader kind. An ordinal that overflows its field would otherwise
+      // OR itself into all three, and PIX would read the record back as an
+      // access of some other kind from some other shader stage. Truncating
+      // loses which instruction it was, which is the least of the three.
+      constexpr uint32_t InstructionOrdinalMask = 0x00FF'FFFF;
       uint32_t EncodedInstructionNumber =
-          InstructionNumber | InstructionOrdinalndicator | EncodedShaderKind;
+          (InstructionNumber & InstructionOrdinalMask) |
+          InstructionOrdinalndicator | EncodedShaderKind;
       auto *MultipliedOutOfBoundsValue = Builder.CreateMul(
           OneIfOutOfBounds, HlslOP->GetU32Const(EncodedInstructionNumber));
       auto *CombinedFlagOrInstructionValue =

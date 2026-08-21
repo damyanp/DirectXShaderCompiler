@@ -66,6 +66,15 @@ bool DxilPIXDXRInvocationsLog::runOnModule(Module &M) {
   LLVMContext &Ctx = M.getContext();
   OP *HlslOP = DM.GetOP();
 
+  // A zero-entry log has nowhere to put anything. The clamp below is written as
+  // maxNumEntriesInLog - 1, so zero wraps to 0xffffffff and the umin stops
+  // limiting anything at all: every invocation would then write a full record
+  // into a buffer sized for none of them. There is nothing useful to emit for
+  // this configuration, so emit nothing.
+  if (m_MaxNumEntriesInLog == 0) {
+    return false;
+  }
+
   bool Modified = false;
 
   for (auto entryFunction : DM.GetExportedFunctions()) {
