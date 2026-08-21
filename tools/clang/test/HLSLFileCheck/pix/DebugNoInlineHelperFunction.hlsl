@@ -1,5 +1,5 @@
 // RUN: %dxc -Emain -Tcs_6_0 /Od /Zi %s | %opt -S -dxil-annotate-with-virtual-regs -hlsl-dxil-debug-instrumentation,parameter0=1,parameter1=2,parameter2=3 | %FileCheck %s
-// RUN: %dxc -Emain -Tcs_6_0 /Od /Zi %s | %opt -S -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs -hlsl-dxil-debug-instrumentation,parameter0=1,parameter1=2,parameter2=3 | %FileCheck %s -check-prefix=LOCALS
+// RUN: %dxc -Emain -Tcs_6_0 /Od /Zi %s | %opt -S -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs -hlsl-dxil-debug-instrumentation,parameter0=1,parameter1=2,parameter2=3 | %FileCheck %s -check-prefixes=LOCALS,TRACED
 
 // PIX identifies a shader invocation by the stream of records one thread writes into
 // the debug UAV, and maps that stream to exactly one function. A [noinline] helper
@@ -23,6 +23,13 @@
 // PIX can rebuild the call stack the user expects to step through.
 // CHECK: !DISubprogram(name: "ScaleHelper"
 // CHECK: inlinedAt:
+
+// Being scoped to the helper is not enough on its own - the value has to be traced too,
+// or PIX reaches the helper's frame and reads "unavailable". main has no float local of
+// its own, so a float alloca carrying a virtual register, and a traced store into one,
+// can only have come from the inlined helper.
+// TRACED: alloca [1 x float], i32 0, !pix-alloca-reg
+// TRACED: store float {{.*}}!pix-alloca-reg-write
 
 // The helper's local survives inlining still scoped to the helper, which is what puts
 // it under the right frame in PIX's locals view rather than under main's.

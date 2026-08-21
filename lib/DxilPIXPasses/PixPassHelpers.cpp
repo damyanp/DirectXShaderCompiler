@@ -478,9 +478,11 @@ bool InlineNonEntryFunctions(hlsl::DxilModule &DM) {
   llvm::Function *const entryFunction = DM.GetEntryFunction();
   llvm::Function *const patchConstantFunction = DM.GetPatchConstantFunction();
 
-  // Nothing is reachable without a root, and erasing every function because the
-  // module did not name one would be a far worse outcome than leaving it alone.
-  if (entryFunction == nullptr && patchConstantFunction == nullptr) {
+  // Nothing is reachable without an entry point, and erasing every function
+  // because the module did not name one - including, since it has no in-IR
+  // callers, whichever function was meant to be the entry point - would be a far
+  // worse outcome than leaving a degenerate module alone.
+  if (entryFunction == nullptr) {
     return false;
   }
 
@@ -533,6 +535,15 @@ bool InlineNonEntryFunctions(hlsl::DxilModule &DM) {
         DM.RemoveFunction(function);
         function->eraseFromParent();
         modified = true;
+      } else {
+        // A helper reached through something other than a direct call - or one
+        // llvm::InlineFunction declined - survives here, and the annotate pass
+        // will go on to advertise it to PIX as a second steppable range that no
+        // trace record will ever arrive for. Nothing HLSL can express is known
+        // to produce that shape, so say so loudly rather than shipping a shader
+        // that reads as two invocations of one thread.
+        DXASSERT(false, "PIX: a non-entry function survived inlining and will "
+                        "be advertised to PIX as an uninstrumented function");
       }
     }
   }
