@@ -12,6 +12,16 @@
 // The instrumentation therefore leaves mesh shader signatures alone even when
 // it is handed a row, and this test pins that down: the three signature
 // elements have to come out exactly as the front end packed them.
+//
+// Note on what this does and does not cover. There are two independent reasons
+// a mesh shader is unaffected: the ShaderKind guard in FindOrAddSV_Position,
+// and the fact that DxilDebugInstrumentation only calls it for pixel shaders at
+// all. The second alone is enough to make this test pass, and the checks below
+// are on the *output* signature whereas the relocation only ever touches the
+// *input* one - so deleting the ShaderKind guard would not turn this test red.
+// It documents the front-end packing that the guard's rationale rests on (two
+// register spaces, both numbered from zero) and pins the end-to-end behaviour;
+// it is not a unit test of the guard itself.
 
 struct VertexOut
 {

@@ -7,6 +7,13 @@
 // accumulated. Here Padded is 128 bits but its members only reach bit 96, so the
 // whole matrix used to be laid out 32 bits early: _11 landed on bit 96 and _22 on
 // bit 160, while the debug info declares them at bit 128 and bit 224.
+//
+// What this test pins is the *offsets*, and only those. Matrices have a separate,
+// pre-existing problem that this fix does not address: only the diagonal elements
+// are ever stored, so _12 and _21 still end up with a shadow register PIX believes
+// is live that nothing writes. Do not read the checks below as saying matrices are
+// now displayable in the debugger - they say the matrix is no longer laid out on
+// top of the member in front of it.
 
 RWByteAddressBuffer RawUAV : register(u0);
 

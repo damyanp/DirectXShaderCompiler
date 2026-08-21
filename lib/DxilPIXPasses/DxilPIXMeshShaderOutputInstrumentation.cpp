@@ -542,6 +542,17 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
         // reconciled. Expanding the mesh shader's own struct is what this pass
         // has always done and is right whenever both stages declare the same
         // struct.
+        //
+        // When PIX *did* give us a layout and we could not match it, though,
+        // the fallback is known-wrong: the two stages will declare different
+        // payload sizes and D3D will refuse the PSO. Say so, because the
+        // failure otherwise surfaces on the user's machine as a bare
+        // E_INVALIDARG from CreateGraphicsPipelineState with nothing pointing
+        // back at this pass.
+        if (m_ExpandedPayloadSize != 0 && OSOverride != nullptr) {
+          formatted_raw_ostream FOS(*OSOverride);
+          FOS << "\nMeshPayloadExpansionFailed\n";
+        }
         expanded = ExpandStructType(Ctx, OriginalPayloadStructType);
         AppendedFieldsElementIndex =
             OriginalPayloadStructType->getStructNumElements();
@@ -549,6 +560,13 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
             (unsigned)M.getDataLayout().getTypeAllocSize(
                 expanded.ExpandedPayloadStructType);
         if (expandedPayloadSizeInBytes > DXIL::kMaxMSASPayloadBytes) {
+          // Expanding would exceed the payload limit, so this shader cannot be
+          // instrumented at all. Report it rather than silently emitting an
+          // uninstrumented mesh shader.
+          if (OSOverride != nullptr) {
+            formatted_raw_ostream FOS(*OSOverride);
+            FOS << "\nMeshPayloadExpansionFailed\n";
+          }
           expanded = {};
         }
       }
@@ -600,6 +618,14 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
             HlslOP->GetU32Const((unsigned)OP::OpCode::GetMeshPayload);
         Value *args[] = {opArg};
         FirstNewStructGetMeshPayload = Builder.CreateCall(DxilFunc, args);
+      } else if (OSOverride != nullptr) {
+        // The requested layout could not be expressed as a struct at all - a
+        // size or offset PIX cannot have meant. The guard keeps this pass from
+        // emitting a multi-gigabyte array declared as a handful of bytes, but
+        // the mesh shader then declares a smaller payload than the
+        // amplification shader and PSO creation fails, so PIX needs telling.
+        formatted_raw_ostream FOS(*OSOverride);
+        FOS << "\nMeshPayloadExpansionFailed\n";
       }
     }
   }

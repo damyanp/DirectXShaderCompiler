@@ -104,8 +104,16 @@ enum class SVPositionRowAuthority {
 };
 
 // Hint is the default because it is the behaviour that cannot make an existing
-// signature worse: callers that have not opted in to the newer option spelling
-// keep the semantics they were written against.
+// signature worse: nothing already in the signature is moved.
+//
+// Note this is not bug-for-bug identical to the pre-relocation behaviour, and
+// cannot be. That code placed SV_Position on the requested row unconditionally,
+// overlapping whatever was already there and producing a signature the driver
+// may reject outright. Hint instead leaves the occupant alone and places
+// SV_Position on a free row, so an occupied row now yields a valid signature
+// whose position register does not match the upstream stage, where it used to
+// yield an invalid one. Both are wrong for a caller that needed the register to
+// match; only the newer spelling can get that right, which is why it exists.
 unsigned int
 FindOrAddSV_Position(hlsl::DxilModule &DM, unsigned UpStreamSVPosRow,
                      SVPositionRowAuthority RowAuthority =

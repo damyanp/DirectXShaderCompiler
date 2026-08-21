@@ -1021,6 +1021,17 @@ bool DxilShaderAccessTracking::runOnModule(Module &M) {
             // is dropped by accident rather than by design. Skip it for every
             // target so the accident stops mattering.
             continue;
+          case DXIL::OpCode::BarrierByMemoryHandle:
+            // A barrier on a resource orders accesses to it; it is not itself
+            // an access. Like annotateHandle it takes a handle parameter, and
+            // its DXIL memory attribute is neither ReadOnly nor ReadNone, so it
+            // fell through to the Write default and reported the resource as
+            // written by the barrier alone.
+            //
+            // Unlike annotateHandle this misreports on every target, not just
+            // libraries: any shader model 6.8 shader calling Barrier() on a
+            // resource handle had that resource marked written in PIX.
+            continue;
           case DXIL::OpCode::GetDimensions:
             // readWrite = ShaderAccessFlags::DescriptorRead;  // TODO: Support
             // GetDimensions

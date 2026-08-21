@@ -155,6 +155,18 @@ public:
       VALUE_TO_DECLARE_LOG("Advancing aligned offset from %d to %d",
                            m_CurrentAlignedOffset, AlignedOffset);
       m_CurrentAlignedOffset = AlignedOffset;
+    } else if (AlignedOffset < m_CurrentAlignedOffset) {
+      // Declared offsets are monotonic and no member can be declared below the
+      // sum of the widths preceding it, so a backwards request means the walk
+      // and the debug info have already diverged - every member keyed after
+      // this point is wrong. Moving backwards would not repair that, so the
+      // request is ignored, but it is worth catching in a debug build: the
+      // known way to provoke it is a member silently dropped upstream, such as
+      // an empty base class colliding with the first data member at offset 0.
+      VALUE_TO_DECLARE_LOG("Refusing to move aligned offset back from %d to %d",
+                           m_CurrentAlignedOffset, AlignedOffset);
+      assert(!"Aligned offset moved backwards - the layout walk has diverged "
+              "from the debug info");
     }
   }
 

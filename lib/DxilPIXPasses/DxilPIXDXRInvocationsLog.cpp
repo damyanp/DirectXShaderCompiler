@@ -67,11 +67,16 @@ bool DxilPIXDXRInvocationsLog::runOnModule(Module &M) {
   LLVMContext &Ctx = M.getContext();
   OP *HlslOP = DM.GetOP();
 
-  // A zero-entry log has nowhere to put anything. The clamp below is written as
-  // maxNumEntriesInLog - 1, so zero wraps to 0xffffffff and the umin stops
-  // limiting anything at all: every invocation would then write a full record
-  // into a buffer sized for none of them. There is nothing useful to emit for
-  // this configuration, so emit nothing.
+  // A zero-entry log has nowhere to put anything: the bounds check below admits
+  // an invocation when its index is less than the log size, which no index ever
+  // is when the size is zero, so every invocation would be instrumented only to
+  // have its record discarded. There is nothing useful to emit for this
+  // configuration, so emit nothing.
+  //
+  // (This guard predates the bounds check and originally existed because the
+  // clamp it replaced was written as maxNumEntriesInLog - 1, which wrapped to
+  // 0xffffffff and stopped limiting anything at all. The clamp is gone; the
+  // guard is now merely an optimisation, not a correctness requirement.)
   if (m_MaxNumEntriesInLog == 0) {
     return false;
   }

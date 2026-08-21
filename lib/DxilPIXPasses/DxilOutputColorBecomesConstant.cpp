@@ -159,14 +159,26 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
 
   // GetOpFunc materialises declarations on demand, so erase whichever overloads
   // we ended up not using rather than leaving dead external declarations behind.
-  auto EraseUnusedOutputFunctions = [&DM, &OutputFunctions]() {
-    for (Function *OutputFunction : OutputFunctions) {
-      PIXPassHelpers::EraseIfUnused(DM, OutputFunction);
+  // dxv rejects a module carrying an unused dx.op declaration ("External
+  // function 'dx.op.storeOutput.f16' is unused"), and PIX does not run the
+  // validator over what it patches, so a leaked declaration surfaces as a
+  // driver-side failure with nothing pointing at this pass.
+  //
+  // This is a scope guard rather than a call at each return because looking up
+  // all four overloads up front means *every* exit path now owes three erasures
+  // where the old two-overload code owed one, and an exit that forgets produces
+  // an invalid module rather than a merely suboptimal one.
+  struct EraseUnusedOutputFunctionsOnExit {
+    hlsl::DxilModule &DM;
+    std::array<Function *, 4> &OutputFunctions;
+    ~EraseUnusedOutputFunctionsOnExit() {
+      for (Function *OutputFunction : OutputFunctions) {
+        PIXPassHelpers::EraseIfUnused(DM, OutputFunction);
+      }
     }
-  };
+  } EraseUnusedOutputFunctions{DM, OutputFunctions};
 
   if (ActiveOverload == OverloadTypes.size()) {
-    EraseUnusedOutputFunctions();
     return false;
   }
 
@@ -296,7 +308,7 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
   } break;
   default:
     assert(false);
-    return 0;
+    return false;
   }
 
   bool Modified = false;
@@ -316,8 +328,6 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
             hlsl::DXIL::OperandIndex::kStoreOutputValOpIdx,
             ReplacementColors[*OutputColumn.getRawData()]);
       });
-
-  EraseUnusedOutputFunctions();
 
   return Modified;
 }

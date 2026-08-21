@@ -787,11 +787,28 @@ unsigned int FindOrAddSV_Position(hlsl::DxilModule &DM,
   if (!PlaceSVPositionAndRepackDisplacedElements(InputSignature,
                                                  *Added_SV_Position,
                                                  TargetRow)) {
-    // Giving up on the upstream row costs the pipeline its SV_Position pairing
-    // and so costs PIX the feature for this draw, but it still produces a
-    // module that is valid DXIL. Emitting a register past the end of the
-    // signature does not, and PIX does not run the validator over what it
-    // patches, so that module would go straight to the driver.
+    // An authoritative row is a promise about which register the upstream stage
+    // writes SV_Position to, so putting it anywhere else is a wrong answer
+    // rather than a degraded one: the instrumentation would read pixel position
+    // from a register nothing writes, and PIX would silently attribute its
+    // results to the wrong pixel. Fail instead, and let the caller drop the
+    // feature for this draw knowingly.
+    //
+    // A hint carries no such promise - callers that predate the relocating
+    // behaviour send row 0 when they could not read the upstream signature at
+    // all - so there the free-row fallback is still the best available answer.
+    // Emitting a register past the end of the signature is not an option in
+    // either case: that is invalid DXIL, and PIX does not run the validator
+    // over what it patches, so the module would go straight to the driver.
+    bool const RowWasPromised =
+        RowAuthority == SVPositionRowAuthority::Authoritative &&
+        TargetRow != kUnknownSVPositionRow;
+    if (RowWasPromised) {
+      throw ::hlsl::Exception(
+          E_FAIL, "PIX: the shader's input signature cannot accommodate the "
+                  "SV_Position element at the register the upstream stage "
+                  "writes it to.");
+    }
     if (TargetRow == kUnknownSVPositionRow ||
         !PlaceSVPositionAndRepackDisplacedElements(
             InputSignature, *Added_SV_Position, kUnknownSVPositionRow)) {

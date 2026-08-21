@@ -13,6 +13,12 @@
 // relocates a geometry shader signature, and this test pins that down: all four
 // elements have to come out exactly as the front end packed them, so that a
 // stream-blind row query cannot be papered over by a relocation.
+//
+// As with MeshShaderSignatureIsNotRelocated.hlsl, this pins the end-to-end
+// behaviour rather than the ShaderKind guard in FindOrAddSV_Position: the
+// debug-instrumentation pass never reaches that helper for a geometry shader,
+// and the checks below are on the output signature while the relocation only
+// touches the input one. Removing the guard would leave this test green.
 
 struct FirstStreamOut
 {

@@ -284,7 +284,9 @@ private:
   unsigned m_LastInstruction = static_cast<unsigned>(-1);
 
   uint64_t m_UAVSize = 1024 * 1024;
-  unsigned m_upstreamSVPositionRow;
+  unsigned m_upstreamSVPositionRow = PIXPassHelpers::kUnknownSVPositionRow;
+  PIXPassHelpers::SVPositionRowAuthority m_svPositionRowAuthority =
+      PIXPassHelpers::SVPositionRowAuthority::Hint;
 
   struct PerFunctionValues {
     CallInst *UAVHandle = nullptr;
@@ -386,8 +388,29 @@ void DxilDebugInstrumentation::applyOptions(PassOptions O) {
   GetPassOptionUnsigned(O, "parameter1", &m_Parameters.Parameters[1], 0);
   GetPassOptionUnsigned(O, "parameter2", &m_Parameters.Parameters[2], 0);
   GetPassOptionUInt64(O, "UAVSize", &m_UAVSize, 1024 * 1024);
+  // Two spellings of the same row, distinguished only by how much the caller
+  // vouches for it, matching DxilAddPixelHitInstrumentation. The older spelling
+  // has to keep its original meaning: callers that predate the relocating
+  // behaviour send row 0 when they could not read the upstream signature at
+  // all, and treating that as authoritative evicts a real interpolant on the
+  // strength of a guess.
+  //
+  // Note GetPassOptionUnsigned leaves the value untouched if the option is
+  // present but unparseable, so the member is seeded before the call rather
+  // than relying on the default argument.
+  m_upstreamSVPositionRow = PIXPassHelpers::kUnknownSVPositionRow;
   GetPassOptionUnsigned(O, "upstreamSVPositionRow", &m_upstreamSVPositionRow,
                         PIXPassHelpers::kUnknownSVPositionRow);
+  m_svPositionRowAuthority = PIXPassHelpers::SVPositionRowAuthority::Hint;
+
+  unsigned AuthoritativeRow = PIXPassHelpers::kUnknownSVPositionRow;
+  GetPassOptionUnsigned(O, "authoritativeSVPositionRow", &AuthoritativeRow,
+                        PIXPassHelpers::kUnknownSVPositionRow);
+  if (AuthoritativeRow != PIXPassHelpers::kUnknownSVPositionRow) {
+    m_upstreamSVPositionRow = AuthoritativeRow;
+    m_svPositionRowAuthority =
+        PIXPassHelpers::SVPositionRowAuthority::Authoritative;
+  }
 }
 
 uint32_t DxilDebugInstrumentation::UAVDumpingGroundOffset() {
@@ -511,8 +534,8 @@ DxilDebugInstrumentation::addRequiredSystemValues(BuilderContext &BC,
     // in the input signature
     break;
   case DXIL::ShaderKind::Pixel: {
-    SVIndices.PixelShader.Position =
-        PIXPassHelpers::FindOrAddSV_Position(BC.DM, m_upstreamSVPositionRow);
+    SVIndices.PixelShader.Position = PIXPassHelpers::FindOrAddSV_Position(
+        BC.DM, m_upstreamSVPositionRow, m_svPositionRowAuthority);
   } break;
   default:
     assert(false); // guaranteed by runOnModule
@@ -669,9 +692,10 @@ DxilDebugInstrumentation::addVertexShaderProlog(BuilderContext &BC,
       BC.HlslOP->GetU32Const((unsigned)DXIL::OpCode::LoadInput);
 
   // An input signature that was too full to take one of these system values
-  // leaves this shader with less than the usual identity to select on. What is
-  // left still narrows the field - and the alternative, a criterion no
-  // invocation can satisfy, would leave the debugger with nothing at all.
+  // leaves this shader with less than the usual identity to select on. One
+  // surviving identity still narrows the field to a set the user asked to be
+  // inside, which is an approximation worth making; none at all is handled
+  // below, where narrowing to nothing is the honest answer.
   auto LoadSystemValue = [&](unsigned ElementID,
                              char const *Name) -> Value * {
     if (ElementID == kUnavailableSignatureElementID) {
@@ -714,7 +738,19 @@ DxilDebugInstrumentation::addVertexShaderProlog(BuilderContext &BC,
   if (CompareToInstance != nullptr) {
     return CompareToInstance;
   }
-  return BC.HlslOP->GetI1Const(1);
+
+  // Neither identity survived, so there is no criterion to select on. Selecting
+  // *every* invocation would hand PIX an arbitrary vertex's trace to present as
+  // the one the user asked for - the same silent wrong-answer this pass fixes
+  // for node shaders - so select none instead and let PIX report the shader as
+  // undebuggable. VertexShaderSelection:None already tells it which case this
+  // is.
+  //
+  // GetOpFunc materialised the loadInput declaration before we knew whether
+  // either system value was available; with neither call emitted it would be
+  // left behind as an unused external function, which the validator rejects.
+  PIXPassHelpers::EraseIfUnused(BC.DM, LoadInputOpFunc);
+  return BC.HlslOP->GetI1Const(0);
 }
 
 Value *DxilDebugInstrumentation::addHullhaderProlog(BuilderContext &BC) {
