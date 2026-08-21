@@ -157,6 +157,11 @@ bool DxilNonUniformResourceIndexInstrumentation::runOnModule(Module &M) {
   PIXPassHelpers::EraseIfUnused(DM, AtomicOpFunc);
 
   if (modified) {
+    // The flags were last computed when the UAV was created, which is before
+    // the WaveActiveAllEqual calls above existed. Recompute now that the module
+    // is in its final shape, or it declares no wave ops while containing them.
+    DM.CollectShaderFlagsForModule();
+
     DM.ReEmitDxilResources();
 
     if (OSOverride != nullptr) {

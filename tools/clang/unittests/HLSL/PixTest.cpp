@@ -5167,10 +5167,16 @@ cbuffer Constants : register(b0)
 
 float4 main(float4 pos : SV_Position) : SV_Target
 {
-    return textures[NonUniformResourceIndex(index)].Sample(samp, pos.xy);
+    return textures[index].Sample(samp, pos.xy);
 })x";
 
-  // The pass inserts WaveActiveAllEqual, which requires the WaveOps shader
+  // The index is dynamic and *not* marked NonUniformResourceIndex, which is
+  // precisely the case this pass instruments. Do not add the qualifier here:
+  // the pass skips indices that already carry it, so the shader would compile,
+  // the pass would do nothing, and the test would pass without ever exercising
+  // the code under test.
+  //
+  // Instrumenting inserts WaveActiveAllEqual, which requires the WaveOps shader
   // flag. Inserting a wave intrinsic without declaring the flag is exactly what
   // the validator's flags-must-match-usage check exists to catch.
   auto compiled = Compile(m_dllSupport, source, L"ps_6_6", {L"-Od"});
@@ -5191,6 +5197,12 @@ float4 main(float4 pos : SV_Position) : SV_Target
 
   VerifyInstrumentedModuleIsValid(pOptimizedModule,
                                   "non-uniform resource index instrumentation");
+
+  // Guard against the shader silently ceasing to be a case the pass
+  // instruments, which would leave the check above vacuous.
+  VERIFY_ARE_NOT_EQUAL(
+      std::string::npos,
+      Disassemble(pOptimizedModule).find("dx.op.waveActiveAllEqual"));
 }
 
 TEST_F(PixTest, Validation_MeshShaderOutput_And_AmplificationPayload) {
