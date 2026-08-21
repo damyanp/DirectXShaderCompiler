@@ -526,8 +526,11 @@ bool InlineNonEntryFunctions(hlsl::DxilModule &DM) {
       // Leaving a callerless body behind would defeat the point: the annotation
       // pass numbers every function that has one and advertises its instruction
       // range to PIX, so the helper would still be offered as somewhere to step
-      // into even though nothing reaches it any more.
+      // into even though nothing reaches it any more. DxilModule has to be told
+      // first, or its entry-property and type-annotation maps keep entries keyed
+      // on a function that no longer exists.
       if (function->use_empty()) {
+        DM.RemoveFunction(function);
         function->eraseFromParent();
         modified = true;
       }
