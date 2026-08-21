@@ -106,6 +106,24 @@ bool DxilPIXAddTidToAmplificationShaderPayload::runOnModule(Module &M) {
         return false;
       }
 
+      // The three values appended below land after the original payload's last
+      // *field*, not after its total size, and the expanded struct is then
+      // re-rounded to the original's alignment. Neither quantity follows from
+      // the original payload's declared size alone, so report both to the
+      // caller: the mesh shader half of this instrumentation needs them to
+      // agree on the layout when it can't see the payload type itself.
+      if (OSOverride != nullptr) {
+        auto const *expandedLayout = M.getDataLayout().getStructLayout(
+            cast<StructType>(expanded.ExpandedPayloadStructType));
+        unsigned appendedFieldsOffsetInBytes =
+            (unsigned)expandedLayout->getElementOffset(
+                expanded.ExpandedPayloadStructType->getStructNumElements() - 3);
+        *OSOverride << "ExpandedPayloadSize:"
+                    << std::to_string(expandedPayloadSizeInBytes) << "\n";
+        *OSOverride << "ExpandedPayloadAppendedFieldsOffset:"
+                    << std::to_string(appendedFieldsOffsetInBytes) << "\n";
+      }
+
       llvm::IRBuilder<> B(&*I);
 
       auto *NewStructAlloca =

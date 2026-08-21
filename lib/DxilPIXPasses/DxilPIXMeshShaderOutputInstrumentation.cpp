@@ -72,6 +72,8 @@ private:
   bool m_ExpandPayload = false;
   uint32_t m_DispatchArgumentY = 1;
   uint32_t m_DispatchArgumentZ = 1;
+  uint32_t m_ExpandedPayloadSize = 0;
+  uint32_t m_ExpandedPayloadAppendedFieldsOffset = 0;
 
   struct BuilderContext {
     Module &M;
@@ -96,6 +98,9 @@ void DxilPIXMeshShaderOutputInstrumentation::applyOptions(PassOptions O) {
   GetPassOptionBool(O, "expand-payload", &m_ExpandPayload, 0);
   GetPassOptionUInt32(O, "dispatchArgY", &m_DispatchArgumentY, 1);
   GetPassOptionUInt32(O, "dispatchArgZ", &m_DispatchArgumentZ, 1);
+  GetPassOptionUInt32(O, "expanded-payload-size", &m_ExpandedPayloadSize, 0);
+  GetPassOptionUInt32(O, "expanded-payload-offset",
+                      &m_ExpandedPayloadAppendedFieldsOffset, 0);
 }
 
 uint32_t DxilPIXMeshShaderOutputInstrumentation::UAVDumpingGroundOffset() {
@@ -271,6 +276,69 @@ SmallVector<Value *, 2> DxilPIXMeshShaderOutputInstrumentation::
   return ret;
 }
 
+// A mesh shader that never reads its payload has no GetMeshPayload call, so the
+// payload struct type is absent from this module altogether and the expanded
+// layout cannot be recovered from it. The declared payload size is no
+// substitute: the amplification shader appends its three values after the
+// original payload's last *field* and then re-rounds the total to the
+// original's alignment, so two payloads with the same declared size can expand
+// to different offsets and different totals. The amplification shader pass
+// therefore reports the layout it produced and PIX forwards it here.
+//
+// Rebuild an equivalent type: the original payload becomes an opaque blob of
+// i32 (this pass has no interest in its contents), the three appended values
+// follow at the reported offset, and explicit tail padding makes the total
+// match the amplification shader's declared size exactly. Every element is
+// 4-byte aligned or smaller, so the synthesized struct's alloc size equals its
+// store size and no implicit padding can creep in. Getting this wrong is fatal
+// rather than merely inaccurate: D3D rejects PSO creation outright when the two
+// stages disagree about the payload size.
+static ExpandedStruct
+SynthesizeExpandedPayloadType(LLVMContext &Ctx, Type **OpaqueOriginalStructType,
+                              uint32_t ExpandedSizeInBytes,
+                              uint32_t AppendedFieldsOffsetInBytes) {
+  ExpandedStruct ret = {};
+
+  constexpr uint32_t AppendedFieldsSizeInBytes = 3 * sizeof(uint32_t);
+  if (AppendedFieldsOffsetInBytes % sizeof(uint32_t) != 0 ||
+      ExpandedSizeInBytes % sizeof(uint32_t) != 0 ||
+      ExpandedSizeInBytes <
+          AppendedFieldsOffsetInBytes + AppendedFieldsSizeInBytes ||
+      ExpandedSizeInBytes > DXIL::kMaxMSASPayloadBytes) {
+    return ret;
+  }
+
+  auto *Int32Type = Type::getInt32Ty(Ctx);
+  auto *OpaqueOriginalPayloadType = ArrayType::get(
+      Int32Type, AppendedFieldsOffsetInBytes / sizeof(uint32_t));
+
+  // The disambiguation values are read by element index, counted from the
+  // number of elements in the "original" type, so the opaque stand-in must be a
+  // struct of exactly one element to put them at indices 1, 2 and 3.
+  *OpaqueOriginalStructType = StructType::create(
+      Ctx, {OpaqueOriginalPayloadType}, "PIX_AS2MS_Opaque_Payload");
+
+  SmallVector<Type *, 5> Elements{OpaqueOriginalPayloadType, Int32Type,
+                                  Int32Type, Int32Type};
+  uint32_t TailPaddingInBytes = ExpandedSizeInBytes -
+                                AppendedFieldsOffsetInBytes -
+                                AppendedFieldsSizeInBytes;
+  if (TailPaddingInBytes != 0) {
+    // Padding is expressed in i32 rather than i8 because DXIL's data layout
+    // aligns i8 to 32 bits, which would make a byte array four times the size
+    // intended. Both the appended fields' offset and the expanded total are
+    // 4-byte aligned, so the padding between them always divides evenly.
+    Elements.push_back(
+        ArrayType::get(Int32Type, TailPaddingInBytes / sizeof(uint32_t)));
+  }
+
+  ret.ExpandedPayloadStructType =
+      StructType::create(Ctx, Elements, "PIX_AS2MS_Expanded_Type");
+  ret.ExpandedPayloadStructPtrType =
+      ret.ExpandedPayloadStructType->getPointerTo();
+  return ret;
+}
+
 bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
   DxilModule &DM = M.GetOrCreateDxilModule();
   LLVMContext &Ctx = M.getContext();
@@ -328,6 +396,26 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
         ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
             getMeshPayloadInstructions, payload,
             expanded.ExpandedPayloadStructType);
+      }
+    } else if (m_ExpandedPayloadSize != 0) {
+      // The mesh shader never reads the payload, but the amplification shader
+      // expanded it regardless, so this shader still has to declare the larger
+      // size or PSO creation fails. Synthesize a matching payload access so the
+      // per-invocation disambiguation values remain readable; without them,
+      // mesh output records from different amplification shader threads would
+      // collide and overwrite each other.
+      expanded = SynthesizeExpandedPayloadType(
+          Ctx, &OriginalPayloadStructType, m_ExpandedPayloadSize,
+          m_ExpandedPayloadAppendedFieldsOffset);
+      if (expanded.ExpandedPayloadStructPtrType != nullptr) {
+        IRBuilder<> Builder(dxilutil::FirstNonAllocaInsertionPt(
+            PIXPassHelpers::GetEntryFunction(DM)));
+        Function *DxilFunc = HlslOP->GetOpFunc(
+            OP::OpCode::GetMeshPayload, expanded.ExpandedPayloadStructPtrType);
+        Constant *opArg =
+            HlslOP->GetU32Const((unsigned)OP::OpCode::GetMeshPayload);
+        Value *args[] = {opArg};
+        FirstNewStructGetMeshPayload = Builder.CreateCall(DxilFunc, args);
       }
     }
   }
