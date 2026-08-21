@@ -364,14 +364,33 @@ hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
   auto *ret = pUAV.get();
   DM.AddUAV(std::move(pUAV));
 
-  // The UAV we just added is a raw buffer, and the module's declared shader
-  // flags were computed before it existed. Nothing downstream recomputes them,
-  // so without this the instrumented shader declares that it uses no raw or
-  // structured buffers while plainly containing one - a mismatch the standalone
-  // validator reports as "Flags declared=0, actual=16".
-  DM.m_ShaderFlags.SetEnableRawAndStructuredBuffers(true);
+  // The UAV we just added is a raw buffer, and it is visible from every stage.
+  // The module's declared shader flags were computed before it existed and
+  // nothing downstream recomputes them, so without this the instrumented shader
+  // declares that it uses no raw or structured buffers while plainly containing
+  // one. The standalone validator reports the mismatch as "Flags declared=0,
+  // actual=16" for a pixel shader, and "declared=16, actual=65552" for a vertex
+  // shader, where the extra bit is UAVsAtEveryStage. Recomputing from the
+  // module covers both, plus the 64-UAV flag if instrumentation pushes the
+  // resource count past eight.
+  DM.CollectShaderFlagsForModule();
 
   return ret;
+}
+
+// OP::GetOpFunc materialises a dx.op overload declaration on demand and caches
+// the result. Passes that speculatively look up an overload must remove it
+// again if nothing ended up referring to it, otherwise the module carries a
+// dead external declaration - which the validator rejects with "External
+// function
+// '...' is unused." Dropping it from the OP cache first matters: without that,
+// a later GetOpFunc for the same overload would hand back a dangling pointer to
+// the Function we just erased.
+void EraseIfUnused(hlsl::DxilModule &DM, llvm::Function *OpFunction) {
+  if (OpFunction != nullptr && OpFunction->user_empty()) {
+    DM.GetOP()->RemoveFunction(OpFunction);
+    OpFunction->eraseFromParent();
+  }
 }
 
 // Set up a UAV with structure of a single int
@@ -605,6 +624,29 @@ void ForEachDynamicallyIndexedResource(
 
   auto CreateHandleFn =
       HlslOP->GetOpFunc(DXIL::OpCode::CreateHandle, Type::getVoidTy(Ctx));
+  auto CreateHandleFromBindingFn = HlslOP->GetOpFunc(
+      DXIL::OpCode::CreateHandleFromBinding, Type::getVoidTy(Ctx));
+  auto CreateHandleFromHeapFn = HlslOP->GetOpFunc(
+      DXIL::OpCode::CreateHandleFromHeap, Type::getVoidTy(Ctx));
+
+  // A given shader only ever creates handles one way, but looking all three
+  // opcodes up materialises all three declarations. The visitor can bail out
+  // from the middle of any of the loops below, so clean up from a destructor
+  // rather than at the end of the function - otherwise the early exits leave
+  // dead external declarations behind and the module fails validation.
+  struct UnusedDeclarationCleanup {
+    hlsl::DxilModule &DM;
+    llvm::Function *CreateHandleFn;
+    llvm::Function *CreateHandleFromBindingFn;
+    llvm::Function *CreateHandleFromHeapFn;
+    ~UnusedDeclarationCleanup() {
+      EraseIfUnused(DM, CreateHandleFn);
+      EraseIfUnused(DM, CreateHandleFromBindingFn);
+      EraseIfUnused(DM, CreateHandleFromHeapFn);
+    }
+  } cleanup{DM, CreateHandleFn, CreateHandleFromBindingFn,
+            CreateHandleFromHeapFn};
+
   for (auto FI = CreateHandleFn->user_begin();
        FI != CreateHandleFn->user_end();) {
     auto *FunctionUser = *FI++;
@@ -620,8 +662,6 @@ void ForEachDynamicallyIndexedResource(
     }
   }
 
-  auto CreateHandleFromBindingFn = HlslOP->GetOpFunc(
-      DXIL::OpCode::CreateHandleFromBinding, Type::getVoidTy(Ctx));
   for (auto FI = CreateHandleFromBindingFn->user_begin();
        FI != CreateHandleFromBindingFn->user_end();) {
     auto *FunctionUser = *FI++;
@@ -637,8 +677,6 @@ void ForEachDynamicallyIndexedResource(
     }
   }
 
-  auto CreateHandleFromHeapFn = HlslOP->GetOpFunc(
-      DXIL::OpCode::CreateHandleFromHeap, Type::getVoidTy(Ctx));
   for (auto FI = CreateHandleFromHeapFn->user_begin();
        FI != CreateHandleFromHeapFn->user_end();) {
     auto *FunctionUser = *FI++;

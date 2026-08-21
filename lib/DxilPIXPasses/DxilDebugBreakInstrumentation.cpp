@@ -120,10 +120,11 @@ bool DxilDebugBreakInstrumentation::runOnModule(Module &M) {
     CI->eraseFromParent();
   }
 
-  // Clean up the now-unused declaration. Not strictly required for
-  // correctness, but keeps the module free of dead references.
-  if (DebugBreakFunc->use_empty())
-    DebugBreakFunc->eraseFromParent();
+  // Clean up the now-unused declarations. A shader with no DebugBreak at all
+  // leaves both the DebugBreak overload and the atomic we speculatively looked
+  // up dangling, which the validator rejects as an unused external function.
+  PIXPassHelpers::EraseIfUnused(DM, DebugBreakFunc);
+  PIXPassHelpers::EraseIfUnused(DM, AtomicOpFunc);
 
   const bool modified = (PixUAVResource != nullptr);
 

@@ -422,7 +422,10 @@ unsigned FindOrAddVSInSignatureElementForInstanceOrVertexID(
     unsigned Row = GetNextEmptyRow(InputElements);
     AddedElement->Initialize(
         hlsl::Semantic::Get(semanticKind)->GetName(), hlsl::CompType::getU32(),
-        hlsl::DXIL::InterpolationMode::Constant, 1, 1, Row, 0);
+        // A vertex shader input is not interpolated, so its interpolation mode
+        // has to be Undefined. Anything else is rejected by the validator with
+        // "Interpolation mode for '<semantic>' is set but should be undefined."
+        hlsl::DXIL::InterpolationMode::Undefined, 1, 1, Row, 0);
     AddedElement->AppendSemanticIndex(0);
     AddedElement->SetKind(semanticKind);
     AddedElement->SetUsageMask(1);

@@ -183,6 +183,22 @@ public:
   TEST_METHOD(ReduceMSAAToSingleSample_SM66)
   TEST_METHOD(ReduceMSAAToSingleSample_HalfLoad)
 
+  // The DXIL validator is never run by PIX itself, so these cover the class of
+  // defect that only it can see.
+  TEST_METHOD(Validation_PixelHit_PixelShader)
+  TEST_METHOD(Validation_DebugInstrumentation_VertexShader)
+  TEST_METHOD(Validation_DebugInstrumentation_ComputeShader)
+  TEST_METHOD(Validation_DebugInstrumentation_SVPositionRowOccupied)
+  TEST_METHOD(Validation_PixelHit_SVPositionRowOccupied)
+  TEST_METHOD(Validation_DebugBreak_PixelShader)
+  TEST_METHOD(Validation_ShaderAccessTracking_PixelShader)
+  TEST_METHOD(Validation_ShaderAccessTracking_DynamicallyIndexedResource)
+  TEST_METHOD(Validation_RemoveDiscards_NoDiscardPresent)
+  TEST_METHOD(Validation_ConstantColor_FloatOnlyShader)
+  TEST_METHOD(Validation_ReduceMSAAToSingleSample)
+  TEST_METHOD(Validation_NonUniformResourceIndex_WaveOpsFlag)
+  TEST_METHOD(Validation_MeshShaderOutput_And_AmplificationPayload)
+
   TEST_METHOD(DebugBreakInstrumentation_Basic)
   TEST_METHOD(DebugBreakInstrumentation_NoDebugBreak)
   TEST_METHOD(DebugBreakInstrumentation_Multiple)
@@ -439,6 +455,100 @@ public:
   }
 
   void ValidateAccessTrackingMods(const char *hlsl, bool modsExpected);
+
+  // PIX never runs the DXIL validator over its instrumented shaders - it
+  // forges the container hash and hands the result straight to the driver - so
+  // a pass that corrupts the module's declared metadata produces no diagnostic
+  // anywhere in the product. Some drivers reject the result, some silently
+  // misbehave, and neither outcome points at the pass that caused it. Running
+  // the validator here is the only place that class of defect is visible.
+  struct ValidationResult {
+    bool Valid;
+    std::string Errors;
+  };
+
+  ValidationResult ValidateInstrumentedModule(IDxcBlob *pModule) {
+    CComPtr<IDxcBlob> pContainer;
+
+    // Some pass runners hand back a bare bitcode module and some have already
+    // assembled a container; the validator only accepts the latter.
+    if (hlsl::IsDxilContainerLike(pModule->GetBufferPointer(),
+                                  pModule->GetBufferSize()) != nullptr) {
+      pContainer = pModule;
+    } else {
+      CComPtr<IDxcAssembler> pAssembler;
+      VERIFY_SUCCEEDED(
+          m_dllSupport.CreateInstance(CLSID_DxcAssembler, &pAssembler));
+
+      CComPtr<IDxcOperationResult> pAssembleResult;
+      VERIFY_SUCCEEDED(
+          pAssembler->AssembleToContainer(pModule, &pAssembleResult));
+
+      HRESULT assembleStatus;
+      VERIFY_SUCCEEDED(pAssembleResult->GetStatus(&assembleStatus));
+      if (FAILED(assembleStatus)) {
+        CComPtr<IDxcBlobEncoding> pAssembleErrors;
+        VERIFY_SUCCEEDED(pAssembleResult->GetErrorBuffer(&pAssembleErrors));
+        return {false,
+                "Container assembly failed: " + BlobToUtf8(pAssembleErrors)};
+      }
+
+      VERIFY_SUCCEEDED(pAssembleResult->GetResult(&pContainer));
+    }
+
+    CComPtr<IDxcValidator> pValidator;
+    VERIFY_SUCCEEDED(
+        m_dllSupport.CreateInstance(CLSID_DxcValidator, &pValidator));
+
+    CComPtr<IDxcOperationResult> pValidationResult;
+    VERIFY_SUCCEEDED(pValidator->Validate(pContainer, DxcValidatorFlags_Default,
+                                          &pValidationResult));
+
+    HRESULT validationStatus;
+    VERIFY_SUCCEEDED(pValidationResult->GetStatus(&validationStatus));
+    if (SUCCEEDED(validationStatus)) {
+      return {true, {}};
+    }
+
+    CComPtr<IDxcBlobEncoding> pValidationErrors;
+    VERIFY_SUCCEEDED(pValidationResult->GetErrorBuffer(&pValidationErrors));
+    return {false, BlobToUtf8(pValidationErrors)};
+  }
+
+  void VerifyInstrumentedModuleIsValid(IDxcBlob *pModule,
+                                       const char *description) {
+    auto validation = ValidateInstrumentedModule(pModule);
+
+    // The virtual-register annotation passes deliberately attach metadata that
+    // DXIL itself does not consume - it exists so PIX can map values back to
+    // source. The validator has no way to know that and reports every such node
+    // as unused, so filter those out and hold the pass to account for
+    // everything else. Do not widen this filter: every other diagnostic here is
+    // a real defect in a PIX pass.
+    std::vector<std::string> significantErrors;
+    std::stringstream errorStream(validation.Errors);
+    std::string line;
+    while (std::getline(errorStream, line)) {
+      if (!line.empty() && line.back() == '\r') {
+        line.pop_back();
+      }
+      if (line.empty() || line == "Validation failed." ||
+          line.find("All metadata must be used by dxil") != std::string::npos) {
+        continue;
+      }
+      significantErrors.push_back(line);
+    }
+
+    if (!significantErrors.empty()) {
+      std::string joined;
+      for (auto const &significantError : significantErrors) {
+        joined += significantError + "\n";
+      }
+      WEX::Logging::Log::Error(WEX::Common::String().Format(
+          L"Validation failed after %S:\n%S", description, joined.c_str()));
+      VERIFY_FAIL();
+    }
+  }
 
   class ModuleAndHangersOn {
     std::unique_ptr<llvm::LLVMContext> llvmContext;
@@ -4447,7 +4557,22 @@ float4 main(float4 col : COLOR) : SV_Target
   VERIFY_ARE_NOT_EQUAL(colorRow, positionRow);
 }
 
-// Regression test: a hull shader's patch-constant function is numbered by the
+TEST_F(PixTest, Validation_PixelHit_PixelShader) {
+  const char *source = R"x(
+Texture2D tex : register(t0);
+SamplerState samp : register(s0);
+
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return tex.Sample(samp, pos.xy);
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+  auto output = RunPixelHitPass(compiled, 16, 64);
+  VerifyInstrumentedModuleIsValid(output.blob, "pixel-hit instrumentation");
+}
+
+// Regression test: a hull shader's patch-constant function is numbered by the//
 // virtual-register annotation pass and advertised to PIX as its own steppable
 // instruction range, but the debug instrumentation only ever visited the entry
 // (control-point) function. The advertised range therefore emitted no trace
@@ -4618,10 +4743,15 @@ float4 main(float4 position : SV_Position) : SV_Target
   VERIFY_IS_TRUE(foundStructAnnotation);
 }
 
-// Runs a single named PIX pass and returns the emitted disassembly lines.
-static std::vector<std::string>
-RunSinglePassAndDisassemble(dxc::DxCompilerDllLoader &dllSupport,
-                            IDxcBlob *compiled, LPCWSTR passOption) {
+// Runs a single named PIX pass and returns both the optimized module and the
+// emitted disassembly lines.
+struct SinglePassOutput {
+  CComPtr<IDxcBlob> Module;
+  std::vector<std::string> Lines;
+};
+
+static SinglePassOutput RunSinglePass(dxc::DxCompilerDllLoader &dllSupport,
+                                      IDxcBlob *compiled, LPCWSTR passOption) {
   CComPtr<IDxcOptimizer> pOptimizer;
   VERIFY_SUCCEEDED(dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
   std::vector<LPCWSTR> Options;
@@ -4634,7 +4764,18 @@ RunSinglePassAndDisassemble(dxc::DxCompilerDllLoader &dllSupport,
   VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(compiled, Options.data(),
                                             Options.size(), &pOptimizedModule,
                                             &pText));
-  return Split(BlobToUtf8(pText), '\n');
+
+  SinglePassOutput ret;
+  ret.Module = pOptimizedModule;
+  ret.Lines = Split(BlobToUtf8(pText), '\n');
+  return ret;
+}
+
+// Runs a single named PIX pass and returns the emitted disassembly lines.
+static std::vector<std::string>
+RunSinglePassAndDisassemble(dxc::DxCompilerDllLoader &dllSupport,
+                            IDxcBlob *compiled, LPCWSTR passOption) {
+  return RunSinglePass(dllSupport, compiled, passOption).Lines;
 }
 
 // Returns true if the disassembly declares the named dx.op function but never
@@ -4822,4 +4963,284 @@ void main(uint3 tid : SV_DispatchThreadID) {
     pos += strlen("DebugBreakBitSet");
   }
   VERIFY_ARE_EQUAL(debugBreakBitSetCount, 2);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Validation coverage for the PIX instrumentation passes.
+//
+// PIX never runs the DXIL validator over the shaders it instruments - it
+// forges the container hash and hands the result straight to the driver - so a
+// pass that mutates the IR while leaving the metadata describing it stale
+// produces no diagnostic anywhere in the product. Depending on the driver the
+// result is either a rejected pipeline with no indication of why, or silently
+// wrong data. Neither points back at the pass responsible.
+//
+// These tests close that gap: each runs a PIX pass over a shader shape the
+// audit measured as failing validation, and requires the instrumented module to
+// validate. They cover the defects that have no observable symptom in the PIX
+// UI, which is why they live here rather than in the UI test suite.
+
+TEST_F(PixTest, Validation_DebugInstrumentation_VertexShader) {
+  const char *source = R"x(
+struct Output
+{
+    float4 position : SV_Position;
+    float4 colour   : COLOR;
+};
+
+Output main(uint vertexId : SV_VertexID)
+{
+    Output output;
+    output.position = float4(vertexId, 0, 0, 1);
+    output.colour = float4(1, 0, 0, 1);
+    return output;
+})x";
+
+  // A vertex shader has no UAVs of its own, so adding the PIX debug UAV is what
+  // first makes UAVsAtEveryStage true. The audit measured declared=0 against an
+  // actual of 65552 here.
+  auto compiled = Compile(m_dllSupport, source, L"vs_6_0", {L"-Od"});
+  auto output = RunDebugPass(compiled);
+  VerifyInstrumentedModuleIsValid(output.blob,
+                                  "debug instrumentation of a vertex shader");
+}
+
+TEST_F(PixTest, Validation_DebugInstrumentation_ComputeShader) {
+  const char *source = R"x(
+RWStructuredBuffer<float> output : register(u0);
+
+[numthreads(1, 1, 1)]
+void main(uint3 tid : SV_DispatchThreadID)
+{
+    output[tid.x] = tid.x;
+})x";
+
+  // The counterpart to the vertex shader case: this shader already carries a
+  // structured buffer, so the raw-and-structured-buffers flag was set before
+  // instrumentation. It passed even when the flag update was missing, which is
+  // why the defect went unnoticed for so long - keep it as the control.
+  auto compiled = Compile(m_dllSupport, source, L"cs_6_0", {L"-Od"});
+  auto output = RunDebugPass(compiled);
+  VerifyInstrumentedModuleIsValid(output.blob,
+                                  "debug instrumentation of a compute shader");
+}
+
+TEST_F(PixTest, Validation_DebugInstrumentation_SVPositionRowOccupied) {
+  const char *source = R"x(
+float4 main(float4 colour : COLOR) : SV_Target
+{
+    return colour;
+})x";
+
+  // COLOR already occupies row 0, which is where the injected SV_Position lands
+  // by default. Two signature elements on one row is a hard validation failure.
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  auto output = RunDebugPass(compiled);
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "debug instrumentation adding SV_Position to a full row");
+}
+
+TEST_F(PixTest, Validation_PixelHit_SVPositionRowOccupied) {
+  const char *source = R"x(
+float4 main(float4 colour : COLOR) : SV_Target
+{
+    return colour;
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+  auto output = RunPixelHitPass(compiled, 16, 64);
+  VerifyInstrumentedModuleIsValid(
+      output.blob,
+      "pixel-hit instrumentation adding SV_Position to a full row");
+}
+
+TEST_F(PixTest, Validation_DebugBreak_PixelShader) {
+  const char *source = R"x(
+Texture2D tex : register(t0);
+SamplerState samp : register(s0);
+
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return tex.Sample(samp, pos.xy);
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  auto output = RunDebugBreakPass(compiled);
+  VerifyInstrumentedModuleIsValid(output.blob, "debug-break instrumentation");
+}
+
+TEST_F(PixTest, Validation_ShaderAccessTracking_PixelShader) {
+  const char *source = R"x(
+Texture2D tex : register(t0);
+SamplerState samp : register(s0);
+
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return tex.Sample(samp, pos.xy);
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  auto output = RunShaderAccessTrackingPass(compiled);
+  VerifyInstrumentedModuleIsValid(output.blob, "shader access tracking");
+}
+
+TEST_F(PixTest, Validation_ShaderAccessTracking_DynamicallyIndexedResource) {
+  const char *source = R"x(
+Texture2D textures[8] : register(t0);
+SamplerState samp     : register(s0);
+
+cbuffer Constants : register(b0)
+{
+    uint index;
+};
+
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return textures[index].Sample(samp, pos.xy);
+})x";
+
+  // Dynamic indexing is what drives ForEachDynamicallyIndexedResource, which
+  // looked up dx.op overloads it did not always go on to call. A declared but
+  // uncalled dx.op function fails validation with DeclUsedExternalFunction.
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  auto output = RunShaderAccessTrackingPass(compiled);
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "shader access tracking of a dynamically indexed resource");
+}
+
+TEST_F(PixTest, Validation_RemoveDiscards_NoDiscardPresent) {
+  const char *source = R"x(
+float4 main() : SV_Target
+{
+    return float4(1, 2, 3, 4);
+})x";
+
+  // Looking up the discard overload materialises its declaration. With no
+  // discard in the shader to call it, the declaration is left dangling.
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  auto output =
+      RunSinglePass(m_dllSupport, compiled, L"-hlsl-dxil-remove-discards");
+  VerifyInstrumentedModuleIsValid(
+      output.Module, "discard removal on a shader with no discard");
+}
+
+TEST_F(PixTest, Validation_ConstantColor_FloatOnlyShader) {
+  const char *source = R"x(
+float4 main() : SV_Target
+{
+    return float4(1, 2, 3, 4);
+})x";
+
+  // The pass materialises both the float and int storeOutput overloads before
+  // knowing which the shader uses. A float-only shader leaves the int overload
+  // declared and uncalled.
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  auto output =
+      RunSinglePass(m_dllSupport, compiled, L"-hlsl-dxil-constantColor");
+  VerifyInstrumentedModuleIsValid(output.Module,
+                                  "constant-colour substitution");
+}
+
+TEST_F(PixTest, Validation_ReduceMSAAToSingleSample) {
+  const char *source = R"x(
+Texture2DMS<float4> msaaTexture : register(t0);
+
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return msaaTexture.Load(int2(pos.xy), 1);
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  auto reduced = RunReduceMSAAToSingleSamplePass(compiled);
+  VerifyInstrumentedModuleIsValid(reduced, "MSAA reduction to a single sample");
+}
+
+TEST_F(PixTest, Validation_NonUniformResourceIndex_WaveOpsFlag) {
+  const char *source = R"x(
+Texture2D textures[]  : register(t0);
+SamplerState samp     : register(s0);
+
+cbuffer Constants : register(b0)
+{
+    uint index;
+};
+
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return textures[NonUniformResourceIndex(index)].Sample(samp, pos.xy);
+})x";
+
+  // The pass inserts WaveActiveAllEqual, which requires the WaveOps shader
+  // flag. Inserting a wave intrinsic without declaring the flag is exactly what
+  // the validator's flags-must-match-usage check exists to catch.
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_6", {L"-Od"});
+  CComPtr<IDxcBlob> dxil = FindModule(DFCC_ShaderDebugInfoDXIL, compiled);
+
+  CComPtr<IDxcOptimizer> pOptimizer;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+  std::array<LPCWSTR, 4> Options = {
+      L"-opt-mod-passes", L"-dxil-dbg-value-to-dbg-declare",
+      L"-dxil-annotate-with-virtual-regs",
+      L"-hlsl-dxil-non-uniform-resource-index-instrumentation"};
+
+  CComPtr<IDxcBlob> pOptimizedModule;
+  CComPtr<IDxcBlobEncoding> pText;
+  VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(
+      dxil, Options.data(), Options.size(), &pOptimizedModule, &pText));
+
+  VerifyInstrumentedModuleIsValid(pOptimizedModule,
+                                  "non-uniform resource index instrumentation");
+}
+
+TEST_F(PixTest, Validation_MeshShaderOutput_And_AmplificationPayload) {
+  const char *hlsl = R"(
+struct MyPayload
+{
+    double d;
+    float f1;
+    float f2;
+};
+
+[numthreads(1, 1, 1)]
+void ASMain(uint gid : SV_GroupID)
+{
+    MyPayload payload;
+    payload.d = (double)gid;
+    payload.f1 = (float)gid / 4.f;
+    payload.f2 = (float)gid * 4.f;
+    DispatchMesh(1, 1, 1, payload);
+}
+
+struct PSInput
+{
+    float4 position : SV_POSITION;
+};
+
+[outputtopology("triangle")]
+[numthreads(3,1,1)]
+void MSMain(
+    in payload MyPayload small,
+    in uint tid : SV_GroupThreadID,
+    out vertices PSInput verts[3],
+    out indices uint3 triangles[1])
+{
+    SetMeshOutputCounts(3, 1);
+    verts[tid].position = float4(small.f1, small.f2, 0, 0);
+    triangles[0] = uint3(0, 1, 2);
+})";
+
+  // The double gives the payload 8-byte alignment and therefore tail padding,
+  // the shape that made the original declared-size bug so hard to read. The
+  // audit measured this pair as failing with declared=4 against an actual
+  // of 20.
+  auto as = Compile(m_dllSupport, hlsl, L"as_6_6", {}, L"ASMain");
+  auto asOutput = RunDxilPIXAddTidToAmplificationShaderPayloadPass(as);
+  VerifyInstrumentedModuleIsValid(asOutput,
+                                  "amplification shader payload expansion");
+
+  auto ms = Compile(m_dllSupport, hlsl, L"ms_6_6", {}, L"MSMain");
+  auto msOutput = RunDxilPIXMeshShaderOutputPass(ms);
+  VerifyInstrumentedModuleIsValid(msOutput,
+                                  "mesh shader output instrumentation");
 }

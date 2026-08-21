@@ -26,15 +26,6 @@
 using namespace llvm;
 using namespace hlsl;
 
-// OP::GetOpFunc materialises a dx.op overload declaration on demand. Passes that
-// speculatively look up an overload must remove it again if nothing ended up
-// referring to it, otherwise the module carries a dead external declaration.
-static void EraseIfUnused(Function *OpFunction) {
-  if (OpFunction != nullptr && OpFunction->user_empty()) {
-    OpFunction->eraseFromParent();
-  }
-}
-
 class DxilOutputColorBecomesConstant : public ModulePass {
 
   enum VisualizerInstrumentationMode {
@@ -138,8 +129,8 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
     // GetOpFunc materialises the declaration on demand, so erase whichever
     // overload we ended up not using rather than leaving a dead external
     // declaration behind.
-    EraseIfUnused(FloatOutputFunction);
-    EraseIfUnused(IntOutputFunction);
+    PIXPassHelpers::EraseIfUnused(DM, FloatOutputFunction);
+    PIXPassHelpers::EraseIfUnused(DM, IntOutputFunction);
     return false;
   }
 
@@ -290,8 +281,8 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
         });
   }
 
-  EraseIfUnused(FloatOutputFunction);
-  EraseIfUnused(IntOutputFunction);
+  PIXPassHelpers::EraseIfUnused(DM, FloatOutputFunction);
+  PIXPassHelpers::EraseIfUnused(DM, IntOutputFunction);
 
   return Modified;
 }

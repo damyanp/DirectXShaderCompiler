@@ -381,6 +381,9 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
       if (expanded.ExpandedPayloadStructPtrType != nullptr &&
           getMeshPayloadInstructions != nullptr) {
 
+        llvm::Function *OriginalGetMeshPayloadFunction =
+            cast<CallInst>(getMeshPayloadInstructions)->getCalledFunction();
+
         Function *DxilFunc = HlslOP->GetOpFunc(
             OP::OpCode::GetMeshPayload, expanded.ExpandedPayloadStructPtrType);
         Constant *opArg =
@@ -396,6 +399,10 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
         ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
             getMeshPayloadInstructions, payload,
             expanded.ExpandedPayloadStructType);
+
+        // The replacement call uses the expanded payload overload, so deleting
+        // the original call leaves the original overload declared and uncalled.
+        PIXPassHelpers::EraseIfUnused(DM, OriginalGetMeshPayloadFunction);
       }
     } else if (m_ExpandedPayloadSize != 0) {
       // The mesh shader never reads the payload, but the amplification shader
@@ -470,8 +477,11 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
       {Type::getFloatTy(Ctx), floatValueIndicator},
       {Type::getHalfTy(Ctx), float16ValueIndicator}};
 
+  SmallVector<Function *, 4> StoreVertexOutputFunctions;
+
   for (auto const &Overload : StoreVertexOutputOverloads) {
     F = HlslOP->GetOpFunc(DXIL::OpCode::StoreVertexOutput, Overload.type);
+    StoreVertexOutputFunctions.push_back(F);
     FunctionUses = F->uses();
     for (auto FI = FunctionUses.begin(); FI != FunctionUses.end();) {
       auto &FunctionUse = *FI++;
@@ -508,6 +518,14 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
                  Call->getOperand(1), Call->getOperand(2), ColumnIndex,
                  CoercedValue, Call->getOperand(5));
     }
+  }
+
+  // A mesh shader only ever writes some of the four vertex-output types, but
+  // instrumenting them all means looking all four overloads up. Whichever went
+  // unused would otherwise be left as a dead external declaration, which fails
+  // validation.
+  for (Function *StoreVertexOutputFunction : StoreVertexOutputFunctions) {
+    PIXPassHelpers::EraseIfUnused(DM, StoreVertexOutputFunction);
   }
 
   // If the AS->MS payload struct was expanded, the entry point's declared

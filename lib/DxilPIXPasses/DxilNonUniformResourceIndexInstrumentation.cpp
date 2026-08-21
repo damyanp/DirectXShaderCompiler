@@ -149,6 +149,13 @@ bool DxilNonUniformResourceIndexInstrumentation::runOnModule(Module &M) {
 
   const bool modified = (PixUAVResource != nullptr);
 
+  // A shader whose dynamic indexing is already correctly marked
+  // NonUniformResourceIndex needs no instrumentation, but the overloads looked
+  // up above were materialised regardless. Left behind they are dead external
+  // declarations, which the validator rejects.
+  PIXPassHelpers::EraseIfUnused(DM, WaveActiveAllEqualFunc);
+  PIXPassHelpers::EraseIfUnused(DM, AtomicOpFunc);
+
   if (modified) {
     DM.ReEmitDxilResources();
 

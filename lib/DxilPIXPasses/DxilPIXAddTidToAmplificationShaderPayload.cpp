@@ -208,8 +208,15 @@ bool DxilPIXAddTidToAmplificationShaderPayload::runOnModule(Module &M) {
                    {DispatchMeshOpcode, DispatchMesh.get_threadGroupCountX(),
                     DispatchMesh.get_threadGroupCountY(),
                     DispatchMesh.get_threadGroupCountZ(), NewStructAlloca});
+
+      // The replacement call above is a different overload - it takes the
+      // expanded payload type - so removing the original leaves the original
+      // overload declared and uncalled, which fails validation.
+      llvm::Function *OriginalDispatchMeshFn =
+          cast<CallInst>(&*I)->getCalledFunction();
       I->removeFromParent();
       delete &*I;
+      PIXPassHelpers::EraseIfUnused(DM, OriginalDispatchMeshFn);
 
       // The payload struct was expanded with three extra i32 values, so the
       // entry point's declared payload size must grow to match. Use the
