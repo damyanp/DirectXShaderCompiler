@@ -21,6 +21,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Pass.h"
+#include "llvm/Transforms/Utils/Cloning.h"
 
 #include "PixPassHelpers.h"
 
@@ -464,6 +465,76 @@ GetAllInstrumentableFunctions(hlsl::DxilModule &DM) {
   }
 
   return ret;
+}
+
+bool InlineNonEntryFunctions(hlsl::DxilModule &DM) {
+  if (DM.GetShaderModel()->IsLib()) {
+    return false;
+  }
+
+  // A hull shader's patch-constant function is invoked by the runtime rather
+  // than by the entry point, so it is a second root of the call graph and must
+  // survive alongside it.
+  llvm::Function *const entryFunction = DM.GetEntryFunction();
+  llvm::Function *const patchConstantFunction = DM.GetPatchConstantFunction();
+
+  // Nothing is reachable without a root, and erasing every function because the
+  // module did not name one would be a far worse outcome than leaving it alone.
+  if (entryFunction == nullptr && patchConstantFunction == nullptr) {
+    return false;
+  }
+
+  bool modified = false;
+
+  // HLSL has no recursion, so the call graph is acyclic and inlining leaf-ward
+  // terminates. Iterating to a fixed point rather than ordering the traversal
+  // costs a few passes over a handful of functions and copes with a helper that
+  // only becomes callerless once another helper has been inlined away.
+  bool inlinedACallThisRound = true;
+  while (inlinedACallThisRound) {
+    inlinedACallThisRound = false;
+
+    for (llvm::Function *function : GetAllInstrumentableFunctions(DM)) {
+      if (function == entryFunction || function == patchConstantFunction) {
+        continue;
+      }
+
+      // llvm::InlineFunction is the mechanical inliner and does not consult
+      // inlining attributes - that is the inliner pass' job - but clear the
+      // attribute anyway so the module does not carry a claim that contradicts
+      // what was done to it.
+      function->removeFnAttr(llvm::Attribute::NoInline);
+
+      // Collected before inlining because inlining rewrites the use list.
+      llvm::SmallVector<llvm::CallInst *, 8> callSites;
+      for (llvm::User *user : function->users()) {
+        if (auto *call = llvm::dyn_cast<llvm::CallInst>(user)) {
+          if (call->getCalledFunction() == function) {
+            callSites.push_back(call);
+          }
+        }
+      }
+
+      for (llvm::CallInst *callSite : callSites) {
+        llvm::InlineFunctionInfo inlineFunctionInfo;
+        if (llvm::InlineFunction(callSite, inlineFunctionInfo)) {
+          inlinedACallThisRound = true;
+          modified = true;
+        }
+      }
+
+      // Leaving a callerless body behind would defeat the point: the annotation
+      // pass numbers every function that has one and advertises its instruction
+      // range to PIX, so the helper would still be offered as somewhere to step
+      // into even though nothing reaches it any more.
+      if (function->use_empty()) {
+        function->eraseFromParent();
+        modified = true;
+      }
+    }
+  }
+
+  return modified;
 }
 
 hlsl::DXIL::ShaderKind GetFunctionShaderKind(hlsl::DxilModule &DM,

@@ -1404,27 +1404,6 @@ DxilDebugInstrumentation::addStepDebugEntryValue(BuilderContext *BC,
 
 static bool IsInstrumentableShaderKind(DXIL::ShaderKind shaderKind);
 
-// The selection prologs for these stages are built out of dx.op operations
-// that the validator only accepts in a function carrying entry properties -
-// LoadInput for vertex and pixel shaders, OutputControlPointID for hull
-// shaders - and rejects anywhere else with
-// ValidationRule::InstrSignatureOperationNotInEntry. Every other stage
-// identifies its invocation with an operation (ThreadId, ThreadIdInGroup,
-// PrimitiveID, GSInstanceID, DispatchRaysIndex) that is legal in any function
-// of a module of that kind, so the helper functions of those stages can be
-// instrumented as well as their entry point.
-static bool
-SelectionPrologIsLegalOutsideEntryFunction(DXIL::ShaderKind shaderKind) {
-  switch (shaderKind) {
-  case DXIL::ShaderKind::Vertex:
-  case DXIL::ShaderKind::Pixel:
-  case DXIL::ShaderKind::Hull:
-    return false;
-  default:
-    return true;
-  }
-}
-
 bool DxilDebugInstrumentation::runOnModule(Module &M) {
   DxilModule &DM = M.GetOrCreateDxilModule();
 
@@ -1446,29 +1425,26 @@ bool DxilDebugInstrumentation::runOnModule(Module &M) {
   if (shaderKind == DXIL::ShaderKind::Library) {
     functionsToInstrument = PIXPassHelpers::GetAllInstrumentableFunctions(DM);
   } else {
-    // The virtual-register annotation pass numbers every function that has a
-    // body - [noinline] helpers included - and advertises each one's
-    // instruction range to PIX. Instrumenting only the entry point advertises
-    // ranges that emit no trace records at all, so PIX offers the user a
-    // function it can never step into. (A hull shader's patch-constant
-    // function is just the first such helper anyone happened to notice; it
-    // needs no special case once every helper is covered.)
-    //
-    // Not every helper can be given a selection prolog, though - see
-    // SelectionPrologIsLegalOutsideEntryFunction. Where it can't, the helper
-    // stays uninstrumented: emitting the prolog anyway would produce invalid
-    // DXIL, and omitting it would mark every invocation of the shader as the
-    // one of interest and swamp the debug UAV.
-    llvm::Function *entryFunction = DM.GetEntryFunction();
+    // Only the functions the runtime itself invokes are instrumented. A helper
+    // called from the entry point is not one of them, and cannot be made into
+    // one: PIX identifies an invocation by a record stream in the debug UAV and
+    // maps that stream to a single function, so instrumenting a helper produces
+    // a second invocation for one thread whose records are then discarded. The
+    // annotation pass inlines those helpers away before anything is numbered -
+    // see PIXPassHelpers::InlineNonEntryFunctions - which is what makes them
+    // steppable, so there is nothing left here for this pass to reach.
+    functionsToInstrument.push_back(PIXPassHelpers::GetEntryFunction(DM));
+
+    // A hull shader's patch-constant function is invoked by the runtime rather
+    // than by the entry point, so it survives inlining and is numbered and
+    // advertised to PIX as its own steppable instruction range. Leaving it
+    // uninstrumented advertises a range that emits no trace records at all, so
+    // a user stepping into the patch-constant body sees instructions with no
+    // values behind them.
     llvm::Function *patchConstantFunction = DM.GetPatchConstantFunction();
-    bool helpersAreInstrumentable =
-        SelectionPrologIsLegalOutsideEntryFunction(shaderKind);
-    for (llvm::Function *function :
-         PIXPassHelpers::GetAllInstrumentableFunctions(DM)) {
-      if (helpersAreInstrumentable || function == entryFunction ||
-          function == patchConstantFunction) {
-        functionsToInstrument.push_back(function);
-      }
+    if (patchConstantFunction != nullptr &&
+        patchConstantFunction != functionsToInstrument.front()) {
+      functionsToInstrument.push_back(patchConstantFunction);
     }
   }
 

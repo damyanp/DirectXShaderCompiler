@@ -51,6 +51,26 @@ llvm::Function *GetEntryFunction(hlsl::DxilModule &DM);
 void EraseIfUnused(hlsl::DxilModule &DM, llvm::Function *OpFunction);
 std::vector<llvm::Function *>
 GetAllInstrumentableFunctions(hlsl::DxilModule &DM);
+// Inlines every function that is not one of the module's entry points into its
+// callers, so a non-library module is left with nothing but the functions the
+// runtime itself invokes.
+//
+// PIX identifies one shader invocation by one record stream in the debug UAV,
+// and its trace reader maps that stream to exactly one function by instruction
+// ordinal range. A [noinline] helper therefore cannot be instrumented as a
+// function in its own right without appearing to PIX as a second, unrelated
+// invocation of the same thread, whose records the reader then discards for not
+// matching the invocation being debugged. Inlining the helper instead keeps one
+// invocation per thread, and leaves the helper visible exactly where PIX
+// already looks for it: the inlinedAt chain of the debug locations, which is
+// how a helper the front end inlined of its own accord is presented today.
+//
+// This has to run before anything numbers instructions, because the ordinals
+// PIX steps through are assigned to the module this leaves behind.
+//
+// Library modules are left alone: every function they export is an invocation
+// in its own right, so there is no single entry point to inline into.
+bool InlineNonEntryFunctions(hlsl::DxilModule &DM);
 hlsl::DXIL::ShaderKind GetFunctionShaderKind(hlsl::DxilModule &DM,
                                              llvm::Function *fn);
 #ifdef PIX_DEBUG_DUMP_HELPER

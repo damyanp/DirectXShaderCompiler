@@ -1,31 +1,42 @@
-// RUN: %dxc -Emain -Tcs_6_0 %s | %opt -S -dxil-annotate-with-virtual-regs -hlsl-dxil-debug-instrumentation,parameter0=1,parameter1=2,parameter2=3 | %FileCheck %s
+// RUN: %dxc -Emain -Tcs_6_0 /Od /Zi %s | %opt -S -dxil-annotate-with-virtual-regs -hlsl-dxil-debug-instrumentation,parameter0=1,parameter1=2,parameter2=3 | %FileCheck %s
+// RUN: %dxc -Emain -Tcs_6_0 /Od /Zi %s | %opt -S -dxil-dbg-value-to-dbg-declare -dxil-annotate-with-virtual-regs -hlsl-dxil-debug-instrumentation,parameter0=1,parameter1=2,parameter2=3 | %FileCheck %s -check-prefix=LOCALS
 
-// The annotation pass numbers the instructions of every function with a body and
-// reports the resulting range to PIX, which is what lets PIX map a traced ordinal back
-// to a source line. The debug instrumentation pass used to instrument only the entry
-// point (plus, as a special case, a hull shader's patch constant function), so the
-// ordinals belonging to a [noinline] helper were advertised but nothing ever wrote a
-// trace record for them: PIX showed the user a call it could never step into.
+// PIX identifies a shader invocation by the stream of records one thread writes into
+// the debug UAV, and maps that stream to exactly one function. A [noinline] helper
+// therefore cannot be instrumented as a function in its own right: its records would
+// arrive under a second invocation identity for a thread that only ran once, and PIX
+// would discard them as belonging to some other thread.
 //
-// The two passes now agree on the same set of functions. Note that this does not
-// disturb instruction numbering, which the annotation pass alone decides and which
-// already covered these functions.
+// The annotation pass instead inlines helpers into the entry point before anything is
+// numbered, which is the same shape the front end produces for an ordinary helper, and
+// which PIX already knows how to present: the helper's frame is recovered from the
+// inlinedAt chain on each inlined instruction, and its locals stay attributed to it.
 
-// The helper is numbered and reported...
-// CHECK: InstructionRange: {{[0-9]+}} {{[0-9]+}} {{.*}}ScaleHelper
+// One function, so one invocation identity.
+// CHECK: InstructionRange: {{[0-9]+}} {{[0-9]+}} main cs
+// CHECK-NOT: InstructionRange:
 
-// ...and instrumented. Each instrumented function gets its own handle to the debug
-// UAV and its own atomic allocation of a slot in it.
-// CHECK: define internal fastcc float @{{.*}}ScaleHelper
-// CHECK: %PIX_DebugUAV_Handle = call %dx.types.Handle @dx.op.createHandle(i32 57
-// CHECK: call i32 @dx.op.atomicBinOp.i32(i32 78, %dx.types.Handle %PIX_DebugUAV_Handle
+// CHECK: define void @main()
+// CHECK-NOT: define {{.*}}ScaleHelper
+
+// The helper's body is now part of the entry point, but debug info still names it, so
+// PIX can rebuild the call stack the user expects to step through.
+// CHECK: !DISubprogram(name: "ScaleHelper"
+// CHECK: inlinedAt:
+
+// The helper's local survives inlining still scoped to the helper, which is what puts
+// it under the right frame in PIX's locals view rather than under main's.
+// LOCALS: call void @llvm.dbg.declare({{.*}}; var:"scaled"
+// LOCALS: ![[HELPER:[0-9]+]] = !DISubprogram(name: "ScaleHelper"
+// LOCALS: !DILocalVariable({{.*}}name: "scaled", scope: ![[HELPER]],
 
 RWStructuredBuffer<float> Output : register(u0);
 
 [noinline]
 float ScaleHelper(float value)
 {
-  return value * 3.f;
+  float scaled = value * 3.f;
+  return scaled;
 }
 
 [numthreads(1, 1, 1)]

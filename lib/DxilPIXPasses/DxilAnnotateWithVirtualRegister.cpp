@@ -128,6 +128,11 @@ PrintableSubsetOfMangledFunctionName(llvm::StringRef mangled) {
 }
 
 bool DxilAnnotateWithVirtualRegister::runOnModule(llvm::Module &M) {
+  // Inline first, so that every ordinal this pass hands out belongs to a
+  // function PIX can actually attribute to an invocation. See
+  // InlineNonEntryFunctions.
+  PIXPassHelpers::InlineNonEntryFunctions(M.GetOrCreateDxilModule());
+
   Init(M);
   if (m_DM == nullptr) {
     return false;
