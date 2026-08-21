@@ -319,7 +319,9 @@ public:
         L"-hlsl-dxil-add-pixel-hit-instrmentation,rt-width=" +
         std::to_wstring(RTWidth) + L",num-pixels=" + std::to_wstring(NumPixels);
     if (UpstreamSVPositionRow.has_value()) {
-      pixelHitArg += L",upstream-sv-position-row=" +
+      // The authoritative spelling: these tests know the row because they
+      // choose it, which is what entitles the pass to relocate an occupant.
+      pixelHitArg += L",authoritative-sv-position-row=" +
                      std::to_wstring(*UpstreamSVPositionRow);
     }
     Options.push_back(pixelHitArg.c_str());

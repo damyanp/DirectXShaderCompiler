@@ -145,6 +145,19 @@ public:
     }
   }
 
+  // AdvanceAlignedOffsetTo moves the aligned offset forward to AlignedOffset,
+  // unless it has already reached it. Only the aligned offset moves: the packed
+  // offset space is padding-free by construction, and it is the space in which
+  // the scalars of an incoming llvm.dbg.value are matched, so padding must
+  // never be introduced into it.
+  void AdvanceAlignedOffsetTo(OffsetInBits AlignedOffset) {
+    if (AlignedOffset > m_CurrentAlignedOffset) {
+      VALUE_TO_DECLARE_LOG("Advancing aligned offset from %d to %d",
+                           m_CurrentAlignedOffset, AlignedOffset);
+      m_CurrentAlignedOffset = AlignedOffset;
+    }
+  }
+
   // Add is used to "add" an aggregate element (struct field, array element)
   // at the current aligned/packed offsets, bumping them by Ty's size.
   Offsets Add(llvm::DIBasicType *Ty, unsigned sizeOverride) {
@@ -1208,7 +1221,16 @@ void VariableRegisters::PopulateAllocaMap(llvm::DIType *Ty) {
     case llvm::dwarf::DW_TAG_enumeration_type: {
       auto *baseType = CompositeTy->getBaseType().resolve(EmptyMap);
       if (baseType != nullptr) {
+        const OffsetInBits EnumerationStart =
+            m_Offsets.GetCurrentAlignedOffset();
         PopulateAllocaMap(baseType);
+        // The enclosing type lays the enumeration out using the enumeration's
+        // own declared size, which need not be the size of the underlying type
+        // the walk above just added. Same reasoning as the tail padding handled
+        // at the end of the struct and array walks below.
+        m_Offsets.AdvanceAlignedOffsetTo(
+            EnumerationStart +
+            static_cast<SizeInBits>(CompositeTy->getSizeInBits()));
       } else {
         m_Offsets.AlignToAndAddUnhandledType(CompositeTy);
       }
@@ -1317,7 +1339,6 @@ void VariableRegisters::PopulateAllocaMap_ArrayType(llvm::DICompositeType *Ty) {
   }
 
   const SizeInBits ArraySizeInBits = Ty->getSizeInBits();
-  (void)ArraySizeInBits;
 
   const llvm::DITypeIdentifierMap EmptyMap;
   llvm::DIType *ElementTy = Ty->getBaseType().resolve(EmptyMap);
@@ -1330,18 +1351,29 @@ void VariableRegisters::PopulateAllocaMap_ArrayType(llvm::DICompositeType *Ty) {
   // in bits.
   m_Offsets.AlignTo(ElementTy);
 
+  const OffsetInBits ArrayStart = m_Offsets.GetCurrentAlignedOffset();
+
   for (unsigned i = 0; i < NumElements; ++i) {
     // This is only needed if ElementTy's size is not a multiple of
     // its natural alignment.
     m_Offsets.AlignTo(ElementTy);
     PopulateAllocaMap(ElementTy);
   }
+
+  // The elements only account for the bits they occupy, so an array of a
+  // padded element type stops short of the array's real end: the last
+  // element's tail padding is never skipped, because the per-element AlignTo
+  // above only runs in front of an element. See the equivalent step at the end
+  // of PopulateAllocaMap_StructType for why falling short is fatal rather than
+  // merely inaccurate.
+  m_Offsets.AdvanceAlignedOffsetTo(ArrayStart + ArraySizeInBits);
 }
 
 void VariableRegisters::PopulateAllocaMap_StructType(
     llvm::DICompositeType *Ty) {
   VALUE_TO_DECLARE_LOG("Struct type : %s, size %d", Ty->getName().str().c_str(),
                        Ty->getSizeInBits());
+  const SizeInBits StructSizeInBits = Ty->getSizeInBits();
   std::map<OffsetInBits, llvm::DIDerivedType *> SortedMembers;
   if (!SortMembers(Ty, &SortedMembers)) {
     m_Offsets.AlignToAndAddUnhandledType(Ty);
@@ -1350,7 +1382,6 @@ void VariableRegisters::PopulateAllocaMap_StructType(
 
   m_Offsets.AlignTo(Ty);
   const OffsetInBits StructStart = m_Offsets.GetCurrentAlignedOffset();
-  (void)StructStart;
   const llvm::DITypeIdentifierMap EmptyMap;
 
   for (auto OffsetAndMember : SortedMembers) {
@@ -1366,6 +1397,17 @@ void VariableRegisters::PopulateAllocaMap_StructType(
       // than the type in which it resides). If we were to take
       // the base type, then the information about the member's
       // size would be lost
+      //
+      // The AlignTo above is deliberately a no-op for a bitfield
+      // (DescendTypeToGetAlignMask returns 0 for one), so nothing has yet put
+      // the aligned offset where this member's debug info says it lives: it is
+      // still only the running sum of the preceding members' widths. That sum
+      // is the declared offset just so long as the bitfields tile their storage
+      // unit exactly, and it silently stops being so the moment one of them
+      // opens a new unit - which is precisely what a mixed-width run of
+      // bitfields does. Snap to the declared offset, because that is the offset
+      // the incoming llvm.dbg.value expresses this member in.
+      m_Offsets.AdvanceAlignedOffsetTo(StructStart + OffsetAndMember.first);
       PopulateAllocaMap(OffsetAndMember.second);
     } else {
       if (OffsetAndMember.second->getAlignInBits() ==
@@ -1382,6 +1424,15 @@ void VariableRegisters::PopulateAllocaMap_StructType(
       }
     }
   }
+
+  // The members between them only account for the bits they occupy, which stops
+  // short of the struct's real end whenever the struct's alignment requires tail
+  // padding. Falling short is not merely inaccurate: every member the enclosing
+  // type adds after this struct would be keyed at an offset the debug info never
+  // declares, handleDbgValue's lookup for it would miss, and a missed lookup
+  // drops that member's shadow store while its llvm.dbg.value is erased anyway -
+  // so the whole variable stops being presentable, not just the padded struct.
+  m_Offsets.AdvanceAlignedOffsetTo(StructStart + StructSizeInBits);
 }
 
 // HLSL Change: remove unused function

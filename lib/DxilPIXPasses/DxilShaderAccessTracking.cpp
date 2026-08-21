@@ -817,6 +817,90 @@ DxilShaderAccessTracking::GetResourceFromHandle(Value *resHandle,
   return ret;
 }
 
+// Decide which shader kind should be encoded into the access records emitted
+// from each function this pass instruments.
+//
+// A function that is itself an entry point carries DxilFunctionProps and
+// answers for itself. A non-entry helper in a library carries none, and the
+// only thing left to fall back on is the module's own kind - which for a
+// lib_6_x target is DXIL::ShaderKind::Library. Library is not a stage any
+// shader runs at: PIX's DecodePipelineStage turns it into
+// PIX_PIPELINE_STAGE_NONE, so a descriptor-heap access made below an entry
+// point, and any out-of-bounds report about one, arrives with no stage to
+// attribute it to. The kind that describes such an access is the kind of the
+// entry point that reached the helper, so walk the call graph from every entry
+// point and label the functions it reaches.
+//
+// A helper reachable from entry points of differing kinds has no single right
+// answer under this encoding: the pass instruments one copy of the helper and
+// every caller shares its records, so naming either caller's kind would assert
+// something untrue for the other. Those helpers keep the module kind, which
+// leaves the ambiguous case exactly where it is today. Resolving it properly
+// means cloning the helper per calling kind, which is a much larger change than
+// this pass should make on its own.
+//
+// Functions no entry point reaches are left out of the map entirely; the caller
+// falls back to GetFunctionShaderKind for them.
+static std::map<llvm::Function *, DXIL::ShaderKind>
+ResolveShaderKindByReachingEntryPoint(DxilModule &DM) {
+  std::map<llvm::Function *, DXIL::ShaderKind> functionToShaderKind;
+
+  const DXIL::ShaderKind ambiguousShaderKind = DM.GetShaderModel()->GetKind();
+  auto entryPoints = DM.GetExportedFunctions();
+
+  for (llvm::Function *entryPoint : entryPoints) {
+    if (entryPoint == nullptr || entryPoint->isDeclaration()) {
+      continue;
+    }
+
+    const DXIL::ShaderKind entryPointShaderKind =
+        PIXPassHelpers::GetFunctionShaderKind(DM, entryPoint);
+
+    std::vector<llvm::Function *> pending{entryPoint};
+    std::set<llvm::Function *> visited;
+    while (!pending.empty()) {
+      llvm::Function *reached = pending.back();
+      pending.pop_back();
+      if (!visited.insert(reached).second) {
+        continue;
+      }
+
+      auto emplaced =
+          functionToShaderKind.emplace(reached, entryPointShaderKind);
+      if (!emplaced.second && emplaced.first->second != entryPointShaderKind) {
+        emplaced.first->second = ambiguousShaderKind;
+      }
+
+      for (llvm::BasicBlock &block : reached->getBasicBlockList()) {
+        for (llvm::Instruction &instruction : block.getInstList()) {
+          auto *call = llvm::dyn_cast<llvm::CallInst>(&instruction);
+          if (call == nullptr) {
+            continue;
+          }
+          llvm::Function *callee = call->getCalledFunction();
+          if (callee == nullptr || callee->isDeclaration() ||
+              callee->isIntrinsic() || hlsl::OP::IsDxilOpFunc(callee)) {
+            continue;
+          }
+          pending.push_back(callee);
+        }
+      }
+    }
+  }
+
+  // An entry point always answers for itself, even in the unusual case of one
+  // entry point being reachable from another.
+  for (llvm::Function *entryPoint : entryPoints) {
+    if (entryPoint == nullptr || entryPoint->isDeclaration()) {
+      continue;
+    }
+    functionToShaderKind[entryPoint] =
+        PIXPassHelpers::GetFunctionShaderKind(DM, entryPoint);
+  }
+
+  return functionToShaderKind;
+}
+
 bool DxilShaderAccessTracking::runOnModule(Module &M) {
   // This pass adds instrumentation for shader access to resources
 
@@ -847,6 +931,8 @@ bool DxilShaderAccessTracking::runOnModule(Module &M) {
     auto instrumentableFunctions =
         PIXPassHelpers::GetAllInstrumentableFunctions(DM);
 
+    auto functionToShaderKind = ResolveShaderKindByReachingEntryPoint(DM);
+
     if (DM.m_ShaderFlags.GetForceEarlyDepthStencil()) {
       if (OSOverride != nullptr) {
         formatted_raw_ostream FOS(*OSOverride);
@@ -858,14 +944,11 @@ bool DxilShaderAccessTracking::runOnModule(Module &M) {
         PIXPassHelpers::CreateGlobalUAVResource(DM, 0u, "PIX_ShaderAccessUAV");
 
     for (auto *F : instrumentableFunctions) {
-      DXIL::ShaderKind shaderKind = DXIL::ShaderKind::Invalid;
-      if (!DM.HasDxilFunctionProps(F)) {
-        auto ShaderModel = DM.GetShaderModel();
-        shaderKind = ShaderModel->GetKind();
-      } else {
-        hlsl::DxilFunctionProps const &props = DM.GetDxilFunctionProps(F);
-        shaderKind = props.shaderKind;
-      }
+      auto reachedFrom = functionToShaderKind.find(F);
+      DXIL::ShaderKind shaderKind =
+          reachedFrom != functionToShaderKind.end()
+              ? reachedFrom->second
+              : PIXPassHelpers::GetFunctionShaderKind(DM, F);
 
       IRBuilder<> Builder(F->getEntryBlock().getFirstInsertionPt());
 
@@ -917,6 +1000,27 @@ bool DxilShaderAccessTracking::runOnModule(Module &M) {
 
           // Special cases
           switch (opCode) {
+          case DXIL::OpCode::AnnotateHandle:
+            // annotateHandle attaches type information to a handle; it does
+            // not read or write the resource behind it, so it is not an
+            // access. It takes a handle parameter all the same, which is all
+            // the scan above looks for.
+            //
+            // The annotation is still the pass's only source of resource kind
+            // and element type for a handle from createHandleFromBinding or
+            // createHandleFromHeap, but that is harvested where the handle is
+            // *used*: GetResourceFromHandle walks back through the
+            // annotateHandle that produced a genuine access's operand. Skipping
+            // the annotation as an access site leaves that path alone.
+            //
+            // Today this only misreports on library targets, where the
+            // annotated handle comes from createHandleForLib and
+            // GetResourceFromHandle resolves it. Elsewhere it comes from
+            // createHandleFromBinding or createHandleFromHeap, neither of which
+            // that function recognises when handed one directly, so the record
+            // is dropped by accident rather than by design. Skip it for every
+            // target so the accident stops mattering.
+            continue;
           case DXIL::OpCode::GetDimensions:
             // readWrite = ShaderAccessFlags::DescriptorRead;  // TODO: Support
             // GetDimensions

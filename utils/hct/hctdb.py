@@ -7051,6 +7051,7 @@ class db_dxil(object):
                 {"n": "rt-width", "t": "int", "c": 1},
                 {"n": "num-pixels", "t": "int", "c": 1},
                 {"n": "upstream-sv-position-row", "t": "int", "c": 1},
+                {"n": "authoritative-sv-position-row", "t": "int", "c": 1},
             ],
         )
         add_pass(
@@ -7111,6 +7112,7 @@ class db_dxil(object):
                 {"n": "parameter1", "t": "int", "c": 1},
                 {"n": "parameter2", "t": "int", "c": 1},
                 {"n": "upstreamSVPositionRow", "t": "int", "c": 1},
+                {"n": "authoritativeSVPositionRow", "t": "int", "c": 1},
             ],
         )
         add_pass(

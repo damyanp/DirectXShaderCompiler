@@ -49,7 +49,6 @@ llvm::CallInst *CreateHandleForResource(hlsl::DxilModule &DM,
                                         const char *name);
 llvm::Function *GetEntryFunction(hlsl::DxilModule &DM);
 void EraseIfUnused(hlsl::DxilModule &DM, llvm::Function *OpFunction);
-std::vector<llvm::BasicBlock *> GetAllBlocks(hlsl::DxilModule &DM);
 std::vector<llvm::Function *>
 GetAllInstrumentableFunctions(hlsl::DxilModule &DM);
 hlsl::DXIL::ShaderKind GetFunctionShaderKind(hlsl::DxilModule &DM,
@@ -86,8 +85,31 @@ void ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
 // previous stage put SV_Position on. See FindOrAddSV_Position.
 constexpr unsigned kUnknownSVPositionRow = UINT_MAX;
 
-unsigned int FindOrAddSV_Position(hlsl::DxilModule &DM,
-                                  unsigned UpStreamSVPosRow);
+// Says how much the caller of FindOrAddSV_Position knows about UpStreamSVPosRow.
+//
+// The two are not interchangeable and the difference cannot be inferred from the
+// row value, so it has to be carried explicitly: PIX builds that predate the
+// relocating behaviour send row 0 both for "the previous stage really uses row 0"
+// and for "I could not read the previous stage", and acting on the second of
+// those displaces an element that is genuinely bound to the upstream signature.
+// Each pass therefore accepts two differently named options, and only the newer
+// spelling promises the row was read off a real upstream signature.
+enum class SVPositionRowAuthority {
+  // The row may have been fabricated. SV_Position is placed there only if the
+  // row is free; nothing already in the signature is moved.
+  Hint,
+  // The row is the register the previous stage really writes SV_Position to, so
+  // SV_Position has to land there and any occupants are repacked elsewhere.
+  Authoritative,
+};
+
+// Hint is the default because it is the behaviour that cannot make an existing
+// signature worse: callers that have not opted in to the newer option spelling
+// keep the semantics they were written against.
+unsigned int
+FindOrAddSV_Position(hlsl::DxilModule &DM, unsigned UpStreamSVPosRow,
+                     SVPositionRowAuthority RowAuthority =
+                         SVPositionRowAuthority::Hint);
 void ForEachDynamicallyIndexedResource(
     hlsl::DxilModule &DM,
     const std::function<bool(bool, llvm::Instruction *, llvm::Value *)>

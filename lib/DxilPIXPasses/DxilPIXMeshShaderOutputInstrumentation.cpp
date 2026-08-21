@@ -85,7 +85,7 @@ private:
 
   SmallVector<Value *, 2> insertInstructionsToCreateDisambiguationValue(
       IRBuilder<> &Builder, OP *HlslOP, LLVMContext &Ctx,
-      StructType *originalPayloadStructType, Instruction *firstGetPayload);
+      unsigned appendedFieldsElementIndex, Instruction *firstGetPayload);
   Value *reserveDebugEntrySpace(BuilderContext &BC, uint32_t SpaceInBytes);
   uint32_t UAVDumpingGroundOffset();
   Value *writeDwordAndReturnNewOffset(BuilderContext &BC, Value *TheOffset,
@@ -196,7 +196,6 @@ void DxilPIXMeshShaderOutputInstrumentation::Instrument(BuilderContext &BC,
 }
 
 Value *GetValueFromExpandedPayload(IRBuilder<> &Builder,
-                                   StructType *originalPayloadStructType,
                                    Instruction *firstGetPayload,
                                    unsigned int offset, const char *name) {
   auto *DerefPointer = Builder.getInt32(0);
@@ -211,7 +210,7 @@ Value *GetValueFromExpandedPayload(IRBuilder<> &Builder,
 SmallVector<Value *, 2> DxilPIXMeshShaderOutputInstrumentation::
     insertInstructionsToCreateDisambiguationValue(
         IRBuilder<> &Builder, OP *HlslOP, LLVMContext &Ctx,
-        StructType *originalPayloadStructType, Instruction *firstGetPayload) {
+        unsigned appendedFieldsElementIndex, Instruction *firstGetPayload) {
 
   // When a mesh shader is called from an amplification shader, all of the
   // thread id values are relative to the DispatchMesh call made by
@@ -222,23 +221,20 @@ SmallVector<Value *, 2> DxilPIXMeshShaderOutputInstrumentation::
   SmallVector<Value *, 2> ret;
   Constant *Zero32Arg = HlslOP->GetU32Const(0);
 
-  bool AmplificationShaderIsActive = originalPayloadStructType != nullptr;
+  bool AmplificationShaderIsActive = firstGetPayload != nullptr;
 
   llvm::Value *ASDispatchMeshYCount = nullptr;
   llvm::Value *ASDispatchMeshZCount = nullptr;
   if (AmplificationShaderIsActive) {
 
     auto *ASThreadId = GetValueFromExpandedPayload(
-        Builder, originalPayloadStructType, firstGetPayload,
-        originalPayloadStructType->getStructNumElements(), "ASThreadId");
+        Builder, firstGetPayload, appendedFieldsElementIndex, "ASThreadId");
     ret.push_back(ASThreadId);
     ASDispatchMeshYCount = GetValueFromExpandedPayload(
-        Builder, originalPayloadStructType, firstGetPayload,
-        originalPayloadStructType->getStructNumElements() + 1,
+        Builder, firstGetPayload, appendedFieldsElementIndex + 1,
         "ASDispatchMeshYCount");
     ASDispatchMeshZCount = GetValueFromExpandedPayload(
-        Builder, originalPayloadStructType, firstGetPayload,
-        originalPayloadStructType->getStructNumElements() + 2,
+        Builder, firstGetPayload, appendedFieldsElementIndex + 2,
         "ASDispatchMeshZCount");
   } else {
     ret.push_back(Zero32Arg);
@@ -279,6 +275,143 @@ SmallVector<Value *, 2> DxilPIXMeshShaderOutputInstrumentation::
   return ret;
 }
 
+// The amplification shader pass appends its three disambiguation dwords after
+// the last *field* of the amplification shader's payload struct, then re-rounds
+// the total to that struct's alignment, and reports both the offset it placed
+// them at and the resulting total size. D3D12 requires only that the two stages
+// declare the same payload *size*; it says nothing about the field layout. Two
+// same-sized payloads whose last fields end at different offsets therefore
+// expand differently, so deriving the mesh shader's expanded layout from its
+// own payload struct produces a shader that declares a size D3D rejects against
+// the amplification shader's - PSO creation fails outright - and that reads the
+// disambiguation values out of the wrong bytes.
+//
+// Rebuild the expanded type against the amplification shader's numbers instead.
+// The mesh shader's own fields keep their element indices and their byte
+// offsets, because its own payload reads have to stay correct; explicit i32
+// padding then pushes the three appended dwords out to the reported offset and
+// the total out to the reported size.
+//
+// Returns an empty ExpandedStruct when the two layouts cannot be reconciled,
+// leaving the caller to fall back to the mesh shader's own expansion.
+static ExpandedStruct BuildExpandedPayloadTypeMatchingAmplificationShader(
+    Module &M, LLVMContext &Ctx, Type *OriginalPayloadStructType,
+    uint32_t ExpandedSizeInBytes, uint32_t AppendedFieldsOffsetInBytes,
+    unsigned *AppendedFieldsElementIndex) {
+  ExpandedStruct ret = {};
+
+  auto *OriginalStructType = dyn_cast<StructType>(OriginalPayloadStructType);
+  if (OriginalStructType == nullptr || OriginalStructType->isOpaque()) {
+    return ret;
+  }
+
+  constexpr uint32_t AppendedFieldsSizeInBytes = 3 * sizeof(uint32_t);
+  // The offset is bounded before it is added to anything, so the sum below
+  // cannot wrap.
+  if (AppendedFieldsOffsetInBytes % sizeof(uint32_t) != 0 ||
+      AppendedFieldsOffsetInBytes > DXIL::kMaxMSASPayloadBytes ||
+      ExpandedSizeInBytes % sizeof(uint32_t) != 0 ||
+      ExpandedSizeInBytes <
+          AppendedFieldsOffsetInBytes + AppendedFieldsSizeInBytes ||
+      ExpandedSizeInBytes > DXIL::kMaxMSASPayloadBytes) {
+    return ret;
+  }
+
+  const DataLayout &DL = M.getDataLayout();
+  const StructLayout *OriginalLayout = DL.getStructLayout(OriginalStructType);
+  auto *Int32Type = Type::getInt32Ty(Ctx);
+  const unsigned OriginalElementCount = OriginalStructType->getNumElements();
+
+  // A struct's alloc size is rounded up to its own alignment, so a mesh shader
+  // payload containing a 64-bit member can only ever reach a total that is a
+  // multiple of eight. The amplification shader's total is under no such
+  // constraint. A packed struct - whose alignment is one - is the only way to
+  // express the difference, so it is tried as a fallback, and only accepted if
+  // it happens to leave the mesh shader's own fields exactly where they were:
+  // dropping the padding between them would silently corrupt every payload
+  // read the shader makes.
+  const bool PackedCandidates[] = {false, true};
+  for (bool Packed : PackedCandidates) {
+    SmallVector<Type *, 16> Elements;
+    for (unsigned i = 0; i < OriginalElementCount; ++i) {
+      Elements.push_back(OriginalStructType->getElementType(i));
+    }
+
+    // Where the first appended dword would land with no padding at all.
+    Elements.push_back(Int32Type);
+    Elements.push_back(Int32Type);
+    Elements.push_back(Int32Type);
+    uint64_t UnpaddedOffsetInBytes =
+        DL.getStructLayout(StructType::get(Ctx, Elements, Packed))
+            ->getElementOffset(OriginalElementCount);
+    Elements.resize(OriginalElementCount);
+
+    if (UnpaddedOffsetInBytes > AppendedFieldsOffsetInBytes) {
+      // The mesh shader's own fields run past the point at which the
+      // amplification shader wrote the appended values, so no one struct can
+      // describe both.
+      continue;
+    }
+
+    unsigned AppendedIndex = OriginalElementCount;
+    uint64_t MidPaddingInBytes =
+        AppendedFieldsOffsetInBytes - UnpaddedOffsetInBytes;
+    if (MidPaddingInBytes != 0) {
+      // Padding is expressed in i32 rather than i8 because DXIL's data layout
+      // aligns i8 to 32 bits, which would make a byte array four times the
+      // size intended. A padding run that is not a whole number of dwords
+      // cannot be expressed this way, and the layout assertions below reject
+      // the truncated result rather than emitting a wrong offset.
+      Elements.push_back(
+          ArrayType::get(Int32Type, MidPaddingInBytes / sizeof(uint32_t)));
+      ++AppendedIndex;
+    }
+    Elements.push_back(Int32Type);
+    Elements.push_back(Int32Type);
+    Elements.push_back(Int32Type);
+    uint32_t TailPaddingInBytes = ExpandedSizeInBytes -
+                                  AppendedFieldsOffsetInBytes -
+                                  AppendedFieldsSizeInBytes;
+    if (TailPaddingInBytes != 0) {
+      Elements.push_back(
+          ArrayType::get(Int32Type, TailPaddingInBytes / sizeof(uint32_t)));
+    }
+
+    // Everything above reasons about where the data layout ought to put these
+    // elements; ask it instead. A layout that misses the reported offset or the
+    // reported size by even one byte is worse than no instrumentation at all,
+    // and the mistake would only surface as a failed PSO creation on someone
+    // else's machine.
+    StructType *Candidate = StructType::get(Ctx, Elements, Packed);
+    const StructLayout *CandidateLayout = DL.getStructLayout(Candidate);
+    if (DL.getTypeAllocSize(Candidate) != ExpandedSizeInBytes ||
+        CandidateLayout->getElementOffset(AppendedIndex) !=
+            AppendedFieldsOffsetInBytes) {
+      continue;
+    }
+    bool OriginalFieldsUnmoved = true;
+    for (unsigned i = 0; i < OriginalElementCount; ++i) {
+      if (CandidateLayout->getElementOffset(i) !=
+          OriginalLayout->getElementOffset(i)) {
+        OriginalFieldsUnmoved = false;
+        break;
+      }
+    }
+    if (!OriginalFieldsUnmoved) {
+      continue;
+    }
+
+    *AppendedFieldsElementIndex = AppendedIndex;
+    ret.ExpandedPayloadStructType =
+        StructType::create(Ctx, Elements, "PIX_AS2MS_Expanded_Type", Packed);
+    ret.ExpandedPayloadStructPtrType =
+        ret.ExpandedPayloadStructType->getPointerTo();
+    return ret;
+  }
+
+  return ret;
+}
+
 // A mesh shader that never reads its payload has no GetMeshPayload call, so the
 // payload struct type is absent from this module altogether and the expanded
 // layout cannot be recovered from it. The declared payload size is no
@@ -297,13 +430,16 @@ SmallVector<Value *, 2> DxilPIXMeshShaderOutputInstrumentation::
 // rather than merely inaccurate: D3D rejects PSO creation outright when the two
 // stages disagree about the payload size.
 static ExpandedStruct
-SynthesizeExpandedPayloadType(LLVMContext &Ctx, Type **OpaqueOriginalStructType,
-                              uint32_t ExpandedSizeInBytes,
+SynthesizeExpandedPayloadType(LLVMContext &Ctx, uint32_t ExpandedSizeInBytes,
                               uint32_t AppendedFieldsOffsetInBytes) {
   ExpandedStruct ret = {};
 
   constexpr uint32_t AppendedFieldsSizeInBytes = 3 * sizeof(uint32_t);
+  // The offset is bounded before it is added to anything: an offset near
+  // UINT32_MAX would make the sum below wrap to a small number, pass every
+  // remaining check, and produce a multi-gigabyte padding array.
   if (AppendedFieldsOffsetInBytes % sizeof(uint32_t) != 0 ||
+      AppendedFieldsOffsetInBytes > DXIL::kMaxMSASPayloadBytes ||
       ExpandedSizeInBytes % sizeof(uint32_t) != 0 ||
       ExpandedSizeInBytes <
           AppendedFieldsOffsetInBytes + AppendedFieldsSizeInBytes ||
@@ -315,12 +451,9 @@ SynthesizeExpandedPayloadType(LLVMContext &Ctx, Type **OpaqueOriginalStructType,
   auto *OpaqueOriginalPayloadType = ArrayType::get(
       Int32Type, AppendedFieldsOffsetInBytes / sizeof(uint32_t));
 
-  // The disambiguation values are read by element index, counted from the
-  // number of elements in the "original" type, so the opaque stand-in must be a
-  // struct of exactly one element to put them at indices 1, 2 and 3.
-  *OpaqueOriginalStructType = StructType::create(
-      Ctx, {OpaqueOriginalPayloadType}, "PIX_AS2MS_Opaque_Payload");
-
+  // The opaque blob is a single element, so the three appended values land at
+  // element indices 1, 2 and 3 - which is what the caller passes as the
+  // appended-fields element index.
   SmallVector<Type *, 5> Elements{OpaqueOriginalPayloadType, Int32Type,
                                   Int32Type, Int32Type};
   uint32_t TailPaddingInBytes = ExpandedSizeInBytes -
@@ -342,6 +475,26 @@ SynthesizeExpandedPayloadType(LLVMContext &Ctx, Type **OpaqueOriginalStructType,
   return ret;
 }
 
+// The mesh shader's output signature is the only place the distinction between
+// int16_t and uint16_t survives, because DXIL's i16 is signless and both share
+// the storeVertexOutput.i16 overload. Returns false whenever the element cannot
+// be identified, which preserves the historical zero-extension.
+static bool OutputSignatureElementIsSigned(DxilModule &DM, Value *OutputSigId) {
+  auto *SigIdConstant = dyn_cast<ConstantInt>(OutputSigId);
+  if (SigIdConstant == nullptr) {
+    // A dynamically indexed output has no single signature element to consult.
+    return false;
+  }
+  const DxilSignature &OutputSignature = DM.GetOutputSignature();
+  uint64_t SigId = SigIdConstant->getLimitedValue();
+  if (SigId >= OutputSignature.GetElements().size()) {
+    return false;
+  }
+  return OutputSignature.GetElement(static_cast<unsigned>(SigId))
+      .GetCompType()
+      .IsSIntTy();
+}
+
 bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
   DxilModule &DM = M.GetOrCreateDxilModule();
   LLVMContext &Ctx = M.getContext();
@@ -349,6 +502,7 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
 
   Type *OriginalPayloadStructType = nullptr;
   ExpandedStruct expanded = {};
+  unsigned AppendedFieldsElementIndex = 0;
   Instruction *FirstNewStructGetMeshPayload = nullptr;
   if (m_ExpandPayload) {
     Instruction *getMeshPayloadInstructions = nullptr;
@@ -371,8 +525,26 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
     }
 
     if (OriginalPayloadStructType != nullptr) {
+      if (m_ExpandedPayloadSize != 0) {
+        // PIX forwards the layout the amplification shader pass actually
+        // produced, and that layout is authoritative: D3D refuses to create the
+        // PSO unless both stages declare the same payload size, and the
+        // amplification shader has already written the disambiguation values at
+        // the offset it reported.
+        expanded = BuildExpandedPayloadTypeMatchingAmplificationShader(
+            M, Ctx, OriginalPayloadStructType, m_ExpandedPayloadSize,
+            m_ExpandedPayloadAppendedFieldsOffset,
+            &AppendedFieldsElementIndex);
+      }
       if (expanded.ExpandedPayloadStructPtrType == nullptr) {
+        // Either PIX did not tell us what the amplification shader did (no
+        // amplification shader, or an older PIX), or the two layouts cannot be
+        // reconciled. Expanding the mesh shader's own struct is what this pass
+        // has always done and is right whenever both stages declare the same
+        // struct.
         expanded = ExpandStructType(Ctx, OriginalPayloadStructType);
+        AppendedFieldsElementIndex =
+            OriginalPayloadStructType->getStructNumElements();
         unsigned expandedPayloadSizeInBytes =
             (unsigned)M.getDataLayout().getTypeAllocSize(
                 expanded.ExpandedPayloadStructType);
@@ -415,9 +587,11 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
       // mesh output records from different amplification shader threads would
       // collide and overwrite each other.
       expanded = SynthesizeExpandedPayloadType(
-          Ctx, &OriginalPayloadStructType, m_ExpandedPayloadSize,
-          m_ExpandedPayloadAppendedFieldsOffset);
+          Ctx, m_ExpandedPayloadSize, m_ExpandedPayloadAppendedFieldsOffset);
       if (expanded.ExpandedPayloadStructPtrType != nullptr) {
+        // The synthesized type puts the whole original payload in one opaque
+        // element, so the three appended values follow it at indices 1..3.
+        AppendedFieldsElementIndex = 1;
         IRBuilder<> Builder(dxilutil::FirstNonAllocaInsertionPt(
             PIXPassHelpers::GetEntryFunction(DM)));
         Function *DxilFunc = HlslOP->GetOpFunc(
@@ -445,11 +619,11 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
         PIXPassHelpers::GetEntryFunction(DM));
     IRBuilder<> Builder(firstInsertionPt);
     m_threadUniquifier = insertInstructionsToCreateDisambiguationValue(
-        Builder, HlslOP, Ctx, nullptr, nullptr);
+        Builder, HlslOP, Ctx, 0, nullptr);
   } else {
     IRBuilder<> Builder(FirstNewStructGetMeshPayload->getNextNode());
     m_threadUniquifier = insertInstructionsToCreateDisambiguationValue(
-        Builder, HlslOP, Ctx, cast<StructType>(OriginalPayloadStructType),
+        Builder, HlslOP, Ctx, AppendedFieldsElementIndex,
         FirstNewStructGetMeshPayload);
   }
 
@@ -470,10 +644,19 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
                Call->getOperand(4));
   }
 
+  // EmitIndices is looked up unconditionally above, and OP::GetOpFunc
+  // materialises the declaration on demand, so a mesh shader that emits no
+  // indices at all - it has no "out indices" parameter, or has one it never
+  // assigns - is left with an external declaration that nothing calls. dxv
+  // rejects that ("External function 'dx.op.emitIndices' is unused"). Erase it
+  // here rather than after the loop below, which reassigns F.
+  PIXPassHelpers::EraseIfUnused(DM, F);
+
   struct OutputType {
     Type *type;
     uint32_t tag;
   };
+
   SmallVector<OutputType, 4> StoreVertexOutputOverloads{
       {Type::getInt32Ty(Ctx), int32ValueIndicator},
       {Type::getInt16Ty(Ctx), int16ValueIndicator},
@@ -512,7 +695,17 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
         CoercedValue = BC2.Builder.CreateCast(Instruction::ZExt, HalfInt,
                                               Type::getInt32Ty(Ctx));
       } else if (Overload.tag == int16ValueIndicator) {
-        CoercedValue = BC2.Builder.CreateCast(Instruction::ZExt, CoercedValue,
+        // DXIL's i16 is signless, so this one overload carries both int16_t and
+        // uint16_t outputs. PIX re-widens the recorded dword by the signature
+        // element's component type but never restores the sign, so a
+        // zero-extended int16_t of -1 reaches the mesh output viewer as 65535.
+        // The output signature is the only place the signedness survives into
+        // this pass.
+        Instruction::CastOps ExtensionKind =
+            OutputSignatureElementIsSigned(DM, Call->getOperand(1))
+                ? Instruction::SExt
+                : Instruction::ZExt;
+        CoercedValue = BC2.Builder.CreateCast(ExtensionKind, CoercedValue,
                                               Type::getInt32Ty(Ctx));
       }
 

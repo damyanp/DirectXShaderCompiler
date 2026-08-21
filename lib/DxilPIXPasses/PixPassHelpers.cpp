@@ -14,6 +14,7 @@
 #include "dxc/DXIL/DxilResourceBinding.h"
 #include "dxc/DXIL/DxilResourceProperties.h"
 #include "dxc/DxilRootSignature/DxilRootSignature.h"
+#include "dxc/HLSL/DxilPackSignatureElement.h"
 #include "dxc/HLSL/DxilSpanAllocator.h"
 
 #include "llvm/IR/IRBuilder.h"
@@ -478,18 +479,6 @@ hlsl::DXIL::ShaderKind GetFunctionShaderKind(hlsl::DxilModule &DM,
   return shaderKind;
 }
 
-std::vector<llvm::BasicBlock *> GetAllBlocks(hlsl::DxilModule &DM) {
-  std::vector<llvm::BasicBlock *> ret;
-  auto entryPoints = DM.GetExportedFunctions();
-  for (auto &fn : entryPoints) {
-    auto &blocks = fn->getBasicBlockList();
-    for (auto &block : blocks) {
-      ret.push_back(&block);
-    }
-  }
-  return ret;
-}
-
 ExpandedStruct ExpandStructType(LLVMContext &Ctx,
                                 Type *OriginalPayloadStructType) {
   SmallVector<Type *, 16> Elements;
@@ -555,13 +544,14 @@ void ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
   delete Instr;
 }
 
-// The row the upstream stage used for SV_Position is not a hint: D3D12 matches
-// signature elements between stages by register, so SV_Position has to land on
-// exactly that row or pipeline creation fails with a linkage error. The row can
-// nonetheless already be taken by one of this shader's own input elements,
-// because pixel-shader-only system values (SV_IsFrontFace, SV_SampleIndex, and
-// SV_PrimitiveID when no geometry shader writes it) are packed after the
-// interpolated attributes and can land on it.
+// The row the upstream stage used for SV_Position is not a hint when the caller
+// says it read it off the previous stage: D3D12 matches signature elements
+// between stages by register, so SV_Position has to land on exactly that row or
+// pipeline creation fails with a linkage error. The row can nonetheless already
+// be taken by one of this shader's own input elements, because pixel-shader-only
+// system values (SV_IsFrontFace, SV_SampleIndex, and SV_PrimitiveID when no
+// geometry shader writes it) are packed after the interpolated attributes and
+// can land on it.
 //
 // Whatever is sitting there is always the element that is safe to move. The
 // upstream stage writes SV_Position at this row, so no other upstream element
@@ -570,11 +560,11 @@ void ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
 // A shader whose interpolated attribute really did share that row would already
 // have failed to pair with the upstream stage before instrumentation touched it.
 //
-// That proof only holds when the caller actually knows the upstream row. PIX
-// fabricates row 0 when it cannot read the previous stage, and displacing an
-// element on the strength of a guess would break the linkage it was trying to
-// preserve, so kUnknownSVPositionRow disables the relocation entirely and puts
-// SV_Position on a row of its own instead.
+// That proof only holds when the caller actually knows the upstream row.
+// SVPositionRowAuthority::Hint says it does not -- PIX builds that predate this
+// behaviour fabricate row 0 when they cannot read the previous stage -- and
+// displacing an element on the strength of a guess would break the very linkage
+// the relocation exists to preserve, so a hint never moves anything.
 //
 // Moving an element is metadata-only: dx.op.loadInput addresses elements by
 // signature element ID and its row operand is relative to the element, so no
@@ -593,21 +583,144 @@ static std::vector<DxilSignatureElement *> FindElementsOccupyingSignatureRow(
   return Occupants;
 }
 
-static unsigned int FindFirstUnoccupiedSignatureRow(
-    std::vector<std::unique_ptr<DxilSignatureElement>> const &Elements) {
-  unsigned int Row = 0;
-  for (auto const &Element : Elements) {
-    if (!Element->IsAllocated())
-      continue;
-    Row = std::max<unsigned>(
-        Row, static_cast<unsigned int>(Element->GetStartRow()) +
-                 Element->GetRows());
+// Mirrors how the validator checks a pre-allocated element against the
+// allocator: kInsufficientFreeComponents from the row check only says the row
+// is partly used, which is exactly what packing two scalars into one register
+// looks like, so the column check is what decides.
+static bool ElementFitsAtLocation(hlsl::DxilSignatureAllocator &Allocator,
+                                  hlsl::DxilPackElement const &Element,
+                                  unsigned int Row, unsigned int Column) {
+  hlsl::DxilSignatureAllocator::ConflictType Conflict =
+      Allocator.DetectRowConflict(&Element, Row);
+  if (Conflict != hlsl::DxilSignatureAllocator::kNoConflict &&
+      Conflict != hlsl::DxilSignatureAllocator::kInsufficientFreeComponents) {
+    return false;
   }
-  return Row;
+  return Allocator.DetectColConflict(&Element, Row, Column) ==
+         hlsl::DxilSignatureAllocator::kNoConflict;
+}
+
+// Gives Added_SV_Position a home -- TargetRow when the caller has one,
+// otherwise wherever it fits -- and repacks whatever that displaces, using the
+// same allocator the front end packs signatures with.
+//
+// Appending each displaced element to a fresh row one past the end of the
+// signature, which is what this used to do, is wrong twice over. It never
+// reuses a gap, so a row holding four packed scalars costs three extra
+// registers and a four-row array leaves four holes behind, and nothing bounded
+// the result against the 32-register signature limit, so a shader using 30 of
+// the 32 rows could be pushed past the end into metadata the validator rejects
+// and drivers read as an undefined register. DxilSignatureAllocator already
+// models rows, component columns, interpolation-mode and data-width
+// compatibility and the register limit, so driving it fixes both at once.
+//
+// Returns false with every element left exactly where it was when the signature
+// has no room; deciding what to do about that is the caller's problem, but
+// emitting an out-of-range register is not one of the options.
+static bool PlaceSVPositionAndRepackDisplacedElements(
+    hlsl::DxilSignature &Signature, DxilSignatureElement &Added_SV_Position,
+    unsigned int TargetRow) {
+  auto const &Elements = Signature.GetElements();
+  bool const UseMinPrecision = Signature.UseMinPrecision();
+
+  std::vector<DxilSignatureElement *> Displaced;
+  if (TargetRow != kUnknownSVPositionRow)
+    Displaced = FindElementsOccupyingSignatureRow(Elements, TargetRow);
+
+  // The allocator takes raw pointers to these adapters and holds them across
+  // calls, so both vectors are sized up front and never grow afterwards.
+  std::vector<hlsl::DxilPackElement> Retained;
+  Retained.reserve(Elements.size());
+  std::vector<hlsl::DxilPackElement> ToRepack;
+  ToRepack.reserve(Displaced.size());
+
+  for (auto const &Element : Elements) {
+    DxilSignatureElement *SignatureElement = Element.get();
+    bool const Displacing =
+        std::find(Displaced.begin(), Displaced.end(), SignatureElement) !=
+        Displaced.end();
+    // Elements the packer never places -- SV_Coverage and friends, whose
+    // interpretation is NotPacked -- consume no register, and
+    // DxilSignatureAllocator asserts if it is handed one. A well-formed
+    // signature never marks such an element as allocated, so one that turns up
+    // as an occupant of the target row means the input is not a shape this
+    // function knows how to reason about.
+    if (!hlsl::DxilSignature::ShouldBeAllocated(
+            SignatureElement->GetInterpretation()) ||
+        !SignatureElement->IsAllocated()) {
+      if (Displacing)
+        return false;
+      continue;
+    }
+    if (Displacing) {
+      ToRepack.emplace_back(SignatureElement, UseMinPrecision);
+    } else {
+      Retained.emplace_back(SignatureElement, UseMinPrecision);
+    }
+  }
+
+  hlsl::DxilSignatureAllocator Allocator(hlsl::DXIL::kMaxSignatureTotalVectors,
+                                         UseMinPrecision);
+
+  // Everything that is staying put keeps the register the front end gave it:
+  // those elements are paired with the upstream stage by row, so repacking them
+  // would break exactly the linkage this function exists to preserve.
+  for (hlsl::DxilPackElement &Element : Retained) {
+    unsigned int Row = Element.GetStartRow();
+    unsigned int Column = Element.GetStartCol();
+    if (!ElementFitsAtLocation(Allocator, Element, Row, Column)) {
+      // The signature handed to this pass already overlaps itself, so there is
+      // no consistent picture of the register file to add to. Refuse rather
+      // than layer another element on top of the mess.
+      return false;
+    }
+    Allocator.PlaceElement(&Element, Row, Column);
+  }
+
+  hlsl::DxilPackElement PositionElement(&Added_SV_Position, UseMinPrecision);
+  if (TargetRow == kUnknownSVPositionRow) {
+    if (Allocator.PackNext(&PositionElement, 0,
+                           hlsl::DXIL::kMaxSignatureTotalVectors) == 0) {
+      return false;
+    }
+  } else {
+    // SV_Position is four components wide, so it always starts at column 0 and
+    // owns the whole register once the occupants have been evicted.
+    if (!ElementFitsAtLocation(Allocator, PositionElement, TargetRow, 0)) {
+      return false;
+    }
+    Allocator.PlaceElement(&PositionElement, TargetRow, 0);
+    PositionElement.SetLocation(TargetRow, 0);
+  }
+
+  // Only now that the target row is reserved can the displaced elements be
+  // asked to fit around it. Their old locations are remembered because a
+  // partial repack that then runs out of registers must not be left behind.
+  std::vector<std::pair<int, int>> OriginalLocations;
+  OriginalLocations.reserve(ToRepack.size());
+  for (hlsl::DxilPackElement &Element : ToRepack) {
+    OriginalLocations.emplace_back(Element.Get()->GetStartRow(),
+                                   Element.Get()->GetStartCol());
+  }
+
+  for (size_t Index = 0; Index < ToRepack.size(); ++Index) {
+    ToRepack[Index].ClearLocation();
+    if (Allocator.PackNext(&ToRepack[Index], 0,
+                           hlsl::DXIL::kMaxSignatureTotalVectors) == 0) {
+      for (size_t Undo = 0; Undo <= Index; ++Undo) {
+        ToRepack[Undo].Get()->SetStartRow(OriginalLocations[Undo].first);
+        ToRepack[Undo].Get()->SetStartCol(OriginalLocations[Undo].second);
+      }
+      return false;
+    }
+  }
+
+  return true;
 }
 
 unsigned int FindOrAddSV_Position(hlsl::DxilModule &DM,
-                                  unsigned UpStreamSVPosRow) {
+                                  unsigned UpStreamSVPosRow,
+                                  SVPositionRowAuthority RowAuthority) {
   hlsl::DxilSignature &InputSignature = DM.GetInputSignature();
   auto &InputElements = InputSignature.GetElements();
 
@@ -620,42 +733,77 @@ unsigned int FindOrAddSV_Position(hlsl::DxilModule &DM,
 
   // SV_Position, if present, has to have full mask, so we needn't worry
   // about the shader having selected components that don't include x or y.
-  // If not present, we add it.
-  if (Existing_SV_Position == InputElements.end()) {
-    unsigned int StartColumn = 0;
-    unsigned int RowCount = 1;
-    unsigned int ColumnCount = 4;
-
-    // Vacate the upstream row rather than injecting somewhere else: only the
-    // upstream row keeps this stage paired with the one before it. The start
-    // column is left alone so that nothing has to reason about component
-    // packing; the vacated elements simply move to rows of their own past the
-    // end of the signature.
-    unsigned int TargetRow = UpStreamSVPosRow;
-    if (TargetRow == kUnknownSVPositionRow) {
-      TargetRow = FindFirstUnoccupiedSignatureRow(InputElements);
-    } else {
-      for (DxilSignatureElement *Occupant :
-           FindElementsOccupyingSignatureRow(InputElements, TargetRow)) {
-        Occupant->SetStartRow(
-            static_cast<int>(FindFirstUnoccupiedSignatureRow(InputElements)));
-      }
-    }
-
-    auto Added_SV_Position =
-        llvm::make_unique<DxilSignatureElement>(DXIL::SigPointKind::PSIn);
-    Added_SV_Position->Initialize("Position", hlsl::CompType::getF32(),
-                                  hlsl::DXIL::InterpolationMode::Linear,
-                                  RowCount, ColumnCount, TargetRow,
-                                  StartColumn);
-    Added_SV_Position->AppendSemanticIndex(0);
-    Added_SV_Position->SetKind(hlsl::DXIL::SemanticKind::Position);
-    // AppendElement sets the element's ID by default
-    auto index = InputSignature.AppendElement(std::move(Added_SV_Position));
-    return InputElements[index]->GetID();
-  } else {
+  if (Existing_SV_Position != InputElements.end())
     return Existing_SV_Position->get()->GetID();
+
+  constexpr unsigned int RowCount = 1;
+  constexpr unsigned int ColumnCount = 4;
+
+  llvm::Function *EntryFunction = GetEntryFunction(DM);
+  hlsl::DXIL::ShaderKind ShaderKind =
+      EntryFunction != nullptr ? GetFunctionShaderKind(DM, EntryFunction)
+                               : DM.GetShaderModel()->GetKind();
+
+  // Evicting an occupant is only sound for a pixel shader's input signature.
+  // The argument for it is that the upstream stage writes SV_Position at this
+  // register and therefore nothing else of its own, which is a statement about
+  // one flat register space; a mesh shader has two, per-vertex and
+  // per-primitive, each numbered from zero and packed by different rules, so
+  // the row says nothing about what else may be bound there. Mesh-to-pixel
+  // pipelines do not need the relocation anyway, because that pairing is
+  // matched by semantic name rather than by register.
+  //
+  // Note that this only rules out the shader *being* instrumented. Whether the
+  // *upstream* stage was a mesh shader is not visible from this module at all;
+  // that has to be decided by the caller that read the upstream signature, and
+  // it does so by declining to claim the row is authoritative.
+  unsigned int TargetRow = kUnknownSVPositionRow;
+  if (UpStreamSVPosRow < hlsl::DXIL::kMaxSignatureTotalVectors) {
+    bool const RowIsOccupied =
+        !FindElementsOccupyingSignatureRow(InputElements, UpStreamSVPosRow)
+             .empty();
+    bool const MayDisplaceOccupants =
+        RowAuthority == SVPositionRowAuthority::Authoritative &&
+        ShaderKind == hlsl::DXIL::ShaderKind::Pixel;
+    if (!RowIsOccupied || MayDisplaceOccupants)
+      TargetRow = UpStreamSVPosRow;
   }
+
+  auto Added_SV_Position =
+      llvm::make_unique<DxilSignatureElement>(DXIL::SigPointKind::PSIn);
+  // LinearNoperspective is what the front end gives a pixel shader that
+  // declares SV_Position itself, and an instrumented shader has to look like
+  // one that was compiled that way: a driver that honours the declared mode on
+  // the position register would otherwise hand the instrumentation
+  // perspective-divided coordinates, and PIX would silently attribute hits to
+  // the wrong pixel rather than fail outright.
+  Added_SV_Position->Initialize(
+      "Position", hlsl::CompType::getF32(),
+      hlsl::DXIL::InterpolationMode::LinearNoperspective, RowCount,
+      ColumnCount);
+  Added_SV_Position->AppendSemanticIndex(0);
+  Added_SV_Position->SetKind(hlsl::DXIL::SemanticKind::Position);
+
+  if (!PlaceSVPositionAndRepackDisplacedElements(InputSignature,
+                                                 *Added_SV_Position,
+                                                 TargetRow)) {
+    // Giving up on the upstream row costs the pipeline its SV_Position pairing
+    // and so costs PIX the feature for this draw, but it still produces a
+    // module that is valid DXIL. Emitting a register past the end of the
+    // signature does not, and PIX does not run the validator over what it
+    // patches, so that module would go straight to the driver.
+    if (TargetRow == kUnknownSVPositionRow ||
+        !PlaceSVPositionAndRepackDisplacedElements(
+            InputSignature, *Added_SV_Position, kUnknownSVPositionRow)) {
+      throw ::hlsl::Exception(
+          E_FAIL, "PIX: the shader's input signature has no room for the "
+                  "SV_Position element the instrumentation needs to read.");
+    }
+  }
+
+  // AppendElement sets the element's ID by default
+  auto index = InputSignature.AppendElement(std::move(Added_SV_Position));
+  return InputElements[index]->GetID();
 }
 
 void ForEachDynamicallyIndexedResource(

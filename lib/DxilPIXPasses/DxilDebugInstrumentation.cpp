@@ -334,7 +334,10 @@ private:
                                     DXIL::ShaderKind shaderKind);
   Value *addPixelShaderProlog(BuilderContext &BC, SystemValueIndices SVIndices);
   Value *addGeometryShaderProlog(BuilderContext &BC);
+  Value *addThreadIdComparisonProlog(BuilderContext &BC,
+                                     DXIL::OpCode threadIdOpCode);
   Value *addDispatchedShaderProlog(BuilderContext &BC);
+  Value *addNodeShaderProlog(BuilderContext &BC);
   Value *addRaygenShaderProlog(BuilderContext &BC);
   Value *addVertexShaderProlog(BuilderContext &BC,
                                SystemValueIndices SVIndices);
@@ -391,6 +394,12 @@ uint32_t DxilDebugInstrumentation::UAVDumpingGroundOffset() {
   return static_cast<uint32_t>(m_UAVSize / 2);
 }
 
+// Returned in place of a signature element ID when the element the selection
+// prolog wanted could not be made available. See
+// FindOrAddVSInSignatureElementForInstanceOrVertexID.
+static constexpr unsigned kUnavailableSignatureElementID =
+    static_cast<unsigned>(-1);
+
 unsigned int GetNextEmptyRow(
     std::vector<std::unique_ptr<DxilSignatureElement>> const &Elements) {
   unsigned int Row = 0;
@@ -418,9 +427,24 @@ unsigned FindOrAddVSInSignatureElementForInstanceOrVertexID(
                    });
 
   if (ExistingElement == InputElements.end()) {
+    unsigned Row = GetNextEmptyRow(InputElements);
+
+    // A signature holds at most kMaxSignatureTotalVectors registers, and the
+    // input assembler gives each vertex-shader input a register of its own
+    // rather than packing several into one (PackingKind::InputAssembler - and
+    // the front end does the same thing when a shader declares both of these
+    // system values itself). A dense enough input signature therefore has
+    // nowhere to put this element, and appending it anyway writes a register
+    // number past the end of the signature: the validator rejects that, and
+    // since PIX doesn't re-validate what it patches, the driver would be the
+    // one to see it. Report the element as unavailable instead and let the
+    // caller select an invocation with whatever identity is left.
+    if (Row >= hlsl::DXIL::kMaxSignatureTotalVectors) {
+      return kUnavailableSignatureElementID;
+    }
+
     auto AddedElement =
         llvm::make_unique<DxilSignatureElement>(DXIL::SigPointKind::VSIn);
-    unsigned Row = GetNextEmptyRow(InputElements);
     AddedElement->Initialize(
         hlsl::Semantic::Get(semanticKind)->GetName(), hlsl::CompType::getU32(),
         // A vertex shader input is not interpolated, so its interpolation mode
@@ -452,6 +476,7 @@ DxilDebugInstrumentation::addRequiredSystemValues(BuilderContext &BC,
   case DXIL::ShaderKind::AnyHit:
   case DXIL::ShaderKind::ClosestHit:
   case DXIL::ShaderKind::Miss:
+  case DXIL::ShaderKind::Callable:
   case DXIL::ShaderKind::Node:
     // Dispatch* thread Id is not in the input signature
     break;
@@ -463,6 +488,21 @@ DxilDebugInstrumentation::addRequiredSystemValues(BuilderContext &BC,
     SVIndices.VertexShader.InstanceId =
         FindOrAddVSInSignatureElementForInstanceOrVertexID(
             InputSignature, hlsl::DXIL::SemanticKind::InstanceID);
+    // VertexID is asked for first on purpose: when the signature has room for
+    // only one more element, the vertex index is the more discriminating of
+    // the two, because a draw always has vertices and only sometimes has more
+    // than one instance.
+    char const *Selection = "None";
+    if (SVIndices.VertexShader.VertexId != kUnavailableSignatureElementID) {
+      Selection =
+          SVIndices.VertexShader.InstanceId != kUnavailableSignatureElementID
+              ? "VertexIdAndInstanceId"
+              : "VertexIdOnly";
+    } else if (SVIndices.VertexShader.InstanceId !=
+               kUnavailableSignatureElementID) {
+      Selection = "InstanceIdOnly";
+    }
+    *OSOverride << "VertexShaderSelection:" << Selection << "\n";
   } break;
   case DXIL::ShaderKind::Geometry:
   case DXIL::ShaderKind::Hull:
@@ -481,14 +521,15 @@ DxilDebugInstrumentation::addRequiredSystemValues(BuilderContext &BC,
   return SVIndices;
 }
 
-Value *DxilDebugInstrumentation::addDispatchedShaderProlog(BuilderContext &BC) {
+Value *DxilDebugInstrumentation::addThreadIdComparisonProlog(
+    BuilderContext &BC, DXIL::OpCode threadIdOpCode) {
   Constant *Zero32Arg = BC.HlslOP->GetU32Const(0);
   Constant *One32Arg = BC.HlslOP->GetU32Const(1);
   Constant *Two32Arg = BC.HlslOP->GetU32Const(2);
 
   auto ThreadIdFunc =
-      BC.HlslOP->GetOpFunc(DXIL::OpCode::ThreadId, Type::getInt32Ty(BC.Ctx));
-  Constant *Opcode = BC.HlslOP->GetU32Const((unsigned)DXIL::OpCode::ThreadId);
+      BC.HlslOP->GetOpFunc(threadIdOpCode, Type::getInt32Ty(BC.Ctx));
+  Constant *Opcode = BC.HlslOP->GetU32Const((unsigned)threadIdOpCode);
   auto ThreadIdX =
       BC.Builder.CreateCall(ThreadIdFunc, {Opcode, Zero32Arg}, "ThreadIdX");
   auto ThreadIdY =
@@ -514,6 +555,70 @@ Value *DxilDebugInstrumentation::addDispatchedShaderProlog(BuilderContext &BC) {
       BC.Builder.CreateAnd(CompareXAndY, CompareToZ, "CompareAll");
 
   return CompareAll;
+}
+
+Value *DxilDebugInstrumentation::addDispatchedShaderProlog(BuilderContext &BC) {
+  return addThreadIdComparisonProlog(BC, DXIL::OpCode::ThreadId);
+}
+
+// A node shader's invocation identity depends on how the node is launched, and
+// the three launch types do not offer the same system values (the validator
+// enforces this: SV_DispatchThreadID and SV_GroupID are only available to
+// broadcasting nodes, SV_GroupThreadID and SV_GroupIndex to broadcasting and
+// coalescing nodes, and thread-launch nodes get none of them):
+//
+//  - Broadcasting nodes are dispatched over a grid, so SV_DispatchThreadID
+//    identifies an invocation exactly as it does for a compute shader. This is
+//    the case PIX's thread-selection UI is built around.
+//  - Coalescing nodes have neither a dispatch thread ID nor a group ID. The
+//    only identity available is the thread's position within its group, which
+//    distinguishes the invocations of one launched group from each other but
+//    cannot distinguish two concurrently-launched groups. That narrows the
+//    field to the group size rather than selecting a unique invocation, which
+//    is still far better than treating every invocation as the selected one.
+//  - Thread-launch nodes have no thread-identity system value at all: each
+//    invocation is a group of one and nothing in the shader distinguishes it
+//    from its siblings, so there is genuinely nothing to compare against and
+//    every invocation has to stay "of interest".
+//
+// The pass report says which of the three happened so that the caller can
+// present the selection as exact or approximate rather than having to guess.
+Value *DxilDebugInstrumentation::addNodeShaderProlog(BuilderContext &BC) {
+  llvm::Function *function = BC.Builder.GetInsertBlock()->getParent();
+
+  if (!BC.DM.HasDxilFunctionProps(function)) {
+    *OSOverride << "NodeInvocationSelection:None\n";
+    return BC.HlslOP->GetI1Const(1);
+  }
+
+  hlsl::DxilFunctionProps const &props = BC.DM.GetDxilFunctionProps(function);
+
+  switch (props.Node.LaunchType) {
+  case DXIL::NodeLaunchType::Broadcasting:
+    *OSOverride << "NodeInvocationSelection:DispatchThreadId\n";
+    return addThreadIdComparisonProlog(BC, DXIL::OpCode::ThreadId);
+
+  case DXIL::NodeLaunchType::Coalescing:
+    // The requested coordinates are only meaningful as a position within the
+    // group. If any of them lies outside the declared group size then no
+    // invocation could ever match, and a selection criterion that nothing
+    // satisfies would leave the debugger with no trace at all - worse than the
+    // approximate answer that selecting every invocation gives. Fall back in
+    // that case rather than emitting a comparison that is constantly false.
+    if (m_Parameters.ComputeShader.ThreadIdX < props.numThreads[0] &&
+        m_Parameters.ComputeShader.ThreadIdY < props.numThreads[1] &&
+        m_Parameters.ComputeShader.ThreadIdZ < props.numThreads[2]) {
+      *OSOverride << "NodeInvocationSelection:GroupThreadId\n";
+      return addThreadIdComparisonProlog(BC, DXIL::OpCode::ThreadIdInGroup);
+    }
+    *OSOverride << "NodeInvocationSelection:None\n";
+    return BC.HlslOP->GetI1Const(1);
+
+  case DXIL::NodeLaunchType::Thread:
+  default:
+    *OSOverride << "NodeInvocationSelection:None\n";
+    return BC.HlslOP->GetI1Const(1);
+  }
 }
 
 Value *DxilDebugInstrumentation::addRaygenShaderProlog(BuilderContext &BC) {
@@ -562,33 +667,54 @@ DxilDebugInstrumentation::addVertexShaderProlog(BuilderContext &BC,
       BC.HlslOP->GetOpFunc(DXIL::OpCode::LoadInput, Type::getInt32Ty(BC.Ctx));
   Constant *LoadInputOpcode =
       BC.HlslOP->GetU32Const((unsigned)DXIL::OpCode::LoadInput);
-  Constant *SV_Vert_ID =
-      BC.HlslOP->GetU32Const(SVIndices.VertexShader.VertexId);
-  auto VertId =
-      BC.Builder.CreateCall(LoadInputOpFunc,
-                            {LoadInputOpcode, SV_Vert_ID, Zero32Arg /*row*/,
-                             Zero8Arg /*column*/, UndefArg},
-                            "VertId");
 
-  Constant *SV_Instance_ID =
-      BC.HlslOP->GetU32Const(SVIndices.VertexShader.InstanceId);
-  auto InstanceId =
-      BC.Builder.CreateCall(LoadInputOpFunc,
-                            {LoadInputOpcode, SV_Instance_ID, Zero32Arg /*row*/,
-                             Zero8Arg /*column*/, UndefArg},
-                            "InstanceId");
+  // An input signature that was too full to take one of these system values
+  // leaves this shader with less than the usual identity to select on. What is
+  // left still narrows the field - and the alternative, a criterion no
+  // invocation can satisfy, would leave the debugger with nothing at all.
+  auto LoadSystemValue = [&](unsigned ElementID,
+                             char const *Name) -> Value * {
+    if (ElementID == kUnavailableSignatureElementID) {
+      return nullptr;
+    }
+    return BC.Builder.CreateCall(
+        LoadInputOpFunc,
+        {LoadInputOpcode, BC.HlslOP->GetU32Const(ElementID), Zero32Arg /*row*/,
+         Zero8Arg /*column*/, UndefArg},
+        Name);
+  };
+
+  Value *VertId = LoadSystemValue(SVIndices.VertexShader.VertexId, "VertId");
+  Value *InstanceId =
+      LoadSystemValue(SVIndices.VertexShader.InstanceId, "InstanceId");
 
   // Compare to expected vertex ID and instance ID
-  auto CompareToVert = BC.Builder.CreateICmpEQ(
-      VertId, BC.HlslOP->GetU32Const(m_Parameters.VertexShader.VertexId),
-      "CompareToVertId");
-  auto CompareToInstance = BC.Builder.CreateICmpEQ(
-      InstanceId, BC.HlslOP->GetU32Const(m_Parameters.VertexShader.InstanceId),
-      "CompareToInstanceId");
-  auto CompareBoth =
-      BC.Builder.CreateAnd(CompareToVert, CompareToInstance, "CompareBoth");
+  Value *CompareToVert =
+      VertId == nullptr
+          ? nullptr
+          : BC.Builder.CreateICmpEQ(
+                VertId,
+                BC.HlslOP->GetU32Const(m_Parameters.VertexShader.VertexId),
+                "CompareToVertId");
+  Value *CompareToInstance =
+      InstanceId == nullptr
+          ? nullptr
+          : BC.Builder.CreateICmpEQ(
+                InstanceId,
+                BC.HlslOP->GetU32Const(m_Parameters.VertexShader.InstanceId),
+                "CompareToInstanceId");
 
-  return CompareBoth;
+  if (CompareToVert != nullptr && CompareToInstance != nullptr) {
+    return BC.Builder.CreateAnd(CompareToVert, CompareToInstance,
+                                "CompareBoth");
+  }
+  if (CompareToVert != nullptr) {
+    return CompareToVert;
+  }
+  if (CompareToInstance != nullptr) {
+    return CompareToInstance;
+  }
+  return BC.HlslOP->GetI1Const(1);
 }
 
 Value *DxilDebugInstrumentation::addHullhaderProlog(BuilderContext &BC) {
@@ -707,10 +833,16 @@ void DxilDebugInstrumentation::addInvocationSelectionProlog(
   case DXIL::ShaderKind::Intersection:
   case DXIL::ShaderKind::AnyHit:
   case DXIL::ShaderKind::Miss:
+  case DXIL::ShaderKind::Callable:
+    // A callable shader has neither a ray nor a thread of its own, but it runs
+    // as part of the dispatch that called it, so DispatchRaysIndex identifies
+    // the invocation that led to it. That is the same value PIX uses to select
+    // the raygen invocation the user is debugging, so a callable invoked from
+    // the selected raygen thread is selected here too.
     ParameterTestResult = addRaygenShaderProlog(BC);
     break;
   case DXIL::ShaderKind::Node:
-    ParameterTestResult = BC.HlslOP->GetI1Const(1);
+    ParameterTestResult = addNodeShaderProlog(BC);
     break;
   case DXIL::ShaderKind::Compute:
   case DXIL::ShaderKind::Amplification:
@@ -1236,6 +1368,27 @@ DxilDebugInstrumentation::addStepDebugEntryValue(BuilderContext *BC,
 
 static bool IsInstrumentableShaderKind(DXIL::ShaderKind shaderKind);
 
+// The selection prologs for these stages are built out of dx.op operations
+// that the validator only accepts in a function carrying entry properties -
+// LoadInput for vertex and pixel shaders, OutputControlPointID for hull
+// shaders - and rejects anywhere else with
+// ValidationRule::InstrSignatureOperationNotInEntry. Every other stage
+// identifies its invocation with an operation (ThreadId, ThreadIdInGroup,
+// PrimitiveID, GSInstanceID, DispatchRaysIndex) that is legal in any function
+// of a module of that kind, so the helper functions of those stages can be
+// instrumented as well as their entry point.
+static bool
+SelectionPrologIsLegalOutsideEntryFunction(DXIL::ShaderKind shaderKind) {
+  switch (shaderKind) {
+  case DXIL::ShaderKind::Vertex:
+  case DXIL::ShaderKind::Pixel:
+  case DXIL::ShaderKind::Hull:
+    return false;
+  default:
+    return true;
+  }
+}
+
 bool DxilDebugInstrumentation::runOnModule(Module &M) {
   DxilModule &DM = M.GetOrCreateDxilModule();
 
@@ -1257,17 +1410,29 @@ bool DxilDebugInstrumentation::runOnModule(Module &M) {
   if (shaderKind == DXIL::ShaderKind::Library) {
     functionsToInstrument = PIXPassHelpers::GetAllInstrumentableFunctions(DM);
   } else {
-    functionsToInstrument.push_back(PIXPassHelpers::GetEntryFunction(DM));
-
-    // A hull shader's patch-constant function is a second function that the
-    // virtual-register annotation pass numbers and advertises to PIX as its own
-    // steppable instruction range. Leaving it uninstrumented advertises a range
-    // that emits no trace records at all, so a user stepping into the
-    // patch-constant body sees instructions with no values behind them.
+    // The virtual-register annotation pass numbers every function that has a
+    // body - [noinline] helpers included - and advertises each one's
+    // instruction range to PIX. Instrumenting only the entry point advertises
+    // ranges that emit no trace records at all, so PIX offers the user a
+    // function it can never step into. (A hull shader's patch-constant
+    // function is just the first such helper anyone happened to notice; it
+    // needs no special case once every helper is covered.)
+    //
+    // Not every helper can be given a selection prolog, though - see
+    // SelectionPrologIsLegalOutsideEntryFunction. Where it can't, the helper
+    // stays uninstrumented: emitting the prolog anyway would produce invalid
+    // DXIL, and omitting it would mark every invocation of the shader as the
+    // one of interest and swamp the debug UAV.
+    llvm::Function *entryFunction = DM.GetEntryFunction();
     llvm::Function *patchConstantFunction = DM.GetPatchConstantFunction();
-    if (patchConstantFunction != nullptr &&
-        patchConstantFunction != functionsToInstrument.front()) {
-      functionsToInstrument.push_back(patchConstantFunction);
+    bool helpersAreInstrumentable =
+        SelectionPrologIsLegalOutsideEntryFunction(shaderKind);
+    for (llvm::Function *function :
+         PIXPassHelpers::GetAllInstrumentableFunctions(DM)) {
+      if (helpersAreInstrumentable || function == entryFunction ||
+          function == patchConstantFunction) {
+        functionsToInstrument.push_back(function);
+      }
     }
   }
 
@@ -1483,6 +1648,7 @@ static bool IsInstrumentableShaderKind(DXIL::ShaderKind shaderKind) {
   case DXIL::ShaderKind::AnyHit:
   case DXIL::ShaderKind::ClosestHit:
   case DXIL::ShaderKind::Miss:
+  case DXIL::ShaderKind::Callable:
   case DXIL::ShaderKind::Node:
     return true;
   default:
@@ -1512,23 +1678,16 @@ bool DxilDebugInstrumentation::RunOnFunction(Module &M, DxilModule &DM,
 
   auto &values = m_FunctionToValues[BC.Builder.GetInsertBlock()->getParent()];
 
-  // PIX binds two UAVs when running this instrumentation: one for raygen
-  // shaders and another for the hitgroups and miss shaders. Since PIX invokes
-  // this pass at the library level, which may contain examples of both types,
-  // PIX can't really specify which UAV index to use per-shader. This pass
-  // therefore just has to know this:
-  constexpr unsigned int RayGenUAVRegister = 0;
-  constexpr unsigned int HitGroupAndMissUAVRegister = 1;
-  unsigned int UAVRegisterId = RayGenUAVRegister;
-  switch (shaderKind) {
-  case DXIL::ShaderKind::ClosestHit:
-  case DXIL::ShaderKind::Intersection:
-  case DXIL::ShaderKind::AnyHit:
-  case DXIL::ShaderKind::Miss:
-    UAVRegisterId = HitGroupAndMissUAVRegister;
-    break;
-  }
-
+  // PIX used to bind two UAVs for this instrumentation - one for raygen
+  // shaders and another for hit groups and miss shaders - and this pass chose
+  // between register u0 and u1 per shader kind. That ended with "PIX:
+  // Rationalize UAV generation" (bf24b7a54), which switched every shader kind
+  // to the single module-level UAV that runOnModule creates, leaving the
+  // register selection computing a value nothing consumed. There is now one
+  // UAV, one counter and therefore one sequence of invocation IDs shared by
+  // every instrumented function, which is also what makes those IDs unique
+  // across a library. Anything that wants to reintroduce a second UAV has to
+  // add the matching root parameter on the PIX side first.
   values.UAVHandle = PIXPassHelpers::CreateHandleForResource(
       DM, Builder, uav, "PIX_DebugUAV_Handle");
 

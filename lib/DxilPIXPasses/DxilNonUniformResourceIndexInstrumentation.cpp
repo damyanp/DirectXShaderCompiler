@@ -59,6 +59,11 @@ bool DxilNonUniformResourceIndexInstrumentation::runOnModule(Module &M) {
 
   std::map<Function *, CallInst *> FunctionToUAVHandle;
 
+  // Set if any dynamically-indexed handle lacked the PIX instruction-number
+  // metadata this pass needs to address its diagnostic. See the comment at the
+  // FromInst call below.
+  bool FoundHandleWithoutInstructionNumber = false;
+
   // This is the main pass that will iterate through all of the resources that
   // are dynamically indexed. If not already marked NonUniformResourceIndex,
   // then insert WaveActiveAllEqual to determine if the index is uniform
@@ -69,6 +74,23 @@ bool DxilNonUniformResourceIndexInstrumentation::runOnModule(Module &M) {
               Value *IndexOperand) {
         if (IsNonUniformIndex) {
           // The NonUniformResourceIndex qualifier was used, continue.
+          return true;
+        }
+
+        // The diagnostic this pass emits is addressed by the instruction's PIX
+        // ordinal, which -dxil-annotate-with-virtual-regs attaches as metadata
+        // and which every other PIX pass reads the same way. PIX always runs
+        // that pass immediately before this one, so the lookup only fails for a
+        // direct consumer that skipped it. Falling through with the
+        // zero-initialised default used to write a bit-zero record, which is
+        // indistinguishable from a genuine violation at instruction 0 and
+        // aliases every violation in the shader onto the same bit. Leave the
+        // handle uninstrumented and report the precondition failure instead of
+        // manufacturing a plausible-looking wrong answer.
+        uint32_t InstructionNumber = 0;
+        if (!pix_dxil::PixDxilInstNum::FromInst(CreateHandle,
+                                                &InstructionNumber)) {
+          FoundHandleWithoutInstructionNumber = true;
           return true;
         }
 
@@ -96,12 +118,6 @@ bool DxilNonUniformResourceIndexInstrumentation::runOnModule(Module &M) {
         }
 
         IRBuilder<> Builder(CreateHandle);
-
-        uint32_t InstructionNumber = 0;
-        if (!pix_dxil::PixDxilInstNum::FromInst(CreateHandle,
-                                                &InstructionNumber)) {
-          DXASSERT_NOMSG(false);
-        }
 
         // The output UAV is treated as a bit array where each bit corresponds
         // to an instruction number. This determines what byte offset to write
@@ -168,6 +184,14 @@ bool DxilNonUniformResourceIndexInstrumentation::runOnModule(Module &M) {
       formatted_raw_ostream FOS(*OSOverride);
       FOS << "\nFoundDynamicIndexingNoNuri\n";
     }
+  }
+
+  // Reported independently of `modified`: a shader can have some handles
+  // numbered and others not, and the caller needs to know that the results it
+  // is about to read are incomplete rather than clean.
+  if (FoundHandleWithoutInstructionNumber && OSOverride != nullptr) {
+    formatted_raw_ostream FOS(*OSOverride);
+    FOS << "\nNuriNotInstrumentedMissingInstructionNumber\n";
   }
 
   return modified;

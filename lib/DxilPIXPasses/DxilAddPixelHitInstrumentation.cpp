@@ -43,7 +43,9 @@ public:
   }
   void applyOptions(PassOptions O) override;
   bool runOnModule(Module &M) override;
-  unsigned m_upstreamSVPositionRow;
+  unsigned m_upstreamSVPositionRow = PIXPassHelpers::kUnknownSVPositionRow;
+  PIXPassHelpers::SVPositionRowAuthority m_svPositionRowAuthority =
+      PIXPassHelpers::SVPositionRowAuthority::Hint;
 };
 
 void DxilAddPixelHitInstrumentation::applyOptions(PassOptions O) {
@@ -51,8 +53,28 @@ void DxilAddPixelHitInstrumentation::applyOptions(PassOptions O) {
   GetPassOptionBool(O, "add-pixel-cost", &AddPixelCost, false);
   GetPassOptionUInt32(O, "rt-width", &RTWidth, 0);
   GetPassOptionUInt32(O, "num-pixels", &NumPixels, 0);
+  // Two spellings of the same row, distinguished only by how much the caller
+  // vouches for it. The older one has to keep its original meaning: callers
+  // that predate the relocating behaviour send row 0 when they could not read
+  // the upstream signature at all, and treating that as authoritative evicts a
+  // real interpolant on the strength of a guess.
+  //
+  // Note GetPassOptionUnsigned leaves the value untouched if the option is
+  // present but unparseable, so the member is seeded before the call rather
+  // than relying on the default argument.
+  m_upstreamSVPositionRow = PIXPassHelpers::kUnknownSVPositionRow;
   GetPassOptionUnsigned(O, "upstream-sv-position-row", &m_upstreamSVPositionRow,
                         PIXPassHelpers::kUnknownSVPositionRow);
+  m_svPositionRowAuthority = PIXPassHelpers::SVPositionRowAuthority::Hint;
+
+  unsigned AuthoritativeRow = PIXPassHelpers::kUnknownSVPositionRow;
+  GetPassOptionUnsigned(O, "authoritative-sv-position-row", &AuthoritativeRow,
+                        PIXPassHelpers::kUnknownSVPositionRow);
+  if (AuthoritativeRow != PIXPassHelpers::kUnknownSVPositionRow) {
+    m_upstreamSVPositionRow = AuthoritativeRow;
+    m_svPositionRowAuthority =
+        PIXPassHelpers::SVPositionRowAuthority::Authoritative;
+  }
 }
 
 bool DxilAddPixelHitInstrumentation::runOnModule(Module &M) {
@@ -81,8 +103,8 @@ bool DxilAddPixelHitInstrumentation::runOnModule(Module &M) {
     DM.m_ShaderFlags.SetForceEarlyDepthStencil(true);
   }
 
-  auto SV_Position_ID =
-      PIXPassHelpers::FindOrAddSV_Position(DM, m_upstreamSVPositionRow);
+  auto SV_Position_ID = PIXPassHelpers::FindOrAddSV_Position(
+      DM, m_upstreamSVPositionRow, m_svPositionRowAuthority);
 
   auto EntryPointFunction = PIXPassHelpers::GetEntryFunction(DM);
 
