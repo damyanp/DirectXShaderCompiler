@@ -555,23 +555,42 @@ void ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
   delete Instr;
 }
 
-// The row the upstream stage used for SV_Position is only a hint: each stage
-// packs its signature independently, so that row may already be taken by one of
-// this shader's own input elements. Appending on top of it produces a signature
-// with two elements overlapping the same register, which a strict driver
-// rejects outright and a lenient one resolves by feeding the colliding
-// attribute to whatever reads the position.
-static bool IsSignatureRowOccupied(
+// The row the upstream stage used for SV_Position is not a hint: D3D12 matches
+// signature elements between stages by register, so SV_Position has to land on
+// exactly that row or pipeline creation fails with a linkage error. The row can
+// nonetheless already be taken by one of this shader's own input elements,
+// because pixel-shader-only system values (SV_IsFrontFace, SV_SampleIndex, and
+// SV_PrimitiveID when no geometry shader writes it) are packed after the
+// interpolated attributes and can land on it.
+//
+// Whatever is sitting there is always the element that is safe to move. The
+// upstream stage writes SV_Position at this row, so no other upstream element
+// occupies it, so nothing in this shader that shares it can have an upstream
+// counterpart at the same register -- and without one it cannot be linkage-bound.
+// A shader whose interpolated attribute really did share that row would already
+// have failed to pair with the upstream stage before instrumentation touched it.
+//
+// That proof only holds when the caller actually knows the upstream row. PIX
+// fabricates row 0 when it cannot read the previous stage, and displacing an
+// element on the strength of a guess would break the linkage it was trying to
+// preserve, so kUnknownSVPositionRow disables the relocation entirely and puts
+// SV_Position on a row of its own instead.
+//
+// Moving an element is metadata-only: dx.op.loadInput addresses elements by
+// signature element ID and its row operand is relative to the element, so no
+// instruction refers to the absolute row.
+static std::vector<DxilSignatureElement *> FindElementsOccupyingSignatureRow(
     std::vector<std::unique_ptr<DxilSignatureElement>> const &Elements,
     unsigned int Row) {
+  std::vector<DxilSignatureElement *> Occupants;
   for (auto const &Element : Elements) {
     if (!Element->IsAllocated())
       continue;
     unsigned int FirstRow = static_cast<unsigned int>(Element->GetStartRow());
     if (Row >= FirstRow && Row < FirstRow + Element->GetRows())
-      return true;
+      Occupants.push_back(Element.get());
   }
-  return false;
+  return Occupants;
 }
 
 static unsigned int FindFirstUnoccupiedSignatureRow(
@@ -606,18 +625,29 @@ unsigned int FindOrAddSV_Position(hlsl::DxilModule &DM,
     unsigned int StartColumn = 0;
     unsigned int RowCount = 1;
     unsigned int ColumnCount = 4;
-    // Prefer the upstream row, since keeping the two stages aligned is what the
-    // caller asked for, but never at the cost of overlapping an element this
-    // shader already declared.
-    unsigned int Row = UpStreamSVPosRow;
-    if (IsSignatureRowOccupied(InputElements, Row)) {
-      Row = FindFirstUnoccupiedSignatureRow(InputElements);
+
+    // Vacate the upstream row rather than injecting somewhere else: only the
+    // upstream row keeps this stage paired with the one before it. The start
+    // column is left alone so that nothing has to reason about component
+    // packing; the vacated elements simply move to rows of their own past the
+    // end of the signature.
+    unsigned int TargetRow = UpStreamSVPosRow;
+    if (TargetRow == kUnknownSVPositionRow) {
+      TargetRow = FindFirstUnoccupiedSignatureRow(InputElements);
+    } else {
+      for (DxilSignatureElement *Occupant :
+           FindElementsOccupyingSignatureRow(InputElements, TargetRow)) {
+        Occupant->SetStartRow(
+            static_cast<int>(FindFirstUnoccupiedSignatureRow(InputElements)));
+      }
     }
+
     auto Added_SV_Position =
         llvm::make_unique<DxilSignatureElement>(DXIL::SigPointKind::PSIn);
     Added_SV_Position->Initialize("Position", hlsl::CompType::getF32(),
                                   hlsl::DXIL::InterpolationMode::Linear,
-                                  RowCount, ColumnCount, Row, StartColumn);
+                                  RowCount, ColumnCount, TargetRow,
+                                  StartColumn);
     Added_SV_Position->AppendSemanticIndex(0);
     Added_SV_Position->SetKind(hlsl::DXIL::SemanticKind::Position);
     // AppendElement sets the element's ID by default

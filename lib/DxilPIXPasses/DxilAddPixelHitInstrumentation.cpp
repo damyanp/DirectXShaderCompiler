@@ -52,7 +52,7 @@ void DxilAddPixelHitInstrumentation::applyOptions(PassOptions O) {
   GetPassOptionUInt32(O, "rt-width", &RTWidth, 0);
   GetPassOptionUInt32(O, "num-pixels", &NumPixels, 0);
   GetPassOptionUnsigned(O, "upstream-sv-position-row", &m_upstreamSVPositionRow,
-                        0);
+                        PIXPassHelpers::kUnknownSVPositionRow);
 }
 
 bool DxilAddPixelHitInstrumentation::runOnModule(Module &M) {

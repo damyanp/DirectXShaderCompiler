@@ -175,6 +175,8 @@ public:
   TEST_METHOD(PixDbgValueToDbgDeclare_PaddedBitfieldOffsets)
   TEST_METHOD(PixelHitInstrumentation_ReturnOutsideEntryBlock)
   TEST_METHOD(PixelHitInstrumentation_SVPositionRowAlreadyOccupied)
+  TEST_METHOD(PixelHitInstrumentation_SVPositionRowUnknown)
+  TEST_METHOD(PixelHitInstrumentation_SVPositionRowOccupiedBySystemValue)
   TEST_METHOD(DebugInstrumentation_HullShaderPatchConstantFunction)
   TEST_METHOD(DebugInstrumentation_RawBufferShaderFlagDeclared)
   TEST_METHOD(ConstantColor_FromConstantBufferIsWellFormed)
@@ -303,7 +305,11 @@ public:
         std::move(pOptimizedModule), {}, Tokenize(outputText.c_str(), "\n")};
   }
 
-  PassOutput RunPixelHitPass(IDxcBlob *dxil, int RTWidth, int NumPixels) {
+  // std::nullopt omits the option entirely, which is how PIX signals that it
+  // could not read the previous stage's signature.
+  PassOutput
+  RunPixelHitPass(IDxcBlob *dxil, int RTWidth, int NumPixels,
+                  std::optional<unsigned> UpstreamSVPositionRow = std::nullopt) {
     CComPtr<IDxcOptimizer> pOptimizer;
     VERIFY_SUCCEEDED(
         m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
@@ -312,6 +318,10 @@ public:
     std::wstring pixelHitArg =
         L"-hlsl-dxil-add-pixel-hit-instrmentation,rt-width=" +
         std::to_wstring(RTWidth) + L",num-pixels=" + std::to_wstring(NumPixels);
+    if (UpstreamSVPositionRow.has_value()) {
+      pixelHitArg += L",upstream-sv-position-row=" +
+                     std::to_wstring(*UpstreamSVPositionRow);
+    }
     Options.push_back(pixelHitArg.c_str());
 
     CComPtr<IDxcBlob> pOptimizedModule;
@@ -4550,11 +4560,11 @@ static int FindSignatureElementStartRow(std::vector<std::string> const &lines,
   return -1;
 }
 
-// Regression test: the pixel-hit pass places SV_Position at the row the
-// upstream stage used, which is only a hint - each stage packs its signature
-// independently. When the pixel shader has already packed one of its own inputs
-// at that row, appending on top of it leaves two elements overlapping the same
-// register.
+// Regression test: the pixel-hit pass has to place SV_Position on the row the
+// upstream stage used, because D3D12 pairs the stages by register. When the
+// pixel shader has already packed one of its own inputs at that row, appending
+// on top of it leaves two elements overlapping the same register and the
+// validator rejects the module.
 TEST_F(PixTest, PixelHitInstrumentation_SVPositionRowAlreadyOccupied) {
   const char *source = R"x(
 float4 main(float4 col : COLOR) : SV_Target
@@ -4564,16 +4574,81 @@ float4 main(float4 col : COLOR) : SV_Target
 
   auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
 
-  // The default upstream row of 0 is exactly the row COLOR occupies.
-  auto output = RunPixelHitPass(compiled, 16, 64);
+  // Row 0 is both COLOR's row and, here, the upstream stage's SV_Position row.
+  auto output = RunPixelHitPass(compiled, 16, 64, 0 /*upstreamSVPositionRow*/);
   auto lines = Split(Disassemble(output.blob), '\n');
 
   int const colorRow = FindSignatureElementStartRow(lines, "COLOR");
   int const positionRow = FindSignatureElementStartRow(lines, "SV_Position");
 
-  VERIFY_ARE_EQUAL(0, colorRow);
-  // Before the fix SV_Position was also appended at row 0, overlapping COLOR.
+  // Before the fix SV_Position was appended on top of COLOR at row 0, which
+  // produces a module the validator rejects. It has to land on the upstream row
+  // and nowhere else, because D3D12 pairs the stages by register and an
+  // SV_Position on any other row fails pipeline creation outright. So the
+  // occupant is the element that moves.
+  VERIFY_ARE_EQUAL(0, positionRow);
   VERIFY_ARE_NOT_EQUAL(colorRow, positionRow);
+
+  VerifyInstrumentedModuleIsValid(output.blob, "pixel-hit instrumentation");
+}
+
+// PIX omits the option when it cannot read the previous stage's signature. The
+// pass must not relocate anything on the strength of a guessed row: the shader's
+// own attributes are still linkage-bound to whatever the real upstream stage is,
+// so the injected SV_Position goes on a row of its own and leaves them alone.
+TEST_F(PixTest, PixelHitInstrumentation_SVPositionRowUnknown) {
+  const char *source = R"x(
+float4 main(float4 col : COLOR) : SV_Target
+{
+    return col;
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+
+  auto output = RunPixelHitPass(compiled, 16, 64);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  VERIFY_ARE_EQUAL(0, FindSignatureElementStartRow(lines, "COLOR"));
+  VERIFY_ARE_EQUAL(1, FindSignatureElementStartRow(lines, "SV_Position"));
+
+  VerifyInstrumentedModuleIsValid(output.blob, "pixel-hit instrumentation");
+}
+
+// The collision that actually occurs in the wild, and the one that made the
+// first attempt at this fix worse than the bug: a pixel shader reading a strict
+// subset of the vertex shader's outputs plus a system value the rasterizer
+// supplies. SV_PrimitiveID needs no vertex shader counterpart, so it packs onto
+// row 2 -- exactly where the vertex shader here writes SV_Position.
+//
+// Relocating SV_Position off row 2 desynchronises the stages and D3D12 rejects
+// the pipeline with "Semantic 'SV_Position', Index '0' is defined for mismatched
+// hardware registers between the output stage and input stage". SV_PrimitiveID
+// has no such constraint, so it is the one that moves.
+TEST_F(PixTest, PixelHitInstrumentation_SVPositionRowOccupiedBySystemValue) {
+  const char *source = R"x(
+struct PSInput
+{
+    float2 uv : TEXCOORD0;
+    float4 color : COLOR0;
+    uint primitiveId : SV_PrimitiveID;
+};
+
+float4 main(PSInput input) : SV_Target
+{
+    return float4(input.color.rgb, input.uv.x + input.primitiveId);
+})x";
+
+  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+
+  auto output = RunPixelHitPass(compiled, 16, 64, 2 /*upstreamSVPositionRow*/);
+  auto lines = Split(Disassemble(output.blob), '\n');
+
+  VERIFY_ARE_EQUAL(2, FindSignatureElementStartRow(lines, "SV_Position"));
+  VERIFY_ARE_NOT_EQUAL(2, FindSignatureElementStartRow(lines, "SV_PrimitiveID"));
+  VERIFY_ARE_EQUAL(0, FindSignatureElementStartRow(lines, "TEXCOORD"));
+  VERIFY_ARE_EQUAL(1, FindSignatureElementStartRow(lines, "COLOR"));
+
+  VerifyInstrumentedModuleIsValid(output.blob, "pixel-hit instrumentation");
 }
 
 TEST_F(PixTest, Validation_PixelHit_PixelShader) {

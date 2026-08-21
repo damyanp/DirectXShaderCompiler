@@ -384,7 +384,7 @@ void DxilDebugInstrumentation::applyOptions(PassOptions O) {
   GetPassOptionUnsigned(O, "parameter2", &m_Parameters.Parameters[2], 0);
   GetPassOptionUInt64(O, "UAVSize", &m_UAVSize, 1024 * 1024);
   GetPassOptionUnsigned(O, "upstreamSVPositionRow", &m_upstreamSVPositionRow,
-                        0);
+                        PIXPassHelpers::kUnknownSVPositionRow);
 }
 
 uint32_t DxilDebugInstrumentation::UAVDumpingGroundOffset() {

@@ -82,6 +82,10 @@ ExpandedStruct ExpandStructType(llvm::LLVMContext &Ctx,
                                 llvm::Type *OriginalPayloadStructType);
 void ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
     llvm::Instruction *Instr, llvm::Value *newValue, llvm::Type *newType);
+// Passed as UpStreamSVPosRow when the caller could not determine which row the
+// previous stage put SV_Position on. See FindOrAddSV_Position.
+constexpr unsigned kUnknownSVPositionRow = UINT_MAX;
+
 unsigned int FindOrAddSV_Position(hlsl::DxilModule &DM,
                                   unsigned UpStreamSVPosRow);
 void ForEachDynamicallyIndexedResource(
