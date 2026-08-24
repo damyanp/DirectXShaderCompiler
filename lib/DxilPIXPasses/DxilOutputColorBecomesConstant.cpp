@@ -12,10 +12,14 @@
 
 #include "dxc/DXIL/DxilModule.h"
 #include "dxc/DXIL/DxilOperations.h"
+#include "dxc/DXIL/DxilTypeSystem.h"
 #include "dxc/DxilPIXPasses/DxilPIXPasses.h"
 #include "dxc/HLSL/DxilGenerationPass.h"
 #include "dxc/HLSL/DxilSpanAllocator.h"
+#include "dxc/Support/exception.h"
 
+#include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/APSInt.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include <array>
@@ -24,6 +28,35 @@
 
 using namespace llvm;
 using namespace hlsl;
+
+namespace {
+// Converts a pass-option float color channel to a signed 64-bit integer
+// for use as an integer render-target constant, without invoking the
+// C++ undefined behavior a bare static_cast<int64_t> would for a NaN,
+// +/-infinity, or a finite value outside int64_t's representable range.
+// APFloat::convertToInteger performs that range check itself (it cannot
+// itself invoke UB); opStatus is a bitmask (opOK=0x00, opInvalidOp=0x01,
+// opDivByZero=0x02, opOverflow=0x04, opUnderflow=0x08, opInexact=0x10),
+// so only opOK or exactly opInexact are accepted -- an equality check
+// against opInvalidOp alone would miss opInvalidOp combined with any
+// other bit. A normal in-range value with a fractional part still
+// truncates toward zero exactly as static_cast would (that case reports
+// opInexact and is accepted here), so every previously-valid, finite,
+// in-range value keeps its existing truncation and eventual ConstantInt
+// target-width modulo/truncation behavior unchanged.
+bool ConvertColorChannelToInt64(float value, int64_t *out) {
+  APFloat apf(value);
+  APSInt result(64, /*isUnsigned*/ false);
+  bool isExact = false;
+  APFloat::opStatus status =
+      apf.convertToInteger(result, APFloat::rmTowardZero, &isExact);
+  if (status != APFloat::opOK && status != APFloat::opInexact) {
+    return false;
+  }
+  *out = result.getExtValue();
+  return true;
+}
+} // namespace
 
 class DxilOutputColorBecomesConstant : public ModulePass {
 
@@ -108,51 +141,87 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
 
   const hlsl::DxilSignature &OutputSignature = DM.GetOutputSignature();
 
-  Function *FloatOutputFunction =
-      HlslOP->GetOpFunc(DXIL::OpCode::StoreOutput, Type::getFloatTy(Ctx));
-  Function *IntOutputFunction =
-      HlslOP->GetOpFunc(DXIL::OpCode::StoreOutput, Type::getInt32Ty(Ctx));
+  // dx.op.storeOutput has four legal overloads: f16, f32, i16 and i32.
+  // A min16float or min16int SV_Target lowers through the f16 or i16 form,
+  // as does a native half or int16_t target under -enable-16bit-types.
+  const std::array<llvm::Type *, 4> OverloadTypes{
+      Type::getHalfTy(Ctx), Type::getFloatTy(Ctx), Type::getInt16Ty(Ctx),
+      Type::getInt32Ty(Ctx)};
 
-  bool hasFloatOutputs = false;
-  bool hasIntOutputs = false;
+  std::array<Function *, 4> OutputFunctions{};
+  size_t ActiveOverload = OverloadTypes.size();
 
-  visitOutputInstructionCallers(
-      FloatOutputFunction, OutputSignature, HlslOP,
-      [&hasFloatOutputs](CallInst *) { hasFloatOutputs = true; });
+  for (size_t OverloadIndex = 0; OverloadIndex < OverloadTypes.size();
+       ++OverloadIndex) {
+    OutputFunctions[OverloadIndex] = HlslOP->GetOpFunc(
+        DXIL::OpCode::StoreOutput, OverloadTypes[OverloadIndex]);
 
-  visitOutputInstructionCallers(
-      IntOutputFunction, OutputSignature, HlslOP,
-      [&hasIntOutputs](CallInst *) { hasIntOutputs = true; });
+    bool HasTargetZeroStores = false;
+    visitOutputInstructionCallers(
+        OutputFunctions[OverloadIndex], OutputSignature, HlslOP,
+        [&HasTargetZeroStores](CallInst *) { HasTargetZeroStores = true; });
 
-  if (!hasFloatOutputs && !hasIntOutputs) {
-    PIXPassHelpers::EraseIfUnused(DM, FloatOutputFunction);
-    PIXPassHelpers::EraseIfUnused(DM, IntOutputFunction);
+    if (HasTargetZeroStores) {
+      // visitOutputInstructionCallers filters on SemanticKind::Target with
+      // GetSemanticStartIndex() == 0, so at most one overload writes
+      // SV_Target0.
+      DXASSERT(ActiveOverload == OverloadTypes.size(),
+               "Only one storeOutput overload can write SV_Target0");
+      ActiveOverload = OverloadIndex;
+    }
+  }
+
+  // GetOpFunc materialises each overload declaration on demand. Any
+  // overload with no callers must be erased before the pass returns; the
+  // validator rejects a module carrying an unused dx.op declaration.
+  struct EraseUnusedOutputFunctionsOnExit {
+    hlsl::DxilModule &DM;
+    std::array<Function *, 4> &OutputFunctions;
+    ~EraseUnusedOutputFunctionsOnExit() {
+      for (Function *OutputFunction : OutputFunctions) {
+        PIXPassHelpers::EraseIfUnused(DM, OutputFunction);
+      }
+    }
+  } EraseUnusedOutputFunctions{DM, OutputFunctions};
+
+  if (ActiveOverload == OverloadTypes.size()) {
     return false;
   }
 
-  // Otherwise, we assume the shader outputs only one or the other (because the
-  // 0th RTV can't have a mixed type)
-  DXASSERT(!hasFloatOutputs || !hasIntOutputs,
-           "Only one or the other type of output: float or int");
+  // Replacement values must match the store's own overload type.
+  llvm::Type *const OutputValueType = OverloadTypes[ActiveOverload];
+  const bool IsFloatOutput = OutputValueType->isFloatingPointTy();
 
   std::array<llvm::Value *, 4> ReplacementColors;
 
   switch (Mode) {
   case FromLiteralConstant: {
-    if (hasFloatOutputs) {
-      ReplacementColors[0] = HlslOP->GetFloatConst(Red);
-      ReplacementColors[1] = HlslOP->GetFloatConst(Green);
-      ReplacementColors[2] = HlslOP->GetFloatConst(Blue);
-      ReplacementColors[3] = HlslOP->GetFloatConst(Alpha);
-    }
-    if (hasIntOutputs) {
-      ReplacementColors[0] = HlslOP->GetI32Const(static_cast<int>(Red));
-      ReplacementColors[1] = HlslOP->GetI32Const(static_cast<int>(Green));
-      ReplacementColors[2] = HlslOP->GetI32Const(static_cast<int>(Blue));
-      ReplacementColors[3] = HlslOP->GetI32Const(static_cast<int>(Alpha));
+    const std::array<float, 4> Channels{Red, Green, Blue, Alpha};
+    for (size_t ChannelIndex = 0; ChannelIndex < Channels.size();
+         ++ChannelIndex) {
+      if (IsFloatOutput) {
+        ReplacementColors[ChannelIndex] =
+            ConstantFP::get(OutputValueType, Channels[ChannelIndex]);
+      } else {
+        int64_t IntegerChannelValue = 0;
+        if (!ConvertColorChannelToInt64(Channels[ChannelIndex],
+                                        &IntegerChannelValue)) {
+          throw ::hlsl::Exception(
+              DXC_E_GENERAL_INTERNAL_ERROR,
+              "PIX: a constant-color channel value is not representable "
+              "as the integer render-target output type (NaN, "
+              "infinite, or outside 64-bit signed integer range).");
+        }
+        ReplacementColors[ChannelIndex] = ConstantInt::get(
+            OutputValueType, static_cast<uint64_t>(IntegerChannelValue),
+            /*isSigned*/ true);
+      }
     }
   } break;
   case FromConstantBuffer: {
+
+    // A float4 constant buffer row is 16 bytes wide.
+    constexpr unsigned int ConstantColorCBufferSizeInBytes = 4 * sizeof(float);
 
     // Setup a constant buffer with a single float4 in it:
     SmallVector<llvm::Type *, 4> Elements{
@@ -162,13 +231,32 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
         llvm::StructType::create(Elements, "PIX_ConstantColorCB_Type");
     std::unique_ptr<DxilCBuffer> pCBuf = llvm::make_unique<DxilCBuffer>();
     pCBuf->SetGlobalName("PIX_ConstantColorCBName");
-    pCBuf->SetGlobalSymbol(UndefValue::get(CBStructTy));
+    // The global symbol and HLSL type must be pointers to the struct so
+    // ValidateCBuffer can reach the annotation.
+    pCBuf->SetGlobalSymbol(UndefValue::get(CBStructTy->getPointerTo()));
+    pCBuf->SetHLSLType(CBStructTy->getPointerTo());
     pCBuf->SetID(static_cast<unsigned int>(DM.GetCBuffers().size()));
     pCBuf->SetSpaceID(
         (unsigned int)-2); // This is the reserved-for-tools register space
     pCBuf->SetLowerBound(0);
     pCBuf->SetRangeSize(1);
-    pCBuf->SetSize(4);
+    pCBuf->SetSize(ConstantColorCBufferSizeInBytes);
+
+    hlsl::DxilStructAnnotation *StructAnnotation =
+        DM.GetTypeSystem().GetStructAnnotation(CBStructTy);
+    if (StructAnnotation == nullptr) {
+      StructAnnotation = DM.GetTypeSystem().AddStructAnnotation(CBStructTy);
+      StructAnnotation->SetCBufferSize(ConstantColorCBufferSizeInBytes);
+      static const char *const ComponentNames[] = {"r", "g", "b", "a"};
+      for (unsigned int ComponentIndex = 0; ComponentIndex < 4;
+           ++ComponentIndex) {
+        hlsl::DxilFieldAnnotation &FieldAnnotation =
+            StructAnnotation->GetFieldAnnotation(ComponentIndex);
+        FieldAnnotation.SetCBufferOffset(ComponentIndex * sizeof(float));
+        FieldAnnotation.SetCompType(hlsl::DXIL::ComponentType::F32);
+        FieldAnnotation.SetFieldName(ComponentNames[ComponentIndex]);
+      }
+    }
 
     Instruction *entryPointInstruction =
         &*(PIXPassHelpers::GetEntryFunction(DM)->begin()->begin());
@@ -188,9 +276,12 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
 #define PIX_CONSTANT_VALUE "PIX_Constant_Color_Value"
 
     // Insert the Buffer load instruction:
-    Function *CBLoad = HlslOP->GetOpFunc(
-        OP::OpCode::CBufferLoadLegacy,
-        hasFloatOutputs ? Type::getFloatTy(Ctx) : Type::getInt32Ty(Ctx));
+    // The tools constant buffer is always four 32-bit components; PIX
+    // uploads that layout.
+    llvm::Type *const CBufferComponentType =
+        IsFloatOutput ? Type::getFloatTy(Ctx) : Type::getInt32Ty(Ctx);
+    Function *CBLoad =
+        HlslOP->GetOpFunc(OP::OpCode::CBufferLoadLegacy, CBufferComponentType);
     Constant *OpArg =
         HlslOP->GetU32Const((unsigned)OP::OpCode::CBufferLoadLegacy);
     Value *ResourceHandle = callCreateHandle;
@@ -207,54 +298,47 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
         Builder.CreateExtractValue(loadLegacy, 2, PIX_CONSTANT_VALUE "2");
     ReplacementColors[3] =
         Builder.CreateExtractValue(loadLegacy, 3, PIX_CONSTANT_VALUE "3");
+
+    // Narrow the loaded components to a 16-bit output overload.
+    if (OutputValueType != CBufferComponentType) {
+      static const char *const NarrowedNames[] = {
+          PIX_CONSTANT_VALUE "Narrowed0", PIX_CONSTANT_VALUE "Narrowed1",
+          PIX_CONSTANT_VALUE "Narrowed2", PIX_CONSTANT_VALUE "Narrowed3"};
+      for (size_t ChannelIndex = 0; ChannelIndex < ReplacementColors.size();
+           ++ChannelIndex) {
+        ReplacementColors[ChannelIndex] =
+            IsFloatOutput
+                ? Builder.CreateFPTrunc(ReplacementColors[ChannelIndex],
+                                        OutputValueType,
+                                        NarrowedNames[ChannelIndex])
+                : Builder.CreateTrunc(ReplacementColors[ChannelIndex],
+                                      OutputValueType,
+                                      NarrowedNames[ChannelIndex]);
+      }
+    }
   } break;
   default:
     assert(false);
-    return 0;
+    return false;
   }
 
   bool Modified = false;
 
-  // The StoreOutput function can store either a float or an integer, depending
-  // on the intended output render-target resource view.
-  if (hasFloatOutputs) {
-    visitOutputInstructionCallers(
-        FloatOutputFunction, OutputSignature, HlslOP,
-        [&ReplacementColors, &Modified](CallInst *CallInstruction) {
-          Modified = true;
-          // The output column is the channel (red, green, blue or alpha) within
-          // the output pixel
-          Value *OutputColumnOperand = CallInstruction->getOperand(
-              hlsl::DXIL::OperandIndex::kStoreOutputColOpIdx);
-          ConstantInt *OutputColumnConstant =
-              cast<ConstantInt>(OutputColumnOperand);
-          APInt OutputColumn = OutputColumnConstant->getValue();
-          CallInstruction->setOperand(
-              hlsl::DXIL::OperandIndex::kStoreOutputValOpIdx,
-              ReplacementColors[*OutputColumn.getRawData()]);
-        });
-  }
-
-  if (hasIntOutputs) {
-    visitOutputInstructionCallers(
-        IntOutputFunction, OutputSignature, HlslOP,
-        [&ReplacementColors, &Modified](CallInst *CallInstruction) {
-          Modified = true;
-          // The output column is the channel (red, green, blue or alpha) within
-          // the output pixel
-          Value *OutputColumnOperand = CallInstruction->getOperand(
-              hlsl::DXIL::OperandIndex::kStoreOutputColOpIdx);
-          ConstantInt *OutputColumnConstant =
-              cast<ConstantInt>(OutputColumnOperand);
-          APInt OutputColumn = OutputColumnConstant->getValue();
-          CallInstruction->setOperand(
-              hlsl::DXIL::OperandIndex::kStoreOutputValOpIdx,
-              ReplacementColors[*OutputColumn.getRawData()]);
-        });
-  }
-
-  PIXPassHelpers::EraseIfUnused(DM, FloatOutputFunction);
-  PIXPassHelpers::EraseIfUnused(DM, IntOutputFunction);
+  visitOutputInstructionCallers(
+      OutputFunctions[ActiveOverload], OutputSignature, HlslOP,
+      [&ReplacementColors, &Modified](CallInst *CallInstruction) {
+        Modified = true;
+        // The output column is the channel (red, green, blue or alpha) within
+        // the output pixel
+        Value *OutputColumnOperand = CallInstruction->getOperand(
+            hlsl::DXIL::OperandIndex::kStoreOutputColOpIdx);
+        ConstantInt *OutputColumnConstant =
+            cast<ConstantInt>(OutputColumnOperand);
+        APInt OutputColumn = OutputColumnConstant->getValue();
+        CallInstruction->setOperand(
+            hlsl::DXIL::OperandIndex::kStoreOutputValOpIdx,
+            ReplacementColors[*OutputColumn.getRawData()]);
+      });
 
   return Modified;
 }

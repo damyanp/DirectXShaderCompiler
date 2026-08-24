@@ -189,7 +189,23 @@ public:
   TEST_METHOD(ToolsUav_OptimizerPassRejectsOverBudgetRootSignature)
   TEST_METHOD(ConstantColor_UnusedIntOverloadIsErased)
   TEST_METHOD(ConstantColor_NoTargetOverloadsAreErased)
+  TEST_METHOD(ConstantColor_FromConstantBufferIsWellFormed)
+  TEST_METHOD(ConstantColor_FromConstantBufferInt16NarrowingIsValid)
+  TEST_METHOD(ConstantColor_IntegerNaNRejectsCleanly)
+  TEST_METHOD(ConstantColor_IntegerPositiveInfinityRejectsCleanly)
+  TEST_METHOD(ConstantColor_IntegerNegativeInfinityRejectsCleanly)
+  TEST_METHOD(ConstantColor_IntegerHugeFinitePositiveRejectsCleanly)
+  TEST_METHOD(ConstantColor_IntegerHugeFiniteNegativeRejectsCleanly)
+  TEST_METHOD(ConstantColor_IntegerFractionalTruncatesTowardZero)
+  TEST_METHOD(ConstantColor_IntegerTargetWidthWraparoundPreserved)
+  TEST_METHOD(ConstantColor_Int16NaNRejectsCleanly)
+  TEST_METHOD(ConstantColor_Int16HugeFiniteRejectsCleanly)
+  TEST_METHOD(ConstantColor_Int16BoundaryValueSucceeds)
+  TEST_METHOD(ConstantColor_FloatOutputAcceptsNaN)
   TEST_METHOD(RemoveDiscards_UnusedDiscardOverloadIsErased)
+  TEST_METHOD(ReduceMSAAToSingleSample_SampleIndexOperandIsPositional)
+  TEST_METHOD(ReduceMSAAToSingleSample_SM66)
+  TEST_METHOD(ReduceMSAAToSingleSample_HalfLoad)
   TEST_METHOD(OperationCacheCleanup_RemovesErasedFunctions)
   TEST_METHOD(DynamicResourceCleanup_VisitorStopsEarly)
 
@@ -360,6 +376,30 @@ public:
     ret.Module = pOptimizedModule;
     ret.Lines = Tokenize(BlobToUtf8(pText).c_str(), "\n");
     return ret;
+  }
+
+  // Same as RunSinglePass, but for a pass that may legitimately fail
+  // (e.g. an unrepresentable pass-option value): captures RunOptimizer's
+  // HRESULT explicitly instead of asserting success, so a caller can
+  // assert either outcome. On failure, Module is null.
+  HRESULT RunSinglePassCapturingStatus(IDxcBlob *dxil, LPCWSTR passOption,
+                                       SinglePassOutput *out) {
+    CComPtr<IDxcOptimizer> pOptimizer;
+    VERIFY_SUCCEEDED(
+        m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+    std::vector<LPCWSTR> Options;
+    Options.push_back(L"-opt-mod-passes");
+    Options.push_back(passOption);
+    Options.push_back(L"-hlsl-dxilemit");
+
+    CComPtr<IDxcBlob> pOptimizedModule;
+    CComPtr<IDxcBlobEncoding> pText;
+    HRESULT hr = pOptimizer->RunOptimizer(dxil, Options.data(), Options.size(),
+                                          &pOptimizedModule, &pText);
+    out->Module = pOptimizedModule;
+    out->Lines = pText != nullptr ? Tokenize(BlobToUtf8(pText).c_str(), "\n")
+                                  : std::vector<std::string>();
+    return hr;
   }
 
   // PIX does not validate the shaders its passes instrument, so a pass
@@ -5204,6 +5244,443 @@ float4 main() : SV_Target
   VERIFY_IS_FALSE(HasUnusedDeclaration(output.Lines, "dx.op.discard"));
   VerifyInstrumentedModuleIsValid(output.Module,
                                   "discard removal with no discard");
+}
+
+TEST_F(PixTest, ConstantColor_FromConstantBufferIsWellFormed) {
+  const char *source = R"x(
+float4 main(float4 position : SV_Position) : SV_Target
+{
+    return position;
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-constantColor,mod-mode=1");
+
+  // The CBuffer symbol must be a pointer to the struct so ValidateCBuffer
+  // can reach the annotation.
+  CComPtr<IDxcAssembler> pAssembler;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcAssembler, &pAssembler));
+  CComPtr<IDxcOperationResult> pAssembleResult;
+  VERIFY_SUCCEEDED(
+      pAssembler->AssembleToContainer(output.Module, &pAssembleResult));
+  HRESULT assembleStatus;
+  VERIFY_SUCCEEDED(pAssembleResult->GetStatus(&assembleStatus));
+  VERIFY_SUCCEEDED(assembleStatus);
+
+  CComPtr<IDxcBlob> pNewContainer;
+  VERIFY_SUCCEEDED(pAssembleResult->GetResult(&pNewContainer));
+
+  // The CBuffer resource record field 6 is size in bytes; a float4 row
+  // is 16 bytes.
+  std::vector<std::string> lines =
+      Tokenize(Disassemble(pNewContainer).c_str(), "\n");
+  bool foundConstantColorCBuffer = false;
+  for (std::string const &line : lines) {
+    if (line.find("!\"PIX_ConstantColorCBName\"") == std::string::npos)
+      continue;
+    std::vector<std::string> fields = Tokenize(line.c_str(), ",");
+    VERIFY_IS_TRUE(fields.size() > 6);
+    // Field 1 is the global symbol; it must be a pointer to the CB struct.
+    VERIFY_ARE_NOT_EQUAL(std::string::npos, fields[1].find('*'));
+    // R1: locate "i32 " explicitly and assert it was found before doing
+    // pointer arithmetic on it, so format drift in field 6 becomes a
+    // clean test failure instead of undefined-behavior pointer arithmetic
+    // (fields[6].c_str() + npos + 4 would be far out of bounds).
+    std::string::size_type sizeFieldMarkerPos = fields[6].find("i32 ");
+    VERIFY_ARE_NOT_EQUAL(std::string::npos, sizeFieldMarkerPos);
+    VERIFY_ARE_EQUAL(
+        16, atoi(fields[6].c_str() + sizeFieldMarkerPos + strlen("i32 ")));
+    foundConstantColorCBuffer = true;
+  }
+  VERIFY_IS_TRUE(foundConstantColorCBuffer);
+
+  // The struct annotation names the float4 row in the reflection header.
+  bool foundStructAnnotation = false;
+  for (std::string const &line : lines) {
+    if (line.find("struct PIX_ConstantColorCB_Type") != std::string::npos)
+      foundStructAnnotation = true;
+  }
+  VERIFY_IS_TRUE(foundStructAnnotation);
+
+  VerifyInstrumentedModuleIsValid(pNewContainer,
+                                  "constant-colour from constant buffer");
+}
+
+// B1: the FileCheck test constantcolorint16FromCB.hlsl proves the IR shape
+// of the integer-narrowing arm (CBufRet.i32 -> trunc i16 -> storeOutput.i16),
+// but does not validate the produced module end-to-end. This test mirrors
+// ConstantColor_FromConstantBufferIsWellFormed's assemble-to-container plus
+// VerifyInstrumentedModuleIsValid pattern for a native 16-bit integer
+// target, so the integer narrowing arm and its unused-overload cleanup are
+// also proven to produce a module the real validator accepts.
+TEST_F(PixTest, ConstantColor_FromConstantBufferInt16NarrowingIsValid) {
+  if (m_ver.SkipDxilVersion(1, 2))
+    return;
+
+  const char *source = R"x(
+uint16_t4 main() : SV_Target
+{
+    return uint16_t4(0, 0, 0, 0);
+})x";
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"ps_6_2",
+                                       {L"-Od", L"-enable-16bit-types"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-constantColor,mod-mode=1");
+
+  CComPtr<IDxcAssembler> pAssembler;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcAssembler, &pAssembler));
+  CComPtr<IDxcOperationResult> pAssembleResult;
+  VERIFY_SUCCEEDED(
+      pAssembler->AssembleToContainer(output.Module, &pAssembleResult));
+  HRESULT assembleStatus;
+  VERIFY_SUCCEEDED(pAssembleResult->GetStatus(&assembleStatus));
+  VERIFY_SUCCEEDED(assembleStatus);
+
+  CComPtr<IDxcBlob> pNewContainer;
+  VERIFY_SUCCEEDED(pAssembleResult->GetResult(&pNewContainer));
+
+  const std::string disassembly = Disassemble(pNewContainer);
+  // Confirm the integer narrowing arm was actually taken (not silently
+  // replaced by the float arm) and that the unused float overload was
+  // erased by the pass's overload cleanup.
+  VERIFY_ARE_NOT_EQUAL(std::string::npos, disassembly.find("trunc i32"));
+  VERIFY_ARE_NOT_EQUAL(std::string::npos,
+                       disassembly.find("dx.op.storeOutput.i16"));
+  VERIFY_IS_FALSE(HasDeclaration(disassembly, "dx.op.storeOutput.f32"));
+
+  VerifyInstrumentedModuleIsValid(
+      pNewContainer, "constant-colour from constant buffer, 16-bit integer "
+                     "narrowing");
+}
+
+// Reviewer 9.1: a bare static_cast<int64_t> of a pass-option float is C++
+// undefined behavior for a NaN, +/-infinity, or a finite value outside
+// int64_t's representable range. These tests call RunOptimizer directly
+// (not RunSinglePass, which asserts success internally and would abort
+// the test before a real rejection could be observed) so both the
+// rejecting and the succeeding cases are proven against the real pass,
+// not a bare helper. Only "constant-red" is set; the pass's per-channel
+// loop reaches it first, so setting only this one channel is sufficient
+// to exercise the checked-conversion path without needing all four.
+
+static const char *const IntTargetSource = R"(
+int4 main() : SV_Target
+{
+    return int4(0, 0, 0, 0);
+})";
+static const char *const Int16TargetSource = R"(
+int16_t4 main() : SV_Target
+{
+    return int16_t4(0, 0, 0, 0);
+})";
+
+TEST_F(PixTest, ConstantColor_IntegerNaNRejectsCleanly) {
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, IntTargetSource, L"ps_6_0", {L"-Od"});
+
+  SinglePassOutput output;
+  HRESULT hr = RunSinglePassCapturingStatus(
+      compiled, L"-hlsl-dxil-constantColor,constant-red=nan", &output);
+  VERIFY_FAILED(hr);
+  VERIFY_IS_TRUE(output.Module == nullptr);
+}
+
+TEST_F(PixTest, ConstantColor_IntegerPositiveInfinityRejectsCleanly) {
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, IntTargetSource, L"ps_6_0", {L"-Od"});
+
+  SinglePassOutput output;
+  HRESULT hr = RunSinglePassCapturingStatus(
+      compiled, L"-hlsl-dxil-constantColor,constant-red=inf", &output);
+  VERIFY_FAILED(hr);
+  VERIFY_IS_TRUE(output.Module == nullptr);
+}
+
+TEST_F(PixTest, ConstantColor_IntegerNegativeInfinityRejectsCleanly) {
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, IntTargetSource, L"ps_6_0", {L"-Od"});
+
+  SinglePassOutput output;
+  HRESULT hr = RunSinglePassCapturingStatus(
+      compiled, L"-hlsl-dxil-constantColor,constant-red=-inf", &output);
+  VERIFY_FAILED(hr);
+  VERIFY_IS_TRUE(output.Module == nullptr);
+}
+
+// 1e19 is finite and well within float's own representable range
+// (float's max magnitude is roughly 3.4e38), so this is a genuinely
+// finite-but-out-of-int64_t-range value, distinct from the infinity
+// cases above -- int64_t's max magnitude is roughly 9.2e18.
+TEST_F(PixTest, ConstantColor_IntegerHugeFinitePositiveRejectsCleanly) {
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, IntTargetSource, L"ps_6_0", {L"-Od"});
+
+  SinglePassOutput output;
+  HRESULT hr = RunSinglePassCapturingStatus(
+      compiled, L"-hlsl-dxil-constantColor,constant-red=1e19", &output);
+  VERIFY_FAILED(hr);
+  VERIFY_IS_TRUE(output.Module == nullptr);
+}
+
+TEST_F(PixTest, ConstantColor_IntegerHugeFiniteNegativeRejectsCleanly) {
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, IntTargetSource, L"ps_6_0", {L"-Od"});
+
+  SinglePassOutput output;
+  HRESULT hr = RunSinglePassCapturingStatus(
+      compiled, L"-hlsl-dxil-constantColor,constant-red=-1e19", &output);
+  VERIFY_FAILED(hr);
+  VERIFY_IS_TRUE(output.Module == nullptr);
+}
+
+// Boundary-adjacent, representable values must still succeed and must
+// preserve the exact pre-fix behavior: truncation toward zero for a
+// fractional value (3.7 -> 3, not 4; -3.7 -> -3, not -4), and the
+// existing ConstantInt target-width modulo/truncation for a value that
+// is representable in int64_t but does not fit the i32 target type
+// (5000000000, whose low 32 bits are 705032704) -- this fix only adds an
+// int64_t range/NaN/infinity guard, not any target-bit-width clamping.
+TEST_F(PixTest, ConstantColor_IntegerFractionalTruncatesTowardZero) {
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, IntTargetSource, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output = RunSinglePass(
+      compiled,
+      L"-hlsl-dxil-constantColor,constant-red=3.7,constant-green=-3.7");
+  const std::string text = Disassemble(output.Module);
+  VERIFY_ARE_NOT_EQUAL(std::string::npos, text.find("i32 3)"));
+  VERIFY_ARE_NOT_EQUAL(std::string::npos, text.find("i32 -3)"));
+  VerifyInstrumentedModuleIsValid(
+      output.Module, "constant-colour integer truncation toward zero");
+}
+
+TEST_F(PixTest, ConstantColor_IntegerTargetWidthWraparoundPreserved) {
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, IntTargetSource, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output = RunSinglePass(
+      compiled, L"-hlsl-dxil-constantColor,constant-red=5000000000");
+  const std::string text = Disassemble(output.Module);
+  // 5000000000 mod 2^32 == 705032704: the existing ConstantInt target-
+  // width truncation for an int64_t value that does not fit the i32
+  // output type, unrelated to and unaffected by the new range check.
+  VERIFY_ARE_NOT_EQUAL(std::string::npos, text.find("i32 705032704)"));
+  VerifyInstrumentedModuleIsValid(
+      output.Module,
+      "constant-colour integer target-width wraparound preserved");
+}
+
+TEST_F(PixTest, ConstantColor_Int16NaNRejectsCleanly) {
+  if (m_ver.SkipDxilVersion(1, 2))
+    return;
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, Int16TargetSource, L"ps_6_2",
+              {L"-Od", L"-enable-16bit-types"});
+
+  SinglePassOutput output;
+  HRESULT hr = RunSinglePassCapturingStatus(
+      compiled, L"-hlsl-dxil-constantColor,constant-red=nan", &output);
+  VERIFY_FAILED(hr);
+  VERIFY_IS_TRUE(output.Module == nullptr);
+}
+
+TEST_F(PixTest, ConstantColor_Int16HugeFiniteRejectsCleanly) {
+  if (m_ver.SkipDxilVersion(1, 2))
+    return;
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, Int16TargetSource, L"ps_6_2",
+              {L"-Od", L"-enable-16bit-types"});
+
+  SinglePassOutput output;
+  HRESULT hr = RunSinglePassCapturingStatus(
+      compiled, L"-hlsl-dxil-constantColor,constant-red=1e19", &output);
+  VERIFY_FAILED(hr);
+  VERIFY_IS_TRUE(output.Module == nullptr);
+}
+
+TEST_F(PixTest, ConstantColor_Int16BoundaryValueSucceeds) {
+  if (m_ver.SkipDxilVersion(1, 2))
+    return;
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, Int16TargetSource, L"ps_6_2",
+              {L"-Od", L"-enable-16bit-types"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-constantColor,constant-red=3.7");
+  const std::string text = Disassemble(output.Module);
+  VERIFY_ARE_NOT_EQUAL(std::string::npos, text.find("i16 3)"));
+  VerifyInstrumentedModuleIsValid(
+      output.Module, "constant-colour 16-bit integer boundary value");
+}
+
+// The float output path must retain its existing behavior: ConstantFP
+// can represent NaN and infinity directly (unlike ConstantInt), so a
+// float target must not be rejected by the integer-only conversion
+// check added above -- that check must never even run for a float
+// target, since IsFloatOutput short-circuits it entirely.
+TEST_F(PixTest, ConstantColor_FloatOutputAcceptsNaN) {
+  const char *source = R"x(
+float4 main() : SV_Target
+{
+    return float4(0, 0, 0, 0);
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-constantColor,constant-red=nan");
+  const std::string text = Disassemble(output.Module);
+  // atof("nan") on this platform produces the "indefinite" NaN payload
+  // (all-ones mantissa), which prints as 0x7FFFFFFFE0000000 in LLVM's
+  // always-double-precision hex float notation; the exact payload is
+  // incidental, what matters is that some NaN constant is accepted (not
+  // rejected) for a float target.
+  VERIFY_ARE_NOT_EQUAL(std::string::npos,
+                       text.find("float 0x7FFFFFFFE0000000"));
+  VerifyInstrumentedModuleIsValid(output.Module,
+                                  "constant-colour float output accepts NaN");
+}
+
+// R2: parse the exact sample-index (mipLevelOrSampleCount) operand by
+// position rather than searching the whole line for a substring like
+// ", i32 0,", which could also match the same digits appearing in an
+// unrelated operand (a coordinate or offset). DxilInst_TextureLoad's
+// operand indices place the sample/mip index at the call's argument
+// index 2 (0=opcode, 1=handle, 2=mipLevelOrSampleCount, matching
+// DxilInstructions.h's arg_mipLevelOrSampleCount enumerator). Returns the
+// trimmed operand text (e.g. "i32 0"), or an empty string if no matching
+// call is found.
+static std::string
+GetTextureLoadSampleIndexOperand(std::vector<std::string> const &lines,
+                                 const char *textureLoadOverload) {
+  for (std::string const &line : lines) {
+    if (line.find(" call ") == std::string::npos) {
+      continue;
+    }
+    size_t opPos = line.find(textureLoadOverload);
+    if (opPos == std::string::npos) {
+      continue;
+    }
+    size_t argsStart = line.find('(', opPos);
+    if (argsStart == std::string::npos) {
+      continue;
+    }
+    std::vector<std::string> args;
+    size_t pos = argsStart + 1;
+    while (pos <= line.size()) {
+      size_t commaPos = line.find(',', pos);
+      size_t argEnd =
+          commaPos == std::string::npos ? line.find(')', pos) : commaPos;
+      if (argEnd == std::string::npos) {
+        break;
+      }
+      args.push_back(line.substr(pos, argEnd - pos));
+      if (commaPos == std::string::npos) {
+        break;
+      }
+      pos = commaPos + 1;
+    }
+    if (args.size() <= 2) {
+      continue;
+    }
+    std::string sampleIndexOperand = args[2];
+    size_t firstNonSpace = sampleIndexOperand.find_first_not_of(" \t");
+    if (firstNonSpace != std::string::npos) {
+      sampleIndexOperand = sampleIndexOperand.substr(firstNonSpace);
+    }
+    return sampleIndexOperand;
+  }
+  return std::string();
+}
+
+static void
+VerifyMSAALoadSampleWasReduced(std::vector<std::string> const &lines,
+                               const char *textureLoadOverload,
+                               unsigned originalSampleIndex) {
+  std::string sampleIndexOperand =
+      GetTextureLoadSampleIndexOperand(lines, textureLoadOverload);
+  VERIFY_IS_FALSE(sampleIndexOperand.empty());
+  VERIFY_IS_FALSE(sampleIndexOperand ==
+                  "i32 " + std::to_string(originalSampleIndex));
+  VERIFY_IS_TRUE(sampleIndexOperand == "i32 0");
+}
+
+// R2: direct, committed regression coverage for the positional matcher
+// itself: a zero appearing in a different operand (here, coord1) must not
+// be mistaken for a reduced sample index; only the true positional
+// mipLevelOrSampleCount operand (argument index 2) may be zero.
+TEST_F(PixTest, ReduceMSAAToSingleSample_SampleIndexOperandIsPositional) {
+  const std::vector<std::string> zeroInWrongOperandLines = {
+      "  %x = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, "
+      "%dx.types.Handle %157, i32 3, i32 10, i32 0, i32 20, i32 undef, "
+      "i32 undef, i32 undef)"};
+  std::string sampleIndexOperand = GetTextureLoadSampleIndexOperand(
+      zeroInWrongOperandLines, "dx.op.textureLoad.f32");
+  VERIFY_IS_FALSE(sampleIndexOperand.empty());
+  VERIFY_IS_FALSE(sampleIndexOperand == "i32 0");
+  VERIFY_IS_TRUE(sampleIndexOperand == "i32 3");
+
+  const std::vector<std::string> reducedLines = {
+      "  %x = call %dx.types.ResRet.f32 @dx.op.textureLoad.f32(i32 66, "
+      "%dx.types.Handle %157, i32 0, i32 10, i32 0, i32 20, i32 undef, "
+      "i32 undef, i32 undef)"};
+  std::string reducedSampleIndexOperand =
+      GetTextureLoadSampleIndexOperand(reducedLines, "dx.op.textureLoad.f32");
+  VERIFY_IS_TRUE(reducedSampleIndexOperand == "i32 0");
+}
+
+TEST_F(PixTest, ReduceMSAAToSingleSample_SM66) {
+  if (m_ver.SkipDxilVersion(1, 6))
+    return;
+
+  // SM 6.6 lowers the resource handle through annotateHandle.
+  const char *source = R"x(
+Texture2DMS<float4> tex : register(t0);
+float4 main(float4 position : SV_Position) : SV_Target
+{
+    return tex.Load(int2(position.xy), 3);
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_6", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-reduce-msaa-to-single");
+  std::vector<std::string> lines =
+      Tokenize(Disassemble(output.Module).c_str(), "\n");
+
+  VerifyMSAALoadSampleWasReduced(lines, "dx.op.textureLoad.f32", 3u);
+  VerifyInstrumentedModuleIsValid(output.Module,
+                                  "MSAA reduction on SM 6.6 handle");
+}
+
+TEST_F(PixTest, ReduceMSAAToSingleSample_HalfLoad) {
+  if (m_ver.SkipDxilVersion(1, 2))
+    return;
+
+  // Texture2DMS<half4>.Load lowers to dx.op.textureLoad.f16.
+  const char *source = R"x(
+Texture2DMS<half4> tex : register(t0);
+float4 main(float4 position : SV_Position) : SV_Target
+{
+    half4 color = tex.Load(int2(position.xy), 2);
+    return float4(color);
+})x";
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"ps_6_2",
+                                       {L"-Od", L"-enable-16bit-types"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-reduce-msaa-to-single");
+  std::vector<std::string> lines =
+      Tokenize(Disassemble(output.Module).c_str(), "\n");
+
+  VerifyMSAALoadSampleWasReduced(lines, "dx.op.textureLoad.f16", 2u);
+  VerifyInstrumentedModuleIsValid(output.Module,
+                                  "MSAA reduction on 16-bit texture load");
 }
 
 TEST_F(PixTest, OperationCacheCleanup_RemovesErasedFunctions) {
