@@ -214,6 +214,7 @@ public:
   TEST_METHOD(Validation_ControlCanonicalPartMetadataDivergenceIsRejected)
   TEST_METHOD(Validation_ControlCanonicalKnownPixMetadataIsAccepted)
   TEST_METHOD(Validation_ControlCanonicalMixedForeignMetadataIsRejected)
+  TEST_METHOD(Validation_NonUniformResourceIndex_WaveOpsFlag)
 
   dxc::DxCompilerDllLoader m_dllSupport;
   VersionSupportInfo m_ver;
@@ -5813,4 +5814,48 @@ float main() : SV_Target
       GetInstrumentedModuleDisposition(withMixedMetadata);
   VERIFY_IS_FALSE(disposition.Valid);
   VERIFY_IS_FALSE(disposition.Diagnostics.empty());
+}
+
+TEST_F(PixTest, Validation_NonUniformResourceIndex_WaveOpsFlag) {
+  const char *source = R"x(
+Texture2D textures[]  : register(t0);
+SamplerState samp     : register(s0);
+
+cbuffer Constants : register(b0)
+{
+    uint index;
+};
+
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return textures[index].Sample(samp, pos.xy);
+})x";
+
+  // This index is dynamic and unmarked, so the pass instruments it; an
+  // index already marked NonUniformResourceIndex would be skipped.
+  // Instrumentation inserts WaveActiveAllEqual, which requires the WaveOps
+  // shader flag.
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_6", {L"-Od"});
+  CComPtr<IDxcBlob> dxil = FindModule(DFCC_ShaderDebugInfoDXIL, compiled);
+
+  CComPtr<IDxcOptimizer> pOptimizer;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+  std::array<LPCWSTR, 4> Options = {
+      L"-opt-mod-passes", L"-dxil-dbg-value-to-dbg-declare",
+      L"-dxil-annotate-with-virtual-regs",
+      L"-hlsl-dxil-non-uniform-resource-index-instrumentation"};
+
+  CComPtr<IDxcBlob> pOptimizedModule;
+  CComPtr<IDxcBlobEncoding> pText;
+  VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(
+      dxil, Options.data(), Options.size(), &pOptimizedModule, &pText));
+
+  VerifyInstrumentedModuleIsValid(pOptimizedModule,
+                                  "non-uniform resource index instrumentation");
+
+  VERIFY_ARE_NOT_EQUAL(
+      std::string::npos,
+      Disassemble(pOptimizedModule).find("dx.op.waveActiveAllEqual"));
 }
