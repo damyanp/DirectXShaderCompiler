@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cctype>
 #include <cfloat>
 #include <cstring>
 #include <functional>
@@ -179,6 +180,12 @@ public:
 
   TEST_METHOD(DxilPIXDXRInvocationsLog_SanityTest)
   TEST_METHOD(DxilPIXDXRInvocationsLog_EmbeddedRootSigs)
+  TEST_METHOD(DxilPIXDXRInvocationsLog_ZeroCapacityEmitsNothing)
+  TEST_METHOD(DxilPIXDXRInvocationsLog_OneEntryUsesEntryCountBound)
+  TEST_METHOD(DxilPIXDXRInvocationsLog_ExactCapacityUsesEntryCountBound)
+  TEST_METHOD(DxilPIXDXRInvocationsLog_OverflowGuardValidates)
+  TEST_METHOD(
+      DxilPIXDXRInvocationsLog_EntryCountCheckRejectsLongerBoundWithSamePrefix)
 
   TEST_METHOD(DebugInstrumentation_TextOutput)
   TEST_METHOD(DebugInstrumentation_BlockReport)
@@ -952,7 +959,8 @@ public:
   CComPtr<IDxcBlob>
   RunDxilPIXAddTidToAmplificationShaderPayloadPass(IDxcBlob *blob);
   CComPtr<IDxcBlob> RunDxilPIXMeshShaderOutputPass(IDxcBlob *blob);
-  CComPtr<IDxcBlob> RunDxilPIXDXRInvocationsLog(IDxcBlob *blob);
+  CComPtr<IDxcBlob>
+  RunDxilPIXDXRInvocationsLog(IDxcBlob *blob, unsigned maxNumEntriesInLog = 24);
   PassOutput
   RunDxilNonUniformResourceIndexInstrumentation(IDxcBlob *blob,
                                                 std::string &outputText);
@@ -990,6 +998,46 @@ static int CountToolsUAVRecords(std::vector<std::string> const &lines) {
     }
   }
   return count;
+}
+
+static bool
+HasDxrInvocationLogEntryCountCheck(std::vector<std::string> const &lines,
+                                   unsigned expectedEntryCount) {
+  // Reviewer 4.1: matching "icmp ult i32 %EntryIndexResult" and ", N"
+  // anywhere in the line (previously two independent, unanchored find()
+  // calls) lets a bound of 1 also match text containing 10 or 100, since
+  // ", 1" is a substring of ", 10" and ", 100". Anchor the value
+  // immediately after the known operand prefix, and require the decimal
+  // literal to end exactly there. Reviewer follow-up: rejecting only a
+  // following digit is not enough (e.g. "1x" would still match); the only
+  // valid continuations of an LLVM IR operand's decimal literal are
+  // end-of-line, whitespace (including a trailing CR before a "\r\n" line
+  // ending), or a comma introducing an attached metadata reference (e.g.
+  // ", !dbg !12"). Reject every other continuation, digit or not.
+  const std::string prefix = "icmp ult i32 %EntryIndexResult, ";
+  const std::string expectedValue = std::to_string(expectedEntryCount);
+  for (std::string const &line : lines) {
+    size_t prefixPos = line.find(prefix);
+    if (prefixPos == std::string::npos) {
+      continue;
+    }
+    size_t valuePos = prefixPos + prefix.size();
+    if (line.compare(valuePos, expectedValue.size(), expectedValue) != 0) {
+      continue;
+    }
+    size_t afterValuePos = valuePos + expectedValue.size();
+    bool validContinuation = afterValuePos >= line.size();
+    if (!validContinuation) {
+      const unsigned char nextChar =
+          static_cast<unsigned char>(line[afterValuePos]);
+      validContinuation = nextChar == ',' || std::isspace(nextChar) != 0;
+    }
+    if (!validContinuation) {
+      continue;
+    }
+    return true;
+  }
+  return false;
 }
 
 static bool
@@ -1279,15 +1327,19 @@ CComPtr<IDxcBlob> PixTest::RunDxilPIXMeshShaderOutputPass(IDxcBlob *blob) {
   return pOptimizedModule;
 }
 
-CComPtr<IDxcBlob> PixTest::RunDxilPIXDXRInvocationsLog(IDxcBlob *blob) {
+CComPtr<IDxcBlob>
+PixTest::RunDxilPIXDXRInvocationsLog(IDxcBlob *blob,
+                                     unsigned maxNumEntriesInLog) {
 
   CComPtr<IDxcBlob> dxil = FindModule(DFCC_ShaderDebugInfoDXIL, blob);
   CComPtr<IDxcOptimizer> pOptimizer;
   VERIFY_SUCCEEDED(
       m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+  std::wstring logArg = L"-hlsl-dxil-pix-dxr-invocations-log,"
+                        L"maxNumEntriesInLog=" +
+                        std::to_wstring(maxNumEntriesInLog);
   std::vector<LPCWSTR> Options;
-  Options.push_back(
-      L"-hlsl-dxil-pix-dxr-invocations-log,maxNumEntriesInLog=24");
+  Options.push_back(logArg.c_str());
 
   CComPtr<IDxcBlob> pOptimizedModule;
   CComPtr<IDxcBlobEncoding> pText;
@@ -1301,6 +1353,20 @@ CComPtr<IDxcBlob> PixTest::RunDxilPIXDXRInvocationsLog(IDxcBlob *blob) {
 
   return pOptimizedModule;
 }
+
+static const char *kSingleMissInvocationLogShader = R"x(
+struct [raypayload] MyPayload
+{
+    float2 barycentrics : read(caller) : write(caller,anyhit);
+    uint primitiveIndex : read(caller) : write(caller,anyhit);
+};
+
+[shader("miss")]
+void MissOne(inout MyPayload payload)
+{
+    payload.primitiveIndex = 1;
+}
+)x";
 
 PassOutput PixTest::RunDxilNonUniformResourceIndexInstrumentation(
     IDxcBlob *blob, std::string &outputText) {
@@ -4503,6 +4569,98 @@ void MyMiss(inout MyPayload payload)
   auto compiledLib = Compile(m_dllSupport, source, L"lib_6_3",
                              {L"-Qstrip_reflect"}, L"RootSig");
   RunDxilPIXDXRInvocationsLog(compiledLib);
+}
+
+TEST_F(PixTest, DxilPIXDXRInvocationsLog_ZeroCapacityEmitsNothing) {
+  CComPtr<IDxcBlob> compiledLib =
+      Compile(m_dllSupport, kSingleMissInvocationLogShader, L"lib_6_6", {});
+
+  CComPtr<IDxcBlob> oneEntryOutput =
+      RunDxilPIXDXRInvocationsLog(compiledLib, 1);
+  std::vector<std::string> oneEntryLines =
+      Tokenize(Disassemble(oneEntryOutput), "\n");
+  VERIFY_ARE_EQUAL(2, CountToolsUAVRecords(oneEntryLines));
+
+  CComPtr<IDxcBlob> zeroEntryOutput =
+      RunDxilPIXDXRInvocationsLog(compiledLib, 0);
+  std::vector<std::string> zeroEntryLines =
+      Tokenize(Disassemble(zeroEntryOutput), "\n");
+  VERIFY_ARE_EQUAL(0, CountToolsUAVRecords(zeroEntryLines));
+}
+
+TEST_F(PixTest, DxilPIXDXRInvocationsLog_OneEntryUsesEntryCountBound) {
+  CComPtr<IDxcBlob> compiledLib =
+      Compile(m_dllSupport, kSingleMissInvocationLogShader, L"lib_6_6", {});
+  CComPtr<IDxcBlob> output = RunDxilPIXDXRInvocationsLog(compiledLib, 1);
+  std::vector<std::string> lines = Tokenize(Disassemble(output), "\n");
+
+  VERIFY_IS_TRUE(HasDxrInvocationLogEntryCountCheck(lines, 1));
+}
+
+TEST_F(PixTest, DxilPIXDXRInvocationsLog_ExactCapacityUsesEntryCountBound) {
+  CComPtr<IDxcBlob> compiledLib =
+      Compile(m_dllSupport, kSingleMissInvocationLogShader, L"lib_6_6", {});
+  CComPtr<IDxcBlob> output = RunDxilPIXDXRInvocationsLog(compiledLib, 24);
+  std::vector<std::string> lines = Tokenize(Disassemble(output), "\n");
+
+  VERIFY_IS_TRUE(HasDxrInvocationLogEntryCountCheck(lines, 24));
+}
+
+TEST_F(PixTest, DxilPIXDXRInvocationsLog_OverflowGuardValidates) {
+  CComPtr<IDxcBlob> compiledLib =
+      Compile(m_dllSupport, kSingleMissInvocationLogShader, L"lib_6_6", {});
+  CComPtr<IDxcBlob> output = RunDxilPIXDXRInvocationsLog(compiledLib, 1);
+  std::string disassembly = Disassemble(output);
+
+  VERIFY_IS_TRUE(disassembly.find("@dx.op.binary.i32") == std::string::npos);
+  VerifyInstrumentedModuleIsValid(output, "DXR invocations log overflow guard");
+}
+
+// Reviewer item 4.1: directly test HasDxrInvocationLogEntryCountCheck's
+// value-boundary behavior with synthetic lines, independent of what the
+// production pass actually emits, per the reviewer's exact example (an
+// expected bound of 1 must not match text containing 10 or 100).
+TEST_F(
+    PixTest,
+    DxilPIXDXRInvocationsLog_EntryCountCheckRejectsLongerBoundWithSamePrefix) {
+  const std::vector<std::string> longerBoundLines = {
+      "  %x = icmp ult i32 %EntryIndexResult, 100"};
+  VERIFY_IS_FALSE(HasDxrInvocationLogEntryCountCheck(longerBoundLines, 1));
+
+  // Reviewer follow-up: a following digit is not the only bad continuation;
+  // any non-delimiter character (e.g. a letter, forming a different token
+  // like a register name) must also be rejected.
+  const std::vector<std::string> letterContinuationLines = {
+      "  %x = icmp ult i32 %EntryIndexResult, 1x"};
+  VERIFY_IS_FALSE(
+      HasDxrInvocationLogEntryCountCheck(letterContinuationLines, 1));
+
+  // Punctuation that is not the metadata-attachment comma must also be
+  // rejected (e.g. a stray closing paren from a different construct).
+  const std::vector<std::string> punctuationContinuationLines = {
+      "  %x = icmp ult i32 %EntryIndexResult, 1)"};
+  VERIFY_IS_FALSE(
+      HasDxrInvocationLogEntryCountCheck(punctuationContinuationLines, 1));
+
+  const std::vector<std::string> matchingOneLines = {
+      "  %x = icmp ult i32 %EntryIndexResult, 1"};
+  VERIFY_IS_TRUE(HasDxrInvocationLogEntryCountCheck(matchingOneLines, 1));
+
+  const std::vector<std::string> matching24Lines = {
+      "  %x = icmp ult i32 %EntryIndexResult, 24"};
+  VERIFY_IS_TRUE(HasDxrInvocationLogEntryCountCheck(matching24Lines, 24));
+
+  // A trailing CR (as if the line still carried a "\r\n" ending after
+  // Tokenize split only on "\n") is whitespace and must still be accepted.
+  const std::vector<std::string> crlfLines = {
+      "  %x = icmp ult i32 %EntryIndexResult, 1\r"};
+  VERIFY_IS_TRUE(HasDxrInvocationLogEntryCountCheck(crlfLines, 1));
+
+  // A comma introducing an attached metadata reference (e.g. "!dbg") is a
+  // valid continuation of the operand and must still be accepted.
+  const std::vector<std::string> metadataAttachedLines = {
+      "  %x = icmp ult i32 %EntryIndexResult, 1, !dbg !12"};
+  VERIFY_IS_TRUE(HasDxrInvocationLogEntryCountCheck(metadataAttachedLines, 1));
 }
 
 uint32_t NuriGetWaveInstructionCount(const std::vector<std::string> &lines) {
