@@ -75,6 +75,7 @@
 
 #include <../lib/DxilDia/DxcPixLiveVariables_FragmentIterator.h>
 #include <../lib/DxilPIXPasses/PixPassHelpers.h>
+#include <dxc/DxilPIXPasses/DxilPIXPasses.h>
 #include <dxc/DxilPIXPasses/DxilPIXVirtualRegisters.h>
 
 #include "PixTestUtils.h"
@@ -189,6 +190,8 @@ public:
   TEST_METHOD(DebugBreakInstrumentation_Multiple)
 
   TEST_METHOD(NonUniformResourceIndex_Resource)
+  TEST_METHOD(
+      NonUniformResourceIndex_MissingInstructionNumberPreservesRootSignature)
   TEST_METHOD(NonUniformResourceIndex_QualifiedCleanupValidates)
   TEST_METHOD(NonUniformResourceIndex_DescriptorHeap)
   TEST_METHOD(NonUniformResourceIndex_Raytracing)
@@ -4570,6 +4573,124 @@ float4 main(float2 uv : TEXCOORD0) : SV_TARGET
 
   TestNuriCase(source, L"ps_6_6", 1);
   TestNuriCase(sourceWithNuri, L"ps_6_6", 0);
+}
+
+// Reviewer item 3.1 (C++ coverage):
+// NonUniformResourceIndexNoInstructionNumbers.hlsl can directly check that the
+// tools UAV is not created (CHECK-NOT: PixUAVResource), but it cannot observe
+// root signature content: %dxc's FileCheck substitution disassembles the
+// fully-serialized container, by which point the root signature is already a
+// separate container part and not IR metadata, so %opt never sees it regardless
+// of the pass's behavior. Prove the root-signature guarantee here instead.
+//
+// Root signature bytes live only as a transient DxilModule field
+// (DxilModule::m_SerializedRootSignature): DxilContainerAssembler moves them
+// into a separate container part during final serialization, so neither a
+// freshly compiled container nor a bitcode-only blob round-tripped through
+// IDxcOptimizer ever carries them (confirmed empirically: both come back
+// empty). RunDxilNonUniformResourceIndexInstrumentation also cannot be reused
+// as-is: its Options list always includes -dxil-annotate-with-virtual-regs,
+// which assigns instruction numbers to every createHandle call and so
+// defeats the missing-instruction-number scenario this test targets.
+//
+// Reuse the same in-place pattern ToolsUav_RootSignatureSerializationFailure-
+// PreservesSignature already established for this exact constraint: load the
+// compiled module once, seed the root signature directly via
+// DxilModule::ResetSerializedRootSignature, and invoke the pass's production
+// logic directly (createDxilNonUniformResourceIndexInstrumentationPass()'s
+// ModulePass::runOnModule; this pass declares no analysis dependencies, so
+// no PassManager scaffolding is required) instead of a blob-in/blob-out
+// IDxcOptimizer round trip.
+TEST_F(PixTest,
+       NonUniformResourceIndex_MissingInstructionNumberPreservesRootSignature) {
+  const char *source = R"x(
+Texture2D tex[8] : register(t0);
+
+float4 main(float2 uv : TEXCOORD0) : SV_TARGET
+{
+    uint index = uv.x * uv.y;
+    return tex[index].Load(int3(0, 0, 0));
+})x";
+
+  // A known, non-empty root signature compatible with the shader (matches
+  // the reviewer's example).
+  DxilDescriptorRange range = {};
+  range.RangeType = DxilDescriptorRangeType::SRV;
+  range.NumDescriptors = 8;
+  range.BaseShaderRegister = 0;
+  range.RegisterSpace = 0;
+  range.OffsetInDescriptorsFromTableStart = DxilDescriptorRangeOffsetAppend;
+
+  DxilRootParameter parameter = {};
+  parameter.ParameterType = DxilRootParameterType::DescriptorTable;
+  parameter.DescriptorTable.NumDescriptorRanges = 1;
+  parameter.DescriptorTable.pDescriptorRanges = &range;
+  parameter.ShaderVisibility = DxilShaderVisibility::All;
+
+  DxilVersionedRootSignatureDesc rootSignature = {};
+  rootSignature.Version = DxilRootSignatureVersion::Version_1_0;
+  rootSignature.Desc_1_0.NumParameters = 1;
+  rootSignature.Desc_1_0.pParameters = &parameter;
+  rootSignature.Desc_1_0.Flags = DxilRootSignatureFlags::None;
+
+  // REC-2: RegisterSpace 0 is an ordinary application-visible space, not
+  // one of the system-reserved spaces DxilRootSignatureValidator gates on
+  // (DxilSystemReservedRegisterSpaceValuesStart..End, e.g. the -2 tools
+  // space used elsewhere in this file); bAllowReservedRegisterSpace=false
+  // is therefore semantically correct here (unlike
+  // ToolsUav_RootSignatureSerializationFailurePreservesSignature, which
+  // seeds a genuinely reserved space and needs true).
+  CComPtr<IDxcBlob> serializedRootSignature;
+  CComPtr<IDxcBlobEncoding> errorBlob;
+  SerializeRootSignature(&rootSignature, &serializedRootSignature, &errorBlob,
+                         false);
+  VERIFY_IS_NOT_NULL(serializedRootSignature);
+
+  const uint8_t *serializedData =
+      static_cast<const uint8_t *>(serializedRootSignature->GetBufferPointer());
+  std::vector<uint8_t> originalRootSignature(
+      serializedData,
+      serializedData + serializedRootSignature->GetBufferSize());
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(originalRootSignature);
+
+  std::unique_ptr<llvm::ModulePass> pass(
+      llvm::createDxilNonUniformResourceIndexInstrumentationPass());
+  // REC-1: attach a report stream so the pass's diagnostic text is
+  // observable, and require it actually reports the missing-instruction-
+  // number condition. Without this, the test could pass vacuously if a
+  // future change caused the pass to silently skip the handle for an
+  // unrelated reason (e.g. failing to find it at all) rather than
+  // correctly detecting the missing precondition.
+  std::string report;
+  llvm::raw_string_ostream ReportStream(report);
+  pass->setOSOverride(&ReportStream);
+
+  // No annotation prepass ran, so no createHandle carries an instruction
+  // number: this exercises the same missing-precondition path as the
+  // .hlsl test.
+  pass->runOnModule(*DM.GetModule());
+  ReportStream.flush();
+  VERIFY_IS_TRUE(report.find("NuriNotInstrumentedMissingInstructionNumber") !=
+                 std::string::npos);
+
+  // Root-signature check first: CreateGlobalUAVResource (which the pass
+  // would call if it wrongly instrumented this handle) also appends a UAV
+  // parameter to any present root signature via
+  // AddUAVToShaderAttributeRootSignature, so this assertion is the one
+  // that specifically catches a regression on this path, not just the
+  // UAV-count check below.
+  const std::vector<uint8_t> &actualRootSignature =
+      DM.GetSerializedRootSignature();
+  VERIFY_ARE_EQUAL(originalRootSignature.size(), actualRootSignature.size());
+  VERIFY_IS_TRUE(std::equal(originalRootSignature.begin(),
+                            originalRootSignature.end(),
+                            actualRootSignature.begin()));
+
+  VERIFY_ARE_EQUAL(0u, CountToolsUAVs(DM));
 }
 
 TEST_F(PixTest, NonUniformResourceIndex_QualifiedCleanupValidates) {
