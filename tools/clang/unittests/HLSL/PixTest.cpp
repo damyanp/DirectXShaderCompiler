@@ -18,6 +18,7 @@
 #include <cassert>
 #include <cctype>
 #include <cfloat>
+#include <cstdlib>
 #include <cstring>
 #include <functional>
 #include <map>
@@ -57,6 +58,7 @@
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/AsmParser/Parser.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Instructions.h"
@@ -71,6 +73,7 @@
 #include "llvm/Support/MSFileSystem.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/Path.h"
+#include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
 #include <fstream>
 
@@ -134,6 +137,13 @@ public:
   TEST_METHOD(AccessTracking_ConstantIndexAtRangeLimit)
   TEST_METHOD(AccessTracking_SamplerAccessInLibrary)
   TEST_METHOD(AccessTracking_BufferStoreByteOffsetMatchesOperandPositionOnly)
+  TEST_METHOD(AccessTracking_OobBindlessUsesFunctionShaderKind)
+  TEST_METHOD(AccessTracking_LibraryNonEntryFunction)
+  TEST_METHOD(AccessTracking_AmbiguousHelperUsesLibraryKind)
+  TEST_METHOD(AccessTracking_HullPatchConstantFunctionAndHelperBothUseHullKind)
+  TEST_METHOD(AccessTracking_ParsedIRHelperControls)
+  TEST_METHOD(AccessTracking_HighInstructionOrdinalPreservesEncodedFields)
+  TEST_METHOD(AccessTracking_FindUniqueRawBufferStoreRejectsDuplicates)
 
   TEST_METHOD(PixStructAnnotation_Lib_DualRaygen)
 
@@ -1724,6 +1734,355 @@ HasNonEmptyDynamicallyIndexedBindPoints(std::vector<std::string> const &lines) {
   return false;
 }
 
+static bool
+HasBufferStoreValueMatchingMask(std::vector<std::string> const &lines,
+                                uint32_t mask, uint32_t maskedValue) {
+  // Reviewer 8.2: <cstdlib> was not directly included, so strtoul relied on
+  // an unrelated transitive include (which can vary by platform / standard
+  // library); qualify the call as std::strtoul to match.
+  for (std::string const &line : lines) {
+    if (line.find("dx.op.bufferStore") == std::string::npos) {
+      continue;
+    }
+
+    size_t position = 0;
+    while ((position = line.find("i32 ", position)) != std::string::npos) {
+      position += 4;
+      char *end = nullptr;
+      uint32_t value = static_cast<uint32_t>(
+          std::strtoul(line.c_str() + position, &end, 10));
+      if (end != line.c_str() + position && (value & mask) == maskedValue) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Locates the function whose mangled name STARTS WITH the exact
+// "?<simpleName>@@" boundary MSVC name mangling places immediately after
+// an unqualified identifier -- e.g. a hypothetical "PatchHelperExtra",
+// mangled "?PatchHelperExtra@@...", cannot satisfy a search for
+// "PatchHelper", since the character immediately after "PatchHelper" in
+// that name is 'E', not '@'. A name may carry one leading raw 0x01 byte
+// (the LLVM/Clang convention -- written "\01" in IR text -- marking a
+// name as already fully mangled, not to be mangled further); that marker
+// byte, if present, is skipped before the prefix check, and is not
+// itself part of the required prefix. Declarations (no body) are
+// skipped entirely: only a function *definition* can satisfy the match.
+// If more than one definition's name satisfies the prefix (an ambiguous
+// overload set), this returns nullptr rather than arbitrarily picking
+// one -- LLVM cannot have two identically-named definitions, so an
+// ambiguity here can only mean two distinct overloads sharing the same
+// simple-name prefix, which a caller must not silently conflate.
+static llvm::Function *FindFunctionByMangledName(llvm::Module &M,
+                                                 llvm::StringRef simpleName) {
+  std::string prefix = ("?" + simpleName + "@@").str();
+  llvm::Function *found = nullptr;
+  int matchCount = 0;
+  for (llvm::Function &F : M.functions()) {
+    if (F.isDeclaration()) {
+      continue;
+    }
+    llvm::StringRef name = F.getName();
+    if (!name.empty() && name[0] == '\x01') {
+      name = name.substr(1);
+    }
+    if (name.startswith(prefix)) {
+      found = &F;
+      ++matchCount;
+    }
+  }
+  return matchCount == 1 ? found : nullptr;
+}
+
+// Counts real IR "mul" (BinaryOperator, Instruction::Mul) instructions
+// within F whose result type is exactly i32 and whose i32 ConstantInt
+// operand (on either side) equals value exactly. This inspects parsed
+// instructions rather than matching substrings of a textual
+// disassembly, so it is immune to comments, debug metadata, other
+// functions' text, or a value that happens to be a numeric prefix of a
+// different constant. Requiring the i32 result type (not merely an
+// equal numeric literal of any width) additionally excludes a same-
+// valued but differently-typed multiply, such as an i64 mul, from being
+// mistaken for the pass's own i32 encoded-value computation.
+static int CountMulInstructionsWithConstantOperand(llvm::Function *F,
+                                                   uint32_t value) {
+  int count = 0;
+  llvm::Type *i32Ty = llvm::Type::getInt32Ty(F->getContext());
+  for (llvm::BasicBlock &BB : *F) {
+    for (llvm::Instruction &I : BB) {
+      llvm::BinaryOperator *bin = llvm::dyn_cast<llvm::BinaryOperator>(&I);
+      if (bin == nullptr || bin->getOpcode() != llvm::Instruction::Mul ||
+          bin->getType() != i32Ty) {
+        continue;
+      }
+      for (unsigned i = 0; i < bin->getNumOperands(); ++i) {
+        llvm::ConstantInt *ci =
+            llvm::dyn_cast<llvm::ConstantInt>(bin->getOperand(i));
+        if (ci != nullptr && ci->getType() == i32Ty &&
+            ci->getLimitedValue() == value) {
+          ++count;
+          break;
+        }
+      }
+    }
+  }
+  return count;
+}
+
+// Synthetic parsed-IR control for FindFunctionByMangledName and
+// CountMulInstructionsWithConstantOperand, independent of the compiler
+// and the shader-access-tracking pass: builds a small hand-written LLVM
+// IR module directly (llvm::parseAssemblyString) covering every
+// discriminating case in one place.
+TEST_F(PixTest, AccessTracking_ParsedIRHelperControls) {
+  const char *ir = R"(
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+declare void @"\01?PatchHelper@@YAXI@Z"(i32)
+
+define void @"\01?PatchHelperExtra@@YAXI@Z"(i32 %x) {
+entry:
+  ret void
+}
+
+define void @"\01?PatchHelper@@YAXH@Z"(i32 %x) {
+entry:
+  ret void
+}
+
+define void @"\01?PatchHelper@@YAXM@Z"(float %x) {
+entry:
+  ret void
+}
+
+define i32 @"\01?UniqueFunction@@YAXI@Z"(i32 %a) {
+entry:
+  %lhsConst = mul i32 855638016, %a
+  %rhsConst = mul i32 %a, 855638016
+  %wideA = sext i32 %a to i64
+  %wrongType = mul i64 %wideA, 855638016
+  ret i32 %rhsConst
+}
+)";
+
+  llvm::LLVMContext context;
+  llvm::SMDiagnostic error;
+  std::unique_ptr<llvm::Module> module =
+      llvm::parseAssemblyString(ir, error, context);
+  VERIFY_IS_NOT_NULL(module.get());
+
+  // A same-prefix but differently-named function must match its own
+  // search exactly (establishes the positive case for the boundary
+  // check used below).
+  llvm::Function *extra =
+      FindFunctionByMangledName(*module, "PatchHelperExtra");
+  VERIFY_IS_NOT_NULL(extra);
+
+  // Exactly one definition (plus one unrelated declaration, which must
+  // be skipped, and no overload ambiguity) resolves cleanly.
+  llvm::Function *unique = FindFunctionByMangledName(*module, "UniqueFunction");
+  VERIFY_IS_NOT_NULL(unique);
+
+  // "PatchHelper" itself has one declaration (must be skipped, not
+  // returned) and two distinct overloaded *definitions* sharing the
+  // "?PatchHelper@@" prefix: this is genuinely ambiguous and must
+  // resolve to nullptr, not an arbitrary pick of either overload or the
+  // declaration.
+  llvm::Function *ambiguous = FindFunctionByMangledName(*module, "PatchHelper");
+  VERIFY_IS_TRUE(ambiguous == nullptr);
+
+  // CountMulInstructionsWithConstantOperand: the i32 mul is found
+  // regardless of which side the constant operand is on, and the
+  // same-valued i64 mul is excluded because its result type is not i32.
+  VERIFY_ARE_EQUAL(2,
+                   CountMulInstructionsWithConstantOperand(unique, 855638016u));
+}
+
+// only through the HS -> patch-constant metadata edge) and PatchHelper's
+// distinct access (reachable only through PatchConstantFunction's own
+// ordinary CallInst) are each independently confirmed to carry exactly
+// one Hull-kind record and zero Library-kind records, then the
+// transformed module is validated end-to-end.
+TEST_F(PixTest,
+       AccessTracking_HullPatchConstantFunctionAndHelperBothUseHullKind) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+  struct PointOut
+  {
+      float3 pos : POSITION;
+  };
+
+  struct ConstantOut
+  {
+      float edges[3] : SV_TessFactor;
+      float inside : SV_InsideTessFactor;
+  };
+
+  [noinline]
+  export void PatchHelper(uint descriptorIndex)
+  {
+      RWByteAddressBuffer heapBuffer = ResourceDescriptorHeap[descriptorIndex];
+      heapBuffer.Store(0, 1);
+  }
+
+  ConstantOut PatchConstantFunction(InputPatch<PointOut, 3> patch, uint primID : SV_PrimitiveID)
+  {
+      RWByteAddressBuffer directBuffer = ResourceDescriptorHeap[primID];
+      directBuffer.Store(4, 2);
+
+      PatchHelper(primID + 1);
+
+      ConstantOut output;
+      output.edges[0] = output.edges[1] = output.edges[2] = 1;
+      output.inside = 1;
+      return output;
+  }
+
+  [shader("hull")]
+  [domain("tri")]
+  [partitioning("integer")]
+  [outputtopology("triangle_cw")]
+  [outputcontrolpoints(3)]
+  [patchconstantfunc("PatchConstantFunction")]
+  PointOut main(InputPatch<PointOut, 3> patch, uint id : SV_OutputControlPointID)
+  {
+      return patch[id];
+  }
+  )";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  // Every access is unconditionally instrumented with BOTH an in-bounds
+  // and an out-of-bounds encoded value (the runtime bounds check between
+  // them is not something -Od folds away), so each function's own access
+  // must show exactly one occurrence of each -- never the wrong
+  // (Library) kind's counterparts.
+  PassOutput output = RunShaderAccessTrackingPass(compiled, L".256;512;1024.");
+
+  ModuleAndHangersOn moduleEtc(output.blob);
+  llvm::Module *M = moduleEtc.GetDxilModule().GetModule();
+
+  llvm::Function *patchHelper = FindFunctionByMangledName(*M, "PatchHelper");
+  llvm::Function *patchConstant =
+      FindFunctionByMangledName(*M, "PatchConstantFunction");
+  VERIFY_IS_NOT_NULL(patchHelper);
+  VERIFY_IS_NOT_NULL(patchConstant);
+
+  // Hull (3) + UAVWrite (3): in-bounds 0x33000000 == 855638016,
+  // out-of-bounds 0x38000000 == 939524096. Library (6), the pre-fix
+  // fallback kind for any lib_6_x hull shader: 0x63000000 == 1660944384,
+  // 0x68000000 == 1744830464. Each function must carry its own access
+  // exactly once as each Hull value, and never as either Library value.
+  VERIFY_ARE_EQUAL(
+      1, CountMulInstructionsWithConstantOperand(patchHelper, 855638016u));
+  VERIFY_ARE_EQUAL(
+      1, CountMulInstructionsWithConstantOperand(patchHelper, 939524096u));
+  VERIFY_ARE_EQUAL(
+      0, CountMulInstructionsWithConstantOperand(patchHelper, 1660944384u));
+  VERIFY_ARE_EQUAL(
+      0, CountMulInstructionsWithConstantOperand(patchHelper, 1744830464u));
+
+  VERIFY_ARE_EQUAL(
+      1, CountMulInstructionsWithConstantOperand(patchConstant, 855638016u));
+  VERIFY_ARE_EQUAL(
+      1, CountMulInstructionsWithConstantOperand(patchConstant, 939524096u));
+  VERIFY_ARE_EQUAL(
+      0, CountMulInstructionsWithConstantOperand(patchConstant, 1660944384u));
+  VERIFY_ARE_EQUAL(
+      0, CountMulInstructionsWithConstantOperand(patchConstant, 1744830464u));
+
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "shader access tracking of a hull patch-constant "
+                   "function and its helper");
+}
+
+// Reviewer follow-up on 8.3's test hardening: locate the sole source
+// RawBufferStore call in a module, so the high-ordinal boundary test seeds
+// its synthetic instruction number on a definite, unambiguous instruction.
+// Exact-opcode matched (not a callee-name substring, which the pass's own
+// tracking-UAV write could also satisfy), and strict about arity: any
+// count other than exactly one is indistinguishable from "wrong
+// instruction" and must be treated as a failure to find a target, not
+// silently resolved by picking a match.
+static llvm::CallInst *FindUniqueRawBufferStore(DxilModule &DM) {
+  llvm::CallInst *uniqueMatch = nullptr;
+  unsigned matchCount = 0;
+  for (llvm::Function &F : DM.GetModule()->functions()) {
+    for (llvm::BasicBlock &BB : F) {
+      for (llvm::Instruction &I : BB) {
+        llvm::CallInst *call = llvm::dyn_cast<llvm::CallInst>(&I);
+        if (call == nullptr) {
+          continue;
+        }
+        if (hlsl::OP::IsDxilOpFuncCallInst(call,
+                                           hlsl::OP::OpCode::RawBufferStore)) {
+          uniqueMatch = call;
+          ++matchCount;
+        }
+      }
+    }
+  }
+  return matchCount == 1 ? uniqueMatch : nullptr;
+}
+
+// Reviewer follow-up on 8.3's test hardening: the high-ordinal test's
+// earlier temporary-duplicate-store proof was not itself a permanent
+// regression control -- deleting the arity check from
+// FindUniqueRawBufferStore would still leave the one-store high-ordinal
+// test passing. This committed control exercises the helper directly:
+// zero matches and two matches must both yield null; exactly one match
+// must yield that one call.
+TEST_F(PixTest, AccessTracking_FindUniqueRawBufferStoreRejectsDuplicates) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlslZeroStores = R"(
+[shader("raygeneration")]
+void RayGen()
+{
+}
+)";
+  CComPtr<IDxcBlob> compiledZeroStores =
+      Compile(m_dllSupport, hlslZeroStores, L"lib_6_6", {L"-Od"});
+  ModuleAndHangersOn moduleEtcZeroStores(compiledZeroStores);
+  VERIFY_IS_NULL(FindUniqueRawBufferStore(moduleEtcZeroStores.GetDxilModule()));
+
+  const char *hlslOneStore = R"(
+[shader("raygeneration")]
+void RayGen()
+{
+    RWByteAddressBuffer output = ResourceDescriptorHeap[0];
+    output.Store(0, 1);
+}
+)";
+  CComPtr<IDxcBlob> compiledOneStore =
+      Compile(m_dllSupport, hlslOneStore, L"lib_6_6", {L"-Od"});
+  ModuleAndHangersOn moduleEtcOneStore(compiledOneStore);
+  VERIFY_IS_NOT_NULL(
+      FindUniqueRawBufferStore(moduleEtcOneStore.GetDxilModule()));
+
+  const char *hlslTwoStores = R"(
+[shader("raygeneration")]
+void RayGen()
+{
+    RWByteAddressBuffer output = ResourceDescriptorHeap[0];
+    output.Store(0, 1);
+    output.Store(4, 2);
+}
+)";
+  CComPtr<IDxcBlob> compiledTwoStores =
+      Compile(m_dllSupport, hlslTwoStores, L"lib_6_6", {L"-Od"});
+  ModuleAndHangersOn moduleEtcTwoStores(compiledTwoStores);
+  VERIFY_IS_NULL(FindUniqueRawBufferStore(moduleEtcTwoStores.GetDxilModule()));
+}
+
 TEST_F(PixTest, AccessTracking_MultipleDynamicRangesSameTypeAndSpace) {
   const char *hlsl = R"(
 ByteAddressBuffer g_indices : register(t0);
@@ -1844,6 +2203,202 @@ TEST_F(PixTest,
       "  call void @dx.op.bufferStore.i32(i32 141, %dx.types.Handle %157, "
       "i32 8, i32 undef, i32 264, i32 undef, i32 undef, i32 undef, i8 15)"};
   VERIFY_IS_FALSE(HasBufferStoreWithByteOffset(valueOperandOnlyLines, 264));
+}
+
+TEST_F(PixTest, AccessTracking_OobBindlessUsesFunctionShaderKind) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+[shader("raygeneration")]
+void RayGen()
+{
+    RWByteAddressBuffer output = ResourceDescriptorHeap[1];
+    output.Store(0, 1);
+}
+)";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  PassOutput output = RunShaderAccessTrackingPass(compiled, L".0;0;0.");
+  std::vector<std::string> lines = Split(Disassemble(output.blob), '\n');
+  VERIFY_IS_TRUE(
+      HasBufferStoreValueMatchingMask(lines, 0xF8000000, 0x78000000));
+  VERIFY_IS_TRUE(
+      !HasBufferStoreValueMatchingMask(lines, 0xF8000000, 0x68000000));
+  VerifyInstrumentedModuleIsValid(
+      output.blob,
+      "shader access tracking of an out-of-bounds bindless access");
+}
+
+TEST_F(PixTest, AccessTracking_LibraryNonEntryFunction) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+Texture2D<float4> g_texture : register(t0);
+RWByteAddressBuffer g_output : register(u0);
+
+export float4 Helper(uint index)
+{
+    float4 value = g_texture.Load(int3(index, 0, 0));
+    g_output.Store(0, asuint(value.x));
+    return value;
+}
+
+[shader("raygeneration")]
+void RayGen()
+{
+    Helper(0);
+}
+)";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  PassOutput output =
+      RunShaderAccessTrackingPass(compiled, L"S0:0:4i0;U0:4:4i0;.0;0;0.");
+  std::string text = JoinLines(output.lines);
+  VERIFY_IS_TRUE(text.find("NotModified") == std::string::npos);
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "shader access tracking of a library helper function");
+}
+
+// Reviewer 8.1: nothing exercised the path where two differently-typed
+// entry points (here, ray-generation and miss) reach the same [noinline]
+// helper. The restoration loop must not let either entry point's kind win
+// for the ambiguous helper; it must fall back to the module's own kind
+// (Library). Each entry point's own direct access must still carry its own
+// kind after the restoration loop runs. Every literal below is a
+// deliberately explicit encoded-flags value (shader-kind bits 31:28 plus
+// the out-of-bounds indicator bit 27), not a compiler-generated ordinal,
+// so this discriminates the ambiguity branch itself rather than merely
+// exercising the reachability walk.
+TEST_F(PixTest, AccessTracking_AmbiguousHelperUsesLibraryKind) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+  struct Payload
+  {
+      float value;
+  };
+
+  [noinline]
+  export void SharedHelper()
+  {
+      RWByteAddressBuffer heapBuffer = ResourceDescriptorHeap[0];
+      heapBuffer.Store(0, 1);
+  }
+
+  [shader("raygeneration")]
+  void RayGen()
+  {
+      RWByteAddressBuffer heapBuffer = ResourceDescriptorHeap[0];
+      heapBuffer.Store(0, 2);
+      SharedHelper();
+  }
+
+  [shader("miss")]
+  void Miss(inout Payload payload)
+  {
+      RWByteAddressBuffer heapBuffer = ResourceDescriptorHeap[0];
+      heapBuffer.Store(0, 3);
+      SharedHelper();
+  }
+  )";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  // Zero heap capacity (".0;0;0.") forces every access onto the
+  // out-of-bounds path, so each function's encoded value is exactly its
+  // out-of-bounds indicator (0x08000000) plus its shader-kind bits, with
+  // no other bits in play.
+  PassOutput output = RunShaderAccessTrackingPass(compiled, L".0;0;0.");
+  std::vector<std::string> lines = Split(Disassemble(output.blob), '\n');
+
+  // SharedHelper is reached from both RayGeneration (7) and Miss (11), so
+  // it must fall back to the module's own kind, Library (6):
+  // 0x08000000 | (6 << 28) == 0x68000000.
+  VERIFY_IS_TRUE(
+      HasBufferStoreValueMatchingMask(lines, 0xFFFFFFFF, 0x68000000));
+  // RayGen's own direct access must still carry RayGeneration (7):
+  // 0x08000000 | (7 << 28) == 0x78000000.
+  VERIFY_IS_TRUE(
+      HasBufferStoreValueMatchingMask(lines, 0xFFFFFFFF, 0x78000000));
+  // Miss's own direct access must still carry Miss (11):
+  // 0x08000000 | (11 << 28) == 0xB8000000.
+  VERIFY_IS_TRUE(
+      HasBufferStoreValueMatchingMask(lines, 0xFFFFFFFF, 0xB8000000));
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "shader access tracking of an ambiguous shared helper");
+}
+
+// Reviewer 8.3: the existing bindless tests use ordinary compiler-
+// generated instruction numbers (0, since no annotation prepass ran),
+// which would still pass with the 24-bit InstructionOrdinalMask
+// (DxilShaderAccessTracking.cpp) removed. Seed a hand-written instruction
+// number directly on the store instruction and prove the mask keeps it
+// from overwriting the encoded shader-kind and reserved access-style
+// fields.
+TEST_F(PixTest, AccessTracking_HighInstructionOrdinalPreservesEncodedFields) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+[shader("raygeneration")]
+void RayGen()
+{
+    RWByteAddressBuffer output = ResourceDescriptorHeap[0];
+    output.Store(0, 1);
+}
+)";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+
+  // Bit 31 aliases the shader-kind field's otherwise-unset top bit
+  // (RayGeneration == 7 == 0111, so bit 31 is normally 0), and bit 24
+  // aliases the reserved access-style field's bottom bit (normally 0 on
+  // this out-of-bounds path). An unmasked ordinal with both bits set would
+  // corrupt both fields simultaneously and observably; a masked one
+  // (bits 0-23 only) would not, since 0x81000000 has no bits below 24.
+  constexpr uint32_t HighOrdinal = 0x81000000;
+  CComPtr<IDxcBlob> withHighOrdinal =
+      CloneModuleAndMutate(compiled, [&](llvm::Module &M) {
+        DxilModule *pDM = DxilModule::TryGetDxilModule(&M);
+        VERIFY_IS_NOT_NULL(pDM);
+        // FindUniqueRawBufferStore requires exactly one source
+        // RawBufferStore call and fails closed (returns null) otherwise;
+        // AccessTracking_FindUniqueRawBufferStoreRejectsDuplicates is the
+        // permanent, committed control for that arity contract.
+        llvm::CallInst *bufferStoreCall = FindUniqueRawBufferStore(*pDM);
+        VERIFY_IS_NOT_NULL(bufferStoreCall);
+        pix_dxil::PixDxilInstNum::AddMD(M.getContext(), bufferStoreCall,
+                                        HighOrdinal);
+      });
+
+  PassOutput output = RunShaderAccessTrackingPass(withHighOrdinal, L".0;0;0.");
+  std::vector<std::string> lines = Split(Disassemble(output.blob), '\n');
+
+  // With the mask: (HighOrdinal & 0x00FFFFFF) == 0, so the encoded value
+  // must be exactly the out-of-bounds indicator plus RayGeneration's
+  // shader-kind bits, unaffected by the high ordinal, matching the
+  // ordinary-ordinal baseline exactly.
+  VERIFY_IS_TRUE(
+      HasBufferStoreValueMatchingMask(lines, 0xFFFFFFFF, 0x78000000));
+  // Without the mask, HighOrdinal's bit 31 would corrupt the shader-kind
+  // field from 0111 to 1111, and bit 24 would corrupt the reserved
+  // access-style field from 000 to 001, producing 0xF9000000 instead. That
+  // value must not appear.
+  VERIFY_IS_TRUE(
+      !HasBufferStoreValueMatchingMask(lines, 0xFFFFFFFF, 0xF9000000));
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "shader access tracking of a high-ordinal out-of-bounds "
+                   "bindless access");
 }
 
 TEST_F(PixTest, AddToASGroupSharedPayload) {
@@ -3896,8 +4451,8 @@ void main(uint threadId : SV_DispatchThreadID)
     if (tagStart == std::string::npos) {
       continue;
     }
-    shaderFlags =
-        strtoull(line.c_str() + tagStart + tagPrefix.length(), nullptr, 10);
+    shaderFlags = std::strtoull(line.c_str() + tagStart + tagPrefix.length(),
+                                nullptr, 10);
     foundShaderFlags = true;
     break;
   }
