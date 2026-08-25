@@ -129,6 +129,8 @@ public:
   TEST_METHOD(AccessTracking_ModificationReport_Read)
   TEST_METHOD(AccessTracking_ModificationReport_Write)
   TEST_METHOD(AccessTracking_ModificationReport_SM66)
+  TEST_METHOD(AccessTracking_SamplerAccessInLibrary)
+  TEST_METHOD(AccessTracking_BufferStoreByteOffsetMatchesOperandPositionOnly)
 
   TEST_METHOD(PixStructAnnotation_Lib_DualRaygen)
 
@@ -215,6 +217,7 @@ public:
   TEST_METHOD(Validation_ControlCanonicalKnownPixMetadataIsAccepted)
   TEST_METHOD(Validation_ControlCanonicalMixedForeignMetadataIsRejected)
   TEST_METHOD(Validation_NonUniformResourceIndex_WaveOpsFlag)
+  TEST_METHOD(Validation_ShaderAccessTracking_DynamicallyIndexedResource)
 
   dxc::DxCompilerDllLoader m_dllSupport;
   VersionSupportInfo m_ver;
@@ -956,7 +959,8 @@ public:
                                            const wchar_t *profile = L"as_6_5");
   void ValidateAllocaWrite(std::vector<AllocaWrite> const &allocaWrites,
                            size_t index, const char *name);
-  PassOutput RunShaderAccessTrackingPass(IDxcBlob *blob);
+  PassOutput RunShaderAccessTrackingPass(
+      IDxcBlob *blob, const wchar_t *config = L"U0:0:10i0;U0:1:2i0;.0;0;0.");
   CComPtr<IDxcBlob>
   RunDxilPIXAddTidToAmplificationShaderPayloadPass(IDxcBlob *blob);
   CComPtr<IDxcBlob> RunDxilPIXMeshShaderOutputPass(IDxcBlob *blob);
@@ -1268,14 +1272,17 @@ TEST_F(PixTest, CompileDebugDisasmPDB) {
   VERIFY_SUCCEEDED(pCompiler->Disassemble(pPdbBlob, &pDisasm));
 }
 
-PassOutput PixTest::RunShaderAccessTrackingPass(IDxcBlob *blob) {
+PassOutput PixTest::RunShaderAccessTrackingPass(IDxcBlob *blob,
+                                                const wchar_t *config) {
   CComPtr<IDxcOptimizer> pOptimizer;
   VERIFY_SUCCEEDED(
       m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
   std::vector<LPCWSTR> Options;
   Options.push_back(L"-opt-mod-passes");
-  Options.push_back(L"-hlsl-dxil-pix-shader-access-instrumentation,config=U0:0:"
-                    L"10i0;U0:1:2i0;.0;0;0.");
+  std::wstring passOption =
+      L"-hlsl-dxil-pix-shader-access-instrumentation,config=";
+  passOption += config;
+  Options.push_back(passOption.c_str());
 
   CComPtr<IDxcBlob> pOptimizedModule;
   CComPtr<IDxcBlobEncoding> pText;
@@ -1632,6 +1639,123 @@ float main() : SV_Target
 }
 )";
   ValidateAccessTrackingMods(hlsl, true);
+}
+
+std::vector<std::string> Split(std::string str, char delimeter);
+
+static bool HasBufferStoreWithByteOffset(std::vector<std::string> const &lines,
+                                         unsigned byteOffset) {
+  // Reviewer 6.2: searching the whole line for "i32 <byteOffset>" also
+  // matches any later value operand carrying that same number (a
+  // dx.op.bufferStore call has several i32-typed value operands after the
+  // byte-offset operand), which could hide a sampler-tracking regression.
+  // Split the call's arguments and compare only the byte-offset operand:
+  // for dx.op.bufferStore.*(i32 %Opcode, %dx.types.Handle %UAV, i32
+  // %Coord0, ...), that is positional argument index 2 (the first i32
+  // argument after the handle).
+  const std::string opName = "dx.op.bufferStore";
+  const std::string expectedArg = "i32 " + std::to_string(byteOffset);
+  for (std::string const &line : lines) {
+    size_t opPos = line.find(opName);
+    if (opPos == std::string::npos) {
+      continue;
+    }
+    size_t argsStart = line.find('(', opPos);
+    if (argsStart == std::string::npos) {
+      continue;
+    }
+    std::vector<std::string> args;
+    size_t pos = argsStart + 1;
+    while (pos <= line.size()) {
+      size_t commaPos = line.find(',', pos);
+      size_t argEnd =
+          commaPos == std::string::npos ? line.find(')', pos) : commaPos;
+      if (argEnd == std::string::npos) {
+        break;
+      }
+      args.push_back(line.substr(pos, argEnd - pos));
+      if (commaPos == std::string::npos) {
+        break;
+      }
+      pos = commaPos + 1;
+    }
+    if (args.size() <= 2) {
+      continue;
+    }
+    std::string byteOffsetArg = args[2];
+    size_t firstNonSpace = byteOffsetArg.find_first_not_of(" \t");
+    if (firstNonSpace != std::string::npos) {
+      byteOffsetArg = byteOffsetArg.substr(firstNonSpace);
+    }
+    if (byteOffsetArg == expectedArg) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Reviewer 6.1: the pass writes "DynamicallyIndexedBindPoints=<bind
+// points>." to its report stream (DxilShaderAccessTracking.cpp); a
+// non-empty list is direct evidence that dynamically indexed resource
+// instrumentation actually happened, not just container plumbing.
+static bool
+HasNonEmptyDynamicallyIndexedBindPoints(std::vector<std::string> const &lines) {
+  const std::string marker = "DynamicallyIndexedBindPoints=";
+  for (std::string const &line : lines) {
+    size_t markerPos = line.find(marker);
+    if (markerPos == std::string::npos) {
+      continue;
+    }
+    size_t afterMarker = markerPos + marker.size();
+    return afterMarker < line.size() && line[afterMarker] != '.';
+  }
+  return false;
+}
+
+TEST_F(PixTest, AccessTracking_SamplerAccessInLibrary) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+Texture2D<float4> g_texture : register(t0);
+SamplerState g_sampler : register(s2);
+RWByteAddressBuffer g_output : register(u0);
+
+[shader("raygeneration")]
+void RayGen()
+{
+    float4 value = g_texture.SampleLevel(g_sampler, float2(0, 0), 0);
+    g_output.Store(0, asuint(value.x));
+}
+)";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  PassOutput output = RunShaderAccessTrackingPass(
+      compiled, L"S0:0:4i0;M0:20:4i0;U0:40:4i0;.0;0;0.");
+  std::vector<std::string> lines = Split(Disassemble(output.blob), '\n');
+  VERIFY_IS_TRUE(HasBufferStoreWithByteOffset(lines, 264));
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "shader access tracking of a library sampler access");
+}
+
+// Reviewer 6.2: directly test HasBufferStoreWithByteOffset's operand-
+// position matching with synthetic lines, independent of what the
+// production pass actually emits.
+TEST_F(PixTest,
+       AccessTracking_BufferStoreByteOffsetMatchesOperandPositionOnly) {
+  const std::vector<std::string> byteOffsetMatchLines = {
+      "  call void @dx.op.bufferStore.i32(i32 141, %dx.types.Handle %157, "
+      "i32 264, i32 undef, i32 %158, i32 undef, i32 undef, i32 undef, i8 15)"};
+  VERIFY_IS_TRUE(HasBufferStoreWithByteOffset(byteOffsetMatchLines, 264));
+
+  // The same number appearing only in a later value operand (not the
+  // byte-offset operand) must not match.
+  const std::vector<std::string> valueOperandOnlyLines = {
+      "  call void @dx.op.bufferStore.i32(i32 141, %dx.types.Handle %157, "
+      "i32 8, i32 undef, i32 264, i32 undef, i32 undef, i32 undef, i8 15)"};
+  VERIFY_IS_FALSE(HasBufferStoreWithByteOffset(valueOperandOnlyLines, 264));
 }
 
 TEST_F(PixTest, AddToASGroupSharedPayload) {
@@ -5858,4 +5982,48 @@ float4 main(float4 pos : SV_Position) : SV_Target
   VERIFY_ARE_NOT_EQUAL(
       std::string::npos,
       Disassemble(pOptimizedModule).find("dx.op.waveActiveAllEqual"));
+}
+
+TEST_F(PixTest, Validation_ShaderAccessTracking_DynamicallyIndexedResource) {
+  const char *source = R"x(
+Texture2D textures[8] : register(t0);
+SamplerState samp     : register(s0);
+
+cbuffer Constants : register(b0)
+{
+    uint index;
+};
+
+float4 main(float4 pos : SV_Position) : SV_Target
+{
+    return textures[index].Sample(samp, pos.xy);
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  // Reviewer 6.1: the default config (RunShaderAccessTrackingPass's
+  // U0:0:10i0;U0:1:2i0 default) declares only UAV slots, but this shader
+  // accesses an SRV (the texture array) and a sampler. The pass skips
+  // root-signature resources that have no configured slot
+  // (m_slotAssignments.find(...) == end), so without real SRV/sampler
+  // ranges this test only validated the container plumbing and never
+  // exercised the dynamically-indexed-resource instrumentation at all.
+  // Configure real ranges for both: SRV space 0 covering all 8 texture
+  // slots, and a sampler range that does not overlap it.
+  PassOutput output = RunShaderAccessTrackingPass(
+      compiled, L"S0:0:8i0;M0:20:4i0;U0:40:4i0;.0;0;0.");
+  const std::string disassembly = Disassemble(output.blob);
+
+  // Non-vacuousness: the instrumentation for a dynamically indexed slot
+  // must actually have been generated. Both names are the pass's own,
+  // stable IR value names for this exact codepath
+  // (DxilShaderAccessTracking.cpp): the runtime bounds check against the
+  // configured slot count, and the computed byte offset into the tracking
+  // buffer.
+  VERIFY_IS_TRUE(disassembly.find("CompareWithSlotLimit") != std::string::npos);
+  VERIFY_IS_TRUE(disassembly.find("SlotByteOffset") != std::string::npos);
+  VERIFY_IS_TRUE(HasNonEmptyDynamicallyIndexedBindPoints(output.lines));
+
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "shader access tracking of a dynamically indexed resource");
 }
