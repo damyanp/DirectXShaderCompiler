@@ -16,6 +16,7 @@
 #include <utility>
 
 #include "dxc/DXIL/DxilConstants.h"
+#include "dxc/DXIL/DxilMetadataHelper.h"
 #include "dxc/DXIL/DxilModule.h"
 #include "dxc/DXIL/DxilOperations.h"
 #include "dxc/DXIL/DxilResourceBase.h"
@@ -791,9 +792,29 @@ GlobalStorageMap GatherGlobalEmbeddedArrayStorage(llvm::Module &M) {
 }
 
 bool DxilDbgValueToDbgDeclare::runOnModule(llvm::Module &M) {
-  auto GlobalEmbeddedArrayStorage = GatherGlobalEmbeddedArrayStorage(M);
-
   bool Changed = false;
+
+  // Inline before any shadow storage exists. The stores this pass emits carry
+  // no debug location on purpose, and llvm::InlineFunction stamps the call site
+  // location onto each inlined instruction that carries none. Inlining first
+  // therefore keeps a helper local readable, because its stores stay attributed
+  // to the helper instead of to the line of the call.
+  //
+  // This pass also runs over a plain LLVM module that carries debug info and no
+  // DXIL, which has no call graph to root the inlining on.
+  //
+  // Inlining/erasing a helper (or merely removing its NoInline attribute) is a
+  // real IR change even when nothing below finds a dbg.value to convert or a
+  // global-backed store to rewrite, so its result must be preserved here
+  // rather than discarded.
+  if (M.HasDxilModule() ||
+      M.getNamedMetadata(hlsl::DxilMDHelper::kDxilVersionMDName) != nullptr) {
+    Changed |=
+        PIXPassHelpers::InlineNonEntryFunctions(M.GetOrCreateDxilModule());
+  }
+
+  GlobalStorageMap GlobalEmbeddedArrayStorage =
+      GatherGlobalEmbeddedArrayStorage(M);
 
   auto &Functions = M.getFunctionList();
   for (auto &fn : Functions) {

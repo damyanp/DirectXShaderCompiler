@@ -141,6 +141,12 @@ PrintableSubsetOfMangledFunctionName(llvm::StringRef mangled) {
 }
 
 bool DxilAnnotateWithVirtualRegister::runOnModule(llvm::Module &M) {
+  // Inline first, so each ordinal this pass hands out belongs to a function
+  // that PIX can attribute to an invocation.
+  llvm::SmallVector<llvm::Function *, 4> UninlinedFunctions;
+  bool Changed = PIXPassHelpers::InlineNonEntryFunctions(
+      M.GetOrCreateDxilModule(), &UninlinedFunctions);
+
   Init(M);
   if (m_DM == nullptr) {
     return false;
@@ -210,6 +216,12 @@ bool DxilAnnotateWithVirtualRegister::runOnModule(llvm::Module &M) {
           pix_dxil::PixDxilInstNum::AddMD(M.getContext(), &I,
                                           m_StartInstruction++);
           InstructionRangeEnd = m_StartInstruction;
+          // Numbering an instruction is itself a real, observable IR change
+          // (fresh metadata on that instruction), independent of whether any
+          // instruction in the module happens to also get a virtual
+          // register: a void-only helper call, for example, numbers but
+          // never assigns a register.
+          Changed = true;
         }
       }
     }
@@ -231,6 +243,14 @@ bool DxilAnnotateWithVirtualRegister::runOnModule(llvm::Module &M) {
   }
 
   if (OSOverride != nullptr) {
+    // Name each function that survives inlining. Its instruction range is
+    // advertised above, but no trace record arrives for it, so PIX must not
+    // offer it as somewhere to step into.
+    for (llvm::Function *F : UninlinedFunctions) {
+      *OSOverride << "UninlinedFunction:"
+                  << PrintableSubsetOfMangledFunctionName(F->getName()) << "\n";
+    }
+
     // Print a set of strings of the exemplary form "InstructionCount: <n>
     // <fnName>"
     if (m_DM->GetShaderModel()->GetKind() == hlsl::ShaderModel::Kind::Library)
@@ -239,7 +259,13 @@ bool DxilAnnotateWithVirtualRegister::runOnModule(llvm::Module &M) {
   }
 
   m_DM = nullptr;
-  return m_uVReg > 0;
+  // Every mutation category this pass performs must be reflected here:
+  // helper inlining/erasure (Changed, seeded above), instruction numbering
+  // (also folded into Changed as it happens, since a void-only helper call
+  // numbers instructions without ever assigning a virtual register), and
+  // virtual-register annotation (m_uVReg > 0). Reporting only the last of
+  // these discarded real mutations from the other two categories.
+  return Changed || m_uVReg > 0;
 }
 
 void DxilAnnotateWithVirtualRegister::AnnotateValues(llvm::Instruction *pI) {
