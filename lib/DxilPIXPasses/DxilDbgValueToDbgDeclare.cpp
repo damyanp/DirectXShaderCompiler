@@ -145,6 +145,22 @@ public:
     }
   }
 
+  // Move the aligned offset forward without adding padding to the packed
+  // offset. Overlapping debug information cannot move storage mappings
+  // backward.
+  void AdvanceAlignedOffsetTo(OffsetInBits AlignedOffset) {
+    if (AlignedOffset > m_CurrentAlignedOffset) {
+      VALUE_TO_DECLARE_LOG("Advancing aligned offset from %d to %d",
+                           m_CurrentAlignedOffset, AlignedOffset);
+      m_CurrentAlignedOffset = AlignedOffset;
+    } else if (AlignedOffset < m_CurrentAlignedOffset) {
+      VALUE_TO_DECLARE_LOG("Refusing to move aligned offset back from %d to %d",
+                           m_CurrentAlignedOffset, AlignedOffset);
+      // Keep existing mappings monotonic when debug information overlaps.
+      return;
+    }
+  }
+
   // Add is used to "add" an aggregate element (struct field, array element)
   // at the current aligned/packed offsets, bumping them by Ty's size.
   Offsets Add(llvm::DIBasicType *Ty, unsigned sizeOverride) {
@@ -426,6 +442,155 @@ GenerateGlobalToLocalMirrorMap(llvm::Module &M, llvm::DIGlobalVariable *DIGV) {
   return ret;
 }
 
+// CheckedMulUInt64/CheckedAddUInt64 are small overflow-checked arithmetic
+// helpers: they return false (leaving *Result unmodified) instead of
+// silently wrapping when the operation would overflow uint64_t.
+static bool CheckedMulUInt64(uint64_t LHS, uint64_t RHS, uint64_t *Result) {
+  if (LHS != 0 && RHS > UINT64_MAX / LHS) {
+    return false;
+  }
+  *Result = LHS * RHS;
+  return true;
+}
+
+static bool CheckedAddUInt64(uint64_t LHS, uint64_t RHS, uint64_t *Result) {
+  if (RHS > UINT64_MAX - LHS) {
+    return false;
+  }
+  *Result = LHS + RHS;
+  return true;
+}
+
+// PIX debug-transformation host-work budgets. These are NOT compiler,
+// validator, or hardware limits -- shader semantics are entirely
+// unaffected by them. A DISubrange-derived count/size pair that exceeds
+// either budget below still describes a value that would compile and run
+// correctly; this pass simply declines to eagerly expand it into
+// individual per-element PIX debug records/IR, because doing so would
+// cost this HOST PASS time and memory proportional to however large a
+// (possibly debug-info-only, not independently verified against the real
+// backing storage) count claims to be, which is unusable regardless of
+// how internally self-consistent the numbers involved are.
+//
+// kMaxPixDebugEagerStorageBits bounds the total bit extent (element count
+// times element size) this pass will eagerly expand for one array. 64KiB
+// is a deliberately generous but finite policy choice for this pass's own
+// internal work, not a language or hardware constant.
+constexpr uint64_t kMaxPixDebugEagerStorageBits = 64ull * 1024 * 8;
+
+// kMaxPixDebugEagerElementCount bounds the element COUNT independently of
+// the bit-extent budget above. This is necessary because a zero or
+// otherwise-unsupported per-element size would make count * elementSize
+// trivially 0 (or otherwise small), trivially satisfying the bit-extent
+// budget regardless of how enormous count itself is, letting an unbounded
+// count bypass that budget entirely. Chosen as the bit-extent budget
+// divided by the smallest scalar size this pass materializes debug values
+// for (16 bits, e.g. min16float/half), so this element-count cap is never
+// more permissive than the bit-extent budget for any real element size
+// this pass actually supports.
+constexpr uint64_t kMaxPixDebugEagerElementCount =
+    kMaxPixDebugEagerStorageBits / 16;
+
+// TryBoundEagerArrayWork validates that eagerly expanding Count elements of
+// ElementSizeInBits each, starting at AccumulatedOffset, is work this pass
+// is willing to actually perform. Beyond the uint64_t-overflow-safe
+// arithmetic itself, this independently requires: (a) the resulting upper
+// bound offset fit in this pass's own 32-bit OffsetInBits/SizeInBits
+// representation (used throughout this file), and (b) both Count and the
+// total bit extent stay within the PIX debug-transformation host-work
+// budgets above, checked independently of one another so neither a huge
+// count paired with a deceptively small/zero element size, nor a huge
+// element size paired with a small count, can bypass the check meant to
+// catch it. *OutExtentInBits/*OutUpperOffset are only set, and true
+// returned, on full success.
+static bool TryBoundEagerArrayWork(uint64_t Count, uint64_t ElementSizeInBits,
+                                   uint64_t AccumulatedOffset,
+                                   uint64_t *OutExtentInBits,
+                                   uint64_t *OutUpperOffset) {
+  if (Count > kMaxPixDebugEagerElementCount) {
+    return false;
+  }
+
+  uint64_t ExtentInBits;
+  uint64_t UpperOffset;
+  if (!CheckedMulUInt64(Count, ElementSizeInBits, &ExtentInBits) ||
+      !CheckedAddUInt64(AccumulatedOffset, ExtentInBits, &UpperOffset)) {
+    return false;
+  }
+
+  if (UpperOffset > UINT32_MAX || ExtentInBits > kMaxPixDebugEagerStorageBits) {
+    return false;
+  }
+
+  *OutExtentInBits = ExtentInBits;
+  *OutUpperOffset = UpperOffset;
+  return true;
+}
+
+// TryComputeArrayElementCount computes the total element count of a
+// (possibly multi-dimensional) DXIL debug-info array type -- the product
+// of every dimension's DISubrange::getCount(). DXC's own debug info for an
+// array type is expected to contain nothing but DISubrange elements, one
+// per dimension, so any other element kind, or no elements at all, is a
+// shape this code does not know how to interpret safely. This also fails
+// closed if any dimension's count is not strictly positive: DWARF uses -1
+// as the "unknown/unbounded length" sentinel, and neither that nor an
+// explicit 0 describes a real, iterable element count. This fails closed
+// if multiplying the running product by the next dimension's count would
+// overflow uint64_t, and -- independently of overflow -- if the final
+// product exceeds UINT32_MAX. That bound is not arbitrary: it is this
+// pass's own representation limit (OffsetInBits/SizeInBits, used
+// throughout this file, are 32-bit `unsigned`), it matches DXIL's
+// constant-index GEPs into a flattened array (an i32 operand, read back
+// into a C++ `int` by handleStoreIfDestIsGlobal below), and it matches
+// the sibling local/alloca path's own pre-existing `unsigned` element
+// count. No legitimate backing array can exceed it, so a DISubrange
+// product beyond it cannot correspond to real storage and must be
+// rejected before any per-element allocation or loop, not merely before
+// a later byte-size comparison -- otherwise a large-but-non-overflowing
+// product (e.g. two dimensions whose product is a few billion) would
+// still drive a per-element loop that is effectively a hang. *OutCount
+// is only set, and true returned, when every dimension was checked
+// successfully; on any failure *OutCount is left unmodified and the
+// caller must not begin any allocation or loop keyed on it.
+static bool TryComputeArrayElementCount(llvm::DICompositeType *ArrayTy,
+                                        uint64_t *OutCount) {
+  llvm::DINodeArray Elements = ArrayTy->getElements();
+  if (Elements.size() == 0) {
+    return false;
+  }
+
+  uint64_t Count = 1;
+  for (llvm::DINode *Element : Elements) {
+    llvm::DISubrange *Subrange = llvm::dyn_cast<llvm::DISubrange>(Element);
+    if (Subrange == nullptr) {
+      return false;
+    }
+
+    int64_t DimCount = Subrange->getCount();
+    if (DimCount <= 0) {
+      // Covers both an explicit empty/zero extent and DWARF's -1
+      // "unknown length" sentinel.
+      return false;
+    }
+
+    if (!CheckedMulUInt64(Count, static_cast<uint64_t>(DimCount), &Count)) {
+      return false;
+    }
+  }
+
+  if (Count > UINT32_MAX) {
+    // See the function comment: no real backing array can be this large,
+    // and continuing would drive a per-element loop of that many
+    // iterations even though the product did not technically overflow
+    // uint64_t.
+    return false;
+  }
+
+  *OutCount = Count;
+  return true;
+}
+
 std::vector<GlobalEmbeddedArrayElementStorage>
 DescendTypeAndFindEmbeddedArrayElements(llvm::StringRef VariableName,
                                         uint64_t AccumulatedMemberOffset,
@@ -443,58 +608,105 @@ DescendTypeAndFindEmbeddedArrayElements(llvm::StringRef VariableName,
   } else if (auto *CompositeTy = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
     switch (CompositeTy->getTag()) {
     case llvm::dwarf::DW_TAG_array_type: {
-      for (auto Element : CompositeTy->getElements()) {
-        // First element for an array is DISubrange
-        if (auto Subrange = llvm::dyn_cast<DISubrange>(Element)) {
-          auto ElementTy = CompositeTy->getBaseType().resolve(EmptyMap);
-          if (auto *BasicTy = llvm::dyn_cast<llvm::DIBasicType>(ElementTy)) {
-            bool CorrectLowerOffset = AccumulatedMemberOffset == OffsetToSeek;
-            bool CorrectUpperOffset =
-                AccumulatedMemberOffset +
-                    Subrange->getCount() * BasicTy->getSizeInBits() ==
-                OffsetToSeek + SizeToSeek;
-            if (BasicTy != nullptr && CorrectLowerOffset &&
-                CorrectUpperOffset) {
-              std::vector<GlobalEmbeddedArrayElementStorage> storage;
-              for (int64_t i = 0; i < Subrange->getCount(); ++i) {
-                auto ElementOffset =
-                    AccumulatedMemberOffset + i * BasicTy->getSizeInBits();
-                GlobalEmbeddedArrayElementStorage element;
-                element.Name = VariableName.str() + "." + std::to_string(i);
-                element.Offset = static_cast<OffsetInBits>(ElementOffset);
-                element.Size =
-                    static_cast<SizeInBits>(BasicTy->getSizeInBits());
-                storage.push_back(std::move(element));
-              }
-              return storage;
-            }
-          }
+      // DXC flattens a multi-dimensional array to a single one-dimensional
+      // array in the module. The true array extent is the product of the
+      // dimensions. Fail closed (no storage found for this array) rather
+      // than compute an offset or iterate from an unsafe/overflowing
+      // element count.
+      uint64_t TotalElementCount = 0;
+      if (!TryComputeArrayElementCount(CompositeTy, &TotalElementCount)) {
+        break;
+      }
 
-          // If we didn't succeed and return above, then we need to process each
-          // element in the array
-          std::vector<GlobalEmbeddedArrayElementStorage> storage;
-          for (int64_t i = 0; i < Subrange->getCount(); ++i) {
-            auto elementStorage = DescendTypeAndFindEmbeddedArrayElements(
-                VariableName,
-                AccumulatedMemberOffset + ElementTy->getSizeInBits() * i,
-                ElementTy, OffsetToSeek, SizeToSeek);
-            std::move(elementStorage.begin(), elementStorage.end(),
-                      std::back_inserter(storage));
-          }
-          if (!storage.empty()) {
+      llvm::DIType *ElementTy = CompositeTy->getBaseType().resolve(EmptyMap);
+      if (ElementTy == nullptr) {
+        break;
+      }
+
+      if (llvm::DIBasicType *BasicTy =
+              llvm::dyn_cast<llvm::DIBasicType>(ElementTy)) {
+        // Use the shared eager-work-bounded check: beyond uint64_t-overflow
+        // safety, this also requires the result fit in this pass's own
+        // 32-bit OffsetInBits/SizeInBits representation (used for the two
+        // fields this loop writes into below -- a count that survives a
+        // plain uint64_t-overflow check can still, when multiplied by a
+        // real element size, exceed what a 32-bit field can hold; e.g.
+        // 134,217,729 32-bit elements is comfortably below UINT32_MAX on
+        // its own, but its bit extent, 4,294,967,328, is not, and silently
+        // truncating that into a 32-bit OffsetInBits below would alias to
+        // the wrong bit position instead of merely being slow), and stay
+        // within this pass's own eager-expansion host-work budgets, since
+        // this loop must materialize one named record per element and so
+        // cannot be made analytic the way the sibling branch below is.
+        uint64_t ArrayExtentInBits;
+        uint64_t UpperOffset;
+        if (TryBoundEagerArrayWork(TotalElementCount, BasicTy->getSizeInBits(),
+                                   AccumulatedMemberOffset, &ArrayExtentInBits,
+                                   &UpperOffset)) {
+          const bool CorrectLowerOffset =
+              AccumulatedMemberOffset == OffsetToSeek;
+          const bool CorrectUpperOffset =
+              UpperOffset == OffsetToSeek + SizeToSeek;
+          if (CorrectLowerOffset && CorrectUpperOffset) {
+            std::vector<GlobalEmbeddedArrayElementStorage> storage;
+            for (uint64_t i = 0; i < TotalElementCount; ++i) {
+              // Safe: i < TotalElementCount, and TotalElementCount *
+              // BasicTy->getSizeInBits() was already checked above, both for
+              // uint64_t overflow and for fitting in OffsetInBits/SizeInBits.
+              uint64_t ElementOffset =
+                  AccumulatedMemberOffset + i * BasicTy->getSizeInBits();
+              GlobalEmbeddedArrayElementStorage element;
+              element.Name = VariableName.str() + "." + std::to_string(i);
+              element.Offset = static_cast<OffsetInBits>(ElementOffset);
+              element.Size = static_cast<SizeInBits>(BasicTy->getSizeInBits());
+              storage.push_back(std::move(element));
+            }
             return storage;
           }
         }
       }
-      for (auto Element : CompositeTy->getElements()) {
-        // First element for an array is DISubrange
-        if (auto Subrange = llvm::dyn_cast<DISubrange>(Element)) {
-          auto ElementType = CompositeTy->getBaseType().resolve(EmptyMap);
-          for (int64_t i = 0; i < Subrange->getCount(); ++i) {
-            auto storage = DescendTypeAndFindEmbeddedArrayElements(
-                VariableName,
-                AccumulatedMemberOffset + ElementType->getSizeInBits() * i,
-                ElementType, OffsetToSeek, SizeToSeek);
+
+      // The array's elements are themselves aggregates, so descend into
+      // whichever single element could contain the sought offset. Every
+      // caller of this function seeks the position of exactly one flattened
+      // leaf variable, never a span covering more than one array element, so
+      // at most one index can ever satisfy the search: compute it directly
+      // instead of looping over -- and recursing into -- every element, which
+      // would otherwise cost time proportional to however large a (possibly
+      // untrustworthy, debug-info-supplied) element count claims to be. Still
+      // uses the same shared bounded-work check as the sibling branch above
+      // (rather than only an overflow/representability check) so this stays
+      // consistent and equally fail-closed even though this branch itself no
+      // longer loops.
+      uint64_t DescendExtentInBits;
+      uint64_t DescendUpperOffset;
+      if (!TryBoundEagerArrayWork(TotalElementCount, ElementTy->getSizeInBits(),
+                                  AccumulatedMemberOffset, &DescendExtentInBits,
+                                  &DescendUpperOffset)) {
+        break;
+      }
+      uint64_t ElementSizeInBits = ElementTy->getSizeInBits();
+      uint64_t SoughtEnd;
+      if (ElementSizeInBits != 0 && OffsetToSeek >= AccumulatedMemberOffset &&
+          CheckedAddUInt64(OffsetToSeek, SizeToSeek, &SoughtEnd)) {
+        uint64_t RelativeOffset = OffsetToSeek - AccumulatedMemberOffset;
+        uint64_t CandidateIndex = RelativeOffset / ElementSizeInBits;
+        if (CandidateIndex < TotalElementCount) {
+          // Safe: CandidateIndex < TotalElementCount, and the product/sum
+          // below is bounded above by DescendUpperOffset, already checked.
+          uint64_t CandidateElementStart =
+              AccumulatedMemberOffset + ElementSizeInBits * CandidateIndex;
+          uint64_t CandidateElementEnd =
+              CandidateElementStart + ElementSizeInBits;
+          // The sought [OffsetToSeek, SoughtEnd) range must lie wholly
+          // within this one candidate element -- not merely start within
+          // it -- or this is not a match (and, per the comment above, no
+          // other candidate could be one either).
+          if (SoughtEnd <= CandidateElementEnd) {
+            std::vector<GlobalEmbeddedArrayElementStorage> storage =
+                DescendTypeAndFindEmbeddedArrayElements(
+                    VariableName, CandidateElementStart, ElementTy,
+                    OffsetToSeek, SizeToSeek);
             if (!storage.empty()) {
               return storage;
             }
@@ -554,11 +766,18 @@ GlobalStorageMap GatherGlobalEmbeddedArrayStorage(llvm::Module &M) {
         if (auto *DIGVDerivedType =
                 llvm::dyn_cast<llvm::DIDerivedType>(DIGVType)) {
           if (DIGVDerivedType->getTag() == llvm::dwarf::DW_TAG_member) {
-            // This type is embedded within the containing DIGSV type
+            // This type is embedded within the containing DIGSV type.
+            // A flattened multi-dimensional array member renames the module
+            // global but not the debug variable, so only the linkage name
+            // still identifies it.
+            llvm::StringRef GlobalName = DIGV->getLinkageName();
+            if (GlobalName.empty()) {
+              GlobalName = DIGV->getName();
+            }
             const llvm::DITypeIdentifierMap EmptyMap;
             auto *Ty = HLSLStruct->getType().resolve(EmptyMap);
             auto Storage = DescendTypeAndFindEmbeddedArrayElements(
-                DIGV->getName(), 0, Ty, DIGVDerivedType->getOffsetInBits(),
+                GlobalName, 0, Ty, DIGVDerivedType->getOffsetInBits(),
                 DIGVDerivedType->getSizeInBits());
             auto &ArrayStorage = ret[HLSLStruct].ArrayElementStorage;
             std::move(Storage.begin(), Storage.end(),
@@ -617,7 +836,8 @@ bool DxilDbgValueToDbgDeclare::runOnModule(llvm::Module &M) {
         // lists.
         for (auto &instruction : instructions) {
           if (auto *Store = llvm::dyn_cast<llvm::StoreInst>(instruction)) {
-            Changed =
+            // Preserve changes reported by every processed store.
+            Changed |=
                 handleStoreIfDestIsGlobal(M, GlobalEmbeddedArrayStorage, Store);
           }
         }
@@ -932,6 +1152,10 @@ void DxilDbgValueToDbgDeclare::handleDbgValue(llvm::Module &M,
 
   const OffsetInBits InitialOffset = PackedOffsetFromVar;
   auto *insertPt = llvm::dyn_cast<llvm::Instruction>(ValueFromDbgInst);
+  if (insertPt == nullptr) {
+    // Constants and arguments are available at the dbg.value location.
+    insertPt = DbgValue;
+  }
   if (insertPt != nullptr && !llvm::isa<TerminatorInst>(insertPt)) {
     insertPt = insertPt->getNextNode();
     // Drivers may crash if phi nodes aren't always at the top of a block,
@@ -965,11 +1189,28 @@ void DxilDbgValueToDbgDeclare::handleDbgValue(llvm::Module &M,
           continue;
         }
 
-        if (AllocaInst->getAllocatedType()->getArrayElementType() ==
-            VO.m_V->getType()) {
-          auto *GEP = B.CreateGEP(AllocaInst, {Zero, Zero});
-          B.CreateStore(VO.m_V, GEP);
+        llvm::Type *ShadowElementType =
+            AllocaInst->getAllocatedType()->getArrayElementType();
+        llvm::Value *ValueToStore = VO.m_V;
+        if (ShadowElementType != ValueToStore->getType()) {
+          // Emit a bitcast to match the shadow alloca element type when the
+          // shader reinterprets the bits without converting them.
+          const llvm::DataLayout &DataLayout = M.getDataLayout();
+          const bool SameWidth =
+              !ShadowElementType->isAggregateType() &&
+              !ValueToStore->getType()->isAggregateType() &&
+              !ShadowElementType->isPointerTy() &&
+              !ValueToStore->getType()->isPointerTy() &&
+              DataLayout.getTypeSizeInBits(ShadowElementType) ==
+                  DataLayout.getTypeSizeInBits(ValueToStore->getType());
+          if (!SameWidth) {
+            continue;
+          }
+          ValueToStore = B.CreateBitCast(ValueToStore, ShadowElementType);
         }
+
+        llvm::Value *GEP = B.CreateGEP(AllocaInst, {Zero, Zero});
+        B.CreateStore(ValueToStore, GEP);
       }
     }
   }
@@ -1158,7 +1399,13 @@ void VariableRegisters::PopulateAllocaMap(llvm::DIType *Ty) {
     case llvm::dwarf::DW_TAG_enumeration_type: {
       auto *baseType = CompositeTy->getBaseType().resolve(EmptyMap);
       if (baseType != nullptr) {
+        const OffsetInBits EnumerationStart =
+            m_Offsets.GetCurrentAlignedOffset();
         PopulateAllocaMap(baseType);
+        // Advance to the enumeration's own declared size.
+        m_Offsets.AdvanceAlignedOffsetTo(
+            EnumerationStart +
+            static_cast<SizeInBits>(CompositeTy->getSizeInBits()));
       } else {
         m_Offsets.AlignToAndAddUnhandledType(CompositeTy);
       }
@@ -1228,29 +1475,28 @@ void VariableRegisters::PopulateAllocaMap_BasicType(llvm::DIBasicType *Ty,
 
   auto *Storage = GetMetadataAsValue(llvm::ValueAsMetadata::get(Alloca));
   auto *Variable = GetMetadataAsValue(m_Variable);
-  auto *Expression = GetMetadataAsValue(
-      GetDIExpression(Ty, sizeOverride == 0 ? offsets.Aligned : offsets.Packed,
-                      GetVariableSizeInbits(m_Variable), sizeOverride));
+  // Describe the aligned offset in the bit_piece so it agrees with the
+  // debug-info field's declared offset.
+  llvm::Value *Expression = GetMetadataAsValue(GetDIExpression(
+      Ty, offsets.Aligned, GetVariableSizeInbits(m_Variable), sizeOverride));
   auto *DbgDeclare =
       m_B.CreateCall(m_DbgDeclareFn, {Storage, Variable, Expression});
   DbgDeclare->setDebugLoc(m_dbgLoc);
 }
 
+// NumArrayElements is a thin adapter over the shared, uint64_t-safe
+// TryComputeArrayElementCount for this call site's existing `unsigned`
+// (32-bit) element-count API: it fails closed (returning 0, this
+// function's existing "unhandled" sentinel) for every shape
+// TryComputeArrayElementCount itself rejects. TryComputeArrayElementCount
+// already guarantees any count it returns fits in 32 bits, so the
+// narrowing cast below is safe.
 static unsigned NumArrayElements(llvm::DICompositeType *Array) {
-  if (Array->getElements().size() == 0) {
+  uint64_t Count = 0;
+  if (!TryComputeArrayElementCount(Array, &Count)) {
     return 0;
   }
-
-  unsigned NumElements = 1;
-  for (llvm::DINode *N : Array->getElements()) {
-    if (auto *Subrange = llvm::dyn_cast<llvm::DISubrange>(N)) {
-      NumElements *= Subrange->getCount();
-    } else {
-      assert(!"Unhandled array element");
-      return 0;
-    }
-  }
-  return NumElements;
+  return static_cast<unsigned>(Count);
 }
 
 void VariableRegisters::PopulateAllocaMap_ArrayType(llvm::DICompositeType *Ty) {
@@ -1261,18 +1507,48 @@ void VariableRegisters::PopulateAllocaMap_ArrayType(llvm::DICompositeType *Ty) {
   }
 
   const SizeInBits ArraySizeInBits = Ty->getSizeInBits();
-  (void)ArraySizeInBits;
 
   const llvm::DITypeIdentifierMap EmptyMap;
   llvm::DIType *ElementTy = Ty->getBaseType().resolve(EmptyMap);
-  assert(ArraySizeInBits % NumElements == 0 &&
-         " invalid DIArrayType"
-         " - Size is not a multiple of NumElements");
+  if (ElementTy == nullptr) {
+    m_Offsets.AlignToAndAddUnhandledType(Ty);
+    return;
+  }
+
+  // This was previously only an assert -- compiled out entirely in a
+  // release build, so it provided no protection there -- checking that
+  // NumElements evenly divides the array's own declared total size.
+  // Preserved exactly as originally written (rather than tightened to an
+  // exact NumElements * ElementSizeInBits equality) because a real,
+  // legitimate array of elements whose own unpadded size does not equal
+  // their aligned in-array stride (e.g. an array of odd-sized structs each
+  // padded up to their alignment, which the loop below accounts for via
+  // AlignTo on every iteration) can have ArraySizeInBits be a multiple of
+  // NumElements without being a multiple of ElementTy->getSizeInBits()
+  // alone; tightening the check risks rejecting that legitimate shape.
+  // Independently -- and this is the part genuinely new here --
+  // TryBoundEagerArrayWork bounds this loop's own host work: NumElements
+  // survived TryComputeArrayElementCount's own cap already, but a huge
+  // count paired with a real (nonzero) element size can still describe
+  // more per-element work (each iteration calls PopulateAllocaMap, which
+  // is not O(1)) than this pass is willing to eagerly perform, independent
+  // of whether the size-divisibility check above it passes.
+  uint64_t ElementSizeInBits = ElementTy->getSizeInBits();
+  uint64_t ExtentInBits;
+  uint64_t UpperOffset;
+  if (ArraySizeInBits % NumElements != 0 ||
+      !TryBoundEagerArrayWork(NumElements, ElementSizeInBits, 0, &ExtentInBits,
+                              &UpperOffset)) {
+    m_Offsets.AlignToAndAddUnhandledType(Ty);
+    return;
+  }
 
   // After aligning the current aligned offset to ElementTy's natural
   // alignment, the current aligned offset must match Ty's offset
   // in bits.
   m_Offsets.AlignTo(ElementTy);
+
+  const OffsetInBits ArrayStart = m_Offsets.GetCurrentAlignedOffset();
 
   for (unsigned i = 0; i < NumElements; ++i) {
     // This is only needed if ElementTy's size is not a multiple of
@@ -1280,12 +1556,17 @@ void VariableRegisters::PopulateAllocaMap_ArrayType(llvm::DICompositeType *Ty) {
     m_Offsets.AlignTo(ElementTy);
     PopulateAllocaMap(ElementTy);
   }
+
+  // The elements only account for the bits they occupy, which stops short
+  // of the array's real end for a padded element type. Advance to the end.
+  m_Offsets.AdvanceAlignedOffsetTo(ArrayStart + ArraySizeInBits);
 }
 
 void VariableRegisters::PopulateAllocaMap_StructType(
     llvm::DICompositeType *Ty) {
   VALUE_TO_DECLARE_LOG("Struct type : %s, size %d", Ty->getName().str().c_str(),
                        Ty->getSizeInBits());
+  const SizeInBits StructSizeInBits = Ty->getSizeInBits();
   std::map<OffsetInBits, llvm::DIDerivedType *> SortedMembers;
   if (!SortMembers(Ty, &SortedMembers)) {
     m_Offsets.AlignToAndAddUnhandledType(Ty);
@@ -1294,7 +1575,6 @@ void VariableRegisters::PopulateAllocaMap_StructType(
 
   m_Offsets.AlignTo(Ty);
   const OffsetInBits StructStart = m_Offsets.GetCurrentAlignedOffset();
-  (void)StructStart;
   const llvm::DITypeIdentifierMap EmptyMap;
 
   for (auto OffsetAndMember : SortedMembers) {
@@ -1310,6 +1590,10 @@ void VariableRegisters::PopulateAllocaMap_StructType(
       // than the type in which it resides). If we were to take
       // the base type, then the information about the member's
       // size would be lost
+      //
+      // The AlignTo above is a no-op for a bitfield, so snap to the declared
+      // offset here to ensure it aligns with the debug info.
+      m_Offsets.AdvanceAlignedOffsetTo(StructStart + OffsetAndMember.first);
       PopulateAllocaMap(OffsetAndMember.second);
     } else {
       if (OffsetAndMember.second->getAlignInBits() ==
@@ -1326,6 +1610,11 @@ void VariableRegisters::PopulateAllocaMap_StructType(
       }
     }
   }
+
+  // The members between them only account for the bits they occupy, which stops
+  // short of the struct's real end whenever the struct's alignment requires
+  // tail padding. Advance to the struct's full size.
+  m_Offsets.AdvanceAlignedOffsetTo(StructStart + StructSizeInBits);
 }
 
 // HLSL Change: remove unused function

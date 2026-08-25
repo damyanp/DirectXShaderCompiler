@@ -42,6 +42,7 @@
 #include "dxc/DXIL/DxilModule.h"
 #include "dxc/DXIL/DxilOperations.h"
 #include "dxc/DXIL/DxilSubobject.h"
+#include "dxc/DxilPIXPasses/DxilPIXPasses.h"
 
 #include "dxc/Test/DxcTestUtils.h"
 #include "dxc/Test/HLSLTestData.h"
@@ -69,6 +70,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Operator.h"
+#include "llvm/Pass.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/MSFileSystem.h"
 #include "llvm/Support/MemoryBuffer.h"
@@ -164,6 +166,39 @@ public:
   TEST_METHOD(PixStructAnnotation_Inheritance)
   TEST_METHOD(PixStructAnnotation_ResourceAsMember)
   TEST_METHOD(PixStructAnnotation_WheresMyDbgValue)
+  TEST_METHOD(DbgValueToDbgDeclare_BackwardLayout)
+  TEST_METHOD(DebugInstrumentation_DynamicIndexSpanMatchesAllocaRegisterCount)
+  TEST_METHOD(PixDbgValueToDbgDeclare_MultiDimensionalStaticGlobalArray)
+  TEST_METHOD(PixDbgValueToDbgDeclare_UnknownLengthArrayFailsClosed)
+  TEST_METHOD(PixDbgValueToDbgDeclare_MultiDimensionalArrayOverflowFailsClosed)
+  TEST_METHOD(PixDbgValueToDbgDeclare_MultiDimensionalArrayHugeCountFailsClosed)
+  TEST_METHOD(
+      PixDbgValueToDbgDeclare_MultiDimensionalArrayRepresentabilityFailsClosed)
+  TEST_METHOD(PixDbgValueToDbgDeclare_EmptyArrayElementsFailsClosed)
+  TEST_METHOD(PixDbgValueToDbgDeclare_NonSubrangeArrayElementFailsClosed)
+  TEST_METHOD(PixDbgValueToDbgDeclare_ArrayEagerWorkBudgetBoundary)
+  TEST_METHOD(PixDbgValueToDbgDeclare_ZeroSizeElementCannotBypassLeafCap)
+  TEST_METHOD(PixDbgValueToDbgDeclare_StructArrayAnalyticIndexResolvesPromptly)
+  TEST_METHOD(PixDbgValueToDbgDeclare_OutOfRangeCandidateIndexFailsClosed)
+  TEST_METHOD(
+      PixDbgValueToDbgDeclare_SoughtRangeCrossesElementBoundaryFailsClosed)
+  TEST_METHOD(PixDbgValueToDbgDeclare_UnalignedCandidateOffsetFailsClosed)
+  TEST_METHOD(PixDbgValueToDbgDeclare_LocalArrayUnknownLengthFailsClosed)
+  TEST_METHOD(AllocaRegisterWrite_DeepAggregateChainIsAnnotated)
+  TEST_METHOD(AllocaRegisterWrite_ArrayOfStructsAncestorFailsClosed)
+  TEST_METHOD(AllocaRegisterWrite_AncestorExtraIndicesFailsClosed)
+  TEST_METHOD(AllocaRegisterWrite_StructMemberIndexBoundIsExclusive)
+  TEST_METHOD(EntryBlockInjection_HandlesLabelledAndUnlabelledFirstBlock)
+  TEST_METHOD(DbgValueToDbgDeclare_ConstantAndAllocaSameTypeDistinctVariables)
+  TEST_METHOD(DbgValueToDbgDeclare_UndefSameTypeDistinctVariableIsPreserved)
+  TEST_METHOD(
+      DbgValueToDbgDeclare_EarlierConstantUpdateSurvivesLaterPointerBackedRepresentation)
+  TEST_METHOD(
+      DbgValueToDbgDeclare_EarlierUndefUpdateSurvivesLaterPointerBackedRepresentation)
+  TEST_METHOD(
+      DbgValueToDbgDeclare_LaterConstantUpdateOfPointerBackedVariableIsPreserved)
+  TEST_METHOD(
+      DbgValueToDbgDeclare_LaterUndefUpdateOfPointerBackedVariableIsPreserved)
 
   TEST_METHOD(VirtualRegisters_InstructionCounts)
   TEST_METHOD(VirtualRegisters_AlignedOffsets)
@@ -357,6 +392,66 @@ public:
     CComPtr<IDxcBlob> Module;
     std::vector<std::string> Lines;
   };
+
+  // Runs the virtual-register annotation pass over textual IR and returns the
+  // pass report. Textual IR builds a module shape that HLSL does not express.
+  std::vector<std::string> RunAnnotationPassOnText(const std::string &irText) {
+    CComPtr<IDxcBlobEncoding> pSource;
+    CreateBlobFromText(m_dllSupport, irText.c_str(), &pSource);
+
+    CComPtr<IDxcOptimizer> pOptimizer;
+    VERIFY_SUCCEEDED(
+        m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+    std::vector<LPCWSTR> Options;
+    Options.push_back(L"-S");
+    Options.push_back(L"-opt-mod-passes");
+    Options.push_back(L"-dxil-annotate-with-virtual-regs");
+
+    CComPtr<IDxcBlob> pOptimizedModule;
+    CComPtr<IDxcBlobEncoding> pText;
+    VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(
+        pSource, Options.data(), Options.size(), &pOptimizedModule, &pText));
+
+    return Tokenize(BlobToUtf8(pText).c_str(), "\n");
+  }
+
+  // Runs the dbg-value-to-dbg-declare pass over textual IR and returns the
+  // disassembly lines. Used to feed hand-mutated debug-info metadata shapes
+  // (e.g. an out-of-range DISubrange) that no HLSL source can express.
+  std::vector<std::string>
+  RunValueToDeclarePassOnText(const std::string &irText) {
+    CComPtr<IDxcBlobEncoding> pSource;
+    CreateBlobFromText(m_dllSupport, irText.c_str(), &pSource);
+
+    CComPtr<IDxcOptimizer> pOptimizer;
+    VERIFY_SUCCEEDED(
+        m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+    std::vector<LPCWSTR> Options;
+    Options.push_back(L"-S");
+    Options.push_back(L"-opt-mod-passes");
+    Options.push_back(L"-dxil-dbg-value-to-dbg-declare");
+
+    CComPtr<IDxcBlob> pOptimizedModule;
+    CComPtr<IDxcBlobEncoding> pText;
+    VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(
+        pSource, Options.data(), Options.size(), &pOptimizedModule, &pText));
+
+    return Tokenize(BlobToUtf8(pText).c_str(), "\n");
+  }
+
+  // Replaces the one occurrence of needle, and fails the test when the text
+  // does not hold exactly one.
+  static std::string ReplaceOnlyOccurrence(const std::string &text,
+                                           const std::string &needle,
+                                           const std::string &replacement) {
+    std::string::size_type position = text.find(needle);
+    VERIFY_IS_TRUE(position != std::string::npos);
+    VERIFY_IS_TRUE(text.find(needle, position + needle.size()) ==
+                   std::string::npos);
+    std::string result = text;
+    result.replace(position, needle.size(), replacement);
+    return result;
+  }
 
   SinglePassOutput RunSinglePass(IDxcBlob *dxil, LPCWSTR passOption) {
     CComPtr<IDxcOptimizer> pOptimizer;
@@ -2722,6 +2817,10 @@ std::string PixTest::Disassemble(IDxcBlob *pProgram) {
 // Declared here so we can test it.
 uint32_t CountStructMembers(llvm::Type const *pType);
 
+// This function lives in lib\DxilPIXPasses\DxilAnnotateWithVirtualRegister.cpp
+// Declared here so we can test it.
+bool IsValidStructMemberIndex(uint64_t memberIndex, uint64_t elementCount);
+
 PixTest::TestableResults PixTest::TestStructAnnotationCase(
     const char *hlsl, const wchar_t *optimizationLevel, bool validateCoverage,
     const wchar_t *profile) {
@@ -3035,9 +3134,13 @@ void main()
 
     auto Testables = TestStructAnnotationCase(hlsl, optimization);
 
-    // 2 in unoptimized case (one for each instance of smallPayload)
-    // 1 in optimized case (cuz p2 aliases over p)
-    VERIFY_IS_TRUE(Testables.OffsetAndSizes.size() >= 1);
+    // p's value in the optimized build degrades to a constant dbg.value
+    // (the compiler folds its known-constant field values), while p2
+    // remains alloca-backed. p and p2 are distinct source variables that
+    // happen to share the smallPayload type; each gets its own shadow
+    // storage in both optimization levels.
+    const size_t ExpectedCount = 2u;
+    VERIFY_ARE_EQUAL(ExpectedCount, Testables.OffsetAndSizes.size());
 
     for (const auto &os : Testables.OffsetAndSizes) {
       VERIFY_ARE_EQUAL(1u, os.countOfMembers);
@@ -3045,8 +3148,543 @@ void main()
       VERIFY_ARE_EQUAL(32u, os.size);
     }
 
-    VERIFY_ARE_EQUAL(1u, Testables.AllocaWrites.size());
+    VERIFY_ARE_EQUAL(ExpectedCount, Testables.AllocaWrites.size());
+    // p's shadow storage is now created after p2's during this same pass
+    // run (VariableRegisters always inserts its alloca at the entry
+    // block's current start, so the second-constructed shadow alloca ends
+    // up ahead of the first), so the register order no longer necessarily
+    // matches store order the way ValidateAllocaWrite assumes. Verify
+    // instead that the two writes land on two distinct virtual registers
+    // that together cover exactly {0, 1}, and that both are the "dummy"
+    // member.
+    std::set<uint64_t> registersSeen;
+    for (AllocaWrite const &allocaWrite : Testables.AllocaWrites) {
+      VERIFY_IS_TRUE(0 == strncmp("dummy", allocaWrite.memberName.c_str(),
+                                  strlen("dummy")));
+      registersSeen.insert(allocaWrite.regBase + allocaWrite.index);
+    }
+    VERIFY_ARE_EQUAL(ExpectedCount, registersSeen.size());
+    for (uint64_t expectedRegister = 0; expectedRegister < ExpectedCount;
+         ++expectedRegister) {
+      VERIFY_IS_TRUE(registersSeen.count(expectedRegister) == 1);
+    }
   }
+}
+
+TEST_F(PixTest, DbgValueToDbgDeclare_BackwardLayout) {
+  const char *IR = R"(
+  %BadStruct = type { i64, i32 }
+
+  define void @main() !dbg !5 {
+  entry:
+    %var = alloca %BadStruct, align 4
+    call void @llvm.dbg.value(metadata %BadStruct* %var, i64 0, metadata !10, metadata !15), !dbg !16
+    ret void
+  }
+
+  declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
+
+  !llvm.dbg.cu = !{!0}
+  !llvm.module.flags = !{!3, !4}
+
+  !0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang", isOptimized: false, runtimeVersion: 0, emissionKind: 1, subprograms: !2)
+  !1 = !DIFile(filename: "test.hlsl", directory: "/")
+  !2 = !{!5}
+  !3 = !{i32 2, !"Dwarf Version", i32 4}
+  !4 = !{i32 2, !"Debug Info Version", i32 3}
+  !5 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 1, type: !6, isLocal: false, isDefinition: true, scopeLine: 1, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+  !6 = !DISubroutineType(types: !7)
+  !7 = !{null}
+  !8 = !DIBasicType(name: "int64", size: 64, align: 32, encoding: DW_ATE_signed)
+  !9 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+  !10 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "var", scope: !5, file: !1, line: 2, type: !11)
+  !11 = !DICompositeType(tag: DW_TAG_structure_type, name: "BadStruct", file: !1, line: 1, size: 96, align: 32, elements: !12)
+  !12 = !{!13, !14}
+  !13 = !DIDerivedType(tag: DW_TAG_member, name: "First", scope: !11, file: !1, line: 2, baseType: !8, size: 64, align: 32, offset: 0)
+  !14 = !DIDerivedType(tag: DW_TAG_member, name: "Second", scope: !11, file: !1, line: 3, baseType: !9, size: 16, align: 32, offset: 32)
+  !15 = !DIExpression()
+  !16 = !DILocation(line: 2, column: 1, scope: !5)
+  )";
+
+  llvm::LLVMContext Context;
+  llvm::SMDiagnostic Error;
+  std::unique_ptr<llvm::Module> Module =
+      llvm::parseAssemblyString(IR, Error, Context);
+  VERIFY_IS_NOT_NULL(Module.get());
+
+  std::unique_ptr<llvm::ModulePass> Pass(
+      llvm::createDxilDbgValueToDbgDeclarePass());
+  VERIFY_IS_TRUE(Pass->runOnModule(*Module));
+
+  std::vector<std::pair<uint64_t, uint64_t>> Pieces;
+  for (llvm::BasicBlock &Block : *Module->getFunction("main")) {
+    for (llvm::Instruction &Instruction : Block) {
+      if (llvm::DbgDeclareInst *Declare =
+              llvm::dyn_cast<llvm::DbgDeclareInst>(&Instruction)) {
+        llvm::DIExpression *Expression = Declare->getExpression();
+        VERIFY_IS_TRUE(Expression->isBitPiece());
+        Pieces.emplace_back(Expression->getBitPieceOffset(),
+                            Expression->getBitPieceSize());
+      }
+    }
+  }
+
+  std::sort(Pieces.begin(), Pieces.end());
+  VERIFY_ARE_EQUAL(size_t(2), Pieces.size());
+  VERIFY_ARE_EQUAL(uint64_t(0), Pieces[0].first);
+  VERIFY_ARE_EQUAL(uint64_t(64), Pieces[0].second);
+  VERIFY_ARE_EQUAL(uint64_t(64), Pieces[1].first);
+  VERIFY_ARE_EQUAL(uint64_t(16), Pieces[1].second);
+}
+
+// Counts the dbg.declare instructions in @main tagged with the DIVariable
+// named variableName. Used below to prove a distinct variable's
+// constant/undef update was not silently dropped due to matching on
+// composite type alone.
+static uint32_t CountDbgDeclaresForVariable(llvm::Module *Module,
+                                            const char *variableName) {
+  uint32_t count = 0;
+  for (llvm::BasicBlock &Block : *Module->getFunction("main")) {
+    for (llvm::Instruction &Instruction : Block) {
+      if (llvm::DbgDeclareInst *Declare =
+              llvm::dyn_cast<llvm::DbgDeclareInst>(&Instruction)) {
+        if (Declare->getVariable()->getName() == variableName) {
+          count++;
+        }
+      }
+    }
+  }
+  return count;
+}
+
+// Two independent locals of identical composite type, one alloca-backed
+// (varA) and one constant-valued (varB), must not be confused for the
+// same variable: matching debug-value updates by composite type alone
+// (ignoring which DIVariable they belong to) would wrongly treat varB's
+// constant update as a stale duplicate of varA's alloca-backed
+// representation and drop it. This is a regression guard against any
+// heuristic that confuses distinct variables of the same type.
+TEST_F(PixTest,
+       DbgValueToDbgDeclare_ConstantAndAllocaSameTypeDistinctVariables) {
+  const char *IR = R"(
+  %S = type { i32, i32 }
+
+  define void @main() !dbg !5 {
+  entry:
+    %varA = alloca %S, align 4
+    call void @llvm.dbg.value(metadata %S { i32 1, i32 2 }, i64 0, metadata !20, metadata !15), !dbg !21
+    call void @llvm.dbg.value(metadata %S* %varA, i64 0, metadata !10, metadata !15), !dbg !16
+    ret void
+  }
+
+  declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
+
+  !llvm.dbg.cu = !{!0}
+  !llvm.module.flags = !{!3, !4}
+
+  !0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang", isOptimized: false, runtimeVersion: 0, emissionKind: 1, subprograms: !2)
+  !1 = !DIFile(filename: "test.hlsl", directory: "/")
+  !2 = !{!5}
+  !3 = !{i32 2, !"Dwarf Version", i32 4}
+  !4 = !{i32 2, !"Debug Info Version", i32 3}
+  !5 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 1, type: !6, isLocal: false, isDefinition: true, scopeLine: 1, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+  !6 = !DISubroutineType(types: !7)
+  !7 = !{null}
+  !8 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+  !10 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varA", scope: !5, file: !1, line: 2, type: !11)
+  !11 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", file: !1, line: 1, size: 64, align: 32, elements: !12)
+  !12 = !{!13, !14}
+  !13 = !DIDerivedType(tag: DW_TAG_member, name: "First", scope: !11, file: !1, line: 2, baseType: !8, size: 32, align: 32, offset: 0)
+  !14 = !DIDerivedType(tag: DW_TAG_member, name: "Second", scope: !11, file: !1, line: 3, baseType: !8, size: 32, align: 32, offset: 32)
+  !15 = !DIExpression()
+  !16 = !DILocation(line: 2, column: 1, scope: !5)
+  !20 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varB", scope: !5, file: !1, line: 3, type: !11)
+  !21 = !DILocation(line: 3, column: 1, scope: !5)
+  )";
+
+  llvm::LLVMContext Context;
+  llvm::SMDiagnostic Error;
+  std::unique_ptr<llvm::Module> Module =
+      llvm::parseAssemblyString(IR, Error, Context);
+  VERIFY_IS_NOT_NULL(Module.get());
+
+  std::unique_ptr<llvm::ModulePass> Pass(
+      llvm::createDxilDbgValueToDbgDeclarePass());
+  VERIFY_IS_TRUE(Pass->runOnModule(*Module));
+
+  // varA's alloca-backed update is unaffected.
+  VERIFY_ARE_EQUAL(2u, CountDbgDeclaresForVariable(Module.get(), "varA"));
+  // varB is a distinct variable of the same composite type: its constant
+  // update must not be suppressed as if it were a duplicate of varA.
+  VERIFY_ARE_EQUAL(2u, CountDbgDeclaresForVariable(Module.get(), "varB"));
+}
+
+// An undef dbg.value marks the end of a variable's availability at that
+// point in the program. undef is an llvm::Constant, so it is just as
+// vulnerable to a same-type-only mismatch as a constant value is: a
+// distinct variable's undef update must not be suppressed merely because
+// some other, unrelated alloca-backed variable shares its composite type.
+TEST_F(PixTest, DbgValueToDbgDeclare_UndefSameTypeDistinctVariableIsPreserved) {
+  const char *IR = R"(
+  %S = type { i32, i32 }
+
+  define void @main() !dbg !5 {
+  entry:
+    %varA = alloca %S, align 4
+    call void @llvm.dbg.value(metadata %S undef, i64 0, metadata !20, metadata !15), !dbg !21
+    call void @llvm.dbg.value(metadata %S* %varA, i64 0, metadata !10, metadata !15), !dbg !16
+    ret void
+  }
+
+  declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
+
+  !llvm.dbg.cu = !{!0}
+  !llvm.module.flags = !{!3, !4}
+
+  !0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang", isOptimized: false, runtimeVersion: 0, emissionKind: 1, subprograms: !2)
+  !1 = !DIFile(filename: "test.hlsl", directory: "/")
+  !2 = !{!5}
+  !3 = !{i32 2, !"Dwarf Version", i32 4}
+  !4 = !{i32 2, !"Debug Info Version", i32 3}
+  !5 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 1, type: !6, isLocal: false, isDefinition: true, scopeLine: 1, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+  !6 = !DISubroutineType(types: !7)
+  !7 = !{null}
+  !8 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+  !10 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varA", scope: !5, file: !1, line: 2, type: !11)
+  !11 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", file: !1, line: 1, size: 64, align: 32, elements: !12)
+  !12 = !{!13, !14}
+  !13 = !DIDerivedType(tag: DW_TAG_member, name: "First", scope: !11, file: !1, line: 2, baseType: !8, size: 32, align: 32, offset: 0)
+  !14 = !DIDerivedType(tag: DW_TAG_member, name: "Second", scope: !11, file: !1, line: 3, baseType: !8, size: 32, align: 32, offset: 32)
+  !15 = !DIExpression()
+  !16 = !DILocation(line: 2, column: 1, scope: !5)
+  !20 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varC", scope: !5, file: !1, line: 4, type: !11)
+  !21 = !DILocation(line: 4, column: 1, scope: !5)
+  )";
+
+  llvm::LLVMContext Context;
+  llvm::SMDiagnostic Error;
+  std::unique_ptr<llvm::Module> Module =
+      llvm::parseAssemblyString(IR, Error, Context);
+  VERIFY_IS_NOT_NULL(Module.get());
+
+  std::unique_ptr<llvm::ModulePass> Pass(
+      llvm::createDxilDbgValueToDbgDeclarePass());
+  VERIFY_IS_TRUE(Pass->runOnModule(*Module));
+
+  VERIFY_ARE_EQUAL(2u, CountDbgDeclaresForVariable(Module.get(), "varA"));
+  // varC's undef (end-of-availability) update for a distinct variable of
+  // the same composite type must not be suppressed either.
+  VERIFY_ARE_EQUAL(2u, CountDbgDeclaresForVariable(Module.get(), "varC"));
+}
+
+// Counts store instructions in @main whose stored value is the constant
+// i32 literalValue. Used below to prove a constant update of a variable
+// was recorded into its shadow storage, since a dbg.value for a variable
+// that already has shadow storage reuses that storage and adds a new
+// store rather than needing a new allocation.
+static uint32_t CountStoresOfConstantI32(llvm::Module *Module,
+                                         int32_t literalValue) {
+  uint32_t count = 0;
+  for (llvm::BasicBlock &Block : *Module->getFunction("main")) {
+    for (llvm::Instruction &Instruction : Block) {
+      if (llvm::StoreInst *Store =
+              llvm::dyn_cast<llvm::StoreInst>(&Instruction)) {
+        if (llvm::ConstantInt *StoredConstant =
+                llvm::dyn_cast<llvm::ConstantInt>(Store->getValueOperand())) {
+          if (StoredConstant->getSExtValue() == literalValue) {
+            count++;
+          }
+        }
+      }
+    }
+  }
+  return count;
+}
+
+// A constant update for a variable, and a pointer-backed (alloca)
+// representation of that SAME variable (the same DIVariable node) that
+// appears later in the instruction stream, describe two different points
+// in the variable's lifetime — the constant update is not a stale
+// duplicate of the later representation, and must not be dropped.
+//
+// This ordering (constant textually first, pointer-backed representation
+// textually second) is a deliberate regression discriminator: runOnModule
+// erases each dbg.value immediately once it is handled, so while
+// processing the constant update, the pointer-backed dbg.value later in
+// the stream has not yet been erased and is still visible to a
+// whole-function scan. A same-variable/same-type suppression check that
+// scans the whole function (rather than tracking only what has already
+// been superseded) would see that not-yet-erased later value and wrongly
+// treat the earlier constant update as a stale duplicate of it. This
+// exact shape reproduces that failure mode.
+TEST_F(
+    PixTest,
+    DbgValueToDbgDeclare_EarlierConstantUpdateSurvivesLaterPointerBackedRepresentation) {
+  const char *IR = R"(
+  %S = type { i32, i32 }
+
+  define void @main() !dbg !5 {
+  entry:
+    %varA = alloca %S, align 4
+    call void @llvm.dbg.value(metadata %S { i32 7, i32 8 }, i64 0, metadata !10, metadata !15), !dbg !17
+    call void @llvm.dbg.value(metadata %S* %varA, i64 0, metadata !10, metadata !15), !dbg !16
+    ret void
+  }
+
+  declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
+
+  !llvm.dbg.cu = !{!0}
+  !llvm.module.flags = !{!3, !4}
+
+  !0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang", isOptimized: false, runtimeVersion: 0, emissionKind: 1, subprograms: !2)
+  !1 = !DIFile(filename: "test.hlsl", directory: "/")
+  !2 = !{!5}
+  !3 = !{i32 2, !"Dwarf Version", i32 4}
+  !4 = !{i32 2, !"Debug Info Version", i32 3}
+  !5 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 1, type: !6, isLocal: false, isDefinition: true, scopeLine: 1, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+  !6 = !DISubroutineType(types: !7)
+  !7 = !{null}
+  !8 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+  !10 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varA", scope: !5, file: !1, line: 2, type: !11)
+  !11 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", file: !1, line: 1, size: 64, align: 32, elements: !12)
+  !12 = !{!13, !14}
+  !13 = !DIDerivedType(tag: DW_TAG_member, name: "First", scope: !11, file: !1, line: 2, baseType: !8, size: 32, align: 32, offset: 0)
+  !14 = !DIDerivedType(tag: DW_TAG_member, name: "Second", scope: !11, file: !1, line: 3, baseType: !8, size: 32, align: 32, offset: 32)
+  !15 = !DIExpression()
+  !16 = !DILocation(line: 2, column: 1, scope: !5)
+  !17 = !DILocation(line: 3, column: 1, scope: !5)
+  )";
+
+  llvm::LLVMContext Context;
+  llvm::SMDiagnostic Error;
+  std::unique_ptr<llvm::Module> Module =
+      llvm::parseAssemblyString(IR, Error, Context);
+  VERIFY_IS_NOT_NULL(Module.get());
+
+  std::unique_ptr<llvm::ModulePass> Pass(
+      llvm::createDxilDbgValueToDbgDeclarePass());
+  VERIFY_IS_TRUE(Pass->runOnModule(*Module));
+
+  // The variable's shadow storage is created once (from the first update
+  // processed, the constant one here)...
+  VERIFY_ARE_EQUAL(2u, CountDbgDeclaresForVariable(Module.get(), "varA"));
+  // ...and the earlier constant update (7, 8) was recorded into it, not
+  // dropped as a stale duplicate of the pointer-backed representation
+  // that appears later in the instruction stream.
+  VERIFY_ARE_EQUAL(1u, CountStoresOfConstantI32(Module.get(), 7));
+  VERIFY_ARE_EQUAL(1u, CountStoresOfConstantI32(Module.get(), 8));
+}
+
+// Undef-value counterpart of
+// DbgValueToDbgDeclare_EarlierConstantUpdateSurvivesLaterPointerBackedRepresentation:
+// an earlier undef dbg.value for a variable (marking a real
+// end-of-availability event) must not be dropped merely because a
+// pointer-backed representation of that same variable appears later in
+// the instruction stream and is still visible, pre-erasure, to a
+// whole-function scan performed while the earlier update is processed.
+TEST_F(
+    PixTest,
+    DbgValueToDbgDeclare_EarlierUndefUpdateSurvivesLaterPointerBackedRepresentation) {
+  const char *IR = R"(
+  %S = type { i32, i32 }
+
+  define void @main() !dbg !5 {
+  entry:
+    %varA = alloca %S, align 4
+    call void @llvm.dbg.value(metadata %S undef, i64 0, metadata !10, metadata !15), !dbg !17
+    call void @llvm.dbg.value(metadata %S* %varA, i64 0, metadata !10, metadata !15), !dbg !16
+    ret void
+  }
+
+  declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
+
+  !llvm.dbg.cu = !{!0}
+  !llvm.module.flags = !{!3, !4}
+
+  !0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang", isOptimized: false, runtimeVersion: 0, emissionKind: 1, subprograms: !2)
+  !1 = !DIFile(filename: "test.hlsl", directory: "/")
+  !2 = !{!5}
+  !3 = !{i32 2, !"Dwarf Version", i32 4}
+  !4 = !{i32 2, !"Debug Info Version", i32 3}
+  !5 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 1, type: !6, isLocal: false, isDefinition: true, scopeLine: 1, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+  !6 = !DISubroutineType(types: !7)
+  !7 = !{null}
+  !8 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+  !10 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varA", scope: !5, file: !1, line: 2, type: !11)
+  !11 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", file: !1, line: 1, size: 64, align: 32, elements: !12)
+  !12 = !{!13, !14}
+  !13 = !DIDerivedType(tag: DW_TAG_member, name: "First", scope: !11, file: !1, line: 2, baseType: !8, size: 32, align: 32, offset: 0)
+  !14 = !DIDerivedType(tag: DW_TAG_member, name: "Second", scope: !11, file: !1, line: 3, baseType: !8, size: 32, align: 32, offset: 32)
+  !15 = !DIExpression()
+  !16 = !DILocation(line: 2, column: 1, scope: !5)
+  !17 = !DILocation(line: 3, column: 1, scope: !5)
+  )";
+
+  llvm::LLVMContext Context;
+  llvm::SMDiagnostic Error;
+  std::unique_ptr<llvm::Module> Module =
+      llvm::parseAssemblyString(IR, Error, Context);
+  VERIFY_IS_NOT_NULL(Module.get());
+
+  std::unique_ptr<llvm::ModulePass> Pass(
+      llvm::createDxilDbgValueToDbgDeclarePass());
+  VERIFY_IS_TRUE(Pass->runOnModule(*Module));
+
+  VERIFY_ARE_EQUAL(2u, CountDbgDeclaresForVariable(Module.get(), "varA"));
+  // The earlier undef update must still have been processed (not silently
+  // suppressed as a stale duplicate of the later pointer-backed
+  // representation): it stores undef into the two scalar shadow allocas.
+  uint32_t undefStores = 0;
+  for (llvm::BasicBlock &Block : *Module->getFunction("main")) {
+    for (llvm::Instruction &Instruction : Block) {
+      if (llvm::StoreInst *Store =
+              llvm::dyn_cast<llvm::StoreInst>(&Instruction)) {
+        if (llvm::isa<llvm::UndefValue>(Store->getValueOperand())) {
+          undefStores++;
+        }
+      }
+    }
+  }
+  VERIFY_ARE_EQUAL(2u, undefStores);
+}
+
+// Real-lifetime-order counterpart of the two tests above: a variable
+// starts pointer-backed (alloca) and is LATER given a constant update
+// (e.g. the compiler folds it to a known value), using the same
+// DIVariable node for both. Both representations must be preserved.
+//
+// Unlike the two tests above, this ordering is NOT a regression
+// discriminator for the removed heuristic: because runOnModule erases
+// each dbg.value immediately once handled, by the time the later
+// (constant) update is processed the earlier (pointer-backed) dbg.value
+// has already been erased, so even the old, removed same-variable scan
+// would find nothing and would not have suppressed this update either.
+// This test is a semantic-contract control confirming the pass's actual,
+// real-world lifetime ordering continues to behave correctly, not a proof
+// that the removed heuristic was broken (that proof is the two tests
+// above).
+TEST_F(
+    PixTest,
+    DbgValueToDbgDeclare_LaterConstantUpdateOfPointerBackedVariableIsPreserved) {
+  const char *IR = R"(
+  %S = type { i32, i32 }
+
+  define void @main() !dbg !5 {
+  entry:
+    %varA = alloca %S, align 4
+    call void @llvm.dbg.value(metadata %S* %varA, i64 0, metadata !10, metadata !15), !dbg !16
+    call void @llvm.dbg.value(metadata %S { i32 7, i32 8 }, i64 0, metadata !10, metadata !15), !dbg !17
+    ret void
+  }
+
+  declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
+
+  !llvm.dbg.cu = !{!0}
+  !llvm.module.flags = !{!3, !4}
+
+  !0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang", isOptimized: false, runtimeVersion: 0, emissionKind: 1, subprograms: !2)
+  !1 = !DIFile(filename: "test.hlsl", directory: "/")
+  !2 = !{!5}
+  !3 = !{i32 2, !"Dwarf Version", i32 4}
+  !4 = !{i32 2, !"Debug Info Version", i32 3}
+  !5 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 1, type: !6, isLocal: false, isDefinition: true, scopeLine: 1, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+  !6 = !DISubroutineType(types: !7)
+  !7 = !{null}
+  !8 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+  !10 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varA", scope: !5, file: !1, line: 2, type: !11)
+  !11 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", file: !1, line: 1, size: 64, align: 32, elements: !12)
+  !12 = !{!13, !14}
+  !13 = !DIDerivedType(tag: DW_TAG_member, name: "First", scope: !11, file: !1, line: 2, baseType: !8, size: 32, align: 32, offset: 0)
+  !14 = !DIDerivedType(tag: DW_TAG_member, name: "Second", scope: !11, file: !1, line: 3, baseType: !8, size: 32, align: 32, offset: 32)
+  !15 = !DIExpression()
+  !16 = !DILocation(line: 2, column: 1, scope: !5)
+  !17 = !DILocation(line: 3, column: 1, scope: !5)
+  )";
+
+  llvm::LLVMContext Context;
+  llvm::SMDiagnostic Error;
+  std::unique_ptr<llvm::Module> Module =
+      llvm::parseAssemblyString(IR, Error, Context);
+  VERIFY_IS_NOT_NULL(Module.get());
+
+  std::unique_ptr<llvm::ModulePass> Pass(
+      llvm::createDxilDbgValueToDbgDeclarePass());
+  VERIFY_IS_TRUE(Pass->runOnModule(*Module));
+
+  VERIFY_ARE_EQUAL(2u, CountDbgDeclaresForVariable(Module.get(), "varA"));
+  VERIFY_ARE_EQUAL(1u, CountStoresOfConstantI32(Module.get(), 7));
+  VERIFY_ARE_EQUAL(1u, CountStoresOfConstantI32(Module.get(), 8));
+}
+
+// Undef-value counterpart of
+// DbgValueToDbgDeclare_LaterConstantUpdateOfPointerBackedVariableIsPreserved:
+// a variable starts pointer-backed and is later marked undef (end of
+// availability), using the same DIVariable node for both. As with the
+// constant case above, this ordering is a semantic-contract control, not
+// a regression discriminator: the earlier pointer-backed dbg.value is
+// already erased by the time the later undef update is processed, so this
+// shape passes under both the old and the current implementation.
+TEST_F(
+    PixTest,
+    DbgValueToDbgDeclare_LaterUndefUpdateOfPointerBackedVariableIsPreserved) {
+  const char *IR = R"(
+  %S = type { i32, i32 }
+
+  define void @main() !dbg !5 {
+  entry:
+    %varA = alloca %S, align 4
+    call void @llvm.dbg.value(metadata %S* %varA, i64 0, metadata !10, metadata !15), !dbg !16
+    call void @llvm.dbg.value(metadata %S undef, i64 0, metadata !10, metadata !15), !dbg !17
+    ret void
+  }
+
+  declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
+
+  !llvm.dbg.cu = !{!0}
+  !llvm.module.flags = !{!3, !4}
+
+  !0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang", isOptimized: false, runtimeVersion: 0, emissionKind: 1, subprograms: !2)
+  !1 = !DIFile(filename: "test.hlsl", directory: "/")
+  !2 = !{!5}
+  !3 = !{i32 2, !"Dwarf Version", i32 4}
+  !4 = !{i32 2, !"Debug Info Version", i32 3}
+  !5 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 1, type: !6, isLocal: false, isDefinition: true, scopeLine: 1, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+  !6 = !DISubroutineType(types: !7)
+  !7 = !{null}
+  !8 = !DIBasicType(name: "int", size: 32, align: 32, encoding: DW_ATE_signed)
+  !10 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varA", scope: !5, file: !1, line: 2, type: !11)
+  !11 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", file: !1, line: 1, size: 64, align: 32, elements: !12)
+  !12 = !{!13, !14}
+  !13 = !DIDerivedType(tag: DW_TAG_member, name: "First", scope: !11, file: !1, line: 2, baseType: !8, size: 32, align: 32, offset: 0)
+  !14 = !DIDerivedType(tag: DW_TAG_member, name: "Second", scope: !11, file: !1, line: 3, baseType: !8, size: 32, align: 32, offset: 32)
+  !15 = !DIExpression()
+  !16 = !DILocation(line: 2, column: 1, scope: !5)
+  !17 = !DILocation(line: 3, column: 1, scope: !5)
+  )";
+
+  llvm::LLVMContext Context;
+  llvm::SMDiagnostic Error;
+  std::unique_ptr<llvm::Module> Module =
+      llvm::parseAssemblyString(IR, Error, Context);
+  VERIFY_IS_NOT_NULL(Module.get());
+
+  std::unique_ptr<llvm::ModulePass> Pass(
+      llvm::createDxilDbgValueToDbgDeclarePass());
+  VERIFY_IS_TRUE(Pass->runOnModule(*Module));
+
+  VERIFY_ARE_EQUAL(2u, CountDbgDeclaresForVariable(Module.get(), "varA"));
+  uint32_t undefStores = 0;
+  for (llvm::BasicBlock &Block : *Module->getFunction("main")) {
+    for (llvm::Instruction &Instruction : Block) {
+      if (llvm::StoreInst *Store =
+              llvm::dyn_cast<llvm::StoreInst>(&Instruction)) {
+        if (llvm::isa<llvm::UndefValue>(Store->getValueOperand())) {
+          undefStores++;
+        }
+      }
+    }
+  }
+  VERIFY_ARE_EQUAL(2u, undefStores);
 }
 
 TEST_F(PixTest, PixStructAnnotation_MixedSizes) {
@@ -7146,4 +7784,1285 @@ float4 main(float4 pos : SV_Position) : SV_Target
 
   VerifyInstrumentedModuleIsValid(
       output.blob, "shader access tracking of a dynamically indexed resource");
+}
+
+// Pulls the register span out of every dynamically-indexed alloca write the
+// debug instrumentation pass reported. The per-block records it emits are
+// semicolon-separated and a dynamic alloca write looks like
+//
+//   <instruction ordinal>,<type>,<register>,d,<alloca base>-<register span>
+//
+// where the span is how many virtual registers the write could land in.
+static std::vector<int>
+FindDynamicAllocaWriteSpans(std::vector<std::string> const &passOutputLines) {
+  std::vector<int> spans;
+  for (std::string const &line : passOutputLines) {
+    for (std::string const &record : Split(line, ';')) {
+      std::vector<std::string> tokens = Split(record, ',');
+      if (tokens.size() < 5 || tokens[3] != "d") {
+        continue;
+      }
+      std::string::size_type const dash = tokens[4].find('-');
+      if (dash == std::string::npos) {
+        continue;
+      }
+      spans.push_back(atoi(tokens[4].substr(dash + 1).c_str()));
+    }
+  }
+  return spans;
+}
+
+// PIX clamps a dynamic index to the span this record reports, so a span that
+// undercounts the alloca hides every element past it. The span comes from the
+// !pix-alloca-reg-write metadata the annotation pass attaches to the
+// instruction, not from the alloca's LLVM array length, so it always matches
+// the virtual-register numbering.
+//
+// DXC's SROA flattens every aggregate the front end emits, so today's shapes
+// keep both derivations in agreement. This test guards against that ceasing
+// to be true.
+TEST_F(PixTest,
+       DebugInstrumentation_DynamicIndexSpanMatchesAllocaRegisterCount) {
+  struct Case {
+    char const *description;
+    char const *source;
+    int expectedSpan;
+  };
+
+  const Case cases[] = {
+      {"one-dimensional float array", R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    float values[8];
+    for (uint i = 0; i < 8; ++i) values[i] = 0;
+    values[RawUAV.Load(0)] = 7;
+    RawUAV.Store(4, asuint(values[RawUAV.Load(8)]));
+})x",
+       8},
+      {"two-dimensional array is flattened to one register run", R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    float m[4][4];
+    for (uint i = 0; i < 4; ++i) for (uint j = 0; j < 4; ++j) m[i][j] = 0;
+    m[RawUAV.Load(0)][RawUAV.Load(4)] = 7;
+    RawUAV.Store(8, asuint(m[RawUAV.Load(12)][RawUAV.Load(16)]));
+})x",
+       16},
+      {"array member of a struct", R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+struct Container { float before; float values[8]; float after; };
+[numthreads(1, 1, 1)]
+void main()
+{
+    Container c;
+    c.before = 1;
+    c.after = 2;
+    for (uint i = 0; i < 8; ++i) c.values[i] = 0;
+    c.values[RawUAV.Load(0)] = 7;
+    RawUAV.Store(4, asuint(c.values[RawUAV.Load(8)] + c.before + c.after));
+})x",
+       8},
+      {"dynamically indexed vector", R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    float3 v = float3(1, 2, 3);
+    v[RawUAV.Load(0)] = 7;
+    RawUAV.Store(4, asuint(v.x + v.y + v.z));
+})x",
+       3},
+  };
+
+  for (Case const &testCase : cases) {
+    WEX::Logging::Log::Comment(
+        WEX::Common::String().Format(L"%S", testCase.description));
+
+    CComPtr<IDxcBlob> compiled =
+        Compile(m_dllSupport, testCase.source, L"cs_6_0", {L"-Od"});
+    PassOutput output = RunDebugPass(compiled);
+    std::vector<int> spans = FindDynamicAllocaWriteSpans(output.lines);
+
+    // If DXC ever stops emitting a dynamically-indexed alloca store for these
+    // shaders the test would otherwise quietly become a test of nothing.
+    VERIFY_IS_TRUE(spans.size() > 0);
+    for (int span : spans) {
+      VERIFY_ARE_EQUAL(testCase.expectedSpan, span);
+    }
+  }
+}
+
+// Counts stores of the given value into a shadow alloca, i.e. stores whose
+// destination is a local pointer rather than a module-scope global.
+static uint32_t
+CountStoresToAllocaOfValue(std::vector<std::string> const &disassemblyLines,
+                           const char *value) {
+  uint32_t count = 0;
+  for (std::string const &line : disassemblyLines) {
+    if (line.find("store ") == std::string::npos) {
+      continue;
+    }
+    if (line.find(value) == std::string::npos) {
+      continue;
+    }
+    // A store into the original global names the global; the shadow stores this
+    // pass emits target an alloca reached through a local GEP.
+    if (line.find('@') != std::string::npos) {
+      continue;
+    }
+    count++;
+  }
+  return count;
+}
+
+// A flattened multi-dimensional array member renames the module global but
+// not the debug variable, so the pass gathers shadow storage by linkage
+// name. Keying it on the debug name instead loses the shadow store for every
+// write into the flattened array.
+TEST_F(PixTest, PixDbgValueToDbgDeclare_MultiDimensionalStaticGlobalArray) {
+  const char *source = R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+struct StaticGlobalHolder
+{
+    float twoD[2][3];
+    float oneD[3];
+    float count;
+};
+static StaticGlobalHolder g_staticGlobalHolder;
+[numthreads(1, 1, 1)]
+void main()
+{
+    g_staticGlobalHolder.oneD[0] = 4.0;
+    g_staticGlobalHolder.oneD[1] = 5.0;
+    g_staticGlobalHolder.oneD[2] = 6.0;
+    g_staticGlobalHolder.twoD[1][0] = 40.0;
+    g_staticGlobalHolder.twoD[1][2] = 42.0;
+    g_staticGlobalHolder.count = 1;
+
+    float accumulator = 0;
+    uint index = 0;
+    [loop]
+    while (true)
+    {
+        accumulator += g_staticGlobalHolder.twoD[index % 2][index % 3];
+        accumulator += g_staticGlobalHolder.oneD[index % 3];
+        if (index++ == 4)
+        {
+            break;
+        }
+    }
+    RawUAV.Store(64, asuint(accumulator + g_staticGlobalHolder.count));
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"cs_6_0", {L"-Od"});
+  CComPtr<IDxcBlob> dxilPart = FindModule(DFCC_ShaderDebugInfoDXIL, compiled);
+  PassOutput output = RunValueToDeclarePass(dxilPart);
+  std::vector<std::string> lines = Split(Disassemble(output.blob), '\n');
+
+  // The one-dimensional array in the same struct is the control: it is handled
+  // correctly whether or not the multi-dimensional case is.
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+00"));
+  // The two writes into the two-dimensional array are the point of the test.
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+01"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.200000e+01"));
+}
+
+// Counts stores of the given float literal into any local pointer (the
+// sibling local/alloca path has no backing global for the array at all, so
+// unlike CountStoresToAllocaOfValue there is no "@" form to exclude).
+static uint32_t CountLocalStoresOfValue(std::vector<std::string> const &lines,
+                                        const char *value) {
+  uint32_t count = 0;
+  for (auto &line : lines) {
+    if (line.find("store float") != std::string::npos &&
+        line.find(value) != std::string::npos) {
+      count++;
+    }
+  }
+  return count;
+}
+
+// Sibling coverage for the local/alloca path (VariableRegisters::
+// PopulateAllocaMap_ArrayType / NumArrayElements): the real pre-pass
+// debug-info-DXIL disassembly of a genuine -O1 compile of a local 2-D
+// array with only constant indices, which DXC's SROA/mem2reg promotes to
+// per-element llvm.dbg.value fragments (unlike -Od, which keeps a real
+// alloca and never reaches this path) -- exactly the shape
+// NumArrayElements/PopulateAllocaMap_ArrayType must reconstruct into a
+// synthesized alloca and dbg.declare. The DISubrange(-1) and huge-count
+// mutations below must both fail closed here exactly as they do for the
+// global path above (no store into any alloca is synthesized for the
+// array's fragments), proving the shared TryComputeArrayElementCount
+// helper closes both call sites uniformly.
+TEST_F(PixTest, PixDbgValueToDbgDeclare_LocalArrayUnknownLengthFailsClosed) {
+  const char *irText = R"x(
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%struct.RWByteAddressBuffer = type { i32 }
+
+define void @main() {
+entry:
+  %RawUAV_UAV_rawbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !28
+  call void @llvm.dbg.value(metadata float 1.000000e+00, i64 0, metadata !29, metadata !35), !dbg !36
+  call void @llvm.dbg.value(metadata float 2.000000e+00, i64 0, metadata !29, metadata !37), !dbg !36
+  call void @llvm.dbg.value(metadata float 3.000000e+00, i64 0, metadata !29, metadata !38), !dbg !36
+  call void @llvm.dbg.value(metadata float 4.000000e+00, i64 0, metadata !29, metadata !39), !dbg !36
+  call void @llvm.dbg.value(metadata float 5.000000e+00, i64 0, metadata !29, metadata !40), !dbg !36
+  call void @llvm.dbg.value(metadata float 6.000000e+00, i64 0, metadata !29, metadata !41), !dbg !36
+  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %RawUAV_UAV_rawbuf, i32 0, i32 undef, i32 1088421888, i32 undef, i32 undef, i32 undef, i8 1), !dbg !28
+  ret void, !dbg !42
+}
+
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!10, !11}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !7)
+!1 = !DIFile(filename: "source.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 4, type: !5, isLocal: false, isDefinition: true, scopeLine: 5, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{!8}
+!8 = !DIGlobalVariable(name: "RawUAV", linkageName: "\01?RawUAV@@3URWByteAddressBuffer@@A", scope: !0, file: !1, line: 2, type: !9, isLocal: false, isDefinition: true)
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "RWByteAddressBuffer", file: !1, line: 2, size: 32, align: 32, elements: !2)
+!10 = !{i32 2, !"Dwarf Version", i32 4}
+!11 = !{i32 2, !"Debug Info Version", i32 3}
+!28 = !DILocation(line: 13, column: 5, scope: !4)
+!29 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "arr", scope: !4, file: !1, line: 6, type: !30)
+!30 = !DICompositeType(tag: DW_TAG_array_type, baseType: !31, size: 192, align: 32, elements: !32)
+!31 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!32 = !{!33, !34}
+!33 = !DISubrange(count: 2)
+!34 = !DISubrange(count: 3)
+!35 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!36 = !DILocation(line: 6, column: 11, scope: !4)
+!37 = !DIExpression(DW_OP_bit_piece, 32, 32)
+!38 = !DIExpression(DW_OP_bit_piece, 64, 32)
+!39 = !DIExpression(DW_OP_bit_piece, 96, 32)
+!40 = !DIExpression(DW_OP_bit_piece, 128, 32)
+!41 = !DIExpression(DW_OP_bit_piece, 160, 32)
+!42 = !DILocation(line: 14, column: 1, scope: !4)
+)x";
+  static const char *values[] = {"1.000000e+00", "2.000000e+00",
+                                 "3.000000e+00", "4.000000e+00",
+                                 "5.000000e+00", "6.000000e+00"};
+
+  // Control: unmutated text produces one store per fragment.
+  {
+    std::vector<std::string> lines = RunValueToDeclarePassOnText(irText);
+    for (auto v : values) {
+      VERIFY_ARE_EQUAL(1u, CountLocalStoresOfValue(lines, v));
+    }
+  }
+
+  // DISubrange(-1) on the first dimension must fail closed: no synthesized
+  // alloca/store for any fragment.
+  {
+    std::string mutated = PixTest::ReplaceOnlyOccurrence(
+        irText, "!33 = !DISubrange(count: 2)", "!33 = !DISubrange(count: -1)");
+    std::vector<std::string> lines = RunValueToDeclarePassOnText(mutated);
+    for (auto v : values) {
+      VERIFY_ARE_EQUAL(0u, CountLocalStoresOfValue(lines, v));
+    }
+  }
+
+  // A huge-but-non-overflowing product (7e9 * 3 = 2.1e10, over UINT32_MAX
+  // but comfortably under UINT64_MAX) must also fail closed, and quickly:
+  // this is the same class of input that drove a multi-billion-iteration
+  // loop in the global path before the UINT32_MAX bound was added.
+  {
+    std::string mutated =
+        PixTest::ReplaceOnlyOccurrence(irText, "!33 = !DISubrange(count: 2)",
+                                       "!33 = !DISubrange(count: 7000000000)");
+    std::vector<std::string> lines = RunValueToDeclarePassOnText(mutated);
+    for (auto v : values) {
+      VERIFY_ARE_EQUAL(0u, CountLocalStoresOfValue(lines, v));
+    }
+  }
+}
+
+// Base module text for the DISubrange fail-closed tests below: the real
+// pre-pass debug-info-DXIL disassembly of a genuine -Od compile of the
+// PixDbgValueToDbgDeclare_MultiDimensionalStaticGlobalArray source (twoD +
+// oneD + count, with the dynamic-index loop that forces DXC to keep a real
+// flattened array rather than scalarizing it). Captured once so the
+// DISubrange mutations below exercise the real code path instead of a
+// dead-code shape a simplified/hand-written module would produce.
+static const char *MultiDimensionalStaticGlobalArrayIR() {
+  return R"x(
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%struct.RWByteAddressBuffer = type { i32 }
+
+@g_staticGlobalHolder.1 = internal unnamed_addr global [3 x float] zeroinitializer, align 4
+@g_staticGlobalHolder.0.1dim = internal global [6 x float] zeroinitializer, align 4
+@dx.nothing.a = internal constant [1 x i32] zeroinitializer
+
+define void @main() {
+entry:
+  %RawUAV_UAV_rawbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !47
+  call void @llvm.dbg.value(metadata float 0.000000e+00, i64 0, metadata !48, metadata !49), !dbg !50
+  %0 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !51
+  store float 4.000000e+00, float* getelementptr inbounds ([3 x float], [3 x float]* @g_staticGlobalHolder.1, i32 0, i32 0), align 4, !dbg !51
+  %1 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !52
+  store float 5.000000e+00, float* getelementptr inbounds ([3 x float], [3 x float]* @g_staticGlobalHolder.1, i32 0, i32 1), align 4, !dbg !52
+  %2 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !53
+  store float 6.000000e+00, float* getelementptr inbounds ([3 x float], [3 x float]* @g_staticGlobalHolder.1, i32 0, i32 2), align 4, !dbg !53
+  %3 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !54
+  store float 4.000000e+01, float* getelementptr inbounds ([6 x float], [6 x float]* @g_staticGlobalHolder.0.1dim, i32 0, i32 3), align 4, !dbg !54
+  %4 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !55
+  store float 4.200000e+01, float* getelementptr inbounds ([6 x float], [6 x float]* @g_staticGlobalHolder.0.1dim, i32 0, i32 5), align 4, !dbg !55
+  %5 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !56
+  call void @llvm.dbg.value(metadata float 1.000000e+00, i64 0, metadata !48, metadata !49), !dbg !50
+  %6 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !57
+  ret void, !dbg !57
+}
+
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+attributes #2 = { nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!29, !30}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !7)
+!1 = !DIFile(filename: "source.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 11, type: !5, isLocal: false, isDefinition: true, scopeLine: 12, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{!8, !10, !23, !25, !27}
+!8 = !DIGlobalVariable(name: "RawUAV", linkageName: "\01?RawUAV@@3URWByteAddressBuffer@@A", scope: !0, file: !1, line: 2, type: !9, isLocal: false, isDefinition: true)
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "RWByteAddressBuffer", file: !1, line: 2, size: 32, align: 32, elements: !2)
+!10 = !DIGlobalVariable(name: "g_staticGlobalHolder", scope: !0, file: !1, line: 9, type: !11, isLocal: true, isDefinition: true)
+!11 = !DICompositeType(tag: DW_TAG_structure_type, name: "StaticGlobalHolder", file: !1, line: 3, size: 320, align: 32, elements: !12)
+!12 = !{!13, !19, !22}
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "twoD", scope: !11, file: !1, line: 5, baseType: !14, size: 192, align: 32)
+!14 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, size: 192, align: 32, elements: !16)
+!15 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!16 = !{!17, !18}
+!17 = !DISubrange(count: 2)
+!18 = !DISubrange(count: 3)
+!19 = !DIDerivedType(tag: DW_TAG_member, name: "oneD", scope: !11, file: !1, line: 6, baseType: !20, size: 96, align: 32, offset: 192)
+!20 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, size: 96, align: 32, elements: !21)
+!21 = !{!18}
+!22 = !DIDerivedType(tag: DW_TAG_member, name: "count", scope: !11, file: !1, line: 7, baseType: !15, size: 32, align: 32, offset: 288)
+!23 = !DIGlobalVariable(name: "g_staticGlobalHolder.1", linkageName: "g_staticGlobalHolder.1", scope: !0, file: !1, line: 9, type: !24, isLocal: false, isDefinition: true, variable: [3 x float]* @g_staticGlobalHolder.1)
+!24 = !DIDerivedType(tag: DW_TAG_member, name: "StaticGlobalHolder.1", file: !1, line: 3, baseType: !11, size: 96, align: 4, offset: 192)
+!25 = !DIGlobalVariable(name: "g_staticGlobalHolder.2", linkageName: "g_staticGlobalHolder.2", scope: !0, file: !1, line: 9, type: !26, isLocal: false, isDefinition: true)
+!26 = !DIDerivedType(tag: DW_TAG_member, name: "StaticGlobalHolder.2", file: !1, line: 3, baseType: !11, size: 32, align: 4, offset: 288)
+!27 = !DIGlobalVariable(name: "g_staticGlobalHolder.0", linkageName: "g_staticGlobalHolder.0.1dim", scope: !0, file: !1, line: 9, type: !28, isLocal: false, isDefinition: true, variable: [6 x float]* @g_staticGlobalHolder.0.1dim)
+!28 = !DIDerivedType(tag: DW_TAG_member, name: "StaticGlobalHolder.0", file: !1, line: 3, baseType: !11, size: 192, align: 4)
+!29 = !{i32 2, !"Dwarf Version", i32 4}
+!30 = !{i32 2, !"Debug Info Version", i32 3}
+!47 = !DILocation(line: 32, column: 5, scope: !4)
+!48 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "global.g_staticGlobalHolder", arg: 0, scope: !4, file: !1, line: 9, type: !11)
+!49 = !DIExpression(DW_OP_bit_piece, 288, 32)
+!50 = !DILocation(line: 9, scope: !4)
+!51 = !DILocation(line: 13, column: 34, scope: !4)
+!52 = !DILocation(line: 14, column: 34, scope: !4)
+!53 = !DILocation(line: 15, column: 34, scope: !4)
+!54 = !DILocation(line: 16, column: 37, scope: !4)
+!55 = !DILocation(line: 17, column: 37, scope: !4)
+!56 = !DILocation(line: 18, column: 32, scope: !4)
+!57 = !DILocation(line: 33, column: 1, scope: !4)
+)x";
+}
+
+// DWARF's -1 "unknown length" sentinel on one dimension of a flattened
+// multi-dimensional global array must fail closed: no shadow storage is
+// synthesized for that array, rather than the sentinel converting to
+// UINT64_MAX under unsigned multiplication and corrupting the element
+// count. oneD shares !18's DISubrange node but not the mutated !17, so its
+// continuing to work proves the guard is scoped to the affected array
+// rather than breaking the pass wholesale.
+TEST_F(PixTest, PixDbgValueToDbgDeclare_UnknownLengthArrayFailsClosed) {
+  std::string irText = MultiDimensionalStaticGlobalArrayIR();
+
+  {
+    std::vector<std::string> lines = RunValueToDeclarePassOnText(irText);
+    VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+00"));
+    VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "5.000000e+00"));
+    VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "6.000000e+00"));
+    VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+01"));
+    VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.200000e+01"));
+  }
+
+  std::string mutated = PixTest::ReplaceOnlyOccurrence(
+      irText, "!17 = !DISubrange(count: 2)", "!17 = !DISubrange(count: -1)");
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(mutated);
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "5.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "6.000000e+00"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.000000e+01"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.200000e+01"));
+}
+
+// A positive multi-dimensional count product that overflows uint64_t must
+// also fail closed, the same way as the -1 sentinel above -- and just as
+// quickly: the fix must reject the product before it reaches any
+// allocation or loop, not merely before the final byte-size comparison.
+TEST_F(PixTest,
+       PixDbgValueToDbgDeclare_MultiDimensionalArrayOverflowFailsClosed) {
+  std::string irText = MultiDimensionalStaticGlobalArrayIR();
+
+  // 7e18 * 3 > UINT64_MAX (~1.8447e19): a genuine product overflow, not
+  // merely a large-but-representable count.
+  std::string mutated = PixTest::ReplaceOnlyOccurrence(
+      irText, "!17 = !DISubrange(count: 2)",
+      "!17 = !DISubrange(count: 7000000000000000000)");
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(mutated);
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "5.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "6.000000e+00"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.000000e+01"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.200000e+01"));
+}
+
+// A positive multi-dimensional count product that is huge but does NOT
+// overflow uint64_t is a distinct, equally real hazard: left unguarded, it
+// does not corrupt the count computation, but it would drive a
+// per-element fallback loop of that many iterations -- billions, here --
+// which is a hang in practice even though no arithmetic technically
+// overflowed. This is rejected up front by the pass's own UINT32_MAX
+// element-count bound (see TryComputeArrayElementCount) before any
+// per-element loop begins, so this test completes and asserts cleanly
+// like the two above; it does not depend on a timeout to detect a
+// regression. (While developing the fix above, an earlier draft of this
+// exact input -- before the UINT32_MAX bound existed -- did drive that
+// multi-billion-iteration loop for real, which is how this case was
+// found.)
+TEST_F(PixTest,
+       PixDbgValueToDbgDeclare_MultiDimensionalArrayHugeCountFailsClosed) {
+  std::string irText = MultiDimensionalStaticGlobalArrayIR();
+
+  // 7e9 * 3 = 2.1e10, comfortably under UINT64_MAX (~1.8447e19) so this
+  // does not exercise the overflow guard above, but comfortably over
+  // UINT32_MAX (~4.29e9) so it must be rejected by the element-count
+  // bound before any per-element loop begins.
+  std::string mutated =
+      PixTest::ReplaceOnlyOccurrence(irText, "!17 = !DISubrange(count: 2)",
+                                     "!17 = !DISubrange(count: 7000000000)");
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(mutated);
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "5.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "6.000000e+00"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.000000e+01"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.200000e+01"));
+}
+
+// A count comfortably under the (now-superseded, still-present-as-
+// defense-in-depth) UINT32_MAX element-count sanity check, but whose bit
+// extent with real 32-bit elements (134,217,729 * 32 = 4,294,967,328)
+// exceeds it: proves representability failure remains caught (now via
+// the eager-work leaf-count cap below, which is checked first and is far
+// stricter, but the outcome -- fail closed, no storage -- must remain the
+// same either way).
+TEST_F(
+    PixTest,
+    PixDbgValueToDbgDeclare_MultiDimensionalArrayRepresentabilityFailsClosed) {
+  std::string irText = MultiDimensionalStaticGlobalArrayIR();
+
+  std::string mutated =
+      PixTest::ReplaceOnlyOccurrence(irText, "!17 = !DISubrange(count: 2)",
+                                     "!17 = !DISubrange(count: 134217729)");
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(mutated);
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "5.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "6.000000e+00"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.000000e+01"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.200000e+01"));
+}
+
+// TryComputeArrayElementCount's own guard against an array_type node with
+// NO elements at all (a shape DXC is not expected to emit, but which
+// malformed/corrupted debug info could still present) must also fail
+// closed, exactly like the -1/overflow/huge-count/representability
+// controls above: oneD (sharing !18's DISubrange but not this mutation)
+// remains unaffected, proving the guard is scoped to "twoD" specifically.
+TEST_F(PixTest, PixDbgValueToDbgDeclare_EmptyArrayElementsFailsClosed) {
+  std::string irText = MultiDimensionalStaticGlobalArrayIR();
+
+  std::string mutated = PixTest::ReplaceOnlyOccurrence(
+      irText,
+      "!14 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, "
+      "size: 192, align: 32, elements: !16)",
+      "!14 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, "
+      "size: 192, align: 32, elements: !2)");
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(mutated);
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "5.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "6.000000e+00"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.000000e+01"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.200000e+01"));
+}
+
+// TryComputeArrayElementCount also requires every element of an
+// array_type's own "elements" list to actually be a DISubrange -- DXC's
+// own debug info never emits anything else there, but malformed debug
+// info could substitute some other node kind. Substituting a
+// DIDerivedType (an existing, real, but wrong-kind node already present
+// in this fixture) for the first dimension must fail closed the same
+// way, again without disturbing the unrelated oneD array.
+TEST_F(PixTest, PixDbgValueToDbgDeclare_NonSubrangeArrayElementFailsClosed) {
+  std::string irText = MultiDimensionalStaticGlobalArrayIR();
+
+  std::string mutated = PixTest::ReplaceOnlyOccurrence(
+      irText, "!16 = !{!17, !18}", "!16 = !{!19, !18}");
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(mutated);
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "5.000000e+00"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "6.000000e+00"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.000000e+01"));
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "4.200000e+01"));
+}
+
+// Builds textual IR for one global static holder struct containing exactly
+// one single-dimension flattened array member of Count basic-type scalar
+// elements (ElementBits bits each), backed by a real global array sized to
+// match, with a single literal store at StoreIndex -- so a test can
+// observe whether that one element's shadow storage was created (pass) or
+// not (fail closed) for a given (Count, ElementBits) pair, without needing
+// to construct Count real stores. Every numeric ID and offset is derived
+// from the parameters, so the same generator covers every basic-type
+// eager-work-budget test below.
+static std::string OneDimensionalScalarArrayIR(uint64_t count,
+                                               uint32_t elementBits,
+                                               const char *elementLLVMType,
+                                               const char *dwarfEncoding,
+                                               uint64_t storeIndex,
+                                               const char *storeValueLiteral) {
+  uint64_t totalBits = count * static_cast<uint64_t>(elementBits);
+  std::ostringstream ir;
+  ir << R"(
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%struct.RWByteAddressBuffer = type { i32 }
+
+@g_holder.0.1dim = internal global [)"
+     << count << " x " << elementLLVMType << R"(] zeroinitializer, align 4
+@dx.nothing.a = internal constant [1 x i32] zeroinitializer
+
+define void @main() {
+entry:
+  %h = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !28
+  call void @llvm.dbg.value(metadata float 0.000000e+00, i64 0, metadata !29, metadata !30), !dbg !31
+  %0 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !32
+  store )"
+     << elementLLVMType << " " << storeValueLiteral << ", " << elementLLVMType
+     << "* getelementptr inbounds ([" << count << " x " << elementLLVMType
+     << "], [" << count << " x " << elementLLVMType
+     << "]* @g_holder.0.1dim, i32 0, i32 " << storeIndex
+     << "), align 4, !dbg !32"
+     << R"(
+  ret void, !dbg !32
+}
+
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!24, !25}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !7)
+!1 = !DIFile(filename: "source.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 4, type: !5, isLocal: false, isDefinition: true, scopeLine: 5, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{!8, !10, !20}
+!8 = !DIGlobalVariable(name: "RawUAV", linkageName: "\01?RawUAV@@3URWByteAddressBuffer@@A", scope: !0, file: !1, line: 2, type: !9, isLocal: false, isDefinition: true)
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "RWByteAddressBuffer", file: !1, line: 2, size: 32, align: 32, elements: !2)
+!10 = !DIGlobalVariable(name: "g_holder", scope: !0, file: !1, line: 8, type: !11, isLocal: true, isDefinition: true)
+!11 = !DICompositeType(tag: DW_TAG_structure_type, name: "StaticHolder", file: !1, line: 3, size: )"
+     << totalBits << R"(, align: )" << elementBits << R"(, elements: !12)
+!12 = !{!13}
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !11, file: !1, line: 5, baseType: !14, size: )"
+     << totalBits << R"(, align: )" << elementBits << R"()
+!14 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, size: )"
+     << totalBits << R"(, align: )" << elementBits << R"(, elements: !16)
+!15 = !DIBasicType(name: ")"
+     << elementLLVMType << R"(", size: )" << elementBits << R"(, align: )"
+     << elementBits << ", encoding: " << dwarfEncoding << R"()
+!16 = !{!17}
+!17 = !DISubrange(count: )"
+     << count << R"()
+!20 = !DIGlobalVariable(name: "g_holder.0", linkageName: "g_holder.0.1dim", scope: !0, file: !1, line: 8, type: !21, isLocal: false, isDefinition: true, variable: [)"
+     << count << " x " << elementLLVMType << R"(]* @g_holder.0.1dim)
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "StaticHolder.0", file: !1, line: 3, baseType: !11, size: )"
+     << totalBits << R"(, align: 4)
+!24 = !{i32 2, !"Dwarf Version", i32 4}
+!25 = !{i32 2, !"Debug Info Version", i32 3}
+!28 = !DILocation(line: 13, column: 5, scope: !4)
+!29 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "global.g_holder", arg: 0, scope: !4, file: !1, line: 8, type: !11)
+!30 = !DIExpression()
+!31 = !DILocation(line: 8, scope: !4)
+!32 = !DILocation(line: 13, column: 34, scope: !4)
+)";
+  return ir.str();
+}
+
+// Same generator, but for an array whose elements are aggregates
+// containing a nested basic-type array field ({ float sub[2]; }), so the
+// search recurses through the "descend into aggregate elements" (now
+// O(1) analytic-index) branch to pick the correct struct element, then
+// through the struct-member branch to find the nested "sub" array, which
+// is where the flat enumerate-all-basic-type-elements branch finally
+// produces storage. This is the shape that actually reaches the
+// candidate-index code: a struct field that is itself directly a
+// basic-type scalar never produces storage through this function (only
+// an embedded array does), so the element type must contain a nested
+// array to exercise this branch at all. StoreIndex selects which array
+// element's nested sub[0] gets the one real store, so a test can probe
+// the first, a middle, or the last element of a large array without
+// constructing one store per element.
+static std::string OneDimensionalStructArrayIR(uint64_t count,
+                                               uint64_t storeIndex,
+                                               const char *storeValueLiteral) {
+  constexpr uint32_t ElementBits = 64; // { float sub[2]; }
+  uint64_t totalBits = count * ElementBits;
+  uint64_t elementOffsetInBits = storeIndex * ElementBits;
+  std::ostringstream ir;
+  ir << R"(
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%struct.RWByteAddressBuffer = type { i32 }
+
+@g_holder.0.1dim = internal global [2 x float] zeroinitializer, align 4
+@dx.nothing.a = internal constant [1 x i32] zeroinitializer
+
+define void @main() {
+entry:
+  %h = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !28
+  call void @llvm.dbg.value(metadata float 0.000000e+00, i64 0, metadata !29, metadata !30), !dbg !31
+  %0 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !32
+  store float )"
+     << storeValueLiteral
+     << R"(, float* getelementptr inbounds ([2 x float], [2 x float]* @g_holder.0.1dim, i32 0, i32 0), align 4, !dbg !32
+  ret void, !dbg !32
+}
+
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!24, !25}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !7)
+!1 = !DIFile(filename: "source.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 4, type: !5, isLocal: false, isDefinition: true, scopeLine: 5, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{!8, !10, !20}
+!8 = !DIGlobalVariable(name: "RawUAV", linkageName: "\01?RawUAV@@3URWByteAddressBuffer@@A", scope: !0, file: !1, line: 2, type: !9, isLocal: false, isDefinition: true)
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "RWByteAddressBuffer", file: !1, line: 2, size: 32, align: 32, elements: !2)
+!10 = !DIGlobalVariable(name: "g_holder", scope: !0, file: !1, line: 8, type: !11, isLocal: true, isDefinition: true)
+!11 = !DICompositeType(tag: DW_TAG_structure_type, name: "StaticHolder", file: !1, line: 3, size: )"
+     << totalBits << R"(, align: 32, elements: !12)
+!12 = !{!13}
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !11, file: !1, line: 5, baseType: !14, size: )"
+     << totalBits << R"(, align: 32)
+!14 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, size: )"
+     << totalBits << R"(, align: 32, elements: !16)
+!15 = !DICompositeType(tag: DW_TAG_structure_type, name: "Elem", file: !1, line: 5, size: 64, align: 32, elements: !40)
+!40 = !{!41}
+!41 = !DIDerivedType(tag: DW_TAG_member, name: "sub", scope: !15, file: !1, line: 5, baseType: !42, size: 64, align: 32)
+!42 = !DICompositeType(tag: DW_TAG_array_type, baseType: !44, size: 64, align: 32, elements: !45)
+!44 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!45 = !{!46}
+!46 = !DISubrange(count: 2)
+!16 = !{!17}
+!17 = !DISubrange(count: )"
+     << count << R"()
+!20 = !DIGlobalVariable(name: "g_holder.0", linkageName: "g_holder.0.1dim", scope: !0, file: !1, line: 8, type: !21, isLocal: false, isDefinition: true, variable: [2 x float]* @g_holder.0.1dim)
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "StaticHolder.0", file: !1, line: 3, baseType: !11, size: 64, align: 4, offset: )"
+     << elementOffsetInBits << R"()
+!24 = !{i32 2, !"Dwarf Version", i32 4}
+!25 = !{i32 2, !"Debug Info Version", i32 3}
+!28 = !DILocation(line: 13, column: 5, scope: !4)
+!29 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "global.g_holder", arg: 0, scope: !4, file: !1, line: 8, type: !11)
+!30 = !DIExpression()
+!31 = !DILocation(line: 8, scope: !4)
+!32 = !DILocation(line: 13, column: 34, scope: !4)
+)";
+  return ir.str();
+}
+
+// Same array-of-{ float sub[2]; } shape as OneDimensionalStructArrayIR, but
+// with TWO independently flattened embedded-array globals in the same
+// module instead of one: a "sibling" whose (offset, size) genuinely and
+// correctly identifies one real array element (always exactly
+// siblingIndex * 64), and a "probe" whose (offset, size) is caller-
+// controlled so a test can construct an out-of-range, boundary-crossing,
+// or misaligned search against the exact same "arr" array. Both globals
+// get their own real store of a distinct literal. This lets a single test
+// assert two things at once: the probe's malformed search must fail
+// closed (its literal must never appear as an instrumented store, because
+// no shadow storage should ever be created for a position
+// DescendTypeAndFindEmbeddedArrayElements cannot safely resolve), and the
+// sibling's ordinary, valid search must be completely unaffected (its
+// literal must still appear exactly once), proving a malformed probe
+// cannot corrupt or suppress an unrelated variable's own instrumentation.
+static std::string ArrayOfElemsWithSiblingAndProbeIR(uint64_t count,
+                                                     uint64_t siblingIndex,
+                                                     const char *siblingLiteral,
+                                                     uint64_t probeOffsetInBits,
+                                                     uint64_t probeSizeInBits,
+                                                     const char *probeLiteral) {
+  constexpr uint32_t ElementBits = 64; // { float sub[2]; }
+  uint64_t totalBits = count * ElementBits;
+  uint64_t siblingOffsetInBits = siblingIndex * ElementBits;
+  std::ostringstream ir;
+  ir << R"(
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target triple = "dxil-ms-dx"
+
+%dx.types.Handle = type { i8* }
+%struct.RWByteAddressBuffer = type { i32 }
+
+@g_holder.sibling.1dim = internal global [2 x float] zeroinitializer, align 4
+@g_holder.probe.1dim = internal global [2 x float] zeroinitializer, align 4
+@dx.nothing.a = internal constant [1 x i32] zeroinitializer
+
+define void @main() {
+entry:
+  %h = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false), !dbg !28
+  call void @llvm.dbg.value(metadata float 0.000000e+00, i64 0, metadata !29, metadata !30), !dbg !31
+  %0 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !32
+  store float )"
+     << siblingLiteral
+     << R"(, float* getelementptr inbounds ([2 x float], [2 x float]* @g_holder.sibling.1dim, i32 0, i32 0), align 4, !dbg !32
+  %1 = load i32, i32* getelementptr inbounds ([1 x i32], [1 x i32]* @dx.nothing.a, i32 0, i32 0), !dbg !32
+  store float )"
+     << probeLiteral
+     << R"(, float* getelementptr inbounds ([2 x float], [2 x float]* @g_holder.probe.1dim, i32 0, i32 0), align 4, !dbg !32
+  ret void, !dbg !32
+}
+
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata) #0
+declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+
+attributes #0 = { nounwind readnone }
+attributes #1 = { nounwind readonly }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!24, !25}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "dxc", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, subprograms: !3, globals: !7)
+!1 = !DIFile(filename: "source.hlsl", directory: "")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "main", scope: !1, file: !1, line: 4, type: !5, isLocal: false, isDefinition: true, scopeLine: 5, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!5 = !DISubroutineType(types: !6)
+!6 = !{null}
+!7 = !{!8, !10, !20, !23}
+!8 = !DIGlobalVariable(name: "RawUAV", linkageName: "\01?RawUAV@@3URWByteAddressBuffer@@A", scope: !0, file: !1, line: 2, type: !9, isLocal: false, isDefinition: true)
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "RWByteAddressBuffer", file: !1, line: 2, size: 32, align: 32, elements: !2)
+!10 = !DIGlobalVariable(name: "g_holder", scope: !0, file: !1, line: 8, type: !11, isLocal: true, isDefinition: true)
+!11 = !DICompositeType(tag: DW_TAG_structure_type, name: "StaticHolder", file: !1, line: 3, size: )"
+     << totalBits << R"(, align: 32, elements: !12)
+!12 = !{!13}
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !11, file: !1, line: 5, baseType: !14, size: )"
+     << totalBits << R"(, align: 32)
+!14 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, size: )"
+     << totalBits << R"(, align: 32, elements: !16)
+!15 = !DICompositeType(tag: DW_TAG_structure_type, name: "Elem", file: !1, line: 5, size: 64, align: 32, elements: !40)
+!40 = !{!41}
+!41 = !DIDerivedType(tag: DW_TAG_member, name: "sub", scope: !15, file: !1, line: 5, baseType: !42, size: 64, align: 32)
+!42 = !DICompositeType(tag: DW_TAG_array_type, baseType: !44, size: 64, align: 32, elements: !45)
+!44 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!45 = !{!46}
+!46 = !DISubrange(count: 2)
+!16 = !{!17}
+!17 = !DISubrange(count: )"
+     << count << R"()
+!20 = !DIGlobalVariable(name: "g_holder.sibling", linkageName: "g_holder.sibling.1dim", scope: !0, file: !1, line: 8, type: !21, isLocal: false, isDefinition: true, variable: [2 x float]* @g_holder.sibling.1dim)
+!21 = !DIDerivedType(tag: DW_TAG_member, name: "StaticHolder.sibling", file: !1, line: 3, baseType: !11, size: 64, align: 4, offset: )"
+     << siblingOffsetInBits << R"()
+!23 = !DIGlobalVariable(name: "g_holder.probe", linkageName: "g_holder.probe.1dim", scope: !0, file: !1, line: 8, type: !26, isLocal: false, isDefinition: true, variable: [2 x float]* @g_holder.probe.1dim)
+!26 = !DIDerivedType(tag: DW_TAG_member, name: "StaticHolder.probe", file: !1, line: 3, baseType: !11, size: )"
+     << probeSizeInBits << R"(, align: 4, offset: )" << probeOffsetInBits
+     << R"()
+!24 = !{i32 2, !"Dwarf Version", i32 4}
+!25 = !{i32 2, !"Debug Info Version", i32 3}
+!28 = !DILocation(line: 13, column: 5, scope: !4)
+!29 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "global.g_holder", arg: 0, scope: !4, file: !1, line: 8, type: !11)
+!30 = !DIExpression()
+!31 = !DILocation(line: 8, scope: !4)
+!32 = !DILocation(line: 13, column: 34, scope: !4)
+)";
+  return ir.str();
+}
+
+// The eager-work host budgets (kMaxPixDebugEagerStorageBits /
+// kMaxPixDebugEagerElementCount) are policy choices for this pass's own
+// generated debug IR, not language or hardware limits, so this table
+// exercises them at their exact boundaries for both 32-bit (float) and
+// 16-bit (half) elements, plus the zero-size/unsupported-element-size
+// case the element-count cap exists specifically to catch (a huge count
+// whose bit extent would otherwise trivially satisfy the bit-extent
+// budget).
+TEST_F(PixTest, PixDbgValueToDbgDeclare_ArrayEagerWorkBudgetBoundary) {
+  struct Case {
+    const char *description;
+    uint64_t count;
+    uint32_t elementBits;
+    const char *elementLLVMType;
+    const char *dwarfEncoding;
+    const char *storeLiteral;
+    const char *expectedDisassembledLiteral;
+    bool expectSuccess;
+  };
+  const Case cases[] = {
+      // 32-bit (float) elements: budget is 524288 bits / 32 = 16384.
+      {"32-bit at exactly the bit-extent budget", 16384, 32, "float",
+       "DW_ATE_float", "1.000000e+00", "1.000000e+00", true},
+      {"32-bit one past the bit-extent budget", 16385, 32, "float",
+       "DW_ATE_float", "1.000000e+00", "1.000000e+00", false},
+      // 16-bit (half) elements: budget is 524288 bits / 16 = 32768, which
+      // is also exactly kMaxPixDebugEagerElementCount -- the two caps
+      // coincide exactly for the smallest scalar size this pass supports.
+      // The disassembler prints a half-precision constant as its raw hex
+      // bit pattern (0xH3C00 == 1.0) rather than decimal notation.
+      {"16-bit at exactly the element-count/bit-extent budget", 32768, 16,
+       "half", "DW_ATE_float", "0xH3C00", "0xH3C00", true},
+      {"16-bit one past the element-count/bit-extent budget", 32769, 16, "half",
+       "DW_ATE_float", "0xH3C00", "0xH3C00", false},
+  };
+
+  for (Case const &testCase : cases) {
+    WEX::Logging::Log::Comment(
+        WEX::Common::String().Format(L"%S", testCase.description));
+    std::string irText = OneDimensionalScalarArrayIR(
+        testCase.count, testCase.elementBits, testCase.elementLLVMType,
+        testCase.dwarfEncoding, 0, testCase.storeLiteral);
+    std::vector<std::string> lines = RunValueToDeclarePassOnText(irText);
+    uint32_t storeCount =
+        CountStoresToAllocaOfValue(lines, testCase.expectedDisassembledLiteral);
+    VERIFY_ARE_EQUAL(testCase.expectSuccess ? 1u : 0u, storeCount);
+  }
+}
+
+// A DISubrange count far beyond the element-count budget (100,000, itself
+// still comfortably representable and not overflowing anything) paired
+// with a zero-size element type: the bit-extent budget alone
+// (count * elementSizeInBits) would be trivially 0, well within the
+// 524288-bit budget, for ANY count -- so this specifically proves the
+// independent element-count cap, not the bit-extent budget, is what
+// rejects it. Uses the scalar-array generator with the element's
+// DIBasicType size mutated to 0 in place of the normal 32-bit float.
+TEST_F(PixTest, PixDbgValueToDbgDeclare_ZeroSizeElementCannotBypassLeafCap) {
+  std::string irText = OneDimensionalScalarArrayIR(
+      100000, 32, "float", "DW_ATE_float", 0, "1.000000e+00");
+  std::string mutated = PixTest::ReplaceOnlyOccurrence(
+      irText,
+      "!15 = !DIBasicType(name: \"float\", size: 32, align: 32, "
+      "encoding: DW_ATE_float)",
+      "!15 = !DIBasicType(name: \"float\", size: 0, align: 32, "
+      "encoding: DW_ATE_float)");
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(mutated);
+  // Zero-size element: whatever the pass does with it, it must not hang,
+  // and it must not report a store succeeded (there is no meaningful
+  // storage for a zero-size type).
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "1.000000e+00"));
+}
+
+// The "descend into aggregate elements" branch computes a candidate index
+// analytically (O(1)) instead of looping over every element, so it must
+// resolve correctly regardless of whether the sought position is the
+// first, a middle, or the last element of a large array -- and must do so
+// promptly even for the last element of an array near the eager-work
+// budget (8192 elements of the 64-bit Elem type above is exactly at the
+// 524288-bit budget), proving the analytic approach is not secretly still
+// a linear scan in disguise. Each Elem's only field is itself a 2-element
+// float array, which is the shape that actually reaches this branch: a
+// struct field that is directly a scalar never produces storage through
+// this function, only a nested embedded array does.
+TEST_F(PixTest,
+       PixDbgValueToDbgDeclare_StructArrayAnalyticIndexResolvesPromptly) {
+  struct Case {
+    const char *description;
+    uint64_t count;
+    uint64_t storeIndex;
+  };
+  const Case cases[] = {
+      {"first element of a small array", 10, 0},
+      {"middle element of a small array", 10, 5},
+      {"last element of a small array", 10, 9},
+      {"last element of an array at the eager-work budget", 8192, 8191},
+  };
+
+  for (Case const &testCase : cases) {
+    WEX::Logging::Log::Comment(
+        WEX::Common::String().Format(L"%S", testCase.description));
+    std::string irText = OneDimensionalStructArrayIR(
+        testCase.count, testCase.storeIndex, "4.200000e+01");
+    std::vector<std::string> lines = RunValueToDeclarePassOnText(irText);
+    VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "4.200000e+01"));
+  }
+}
+
+// The "descend into aggregate elements" branch's O(1) candidate-index
+// computation must reject a search whose offset lands one full element
+// past the array's real extent (CandidateIndex == TotalElementCount,
+// i.e. not merely large but exactly at the boundary where an off-by-one
+// in `CandidateIndex < TotalElementCount` would matter most). Uses
+// ArrayOfElemsWithSiblingAndProbeIR so the SAME module also contains a
+// genuinely valid sibling element with its own real store: the probe's
+// out-of-range offset must produce no instrumentation at all for its own
+// literal, while the sibling -- an ordinary, unrelated element of the
+// same "arr" array -- must remain completely unaffected.
+//
+// This check turns out to be defense-in-depth rather than the sole
+// guard: empirically relaxing it alone (changing `<` to `<=` and
+// rebuilding) does NOT flip this test's result, because a second,
+// independent mechanism protects the same case -- the local shadow
+// alloca map (VariableRegisters, built by walking the SAME real
+// DISubrange-declared element count) never allocates storage past
+// "arr"'s own genuine extent, so a fictitious one-past-the-end
+// descriptor, even if the metadata-gathering step were tricked into
+// producing one, finds no real alloca to attach to and is silently
+// discarded downstream (GetRegisterForAlignedOffset returns null). An
+// attempt to strengthen this into a test that fails specifically when
+// only this one check is loosened -- by adding a real neighboring
+// struct member positioned exactly at the out-of-range offset, so a
+// loosened check would misattribute the probe's store into that
+// neighbor's real alloca -- instead revealed that such a neighbor's own
+// entry independently and correctly matches the same query on its own
+// merits (a real embedded array genuinely occupies that position, so
+// finding it there is correct, not a bug), making the two scenarios
+// experimentally indistinguishable by design. The check is retained
+// here as a still-valuable, redundant, fail-fast guard (avoiding wasted
+// recursion into a provably out-of-range index) and documented
+// accordingly rather than overclaiming a sensitivity this exact
+// algorithm does not exhibit for this exact input shape.
+TEST_F(PixTest, PixDbgValueToDbgDeclare_OutOfRangeCandidateIndexFailsClosed) {
+  const uint64_t count = 4;
+  const uint64_t elementBits = 64;
+  std::string irText = ArrayOfElemsWithSiblingAndProbeIR(
+      count, /*siblingIndex*/ 1, "5.100000e+02",
+      /*probeOffsetInBits*/ count * elementBits, /*probeSizeInBits*/
+      elementBits, "9.990000e+02");
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(irText);
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "9.990000e+02"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "5.100000e+02"));
+}
+
+// A probe whose offset correctly identifies one real candidate element
+// (element 0) but whose size extends past that single element's own end
+// (SoughtEnd > CandidateElementEnd) must be rejected, even though its
+// offset alone is perfectly in range. As with the out-of-range test
+// above, a genuinely valid sibling element in the same module must stay
+// unaffected.
+//
+// Also defense-in-depth, empirically: relaxing just the
+// `SoughtEnd <= CandidateElementEnd` containment check for this exact
+// input does not, on its own, cause the probe to become incorrectly
+// instrumented, because the deeper leaf-level match this pass relies on
+// independently requires an exact whole-array size equality that a
+// too-large SoughtEnd can never satisfy. The containment check
+// nonetheless remains valuable -- it fails fast without the wasted
+// recursion, and guards against a future change to the leaf-level match
+// that could otherwise silently remove that independent protection.
+TEST_F(PixTest,
+       PixDbgValueToDbgDeclare_SoughtRangeCrossesElementBoundaryFailsClosed) {
+  const uint64_t count = 4;
+  const uint64_t elementBits = 64;
+  std::string irText = ArrayOfElemsWithSiblingAndProbeIR(
+      count, /*siblingIndex*/ 2, "6.200000e+02", /*probeOffsetInBits*/ 0,
+      /*probeSizeInBits*/ elementBits + 32, "9.980000e+02");
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(irText);
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "9.980000e+02"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "6.200000e+02"));
+}
+
+// A probe whose offset lies strictly inside one real candidate element,
+// but at a bit position that does not correspond to the position of any
+// real embedded array within that element (i.e. genuinely misaligned,
+// malformed debug-info-supplied metadata) must also be rejected, again
+// without disturbing a genuinely valid sibling element. As with the
+// crossing-boundary case above, this is additionally guarded by the
+// deeper leaf-level exact-offset match, so relaxing only the outer
+// containment check for this exact input does not independently flip
+// the result -- still valuable defense-in-depth and documented as such.
+TEST_F(PixTest, PixDbgValueToDbgDeclare_UnalignedCandidateOffsetFailsClosed) {
+  const uint64_t count = 4;
+  const uint64_t elementBits = 64;
+  std::string irText = ArrayOfElemsWithSiblingAndProbeIR(
+      count, /*siblingIndex*/ 3, "7.300000e+02",
+      /*probeOffsetInBits*/ elementBits + 7, /*probeSizeInBits*/ 8,
+      "9.970000e+02");
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(irText);
+  VERIFY_ARE_EQUAL(0u, CountStoresToAllocaOfValue(lines, "9.970000e+02"));
+  VERIFY_ARE_EQUAL(1u, CountStoresToAllocaOfValue(lines, "7.300000e+02"));
+}
+
+// Returns the module with the given instructions at the start of the entry
+// point's first block. The disassembler prints a label for that block only
+// when the block is named, and instructions placed ahead of a label would form
+// a block with no terminator, so the injection follows the label when there is
+// one and the definition's brace when there is not.
+static std::string InjectIntoEntryBlock(const std::string &disassembly,
+                                        const std::string &instructions) {
+  const std::string definition = "define void @main() {";
+  const std::string labelledDefinition = definition + "\nentry:";
+  const std::string &anchor =
+      disassembly.find(labelledDefinition) != std::string::npos
+          ? labelledDefinition
+          : definition;
+  return PixTest::ReplaceOnlyOccurrence(disassembly, anchor,
+                                        anchor + "\n" + instructions);
+}
+
+// Whether the disassembler labels an entry point's first block depends on
+// whether the module kept the block's name, so the injection below pins its
+// point against both forms rather than against the one this build produces.
+TEST_F(PixTest, EntryBlockInjection_HandlesLabelledAndUnlabelledFirstBlock) {
+  const std::string instruction = "  %injected = alloca float";
+
+  const std::string labelled = "define void @main() {\nentry:\n  ret void\n}\n";
+  VERIFY_ARE_EQUAL("define void @main() {\nentry:\n" + instruction +
+                       "\n  ret void\n}\n",
+                   InjectIntoEntryBlock(labelled, instruction));
+
+  const std::string unlabelled = "define void @main() {\n  ret void\n}\n";
+  VERIFY_ARE_EQUAL("define void @main() {\n" + instruction +
+                       "\n  ret void\n}\n",
+                   InjectIntoEntryBlock(unlabelled, instruction));
+}
+
+// A value nested three GEPs below the alloca needs the annotator to walk the
+// whole ancestor chain, not just one level, before it can record the store's
+// !pix-alloca-reg-write. DXC's SROA flattens aggregates before this pass
+// runs, so this shape does not arise from HLSL; the module is constructed
+// directly here.
+TEST_F(PixTest, AllocaRegisterWrite_DeepAggregateChainIsAnnotated) {
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    RawUAV.Store(0, 0);
+})x",
+                                       L"cs_6_0", {L"-Od"});
+  std::string disassembly = Disassemble(compiled);
+
+  // An alloca of a struct nested three levels deep, then a GEP chain that
+  // descends every level to select a scalar, then a store into it. The store's
+  // pointer is three GEPs removed from the alloca.
+  std::string withDeepStore = InjectIntoEntryBlock(
+      disassembly,
+      "  %deep = alloca { { { float, float } } }\n"
+      "  %deep.l0 = getelementptr { { { float, float } } }, { { { "
+      "float, float } } }* %deep, i32 0, i32 0\n"
+      "  %deep.l1 = getelementptr { { float, float } }, { { float, "
+      "float } }* %deep.l0, i32 0, i32 0\n"
+      "  %deep.l2 = getelementptr { float, float }, { float, float "
+      "}* %deep.l1, i32 0, i32 1\n"
+      "  store float 1.000000e+00, float* %deep.l2\n");
+
+  std::vector<std::string> lines = RunAnnotationPassOnText(withDeepStore);
+
+  bool allocaRegistered = false;
+  bool storeFound = false;
+  bool storeAnnotated = false;
+  for (const std::string &line : lines) {
+    if (line.find("%deep = alloca") != std::string::npos &&
+        line.find("pix-alloca-reg") != std::string::npos) {
+      allocaRegistered = true;
+    }
+    if (line.find("store float 1.000000e+00, float* %deep.l2") !=
+        std::string::npos) {
+      storeFound = true;
+      if (line.find("pix-alloca-reg-write") != std::string::npos) {
+        storeAnnotated = true;
+      }
+    }
+  }
+
+  // The alloca is registered, so the shape reached the pass and the store below
+  // is the thing under test rather than an artifact of it being skipped.
+  VERIFY_IS_TRUE(allocaRegistered);
+  VERIFY_IS_TRUE(storeFound);
+  // The store three GEPs deep still carries its alloca-register-write.
+  VERIFY_IS_TRUE(storeAnnotated);
+}
+
+// 10.3: an ancestor GEP that indexes into an array (an array of structs, in
+// this case) does not bottom out at a StructType, so the pass cannot
+// compute which flattened register the selected array element occupies
+// (that renumbering is separate follow-up work). Rather than silently
+// treating the array index's contribution as zero and attaching metadata
+// for the wrong register, the pass must fail closed: no
+// pix-alloca-reg-write metadata at all.
+TEST_F(PixTest, AllocaRegisterWrite_ArrayOfStructsAncestorFailsClosed) {
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    RawUAV.Store(0, 0);
+})x",
+                                       L"cs_6_0", {L"-Od"});
+  std::string disassembly = Disassemble(compiled);
+
+  // An alloca of an array of two 2-float structs, a GEP that selects
+  // element 1 of the array (bottoming out at ArrayType, not StructType),
+  // then a GEP that selects field 1 of that element, then a store.
+  std::string withArrayOfStructsStore = InjectIntoEntryBlock(
+      disassembly,
+      "  %arrOfStructs = alloca [2 x { float, float }]\n"
+      "  %arrOfStructs.elem = getelementptr [2 x { float, float }], [2 x { "
+      "float, float }]* %arrOfStructs, i32 0, i32 1\n"
+      "  %arrOfStructs.field = getelementptr { float, float }, { float, "
+      "float }* %arrOfStructs.elem, i32 0, i32 1\n"
+      "  store float 1.000000e+00, float* %arrOfStructs.field\n");
+
+  std::vector<std::string> lines =
+      RunAnnotationPassOnText(withArrayOfStructsStore);
+
+  bool allocaRegistered = false;
+  bool storeFound = false;
+  bool storeAnnotated = false;
+  for (const std::string &line : lines) {
+    if (line.find("%arrOfStructs = alloca") != std::string::npos &&
+        line.find("pix-alloca-reg") != std::string::npos) {
+      allocaRegistered = true;
+    }
+    if (line.find("store float 1.000000e+00, float* %arrOfStructs.field") !=
+        std::string::npos) {
+      storeFound = true;
+      if (line.find("pix-alloca-reg-write") != std::string::npos) {
+        storeAnnotated = true;
+      }
+    }
+  }
+
+  // The alloca is registered, so the shape reached the pass and the store
+  // below is the thing under test rather than an artifact of it being
+  // skipped.
+  VERIFY_IS_TRUE(allocaRegistered);
+  VERIFY_IS_TRUE(storeFound);
+  // Fail closed: an array-of-structs ancestor must not produce a guessed
+  // (and potentially wrong) register-write annotation.
+  VERIFY_IS_FALSE(storeAnnotated);
+}
+
+// 10.3 (extra indices): an ancestor GEP can descend more than one level in
+// a single instruction, e.g. selecting a struct member that is itself an
+// array, then an element of that array, all as one GEP's indices. Only
+// operand 2 (the struct-member selector) is accounted for; any indices
+// beyond it are not computed here (that renumbering is separate follow-up
+// work), so silently ignoring them would guess an offset that is missing
+// the array contribution. The pass must fail closed instead.
+TEST_F(PixTest, AllocaRegisterWrite_AncestorExtraIndicesFailsClosed) {
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    RawUAV.Store(0, 0);
+})x",
+                                       L"cs_6_0", {L"-Od"});
+  std::string disassembly = Disassemble(compiled);
+
+  // An alloca of a struct whose one member is an array of two 2-float
+  // structs. The ancestor GEP combines the struct-member selection (0)
+  // and the array-element selection (1) into a single instruction's
+  // extra index, then a further GEP selects field 1 of that element.
+  std::string withExtraIndicesStore = InjectIntoEntryBlock(
+      disassembly,
+      "  %multi = alloca { [2 x { float, float }] }\n"
+      "  %multi.ancestor = getelementptr { [2 x { float, float }] }, { [2 "
+      "x { float, float }] }* %multi, i32 0, i32 0, i32 1\n"
+      "  %multi.field = getelementptr { float, float }, { float, float "
+      "}* %multi.ancestor, i32 0, i32 1\n"
+      "  store float 1.000000e+00, float* %multi.field\n");
+
+  std::vector<std::string> lines =
+      RunAnnotationPassOnText(withExtraIndicesStore);
+
+  bool allocaRegistered = false;
+  bool storeFound = false;
+  bool storeAnnotated = false;
+  for (const std::string &line : lines) {
+    if (line.find("%multi = alloca") != std::string::npos &&
+        line.find("pix-alloca-reg") != std::string::npos) {
+      allocaRegistered = true;
+    }
+    if (line.find("store float 1.000000e+00, float* %multi.field") !=
+        std::string::npos) {
+      storeFound = true;
+      if (line.find("pix-alloca-reg-write") != std::string::npos) {
+        storeAnnotated = true;
+      }
+    }
+  }
+
+  // The alloca is registered, so the shape reached the pass and the store
+  // below is the thing under test rather than an artifact of it being
+  // skipped.
+  VERIFY_IS_TRUE(allocaRegistered);
+  VERIFY_IS_TRUE(storeFound);
+  // Fail closed: the extra (array) index on the ancestor GEP must not be
+  // silently dropped and must not produce a guessed annotation.
+  VERIFY_IS_FALSE(storeAnnotated);
+}
+
+// 10.2: a struct member index equal to the struct's element count is one
+// past the last valid member (valid indices are [0, elementCount)). The
+// bound check must be exclusive (>=), not inclusive (>), or an
+// out-of-range equal-to-count index is silently accepted and contributes
+// a guessed offset built from reading past the last real member.
+//
+// This exact boundary is not constructible as an IR round-trip test: a
+// struct GEP with an index equal to the struct's element count fails to
+// even parse ("invalid getelementptr indices"), and building one directly
+// via GetElementPtrInst::Create trips that function's own assertion in
+// this assertions-enabled build. IsValidStructMemberIndex (declared above,
+// alongside CountStructMembers, following that function's existing
+// test-exposure pattern) is unit tested directly instead.
+TEST_F(PixTest, AllocaRegisterWrite_StructMemberIndexBoundIsExclusive) {
+  // Valid: the last real member (index elementCount - 1).
+  VERIFY_IS_TRUE(IsValidStructMemberIndex(1u, 2u));
+  // Invalid: index == elementCount is one past the last member.
+  VERIFY_IS_FALSE(IsValidStructMemberIndex(2u, 2u));
+  // Invalid: comfortably out of range too.
+  VERIFY_IS_FALSE(IsValidStructMemberIndex(5u, 2u));
 }
