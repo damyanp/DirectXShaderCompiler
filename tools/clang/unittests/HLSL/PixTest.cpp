@@ -129,6 +129,9 @@ public:
   TEST_METHOD(AccessTracking_ModificationReport_Read)
   TEST_METHOD(AccessTracking_ModificationReport_Write)
   TEST_METHOD(AccessTracking_ModificationReport_SM66)
+  TEST_METHOD(AccessTracking_MultipleDynamicRangesSameTypeAndSpace)
+  TEST_METHOD(AccessTracking_DynamicRangeRegisterIndex_SM66)
+  TEST_METHOD(AccessTracking_ConstantIndexAtRangeLimit)
   TEST_METHOD(AccessTracking_SamplerAccessInLibrary)
   TEST_METHOD(AccessTracking_BufferStoreByteOffsetMatchesOperandPositionOnly)
 
@@ -1643,6 +1646,15 @@ float main() : SV_Target
 
 std::vector<std::string> Split(std::string str, char delimeter);
 
+static std::string JoinLines(std::vector<std::string> const &lines) {
+  std::string joined;
+  for (std::string const &line : lines) {
+    joined += line;
+    joined += '\n';
+  }
+  return joined;
+}
+
 static bool HasBufferStoreWithByteOffset(std::vector<std::string> const &lines,
                                          unsigned byteOffset) {
   // Reviewer 6.2: searching the whole line for "i32 <byteOffset>" also
@@ -1710,6 +1722,82 @@ HasNonEmptyDynamicallyIndexedBindPoints(std::vector<std::string> const &lines) {
     return afterMarker < line.size() && line[afterMarker] != '.';
   }
   return false;
+}
+
+TEST_F(PixTest, AccessTracking_MultipleDynamicRangesSameTypeAndSpace) {
+  const char *hlsl = R"(
+ByteAddressBuffer g_indices : register(t0);
+RWByteAddressBuffer g_firstRange[2] : register(u4);
+RWByteAddressBuffer g_secondRange[2] : register(u6);
+
+[numthreads(1, 1, 1)]
+void CSMain()
+{
+    uint index = g_indices.Load(0);
+    g_firstRange[index].Store(0, 1);
+    g_secondRange[index].Store(0, 2);
+}
+)";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"cs_6_0", {L"-Od"}, L"CSMain");
+  PassOutput output =
+      RunShaderAccessTrackingPass(compiled, L"S0:0:2i0;U0:0:10i0;.0;0;0.");
+  std::string text = JoinLines(output.lines);
+  VERIFY_IS_TRUE(text.find("U0:4;") != std::string::npos);
+  VERIFY_IS_TRUE(text.find("U0:6;") != std::string::npos);
+  VerifyInstrumentedModuleIsValid(output.blob,
+                                  "shader access tracking of two dynamic UAV "
+                                  "ranges in the same register space");
+}
+
+TEST_F(PixTest, AccessTracking_DynamicRangeRegisterIndex_SM66) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+RWByteAddressBuffer g_buffers[] : register(u5);
+
+[numthreads(1, 1, 1)]
+void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    g_buffers[dispatchThreadId.x].Store(0, 1);
+}
+)";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"cs_6_6", {L"-Od"}, L"CSMain");
+  PassOutput output =
+      RunShaderAccessTrackingPass(compiled, L"U0:0:10i0;.0;0;0.");
+  std::string text = JoinLines(output.lines);
+  VERIFY_IS_TRUE(text.find("U0:5;") != std::string::npos);
+  VERIFY_IS_TRUE(text.find("U0:0;") == std::string::npos);
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "shader access tracking of an SM 6.6 dynamic UAV range");
+}
+
+TEST_F(PixTest, AccessTracking_ConstantIndexAtRangeLimit) {
+  const char *hlsl = R"(
+RWByteAddressBuffer g_buffers[] : register(u0);
+
+[numthreads(1, 1, 1)]
+void CSMain()
+{
+    g_buffers[1].Store(0, 1);
+}
+)";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"cs_6_0", {L"-Od"}, L"CSMain");
+  PassOutput output =
+      RunShaderAccessTrackingPass(compiled, L"U0:0:1i0;.0;0;0.");
+  std::vector<std::string> lines = Split(Disassemble(output.blob), '\n');
+  VERIFY_IS_TRUE(HasBufferStoreWithByteOffset(lines, 4));
+  VERIFY_IS_TRUE(!HasBufferStoreWithByteOffset(lines, 16));
+  VerifyInstrumentedModuleIsValid(
+      output.blob,
+      "shader access tracking of a constant index at the range limit");
 }
 
 TEST_F(PixTest, AccessTracking_SamplerAccessInLibrary) {
