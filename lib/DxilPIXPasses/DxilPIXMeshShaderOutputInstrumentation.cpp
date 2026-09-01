@@ -13,6 +13,7 @@
 #include "dxc/DXIL/DxilOperations.h"
 #include "dxc/DXIL/DxilUtil.h"
 
+#include "dxc/DXIL/DxilConstants.h"
 #include "dxc/DXIL/DxilInstructions.h"
 #include "dxc/DXIL/DxilModule.h"
 #include "dxc/DxilPIXPasses/DxilPIXPasses.h"
@@ -71,6 +72,15 @@ private:
   bool m_ExpandPayload = false;
   uint32_t m_DispatchArgumentY = 1;
   uint32_t m_DispatchArgumentZ = 1;
+  uint32_t m_ExpandedPayloadSize = 0;
+  uint32_t m_ExpandedPayloadAppendedFieldsOffset = 0;
+  // Whether expanded-payload-size/-offset were actually forwarded by the
+  // caller, tracked independently of the parsed values themselves: a value
+  // of 0 (or any other in-range number) is a legitimate thing for a caller
+  // to send explicitly, so it cannot double as an absence sentinel. See
+  // applyOptions.
+  bool m_ExpandedPayloadSizeForwarded = false;
+  bool m_ExpandedPayloadOffsetForwarded = false;
 
   struct BuilderContext {
     Module &M;
@@ -82,7 +92,7 @@ private:
 
   SmallVector<Value *, 2> insertInstructionsToCreateDisambiguationValue(
       IRBuilder<> &Builder, OP *HlslOP, LLVMContext &Ctx,
-      StructType *originalPayloadStructType, Instruction *firstGetPayload);
+      unsigned appendedFieldsElementIndex, Instruction *firstGetPayload);
   Value *reserveDebugEntrySpace(BuilderContext &BC, uint32_t SpaceInBytes);
   uint32_t UAVDumpingGroundOffset();
   Value *writeDwordAndReturnNewOffset(BuilderContext &BC, Value *TheOffset,
@@ -95,6 +105,28 @@ void DxilPIXMeshShaderOutputInstrumentation::applyOptions(PassOptions O) {
   GetPassOptionBool(O, "expand-payload", &m_ExpandPayload, 0);
   GetPassOptionUInt32(O, "dispatchArgY", &m_DispatchArgumentY, 1);
   GetPassOptionUInt32(O, "dispatchArgZ", &m_DispatchArgumentZ, 1);
+
+  // GetPassOptionUInt32 returns whether the named option string was present
+  // at all, which is exactly the presence signal needed here -- but on a
+  // malformed value (one StringRef::getAsInteger cannot parse) it leaves
+  // the destination completely untouched, rather than writing any sentinel
+  // of its own; only the "absent" branch writes defaultValue. So both the
+  // destination must be pre-seeded AND defaultValue passed, with the same
+  // out-of-range sentinel (kInvalidExpandedPayloadValue, which
+  // IsValidExpandedPayloadLayout will always reject), so a malformed-but-
+  // present value is later indistinguishable from any other value this
+  // pass cannot use. An explicit UINT32_MAX from the caller collapses to
+  // the same sentinel and is likewise correctly rejected, since it is
+  // already far outside DXIL::kMaxMSASPayloadBytes.
+  constexpr uint32_t kInvalidExpandedPayloadValue = UINT32_MAX;
+  m_ExpandedPayloadSize = kInvalidExpandedPayloadValue;
+  m_ExpandedPayloadSizeForwarded =
+      GetPassOptionUInt32(O, "expanded-payload-size", &m_ExpandedPayloadSize,
+                          kInvalidExpandedPayloadValue);
+  m_ExpandedPayloadAppendedFieldsOffset = kInvalidExpandedPayloadValue;
+  m_ExpandedPayloadOffsetForwarded = GetPassOptionUInt32(
+      O, "expanded-payload-offset", &m_ExpandedPayloadAppendedFieldsOffset,
+      kInvalidExpandedPayloadValue);
 }
 
 uint32_t DxilPIXMeshShaderOutputInstrumentation::UAVDumpingGroundOffset() {
@@ -108,7 +140,7 @@ Value *DxilPIXMeshShaderOutputInstrumentation::reserveDebugEntrySpace(
 
   // Check that the caller didn't ask for so much memory that it will
   // overwrite the offset counter:
-  assert(m_RemainingReservedSpaceInBytes < (int)CounterOffsetBeyondUsefulData);
+  assert(SpaceInBytes < CounterOffsetBeyondUsefulData);
 
   m_RemainingReservedSpaceInBytes = SpaceInBytes;
 
@@ -187,7 +219,6 @@ void DxilPIXMeshShaderOutputInstrumentation::Instrument(BuilderContext &BC,
 }
 
 Value *GetValueFromExpandedPayload(IRBuilder<> &Builder,
-                                   StructType *originalPayloadStructType,
                                    Instruction *firstGetPayload,
                                    unsigned int offset, const char *name) {
   auto *DerefPointer = Builder.getInt32(0);
@@ -202,7 +233,7 @@ Value *GetValueFromExpandedPayload(IRBuilder<> &Builder,
 SmallVector<Value *, 2> DxilPIXMeshShaderOutputInstrumentation::
     insertInstructionsToCreateDisambiguationValue(
         IRBuilder<> &Builder, OP *HlslOP, LLVMContext &Ctx,
-        StructType *originalPayloadStructType, Instruction *firstGetPayload) {
+        unsigned appendedFieldsElementIndex, Instruction *firstGetPayload) {
 
   // When a mesh shader is called from an amplification shader, all of the
   // thread id values are relative to the DispatchMesh call made by
@@ -213,23 +244,20 @@ SmallVector<Value *, 2> DxilPIXMeshShaderOutputInstrumentation::
   SmallVector<Value *, 2> ret;
   Constant *Zero32Arg = HlslOP->GetU32Const(0);
 
-  bool AmplificationShaderIsActive = originalPayloadStructType != nullptr;
+  bool AmplificationShaderIsActive = firstGetPayload != nullptr;
 
   llvm::Value *ASDispatchMeshYCount = nullptr;
   llvm::Value *ASDispatchMeshZCount = nullptr;
   if (AmplificationShaderIsActive) {
 
     auto *ASThreadId = GetValueFromExpandedPayload(
-        Builder, originalPayloadStructType, firstGetPayload,
-        originalPayloadStructType->getStructNumElements(), "ASThreadId");
+        Builder, firstGetPayload, appendedFieldsElementIndex, "ASThreadId");
     ret.push_back(ASThreadId);
     ASDispatchMeshYCount = GetValueFromExpandedPayload(
-        Builder, originalPayloadStructType, firstGetPayload,
-        originalPayloadStructType->getStructNumElements() + 1,
+        Builder, firstGetPayload, appendedFieldsElementIndex + 1,
         "ASDispatchMeshYCount");
     ASDispatchMeshZCount = GetValueFromExpandedPayload(
-        Builder, originalPayloadStructType, firstGetPayload,
-        originalPayloadStructType->getStructNumElements() + 2,
+        Builder, firstGetPayload, appendedFieldsElementIndex + 2,
         "ASDispatchMeshZCount");
   } else {
     ret.push_back(Zero32Arg);
@@ -270,6 +298,151 @@ SmallVector<Value *, 2> DxilPIXMeshShaderOutputInstrumentation::
   return ret;
 }
 
+static bool IsValidExpandedPayloadLayout(uint32_t ExpandedSizeInBytes,
+                                         uint32_t AppendedFieldsOffsetInBytes) {
+  constexpr uint32_t AppendedFieldsSizeInBytes = 3 * sizeof(uint32_t);
+  return AppendedFieldsOffsetInBytes % sizeof(uint32_t) == 0 &&
+         AppendedFieldsOffsetInBytes <= DXIL::kMaxMSASPayloadBytes &&
+         ExpandedSizeInBytes % sizeof(uint32_t) == 0 &&
+         ExpandedSizeInBytes >=
+             AppendedFieldsOffsetInBytes + AppendedFieldsSizeInBytes &&
+         ExpandedSizeInBytes <= DXIL::kMaxMSASPayloadBytes;
+}
+
+static ExpandedStruct BuildExpandedPayloadTypeMatchingAmplificationShader(
+    Module &M, LLVMContext &Ctx, Type *OriginalPayloadStructType,
+    uint32_t ExpandedSizeInBytes, uint32_t AppendedFieldsOffsetInBytes,
+    unsigned *AppendedFieldsElementIndex) {
+  ExpandedStruct ret = {};
+  StructType *OriginalStructType =
+      dyn_cast<StructType>(OriginalPayloadStructType);
+  if (OriginalStructType == nullptr || OriginalStructType->isOpaque() ||
+      !IsValidExpandedPayloadLayout(ExpandedSizeInBytes,
+                                    AppendedFieldsOffsetInBytes)) {
+    return ret;
+  }
+
+  constexpr uint32_t AppendedFieldsSizeInBytes = 3 * sizeof(uint32_t);
+  const DataLayout &DL = M.getDataLayout();
+  const StructLayout *OriginalLayout = DL.getStructLayout(OriginalStructType);
+  IntegerType *Int32Type = Type::getInt32Ty(Ctx);
+  const unsigned OriginalElementCount = OriginalStructType->getNumElements();
+
+  // Try the natural layout before a packed fallback.
+  const bool PackedCandidates[] = {false, true};
+  for (bool Packed : PackedCandidates) {
+    SmallVector<Type *, 16> Elements;
+    for (unsigned i = 0; i < OriginalElementCount; ++i) {
+      Elements.push_back(OriginalStructType->getElementType(i));
+    }
+
+    Elements.push_back(Int32Type);
+    Elements.push_back(Int32Type);
+    Elements.push_back(Int32Type);
+    uint64_t UnpaddedOffsetInBytes =
+        DL.getStructLayout(StructType::get(Ctx, Elements, Packed))
+            ->getElementOffset(OriginalElementCount);
+    Elements.resize(OriginalElementCount);
+    if (UnpaddedOffsetInBytes > AppendedFieldsOffsetInBytes) {
+      continue;
+    }
+
+    unsigned AppendedIndex = OriginalElementCount;
+    uint64_t MidPaddingInBytes =
+        AppendedFieldsOffsetInBytes - UnpaddedOffsetInBytes;
+    if (MidPaddingInBytes != 0) {
+      Elements.push_back(
+          ArrayType::get(Int32Type, MidPaddingInBytes / sizeof(uint32_t)));
+      ++AppendedIndex;
+    }
+    Elements.push_back(Int32Type);
+    Elements.push_back(Int32Type);
+    Elements.push_back(Int32Type);
+    uint32_t TailPaddingInBytes = ExpandedSizeInBytes -
+                                  AppendedFieldsOffsetInBytes -
+                                  AppendedFieldsSizeInBytes;
+    if (TailPaddingInBytes != 0) {
+      Elements.push_back(
+          ArrayType::get(Int32Type, TailPaddingInBytes / sizeof(uint32_t)));
+    }
+
+    StructType *Candidate = StructType::get(Ctx, Elements, Packed);
+    const StructLayout *CandidateLayout = DL.getStructLayout(Candidate);
+    // Verify the candidate preserves both payload layouts.
+    if (DL.getTypeAllocSize(Candidate) != ExpandedSizeInBytes ||
+        CandidateLayout->getElementOffset(AppendedIndex) !=
+            AppendedFieldsOffsetInBytes) {
+      continue;
+    }
+
+    bool OriginalFieldsUnmoved = true;
+    for (unsigned i = 0; i < OriginalElementCount; ++i) {
+      if (CandidateLayout->getElementOffset(i) !=
+          OriginalLayout->getElementOffset(i)) {
+        OriginalFieldsUnmoved = false;
+        break;
+      }
+    }
+    if (!OriginalFieldsUnmoved) {
+      continue;
+    }
+
+    *AppendedFieldsElementIndex = AppendedIndex;
+    ret.ExpandedPayloadStructType =
+        StructType::create(Ctx, Elements, "PIX_AS2MS_Expanded_Type", Packed);
+    ret.ExpandedPayloadStructPtrType =
+        ret.ExpandedPayloadStructType->getPointerTo();
+    return ret;
+  }
+
+  return ret;
+}
+
+static ExpandedStruct
+SynthesizeExpandedPayloadType(LLVMContext &Ctx, uint32_t ExpandedSizeInBytes,
+                              uint32_t AppendedFieldsOffsetInBytes) {
+  ExpandedStruct ret = {};
+  if (!IsValidExpandedPayloadLayout(ExpandedSizeInBytes,
+                                    AppendedFieldsOffsetInBytes)) {
+    return ret;
+  }
+
+  constexpr uint32_t AppendedFieldsSizeInBytes = 3 * sizeof(uint32_t);
+  IntegerType *Int32Type = Type::getInt32Ty(Ctx);
+  ArrayType *OpaqueOriginalPayloadType =
+      ArrayType::get(Int32Type, AppendedFieldsOffsetInBytes / sizeof(uint32_t));
+  SmallVector<Type *, 5> Elements{OpaqueOriginalPayloadType, Int32Type,
+                                  Int32Type, Int32Type};
+  uint32_t TailPaddingInBytes = ExpandedSizeInBytes -
+                                AppendedFieldsOffsetInBytes -
+                                AppendedFieldsSizeInBytes;
+  if (TailPaddingInBytes != 0) {
+    Elements.push_back(
+        ArrayType::get(Int32Type, TailPaddingInBytes / sizeof(uint32_t)));
+  }
+
+  ret.ExpandedPayloadStructType =
+      StructType::create(Ctx, Elements, "PIX_AS2MS_Expanded_Type");
+  ret.ExpandedPayloadStructPtrType =
+      ret.ExpandedPayloadStructType->getPointerTo();
+  return ret;
+}
+
+static bool OutputSignatureElementIsSigned(DxilModule &DM, Value *OutputSigId) {
+  ConstantInt *SigIdConstant = dyn_cast<ConstantInt>(OutputSigId);
+  if (SigIdConstant == nullptr) {
+    return false;
+  }
+  const DxilSignature &OutputSignature = DM.GetOutputSignature();
+  uint64_t SigId = SigIdConstant->getLimitedValue();
+  if (SigId >= OutputSignature.GetElements().size()) {
+    return false;
+  }
+  return OutputSignature.GetElement(static_cast<unsigned>(SigId))
+      .GetCompType()
+      .IsSIntTy();
+}
+
 bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
   DxilModule &DM = M.GetOrCreateDxilModule();
   LLVMContext &Ctx = M.getContext();
@@ -277,6 +450,7 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
 
   Type *OriginalPayloadStructType = nullptr;
   ExpandedStruct expanded = {};
+  unsigned AppendedFieldsElementIndex = 0;
   Instruction *FirstNewStructGetMeshPayload = nullptr;
   if (m_ExpandPayload) {
     Instruction *getMeshPayloadInstructions = nullptr;
@@ -298,37 +472,94 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
       }
     }
 
-    if (OriginalPayloadStructType == nullptr) {
-      // If the application used no payload, then we won't attempt to add one.
-      // TODO: Is there a credible use case with no AS->MS payload?
-      // PIX bug #35288335
-      return false;
-    }
-
-    if (expanded.ExpandedPayloadStructPtrType == nullptr) {
-      expanded = ExpandStructType(Ctx, OriginalPayloadStructType);
-    }
-
-    if (getMeshPayloadInstructions != nullptr) {
-      llvm::Function *OriginalGetMeshPayloadFunction =
-          cast<CallInst>(getMeshPayloadInstructions)->getCalledFunction();
-
-      Function *DxilFunc = HlslOP->GetOpFunc(
-          OP::OpCode::GetMeshPayload, expanded.ExpandedPayloadStructPtrType);
-      Constant *opArg =
-          HlslOP->GetU32Const((unsigned)OP::OpCode::GetMeshPayload);
-      IRBuilder<> Builder(getMeshPayloadInstructions);
-      Value *args[] = {opArg};
-      Instruction *payload = Builder.CreateCall(DxilFunc, args);
-
-      if (FirstNewStructGetMeshPayload == nullptr) {
-        FirstNewStructGetMeshPayload = payload;
+    if (OriginalPayloadStructType != nullptr) {
+      // Legacy local-layout fallback applies only when the PIX coordinator
+      // forwarded neither option (older coordinators never send them). If
+      // either option was forwarded -- even alone, even as an explicit 0,
+      // even malformed -- the pair is authoritative and must be valid as a
+      // whole; a partial or invalid pair reports failure instead of
+      // silently falling back to a locally-derived layout that could
+      // disagree with the shader that actually produced the data.
+      const bool expandedPayloadOptionsForwarded =
+          m_ExpandedPayloadSizeForwarded || m_ExpandedPayloadOffsetForwarded;
+      if (expandedPayloadOptionsForwarded) {
+        // The amplification shader reported the exact layout it produced,
+        // via the expanded-payload-size/-offset options. Reconstruct a
+        // matching mesh-shader-side payload type. When that reconstruction
+        // fails, the two shaders' layouts cannot be reconciled: report the
+        // failure and leave the mesh payload unchanged rather than install
+        // any layout of our own, because a locally-derived layout here
+        // would silently disagree with the shader that actually produced
+        // the data. There is no fallback for this case.
+        expanded = BuildExpandedPayloadTypeMatchingAmplificationShader(
+            M, Ctx, OriginalPayloadStructType, m_ExpandedPayloadSize,
+            m_ExpandedPayloadAppendedFieldsOffset, &AppendedFieldsElementIndex);
+        if (expanded.ExpandedPayloadStructPtrType == nullptr &&
+            OSOverride != nullptr) {
+          *OSOverride << "MeshPayloadExpansionFailed\n";
+        }
+      } else {
+        // Compatibility fallback: no amplification-shader layout was
+        // forwarded by the PIX coordinator (older coordinators never send
+        // expanded-payload-size/-offset). Derive and install a locally
+        // expanded layout so the mesh shader's own payload read can still
+        // be instrumented. This layout is only guaranteed self-consistent;
+        // it is not, and cannot be, guaranteed to agree with whatever
+        // layout an accompanying amplification shader actually produced.
+        // The payload-size-limit check just below still guards it against
+        // exceeding the mesh/amplification payload budget. Coordinators
+        // that do forward the amplification shader's layout take the
+        // branch above instead, which is authoritative and has no
+        // fallback of its own.
+        expanded = ExpandStructType(Ctx, OriginalPayloadStructType);
+        AppendedFieldsElementIndex =
+            OriginalPayloadStructType->getStructNumElements();
+        unsigned expandedPayloadSizeInBytes =
+            (unsigned)M.getDataLayout().getTypeAllocSize(
+                expanded.ExpandedPayloadStructType);
+        if (expandedPayloadSizeInBytes > DXIL::kMaxMSASPayloadBytes) {
+          if (OSOverride != nullptr) {
+            *OSOverride << "MeshPayloadExpansionFailed\n";
+          }
+          expanded = {};
+        }
       }
 
-      ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
-          getMeshPayloadInstructions, payload,
-          expanded.ExpandedPayloadStructType);
-      PIXPassHelpers::EraseIfUnused(DM, OriginalGetMeshPayloadFunction);
+      if (expanded.ExpandedPayloadStructPtrType != nullptr) {
+        llvm::Function *OriginalGetMeshPayloadFunction =
+            cast<CallInst>(getMeshPayloadInstructions)->getCalledFunction();
+
+        Function *DxilFunc = HlslOP->GetOpFunc(
+            OP::OpCode::GetMeshPayload, expanded.ExpandedPayloadStructPtrType);
+        Constant *opArg =
+            HlslOP->GetU32Const((unsigned)OP::OpCode::GetMeshPayload);
+        IRBuilder<> Builder(getMeshPayloadInstructions);
+        Value *args[] = {opArg};
+        Instruction *payload = Builder.CreateCall(DxilFunc, args);
+
+        FirstNewStructGetMeshPayload = payload;
+        ReplaceAllUsesOfInstructionWithNewValueAndDeleteInstruction(
+            getMeshPayloadInstructions, payload,
+            expanded.ExpandedPayloadStructType);
+        PIXPassHelpers::EraseIfUnused(DM, OriginalGetMeshPayloadFunction);
+      }
+    } else if (m_ExpandedPayloadSizeForwarded ||
+               m_ExpandedPayloadOffsetForwarded) {
+      expanded = SynthesizeExpandedPayloadType(
+          Ctx, m_ExpandedPayloadSize, m_ExpandedPayloadAppendedFieldsOffset);
+      if (expanded.ExpandedPayloadStructPtrType != nullptr) {
+        AppendedFieldsElementIndex = 1;
+        IRBuilder<> Builder(dxilutil::FirstNonAllocaInsertionPt(
+            PIXPassHelpers::GetEntryFunction(DM)));
+        Function *DxilFunc = HlslOP->GetOpFunc(
+            OP::OpCode::GetMeshPayload, expanded.ExpandedPayloadStructPtrType);
+        Constant *opArg =
+            HlslOP->GetU32Const((unsigned)OP::OpCode::GetMeshPayload);
+        Value *args[] = {opArg};
+        FirstNewStructGetMeshPayload = Builder.CreateCall(DxilFunc, args);
+      } else if (OSOverride != nullptr) {
+        *OSOverride << "MeshPayloadExpansionFailed\n";
+      }
     }
   }
 
@@ -347,11 +578,11 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
         PIXPassHelpers::GetEntryFunction(DM));
     IRBuilder<> Builder(firstInsertionPt);
     m_threadUniquifier = insertInstructionsToCreateDisambiguationValue(
-        Builder, HlslOP, Ctx, nullptr, nullptr);
+        Builder, HlslOP, Ctx, 0, nullptr);
   } else {
     IRBuilder<> Builder(FirstNewStructGetMeshPayload->getNextNode());
     m_threadUniquifier = insertInstructionsToCreateDisambiguationValue(
-        Builder, HlslOP, Ctx, cast<StructType>(OriginalPayloadStructType),
+        Builder, HlslOP, Ctx, AppendedFieldsElementIndex,
         FirstNewStructGetMeshPayload);
   }
 
@@ -371,6 +602,7 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
                Call->getOperand(1), Call->getOperand(2), Call->getOperand(3),
                Call->getOperand(4));
   }
+  PIXPassHelpers::EraseIfUnused(DM, F);
 
   struct OutputType {
     Type *type;
@@ -413,7 +645,11 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
         CoercedValue = BC2.Builder.CreateCast(Instruction::ZExt, HalfInt,
                                               Type::getInt32Ty(Ctx));
       } else if (Overload.tag == int16ValueIndicator) {
-        CoercedValue = BC2.Builder.CreateCast(Instruction::ZExt, CoercedValue,
+        Instruction::CastOps ExtensionKind =
+            OutputSignatureElementIsSigned(DM, Call->getOperand(1))
+                ? Instruction::SExt
+                : Instruction::ZExt;
+        CoercedValue = BC2.Builder.CreateCast(ExtensionKind, CoercedValue,
                                               Type::getInt32Ty(Ctx));
       }
 
@@ -426,6 +662,13 @@ bool DxilPIXMeshShaderOutputInstrumentation::runOnModule(Module &M) {
 
   for (Function *StoreVertexOutputFunction : StoreVertexOutputFunctions) {
     PIXPassHelpers::EraseIfUnused(DM, StoreVertexOutputFunction);
+  }
+
+  if (expanded.ExpandedPayloadStructType != nullptr) {
+    DM.GetDxilFunctionProps(PIXPassHelpers::GetEntryFunction(DM))
+        .ShaderProps.MS.payloadSizeInBytes =
+        (unsigned)M.getDataLayout().getTypeAllocSize(
+            expanded.ExpandedPayloadStructType);
   }
 
   DM.ReEmitDxilResources();
