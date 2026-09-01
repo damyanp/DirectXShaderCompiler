@@ -17,8 +17,11 @@
 #include <array>
 #include <cassert>
 #include <cfloat>
+#include <cstring>
+#include <functional>
 #include <map>
 #include <memory>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -48,6 +51,7 @@
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallString.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/IR/DebugInfo.h"
@@ -55,6 +59,7 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Operator.h"
@@ -62,6 +67,7 @@
 #include "llvm/Support/MSFileSystem.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/Path.h"
+#include "llvm/Support/raw_ostream.h"
 #include <fstream>
 
 #include <../lib/DxilDia/DxcPixLiveVariables_FragmentIterator.h>
@@ -159,6 +165,18 @@ public:
   TEST_METHOD(NonUniformResourceIndex_Resource)
   TEST_METHOD(NonUniformResourceIndex_DescriptorHeap)
   TEST_METHOD(NonUniformResourceIndex_Raytracing)
+
+  // Control tests for the PIX pass validation harness below
+  // (ValidateInstrumentedModule / VerifyInstrumentedModuleIsValid).
+  TEST_METHOD(Validation_ControlValidModulePasses)
+  TEST_METHOD(Validation_ControlAlreadyValidModuleFastPath)
+  TEST_METHOD(Validation_ControlInvalidModuleFails)
+  TEST_METHOD(Validation_ControlNonPixUnusedMetadataIsRejected)
+  TEST_METHOD(Validation_ControlBoilerplateOnlyFailureIsRejected)
+  TEST_METHOD(Validation_ControlDiagnosticsArePreservedHelper)
+  TEST_METHOD(Validation_ControlCanonicalPartMetadataDivergenceIsRejected)
+  TEST_METHOD(Validation_ControlCanonicalKnownPixMetadataIsAccepted)
+  TEST_METHOD(Validation_ControlCanonicalMixedForeignMetadataIsRejected)
 
   dxc::DxCompilerDllLoader m_dllSupport;
   VersionSupportInfo m_ver;
@@ -261,6 +279,388 @@ public:
 
     return {
         std::move(pOptimizedModule), {}, Tokenize(outputText.c_str(), "\n")};
+  }
+
+  // Runs one named PIX or DXIL pass and returns the resulting module and
+  // its disassembly lines.
+  struct SinglePassOutput {
+    CComPtr<IDxcBlob> Module;
+    std::vector<std::string> Lines;
+  };
+
+  SinglePassOutput RunSinglePass(IDxcBlob *dxil, LPCWSTR passOption) {
+    CComPtr<IDxcOptimizer> pOptimizer;
+    VERIFY_SUCCEEDED(
+        m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+    std::vector<LPCWSTR> Options;
+    Options.push_back(L"-opt-mod-passes");
+    Options.push_back(passOption);
+
+    CComPtr<IDxcBlob> pOptimizedModule;
+    CComPtr<IDxcBlobEncoding> pText;
+    VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(
+        dxil, Options.data(), Options.size(), &pOptimizedModule, &pText));
+
+    SinglePassOutput ret;
+    ret.Module = pOptimizedModule;
+    ret.Lines = Tokenize(BlobToUtf8(pText).c_str(), "\n");
+    return ret;
+  }
+
+  // PIX does not validate the shaders its passes instrument, so a pass
+  // that produces invalid DXIL goes undetected elsewhere. Validate here
+  // instead.
+  struct ValidationResult {
+    bool Valid;
+    std::string Errors;
+  };
+
+  // Some pass runners return a bare bitcode module; others already return
+  // a container. The validator (and the assembler used to reconstruct a
+  // container from bare bitcode) both need a container.
+  CComPtr<IDxcBlob> NormalizeToContainer(IDxcBlob *pModule) {
+    if (hlsl::IsDxilContainerLike(pModule->GetBufferPointer(),
+                                  pModule->GetBufferSize()) != nullptr) {
+      return pModule;
+    }
+    return pix_test::WrapInNewContainer(m_dllSupport, pModule);
+  }
+
+  ValidationResult RunValidator(IDxcBlob *pContainer) {
+    CComPtr<IDxcValidator> pValidator;
+    VERIFY_SUCCEEDED(
+        m_dllSupport.CreateInstance(CLSID_DxcValidator, &pValidator));
+
+    CComPtr<IDxcOperationResult> pValidationResult;
+    VERIFY_SUCCEEDED(pValidator->Validate(pContainer, DxcValidatorFlags_Default,
+                                          &pValidationResult));
+
+    HRESULT validationStatus;
+    VERIFY_SUCCEEDED(pValidationResult->GetStatus(&validationStatus));
+    if (SUCCEEDED(validationStatus)) {
+      return {true, {}};
+    }
+
+    CComPtr<IDxcBlobEncoding> pValidationErrors;
+    VERIFY_SUCCEEDED(pValidationResult->GetErrorBuffer(&pValidationErrors));
+    return {false, BlobToUtf8(pValidationErrors)};
+  }
+
+  // The four metadata kinds that PIX's virtual-register annotation pass
+  // intentionally leaves unused for downstream tools to consume. See
+  // DxilPIXVirtualRegisters.h.
+  static constexpr const char *KnownPixVirtualRegisterMetadataKinds[] = {
+      pix_dxil::PixDxilInstNum::MDName, pix_dxil::PixDxilReg::MDName,
+      pix_dxil::PixAllocaReg::MDName, pix_dxil::PixAllocaRegWrite::MDName};
+
+  // Structurally removes only the four known PIX virtual-register metadata
+  // kinds from every function and instruction in the module. Used to build
+  // an isolated copy that should validate cleanly if the only unused
+  // metadata in the original was PIX's own.
+  void StripKnownPixVirtualRegisterMetadata(llvm::Module &M) {
+    llvm::LLVMContext &Ctx = M.getContext();
+    for (const char *kind : KnownPixVirtualRegisterMetadataKinds) {
+      unsigned kindID = Ctx.getMDKindID(kind);
+      for (llvm::Function &F : M) {
+        F.setMetadata(kindID, nullptr);
+        for (llvm::BasicBlock &BB : F) {
+          for (llvm::Instruction &I : BB) {
+            I.setMetadata(kindID, nullptr);
+          }
+        }
+      }
+    }
+  }
+
+  // Parses pModule into an isolated, owned LLVM module, applies Mutate to
+  // it, and re-serializes the result into a fresh validator-ready
+  // container. The caller's original blob is untouched.
+  //
+  // partKind selects which part of a full container to parse (see
+  // ModuleAndHangersOn); it defaults to DFCC_ShaderDebugInfoDXIL, preserving
+  // every existing caller's behavior. ValidateInstrumentedModule's fallback
+  // passes DFCC_DXIL explicitly so it parses the exact same canonical part
+  // RunValidator validated, rather than a debug-info-carrying copy that can
+  // diverge in content that survives debug-info stripping (see
+  // SerializeDxilContainerForModule).
+  CComPtr<IDxcBlob>
+  CloneModuleAndMutate(IDxcBlob *pModule,
+                       std::function<void(llvm::Module &)> Mutate,
+                       hlsl::DxilFourCC partKind = DFCC_ShaderDebugInfoDXIL) {
+    CComPtr<IDxcBlob> pContainer = NormalizeToContainer(pModule);
+    ModuleAndHangersOn moduleEtc(pContainer, partKind);
+    llvm::Module *M = moduleEtc.GetDxilModule().GetModule();
+    Mutate(*M);
+
+    llvm::SmallVector<char, 0> bitcode;
+    {
+      llvm::raw_svector_ostream OS(bitcode);
+      llvm::WriteBitcodeToFile(M, OS);
+    }
+
+    CComPtr<IDxcLibrary> pLibrary;
+    VERIFY_SUCCEEDED(m_dllSupport.CreateInstance(CLSID_DxcLibrary, &pLibrary));
+    CComPtr<IDxcBlobEncoding> pBitcodeBlob;
+    VERIFY_SUCCEEDED(pLibrary->CreateBlobWithEncodingFromPinned(
+        bitcode.data(), static_cast<UINT32>(bitcode.size()), CP_ACP,
+        &pBitcodeBlob));
+
+    return pix_test::WrapInNewContainer(m_dllSupport, pBitcodeBlob);
+  }
+
+  // Extracts the raw bytes of a single container part exactly as stored
+  // (DxilProgramHeader-wrapped for a program part), for copying into
+  // another container via IDxcContainerBuilder::AddPart.
+  CComPtr<IDxcBlob> ExtractPartContent(hlsl::DxilFourCC fourCC,
+                                       IDxcBlob *pContainer) {
+    CComPtr<IDxcContainerReflection> pReflection;
+    VERIFY_SUCCEEDED(m_dllSupport.CreateInstance(CLSID_DxcContainerReflection,
+                                                 &pReflection));
+    VERIFY_SUCCEEDED(pReflection->Load(pContainer));
+    UINT32 partIndex;
+    VERIFY_SUCCEEDED(pReflection->FindFirstPartKind(fourCC, &partIndex));
+    CComPtr<IDxcBlob> pPart;
+    VERIFY_SUCCEEDED(pReflection->GetPartContent(partIndex, &pPart));
+    return pPart;
+  }
+
+  // Builds a container whose DFCC_DXIL part is exactly pCanonicalContainer's
+  // own (untouched -- IDxcContainerBuilder cannot replace DFCC_DXIL, only
+  // DFCC_ShaderDebugInfoDXIL and a few auxiliary parts), but whose
+  // DFCC_ShaderDebugInfoDXIL part is replaced with pIldbPartContent (already
+  // DxilProgramHeader-wrapped part content, e.g. from ExtractPartContent).
+  // Used to construct a container whose canonical and debug-info-carrying
+  // parts deliberately diverge, to prove ValidateInstrumentedModule
+  // validates only the canonical part.
+  CComPtr<IDxcBlob>
+  BuildContainerWithDivergentIldbPart(IDxcBlob *pCanonicalContainer,
+                                      IDxcBlob *pIldbPartContent) {
+    CComPtr<IDxcContainerBuilder> pContainerBuilder;
+    VERIFY_SUCCEEDED(CreateContainerBuilder(&pContainerBuilder));
+    VERIFY_SUCCEEDED(pContainerBuilder->Load(pCanonicalContainer));
+    // pCanonicalContainer always has a DFCC_ShaderDebugInfoDXIL part of its
+    // own (WrapInNewContainer/SerializeDxilContainerForModule always
+    // produces one alongside DFCC_DXIL when debug info is present, which it
+    // always is here -- see PixTestUtils.cpp's unconditional
+    // /Zi /Qembed_debug args); remove it before adding the replacement.
+    VERIFY_SUCCEEDED(pContainerBuilder->RemovePart(DFCC_ShaderDebugInfoDXIL));
+    VERIFY_SUCCEEDED(
+        pContainerBuilder->AddPart(DFCC_ShaderDebugInfoDXIL, pIldbPartContent));
+
+    CComPtr<IDxcOperationResult> pBuildResult;
+    VERIFY_SUCCEEDED(pContainerBuilder->SerializeContainer(&pBuildResult));
+    CComPtr<IDxcBlobEncoding> pBuildErrors;
+    VERIFY_SUCCEEDED(pBuildResult->GetErrorBuffer(&pBuildErrors));
+    if (pBuildErrors && pBuildErrors->GetBufferSize() != 0) {
+      OutputDebugStringA(static_cast<LPCSTR>(pBuildErrors->GetBufferPointer()));
+      VERIFY_SUCCEEDED(E_FAIL);
+    }
+    CComPtr<IDxcBlob> pNewContainer;
+    VERIFY_SUCCEEDED(pBuildResult->GetResult(&pNewContainer));
+    return pNewContainer;
+  }
+
+  // ValidateInstrumentedModule's fallback needs an embedded canonical DXIL
+  // part to parse the module (see ModuleAndHangersOn / CloneModuleAndMutate,
+  // both now targeting DFCC_DXIL for this pipeline). Check safely first (the
+  // same find-the-part pattern ModuleAndHangersOn uses, without the assert)
+  // so a container that legitimately lacks one does not abort the whole
+  // test; the caller falls back to the original direct validation result.
+  // DFCC_DXIL is the same part RunValidator's "direct" validation targets,
+  // so this also covers every bare-bitcode-normalized container (see
+  // NormalizeToContainer / WrapInNewContainer), which always has DFCC_DXIL.
+  bool HasCanonicalDxilPart(IDxcBlob *pContainer) {
+    const DxilContainerHeader *pHeader = IsDxilContainerLike(
+        pContainer->GetBufferPointer(), pContainer->GetBufferSize());
+    if (pHeader == nullptr) {
+      return false;
+    }
+    if (!IsValidDxilContainer(pHeader, pContainer->GetBufferSize())) {
+      return false;
+    }
+    DxilPartIterator it =
+        std::find_if(begin(pHeader), end(pHeader), DxilPartIsType(DFCC_DXIL));
+    return it != end(pHeader);
+  }
+
+  // True only if every diagnostic in `required` also appears in
+  // `available`, counting duplicates (multiset containment). Used to prove
+  // that a reassembly round trip did not silently drop or alter even one
+  // of the original diagnostics while another, unrelated one kept the
+  // clone failing overall.
+  bool DiagnosticsArePreserved(const std::vector<std::string> &required,
+                               const std::vector<std::string> &available) {
+    std::multiset<std::string> pool(available.begin(), available.end());
+    for (const std::string &diagnostic : required) {
+      std::multiset<std::string>::iterator it = pool.find(diagnostic);
+      if (it == pool.end()) {
+        return false;
+      }
+      pool.erase(it);
+    }
+    return true;
+  }
+
+  ValidationResult ValidateInstrumentedModule(IDxcBlob *pModule) {
+    CComPtr<IDxcBlob> pContainer = NormalizeToContainer(pModule);
+
+    ValidationResult direct = RunValidator(pContainer);
+    if (direct.Valid) {
+      return direct;
+    }
+
+    // The clone/serialize/reassemble pipeline needs an embedded canonical
+    // DXIL part to parse the module (see ModuleAndHangersOn). If it is
+    // absent, do not attempt structural inspection; report the original
+    // failure.
+    if (!HasCanonicalDxilPart(pContainer)) {
+      return direct;
+    }
+
+    // If the original failure carries no significant diagnostic at all
+    // (only the "Validation failed." boilerplate), there is nothing to
+    // structurally attribute to known PIX metadata. Opening the
+    // identity/strip fallback here would let DiagnosticsArePreserved's
+    // multiset-containment check vacuously "succeed" against any identity
+    // clone diagnostics (required is empty, so nothing needs to be
+    // present). Fail closed instead: report the original failure directly.
+    std::vector<std::string> directDiagnostics =
+        GetSignificantValidationDiagnostics(direct.Errors);
+    if (directDiagnostics.empty()) {
+      return direct;
+    }
+
+    // The module may have unused metadata from the four known PIX
+    // virtual-register kinds; PIX passes intentionally leave this metadata
+    // for downstream tools to consume. The validator's diagnostic text
+    // never names the attachment kind (it prints only the metadata node's
+    // own operands), so text alone cannot tell known PIX metadata apart
+    // from any other unused metadata. Settle it structurally instead, by
+    // revalidating copies with metadata removed.
+    //
+    // Both clones below explicitly target DFCC_DXIL -- the same canonical
+    // part `direct` just validated -- rather than the debug-info-carrying
+    // DFCC_ShaderDebugInfoDXIL part. Parsing a different part than the one
+    // actually validated would let the two diverge: DFCC_DXIL is produced
+    // by stripping debug info from the pre-strip module that becomes
+    // DFCC_ShaderDebugInfoDXIL (see SerializeDxilContainerForModule), and a
+    // defect present in one is not guaranteed to be present, or to produce
+    // matching diagnostic text, in the other. Parsing DFCC_DXIL consistently
+    // removes that divergence at its source rather than trying to detect it
+    // after the fact from diagnostic text alone, which the validator's own
+    // generic "unused metadata" message cannot reliably distinguish (two
+    // different metadata kinds can produce identical diagnostic text if
+    // their operands happen to match).
+    //
+    // Reassembly itself (clone -> serialize -> reassemble) can still repair
+    // derived container parts or validator-version metadata unrelated to
+    // metadata stripping. It is not enough for the identity clone (no-op
+    // mutation) to merely still fail: reassembly could silently repair one
+    // original diagnostic while a different, unrelated diagnostic (such as
+    // Meta.Used) keeps the identity clone failing overall, which would hide
+    // the repair. So require every diagnostic from the original direct
+    // failure to still be present in the identity clone's diagnostics
+    // (multiset containment, in case of duplicates). This check is now sound
+    // because both sides derive from the same canonical part: it guards
+    // against reassembly artifacts, not cross-part content divergence. Only
+    // when it holds, and the stripped clone then validates, is known PIX
+    // metadata the sole cause.
+    CComPtr<IDxcBlob> identityContainer = CloneModuleAndMutate(
+        pContainer,
+        [](llvm::Module &) {
+          // No-op: proves the round-trip alone does not change the
+          // outcome, before trusting the stripped clone's result.
+        },
+        DFCC_DXIL);
+    ValidationResult identity = RunValidator(identityContainer);
+    std::vector<std::string> identityDiagnostics =
+        GetSignificantValidationDiagnostics(identity.Errors);
+    if (identity.Valid ||
+        !DiagnosticsArePreserved(directDiagnostics, identityDiagnostics)) {
+      return direct;
+    }
+
+    CComPtr<IDxcBlob> strippedContainer = CloneModuleAndMutate(
+        pContainer,
+        [this](llvm::Module &M) { StripKnownPixVirtualRegisterMetadata(M); },
+        DFCC_DXIL);
+    ValidationResult stripped = RunValidator(strippedContainer);
+    if (stripped.Valid) {
+      return {true, {}};
+    }
+
+    // A real defect remains even with the known PIX metadata removed.
+    // Preserve the original diagnostic alongside the stripped-copy result
+    // instead of silently discarding it.
+    return {false, direct.Errors +
+                       "\n--- after removing known PIX virtual-register "
+                       "metadata ---\n" +
+                       stripped.Errors};
+  }
+
+  // Filters out boilerplate ("Validation failed.") and blank lines. There
+  // is no metadata exception here: ValidateInstrumentedModule already
+  // decides whether unused metadata is limited to the four known PIX
+  // virtual-register kinds by revalidating identity and structurally
+  // stripped copies of the module, so any diagnostic reaching this
+  // function is significant.
+  std::vector<std::string>
+  GetSignificantValidationDiagnostics(const std::string &errors) {
+    std::vector<std::string> result;
+    std::stringstream errorStream(errors);
+    std::string line;
+    while (std::getline(errorStream, line)) {
+      if (!line.empty() && line.back() == '\r') {
+        line.pop_back();
+      }
+      if (line.empty() || line == "Validation failed.") {
+        continue;
+      }
+      result.push_back(line);
+    }
+    return result;
+  }
+
+  // The pass/fail disposition that VerifyInstrumentedModuleIsValid acts on.
+  // Exposed separately (rather than only inlined in
+  // VerifyInstrumentedModuleIsValid) so control tests can assert on the
+  // exact decision production validation makes, instead of on an internal
+  // helper whose result might not reflect it.
+  struct InstrumentedModuleDisposition {
+    bool Valid;
+    std::vector<std::string> Diagnostics; // significant diagnostics if !Valid
+  };
+
+  InstrumentedModuleDisposition
+  GetInstrumentedModuleDisposition(IDxcBlob *pModule) {
+    ValidationResult validation = ValidateInstrumentedModule(pModule);
+    if (validation.Valid) {
+      return {true, {}};
+    }
+    return {false, GetSignificantValidationDiagnostics(validation.Errors)};
+  }
+
+  // Asserts an instrumented module validates; logs and fails otherwise.
+  void VerifyInstrumentedModuleIsValid(IDxcBlob *pModule,
+                                       const char *description) {
+    InstrumentedModuleDisposition disposition =
+        GetInstrumentedModuleDisposition(pModule);
+    if (disposition.Valid) {
+      return;
+    }
+
+    std::string joined;
+    if (disposition.Diagnostics.empty()) {
+      joined = "(validator reported failure with no significant diagnostic "
+               "text)";
+    } else {
+      for (std::string const &significantError : disposition.Diagnostics) {
+        joined += significantError + "\n";
+      }
+    }
+    WEX::Logging::Log::Error(WEX::Common::String().Format(
+        L"Validation failed after %S:\n%S", description, joined.c_str()));
+    VERIFY_FAIL();
   }
 
   CComPtr<IDxcBlob> FindModule(hlsl::DxilFourCC fourCC, IDxcBlob *pSource) {
@@ -393,7 +793,14 @@ public:
     DxilModule *dxilModule;
 
   public:
-    ModuleAndHangersOn(IDxcBlob *pBlob) {
+    // partKind selects which container part to parse when pBlob is a full
+    // container (bare bitcode, the "assume a dxil part first" branch below,
+    // ignores partKind entirely). Defaults to DFCC_ShaderDebugInfoDXIL,
+    // preserving every existing caller's behavior; ValidateInstrumentedModule's
+    // fallback pipeline passes DFCC_DXIL explicitly instead, so it always
+    // parses the same canonical part RunValidator actually validated.
+    ModuleAndHangersOn(IDxcBlob *pBlob,
+                       hlsl::DxilFourCC partKind = DFCC_ShaderDebugInfoDXIL) {
 
       // Assume we were given a dxil part first:
       const DxilProgramHeader *pProgramHeader =
@@ -408,9 +815,8 @@ public:
             IsValidDxilContainer(pContainer, pBlob->GetBufferSize()));
 
         // Get Dxil part from container.
-        DxilPartIterator it =
-            std::find_if(begin(pContainer), end(pContainer),
-                         DxilPartIsType(DFCC_ShaderDebugInfoDXIL));
+        DxilPartIterator it = std::find_if(begin(pContainer), end(pContainer),
+                                           DxilPartIsType(partKind));
         VERIFY_IS_FALSE(it == end(pContainer));
 
         pProgramHeader =
@@ -3466,4 +3872,483 @@ void main(uint3 tid : SV_DispatchThreadID) {
     pos += strlen("DebugBreakBitSet");
   }
   VERIFY_ARE_EQUAL(debugBreakBitSetCount, 2);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Control tests for the PIX pass validation harness
+// (ValidateInstrumentedModule / VerifyInstrumentedModuleIsValid).
+//
+// Both tests instrument the same trivial pixel shader with the
+// virtual-register annotation pass, so the valid and invalid cases are
+// directly comparable.
+
+TEST_F(PixTest, Validation_ControlValidModulePasses) {
+  const char *source = R"x(
+float main() : SV_Target
+{
+    return 0;
+})x";
+
+  // Virtual-register annotation adds metadata that DXIL does not consume;
+  // ValidateInstrumentedModule excuses only the four known PIX kinds.
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-dxil-annotate-with-virtual-regs");
+  VerifyInstrumentedModuleIsValid(
+      output.Module,
+      "virtual-register annotation of a trivial pixel shader (validation "
+      "harness control)");
+}
+
+// Control for the fast path in ValidateInstrumentedModule: a module with no
+// unused metadata at all validates on the first, direct attempt, without
+// ever exercising the clone/strip machinery.
+TEST_F(PixTest, Validation_ControlAlreadyValidModuleFastPath) {
+  const char *source = R"x(
+float main() : SV_Target
+{
+    return 0;
+})x";
+
+  // No PIX pass runs here, so there is no unused virtual-register
+  // metadata; a plain compiled shader validates directly.
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  VerifyInstrumentedModuleIsValid(compiled,
+                                  "plain compiled pixel shader, no PIX pass "
+                                  "(direct-valid fast-path control)");
+}
+
+TEST_F(PixTest, Validation_ControlInvalidModuleFails) {
+  const char *source = R"x(
+float main() : SV_Target
+{
+    return 0;
+})x";
+
+  // Same shader and pass as Validation_ControlValidModulePasses; only the
+  // corruption below differs.
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-dxil-annotate-with-virtual-regs");
+
+  // Confirm the baseline validates before corrupting it, so the failure
+  // below is caused by the corruption and nothing else.
+  VerifyInstrumentedModuleIsValid(
+      output.Module,
+      "virtual-register annotation of a trivial pixel shader, uncorrupted "
+      "baseline (validation harness control)");
+
+  // Mislabel the shader stage. The validator must reject this regardless
+  // of the known PIX metadata kinds. This corruption also survives
+  // ValidateInstrumentedModule's clone/serialize/reassemble round trip
+  // unchanged, so it exercises the identity-clone gate: the identity clone
+  // must still fail (proving reassembly alone did not mask the defect)
+  // before the stripped clone is even attempted, and the stripped clone
+  // must still fail too, since the defect is not metadata.
+  std::string disassembly = Disassemble(output.Module);
+  const std::string shaderKindTag = "!\"ps\",";
+  std::string::size_type tagPosition = disassembly.find(shaderKindTag);
+  VERIFY_IS_TRUE(tagPosition != std::string::npos);
+  disassembly.replace(tagPosition, shaderKindTag.size(), "!\"vs\",");
+
+  CComPtr<IDxcBlobEncoding> pDisassemblyBlob;
+  CreateBlobFromText(m_dllSupport, disassembly.c_str(), &pDisassemblyBlob);
+
+  CComPtr<IDxcAssembler> pAssembler;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcAssembler, &pAssembler));
+  CComPtr<IDxcOperationResult> pAssembleResult;
+  VERIFY_SUCCEEDED(
+      pAssembler->AssembleToContainer(pDisassemblyBlob, &pAssembleResult));
+  HRESULT assembleStatus;
+  VERIFY_SUCCEEDED(pAssembleResult->GetStatus(&assembleStatus));
+  VERIFY_SUCCEEDED(assembleStatus);
+  CComPtr<IDxcBlob> pCorruptedContainer;
+  VERIFY_SUCCEEDED(pAssembleResult->GetResult(&pCorruptedContainer));
+
+  // Snapshot the caller's container bytes so we can confirm below that
+  // neither the identity clone nor ValidateInstrumentedModule mutates it
+  // in place. This is a container-shaped input (unlike
+  // Validation_ControlNonPixUnusedMetadataIsRejected's bare-bitcode
+  // input), so it exercises the NormalizeToContainer pass-through path.
+  std::vector<uint8_t> originalContainerBytes(
+      static_cast<const uint8_t *>(pCorruptedContainer->GetBufferPointer()),
+      static_cast<const uint8_t *>(pCorruptedContainer->GetBufferPointer()) +
+          pCorruptedContainer->GetBufferSize());
+
+  // Lock down the identity-clone premise directly, not just the overall
+  // disposition: the shader-kind corruption must still fail validation
+  // after the very same clone/serialize/reassemble round trip
+  // ValidateInstrumentedModule's identity-clone gate performs (a no-op
+  // mutation). The overall disposition below would also read as invalid
+  // if this premise silently broke and the gate fell back to the original
+  // failure for the wrong reason, so assert on the identity clone itself.
+  CComPtr<IDxcBlob> identityClone =
+      CloneModuleAndMutate(pCorruptedContainer, [](llvm::Module &) {});
+  VERIFY_IS_FALSE(RunValidator(identityClone).Valid);
+
+  ValidationResult validation = ValidateInstrumentedModule(pCorruptedContainer);
+  VERIFY_IS_FALSE(validation.Valid);
+
+  // The caller's container must be untouched by either call above.
+  VERIFY_ARE_EQUAL(originalContainerBytes.size(),
+                   static_cast<size_t>(pCorruptedContainer->GetBufferSize()));
+  VERIFY_IS_TRUE(memcmp(originalContainerBytes.data(),
+                        pCorruptedContainer->GetBufferPointer(),
+                        originalContainerBytes.size()) == 0);
+
+  // Confirm the corruption produces a real diagnostic, not just the known
+  // PIX metadata kinds.
+  std::vector<std::string> diagnostics =
+      GetSignificantValidationDiagnostics(validation.Errors);
+  VERIFY_IS_FALSE(diagnostics.empty());
+}
+
+// Control test for item 1.1: the validation harness must reject unused
+// metadata that is not one of the four known PIX virtual-register kinds,
+// even though the validator's own diagnostic text cannot name the kind (it
+// prints only the metadata node's own operands). ValidateInstrumentedModule
+// tells the two apart structurally, by revalidating a copy with only the
+// known PIX kinds removed.
+TEST_F(PixTest, Validation_ControlNonPixUnusedMetadataIsRejected) {
+  const char *source = R"x(
+float main() : SV_Target
+{
+    return 0;
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-dxil-annotate-with-virtual-regs");
+
+  // Confirm the baseline (only known PIX metadata unused) validates.
+  VerifyInstrumentedModuleIsValid(
+      output.Module,
+      "virtual-register annotation of a trivial pixel shader, uncorrupted "
+      "baseline (non-PIX metadata control)");
+
+  // Snapshot the caller's original blob so we can confirm below that
+  // CloneModuleAndMutate never mutates it in place.
+  std::vector<uint8_t> originalBytes(
+      static_cast<const uint8_t *>(output.Module->GetBufferPointer()),
+      static_cast<const uint8_t *>(output.Module->GetBufferPointer()) +
+          output.Module->GetBufferSize());
+
+  // Attach an unused metadata kind that is not one of the four known PIX
+  // kinds. The validator's generic "all metadata must be used" diagnostic
+  // cannot distinguish it from a real PIX kind by text, so this must be
+  // rejected only because ValidateInstrumentedModule excuses solely the
+  // four known kinds.
+  CComPtr<IDxcBlob> withForeignMetadata =
+      CloneModuleAndMutate(output.Module, [](llvm::Module &M) {
+        llvm::Function *entry = nullptr;
+        for (llvm::Function &F : M) {
+          if (!F.isDeclaration()) {
+            entry = &F;
+            break;
+          }
+        }
+        VERIFY_IS_NOT_NULL(entry);
+        llvm::Instruction *firstInst =
+            &*entry->getEntryBlock().getFirstInsertionPt();
+        llvm::MDNode *marker = llvm::MDNode::get(
+            M.getContext(),
+            llvm::MDString::get(M.getContext(), "not-a-known-pix-kind"));
+        firstInst->setMetadata(
+            M.getContext().getMDKindID("pixtest-non-pix-marker"), marker);
+      });
+
+  // The caller's blob (output.Module) must be untouched by the clone.
+  VERIFY_ARE_EQUAL(originalBytes.size(),
+                   static_cast<size_t>(output.Module->GetBufferSize()));
+  VERIFY_IS_TRUE(memcmp(originalBytes.data(), output.Module->GetBufferPointer(),
+                        originalBytes.size()) == 0);
+
+  // Go through the same disposition helper VerifyInstrumentedModuleIsValid
+  // uses, not just ValidateInstrumentedModule's raw result: the raw
+  // validator fails identically for known and unknown metadata kinds, so
+  // asserting on it alone would pass even if a blanket text-based
+  // "all metadata must be used" exception were still in force downstream.
+  // This must fail specifically because the foreign kind is not permitted
+  // after PIX-specific handling.
+  InstrumentedModuleDisposition disposition =
+      GetInstrumentedModuleDisposition(withForeignMetadata);
+  VERIFY_IS_FALSE(disposition.Valid);
+  VERIFY_IS_FALSE(disposition.Diagnostics.empty());
+}
+
+// Tests that GetSignificantValidationDiagnostics only filters the
+// "Validation failed." boilerplate and blank lines; every other line,
+// including an "all metadata must be used" line, is significant. The
+// known-PIX-kind exception happens structurally in
+// ValidateInstrumentedModule, not here.
+TEST_F(PixTest, Validation_ControlBoilerplateOnlyFailureIsRejected) {
+  // Boilerplate only: no significant diagnostic.
+  std::vector<std::string> boilerplateOnly =
+      GetSignificantValidationDiagnostics("Validation failed.\n");
+  VERIFY_IS_TRUE(boilerplateOnly.empty());
+
+  // A metadata diagnostic alone is significant at this layer: the
+  // known-PIX-kind exception is no longer decided by text. Assert the
+  // exact retained line, not just non-emptiness, so a regression that
+  // re-filters this specific line is caught. This is the validator's
+  // actual Meta.Used rule text (see hctdb.py's "Meta.Used" rule).
+  const std::string metadataLine = "All metadata must be used by dxil.";
+  std::vector<std::string> metadataDiagnosticOnly =
+      GetSignificantValidationDiagnostics("Validation failed.\n" +
+                                          metadataLine + "\n");
+  VERIFY_ARE_EQUAL(size_t(1), metadataDiagnosticOnly.size());
+  VERIFY_IS_TRUE(metadataLine == metadataDiagnosticOnly[0]);
+
+  // A real diagnostic alongside the metadata diagnostic: assert both exact
+  // lines survive, in order. A blanket text-based exception would drop the
+  // metadata line and leave only the real one (size 1, not 2); checking
+  // only non-emptiness would not catch that regression.
+  const std::string realLine = "Some real validator diagnostic.";
+  std::vector<std::string> realDiagnostic = GetSignificantValidationDiagnostics(
+      "Validation failed.\n" + metadataLine + "\n" + realLine + "\n");
+  VERIFY_ARE_EQUAL(size_t(2), realDiagnostic.size());
+  VERIFY_IS_TRUE(metadataLine == realDiagnostic[0]);
+  VERIFY_IS_TRUE(realLine == realDiagnostic[1]);
+}
+
+// Directly tests DiagnosticsArePreserved with synthetic duplicate and
+// missing cases, without depending on real assembler/validator behavior
+// to reproduce a genuine reassembly-masks-a-defect scenario (impractical
+// to fabricate safely). This is the multiset-containment check
+// ValidateInstrumentedModule uses to prove the identity clone did not
+// silently drop or alter an original diagnostic before trusting the
+// stripped clone's result.
+TEST_F(PixTest, Validation_ControlDiagnosticsArePreservedHelper) {
+  // Exact match: preserved.
+  VERIFY_IS_TRUE(DiagnosticsArePreserved({"A", "B"}, {"A", "B"}));
+
+  // Available is a superset: still preserved.
+  VERIFY_IS_TRUE(DiagnosticsArePreserved({"A", "B"}, {"A", "B", "C"}));
+
+  // A required diagnostic is missing entirely: not preserved.
+  VERIFY_IS_FALSE(DiagnosticsArePreserved({"A", "B"}, {"A"}));
+
+  // Duplicate required diagnostic, but only one copy available: multiset
+  // containment must fail, not just "is A present at all".
+  VERIFY_IS_FALSE(DiagnosticsArePreserved({"A", "A"}, {"A"}));
+
+  // Duplicate required diagnostic with matching duplicate available: this
+  // is the case a naive set-based (non-multiset) check would wrongly
+  // treat the same as the single-copy case above.
+  VERIFY_IS_TRUE(DiagnosticsArePreserved({"A", "A"}, {"A", "A"}));
+
+  // Order must not matter.
+  VERIFY_IS_TRUE(DiagnosticsArePreserved({"B", "A"}, {"A", "B"}));
+
+  // Nothing required: trivially preserved, even against an empty pool. This
+  // vacuous-truth case is exactly why ValidateInstrumentedModule must check
+  // directDiagnostics.empty() and fail closed *before* ever calling this
+  // helper with an empty `required` list: an original failure with no
+  // significant diagnostic would otherwise let this "succeed" regardless
+  // of what the identity clone reports.
+  VERIFY_IS_TRUE(DiagnosticsArePreserved({}, {}));
+  VERIFY_IS_TRUE(DiagnosticsArePreserved({}, {"A"}));
+
+  // Something required against an empty pool: not preserved.
+  VERIFY_IS_FALSE(DiagnosticsArePreserved({"A"}, {}));
+}
+
+// Control test for item 1's canonical-part fix: the metadata-strip fallback
+// must parse/clone/strip the same canonical DFCC_DXIL part RunValidator's
+// "direct" validation targets, not the debug-info-carrying
+// DFCC_ShaderDebugInfoDXIL part. A container whose canonical part has a
+// genuine, non-PIX defect and whose debug-info part has only known PIX
+// metadata must still be rejected: stripping known PIX metadata from the
+// wrong (debug-info) part can never repair the canonical part's real
+// defect. The validator's "All metadata must be used by dxil." diagnostic
+// is identical regardless of the unused metadata's kind or content (see
+// Validation_ControlBoilerplateOnlyFailureIsRejected), so both parts
+// naturally produce colliding diagnostic text -- proving text alone cannot
+// be relied on to detect this divergence, only parsing the correct part
+// can.
+TEST_F(PixTest, Validation_ControlCanonicalPartMetadataDivergenceIsRejected) {
+  const char *source = R"x(
+float main() : SV_Target
+{
+    return 0;
+})x";
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+  VerifyInstrumentedModuleIsValid(
+      compiled, "uncorrupted baseline (canonical-part divergence control)");
+
+  // Snapshot the caller's original container so we can confirm below that
+  // none of the construction or validation below mutates it in place.
+  std::vector<uint8_t> originalBytes(
+      static_cast<const uint8_t *>(compiled->GetBufferPointer()),
+      static_cast<const uint8_t *>(compiled->GetBufferPointer()) +
+          compiled->GetBufferSize());
+
+  auto attachForeignMetadata = [](llvm::Module &M) {
+    llvm::Function *entry = nullptr;
+    for (llvm::Function &F : M) {
+      if (!F.isDeclaration()) {
+        entry = &F;
+        break;
+      }
+    }
+    VERIFY_IS_NOT_NULL(entry);
+    llvm::Instruction *firstInst =
+        &*entry->getEntryBlock().getFirstInsertionPt();
+    llvm::MDNode *marker = llvm::MDNode::get(
+        M.getContext(),
+        llvm::MDString::get(M.getContext(), "canonical-divergence-marker"));
+    firstInst->setMetadata(
+        M.getContext().getMDKindID("pixtest-canonical-divergence-marker"),
+        marker);
+  };
+  auto attachKnownPixMetadata = [](llvm::Module &M) {
+    llvm::Function *entry = nullptr;
+    for (llvm::Function &F : M) {
+      if (!F.isDeclaration()) {
+        entry = &F;
+        break;
+      }
+    }
+    VERIFY_IS_NOT_NULL(entry);
+    llvm::Instruction *firstInst =
+        &*entry->getEntryBlock().getFirstInsertionPt();
+    // Same MDNode shape as the foreign marker above; only the metadata kind
+    // name differs (one of the four known PIX kinds here, an arbitrary
+    // foreign name above). The validator's diagnostic text depends on
+    // neither, so both variants collide on the same generic message.
+    llvm::MDNode *marker = llvm::MDNode::get(
+        M.getContext(),
+        llvm::MDString::get(M.getContext(), "canonical-divergence-marker"));
+    firstInst->setMetadata(llvm::StringRef(pix_dxil::PixDxilInstNum::MDName),
+                           marker);
+  };
+
+  // Build two independently-mutated containers from the same clean
+  // baseline: one with only a foreign (non-PIX) unused metadata kind, one
+  // with only a known PIX kind, sharing identical MDNode content so their
+  // "All metadata must be used by dxil." diagnostics collide exactly.
+  // Deliberately parse the default (debug-info-carrying) part here, not
+  // DFCC_DXIL: retaining debug info is what makes WrapInNewContainer's
+  // re-serialization produce *both* a DFCC_DXIL and a DFCC_ShaderDebugInfoDXIL
+  // part below (see SerializeDxilContainerForModule), which this test needs
+  // in order to combine them into a deliberately divergent pair. This is
+  // orthogonal to the production fix, which is about which part
+  // ValidateInstrumentedModule's own internal clones read, not about how
+  // this test constructs its fixtures.
+  CComPtr<IDxcBlob> withForeignMetadata =
+      CloneModuleAndMutate(compiled, attachForeignMetadata);
+  CComPtr<IDxcBlob> withKnownPixMetadata =
+      CloneModuleAndMutate(compiled, attachKnownPixMetadata);
+
+  VERIFY_IS_FALSE(RunValidator(withForeignMetadata).Valid);
+  VERIFY_IS_FALSE(RunValidator(withKnownPixMetadata).Valid);
+
+  CComPtr<IDxcBlob> knownPixDxilPart =
+      ExtractPartContent(DFCC_DXIL, withKnownPixMetadata);
+
+  // The divergent container: canonical DFCC_DXIL carries the foreign,
+  // non-excusable defect (withForeignMetadata's own, untouched); its
+  // DFCC_ShaderDebugInfoDXIL part is replaced with the known-PIX-only
+  // content that stripping can repair. Only the canonical part's defect is
+  // real; ValidateInstrumentedModule must reject based on it.
+  CComPtr<IDxcBlob> divergentContainer = BuildContainerWithDivergentIldbPart(
+      withForeignMetadata, knownPixDxilPart);
+
+  // The identity-clone gate itself must now see the same defect direct
+  // validation does, since both derive from the same canonical part.
+  CComPtr<IDxcBlob> identityClone = CloneModuleAndMutate(
+      divergentContainer, [](llvm::Module &) {}, DFCC_DXIL);
+  VERIFY_IS_FALSE(RunValidator(identityClone).Valid);
+
+  ValidationResult validation = ValidateInstrumentedModule(divergentContainer);
+  VERIFY_IS_FALSE(validation.Valid);
+  std::vector<std::string> diagnostics =
+      GetSignificantValidationDiagnostics(validation.Errors);
+  VERIFY_IS_FALSE(diagnostics.empty());
+
+  // The caller's original container must be untouched throughout.
+  VERIFY_ARE_EQUAL(originalBytes.size(),
+                   static_cast<size_t>(compiled->GetBufferSize()));
+  VERIFY_IS_TRUE(memcmp(originalBytes.data(), compiled->GetBufferPointer(),
+                        originalBytes.size()) == 0);
+}
+
+// Positive control paired with the divergence test above: when both the
+// canonical part and the debug-info part agree (the normal case, since
+// WrapInNewContainer re-derives both from the same mutated bitcode), a
+// module with only known PIX metadata still validates after the fix.
+TEST_F(PixTest, Validation_ControlCanonicalKnownPixMetadataIsAccepted) {
+  const char *source = R"x(
+float main() : SV_Target
+{
+    return 0;
+})x";
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+  CComPtr<IDxcBlob> withKnownPixMetadata = CloneModuleAndMutate(
+      compiled,
+      [](llvm::Module &M) {
+        llvm::Function *entry = nullptr;
+        for (llvm::Function &F : M) {
+          if (!F.isDeclaration()) {
+            entry = &F;
+            break;
+          }
+        }
+        VERIFY_IS_NOT_NULL(entry);
+        llvm::Instruction *firstInst =
+            &*entry->getEntryBlock().getFirstInsertionPt();
+        pix_dxil::PixDxilInstNum::AddMD(M.getContext(), firstInst, 0);
+      },
+      DFCC_DXIL);
+
+  VerifyInstrumentedModuleIsValid(
+      withKnownPixMetadata,
+      "canonical part with only known PIX metadata (should be excused)");
+}
+
+// A canonical part carrying both a foreign kind and a known PIX kind
+// together must still be rejected: stripping only the known kinds cannot
+// repair the foreign one. Proves the fix does not over-excuse merely
+// because *some* of the unused metadata happens to be a known PIX kind.
+TEST_F(PixTest, Validation_ControlCanonicalMixedForeignMetadataIsRejected) {
+  const char *source = R"x(
+float main() : SV_Target
+{
+    return 0;
+})x";
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+  CComPtr<IDxcBlob> withMixedMetadata = CloneModuleAndMutate(
+      compiled,
+      [](llvm::Module &M) {
+        llvm::Function *entry = nullptr;
+        for (llvm::Function &F : M) {
+          if (!F.isDeclaration()) {
+            entry = &F;
+            break;
+          }
+        }
+        VERIFY_IS_NOT_NULL(entry);
+        llvm::Instruction *firstInst =
+            &*entry->getEntryBlock().getFirstInsertionPt();
+        pix_dxil::PixDxilInstNum::AddMD(M.getContext(), firstInst, 0);
+        llvm::MDNode *marker = llvm::MDNode::get(
+            M.getContext(),
+            llvm::MDString::get(M.getContext(), "mixed-marker"));
+        firstInst->setMetadata(
+            M.getContext().getMDKindID("pixtest-mixed-foreign-marker"), marker);
+      },
+      DFCC_DXIL);
+
+  InstrumentedModuleDisposition disposition =
+      GetInstrumentedModuleDisposition(withMixedMetadata);
+  VERIFY_IS_FALSE(disposition.Valid);
+  VERIFY_IS_FALSE(disposition.Diagnostics.empty());
 }
