@@ -36,7 +36,10 @@
 #include <atlfile.h>
 #endif
 
+#include "dxc/DXIL/DxilConstants.h"
 #include "dxc/DXIL/DxilModule.h"
+#include "dxc/DXIL/DxilOperations.h"
+#include "dxc/DXIL/DxilSubobject.h"
 
 #include "dxc/Test/DxcTestUtils.h"
 #include "dxc/Test/HLSLTestData.h"
@@ -71,6 +74,7 @@
 #include <fstream>
 
 #include <../lib/DxilDia/DxcPixLiveVariables_FragmentIterator.h>
+#include <../lib/DxilPIXPasses/PixPassHelpers.h>
 #include <dxc/DxilPIXPasses/DxilPIXVirtualRegisters.h>
 
 #include "PixTestUtils.h"
@@ -149,6 +153,28 @@ public:
 
   TEST_METHOD(RootSignatureUpgrade_SubObjects)
   TEST_METHOD(RootSignatureUpgrade_Annotation)
+  TEST_METHOD(ToolsUav_TwoPixPassesShareOneResource)
+  TEST_METHOD(ToolsUav_LibraryWithTwoEntryPointsCreatesOnePair)
+  TEST_METHOD(ToolsUav_ExtendsEveryGlobalRootSignatureSubobject)
+  TEST_METHOD(DebugInstrumentation_RawBufferShaderFlagDeclared)
+  TEST_METHOD(ToolsUav_RootSignatureSerializationFailurePreservesSignature)
+  TEST_METHOD(ToolsUav_PreservesUnrelatedRootDescriptorFlagsWhenAlreadyPresent)
+  TEST_METHOD(ToolsUav_BudgetOneUAVSucceedsAtExactly64Dwords)
+  TEST_METHOD(ToolsUav_BudgetOneUAVRejectsWhenAlreadyAt64Dwords)
+  TEST_METHOD(ToolsUav_BudgetOneUAVRejectsAt63PlusTwoDwords)
+  TEST_METHOD(ToolsUav_BudgetTwoUAVsSucceedsAtExactly64Dwords)
+  TEST_METHOD(ToolsUav_BudgetTwoUAVsRejectsAtomically)
+  TEST_METHOD(
+      ToolsUav_BudgetRejectionAcrossMultipleGlobalRootSignaturesIsAtomic)
+  TEST_METHOD(ToolsUav_DuplicateNewRequestsNoRootSignatureAreDeduped)
+  TEST_METHOD(ToolsUav_DuplicateNewRequestsWithRootSignatureAreDeduped)
+  TEST_METHOD(ToolsUav_DuplicateRequestsForExistingResourceAreIdempotent)
+  TEST_METHOD(ToolsUav_OptimizerPassRejectsOverBudgetRootSignature)
+  TEST_METHOD(ConstantColor_UnusedIntOverloadIsErased)
+  TEST_METHOD(ConstantColor_NoTargetOverloadsAreErased)
+  TEST_METHOD(RemoveDiscards_UnusedDiscardOverloadIsErased)
+  TEST_METHOD(OperationCacheCleanup_RemovesErasedFunctions)
+  TEST_METHOD(DynamicResourceCleanup_VisitorStopsEarly)
 
   TEST_METHOD(DxilPIXDXRInvocationsLog_SanityTest)
   TEST_METHOD(DxilPIXDXRInvocationsLog_EmbeddedRootSigs)
@@ -163,6 +189,7 @@ public:
   TEST_METHOD(DebugBreakInstrumentation_Multiple)
 
   TEST_METHOD(NonUniformResourceIndex_Resource)
+  TEST_METHOD(NonUniformResourceIndex_QualifiedCleanupValidates)
   TEST_METHOD(NonUniformResourceIndex_DescriptorHeap)
   TEST_METHOD(NonUniformResourceIndex_Raytracing)
 
@@ -295,6 +322,7 @@ public:
     std::vector<LPCWSTR> Options;
     Options.push_back(L"-opt-mod-passes");
     Options.push_back(passOption);
+    Options.push_back(L"-hlsl-dxilemit");
 
     CComPtr<IDxcBlob> pOptimizedModule;
     CComPtr<IDxcBlobEncoding> pText;
@@ -458,6 +486,43 @@ public:
     CComPtr<IDxcBlob> pNewContainer;
     VERIFY_SUCCEEDED(pBuildResult->GetResult(&pNewContainer));
     return pNewContainer;
+  }
+
+  // Wraps rootSigBytes (already-serialized root-signature bytes, e.g. from
+  // BuildFillerRootSignatureBytes) into an IDxcBlob and adds it to
+  // pContainer as a DFCC_RootSignature part -- the container-level
+  // representation IDxcOptimizer::RunOptimizer actually restores a root
+  // signature from (see DxcOptimizer.cpp's "RST0" handling), unlike a
+  // DxilModule::ResetSerializedRootSignature call alone, which only takes
+  // effect for callers sharing that same in-memory DxilModule and is lost
+  // across a bitcode-only serialize/reload round-trip.
+  CComPtr<IDxcBlob>
+  AddRootSignaturePart(IDxcBlob *pContainer,
+                       std::vector<uint8_t> const &rootSigBytes) {
+    CComPtr<IDxcLibrary> pLibrary;
+    VERIFY_SUCCEEDED(m_dllSupport.CreateInstance(CLSID_DxcLibrary, &pLibrary));
+    CComPtr<IDxcBlobEncoding> pRootSigBlob;
+    VERIFY_SUCCEEDED(pLibrary->CreateBlobWithEncodingFromPinned(
+        rootSigBytes.data(), static_cast<UINT32>(rootSigBytes.size()), CP_ACP,
+        &pRootSigBlob));
+
+    CComPtr<IDxcContainerBuilder> pContainerBuilder;
+    VERIFY_SUCCEEDED(CreateContainerBuilder(&pContainerBuilder));
+    VERIFY_SUCCEEDED(pContainerBuilder->Load(pContainer));
+    VERIFY_SUCCEEDED(
+        pContainerBuilder->AddPart(DFCC_RootSignature, pRootSigBlob));
+
+    CComPtr<IDxcOperationResult> pBuildResult;
+    VERIFY_SUCCEEDED(pContainerBuilder->SerializeContainer(&pBuildResult));
+    CComPtr<IDxcBlobEncoding> pBuildErrors;
+    VERIFY_SUCCEEDED(pBuildResult->GetErrorBuffer(&pBuildErrors));
+    if (pBuildErrors && pBuildErrors->GetBufferSize() != 0) {
+      OutputDebugStringA(static_cast<LPCSTR>(pBuildErrors->GetBufferPointer()));
+      VERIFY_SUCCEEDED(E_FAIL);
+    }
+    CComPtr<IDxcBlob> pNewContainer2;
+    VERIFY_SUCCEEDED(pBuildResult->GetResult(&pNewContainer2));
+    return pNewContainer2;
   }
 
   // ValidateInstrumentedModule's fallback needs an embedded canonical DXIL
@@ -786,6 +851,12 @@ public:
   }
 
   void ValidateAccessTrackingMods(const char *hlsl, bool modsExpected);
+  void LoadSubobjectsFromContainerIntoModule(IDxcBlob *container,
+                                             DxilModule &DM);
+  void VerifyGlobalRootSignaturesHaveToolsUAVs(
+      DxilSubobjects *subObjects,
+      const std::vector<std::string> &expectedRootSignatureNames,
+      const std::vector<uint32_t> &expectedShaderRegisters);
 
   class ModuleAndHangersOn {
     std::unique_ptr<llvm::LLVMContext> llvmContext;
@@ -875,10 +946,11 @@ public:
   void ValidateAllocaWrite(std::vector<AllocaWrite> const &allocaWrites,
                            size_t index, const char *name);
   PassOutput RunShaderAccessTrackingPass(IDxcBlob *blob);
-  std::string RunDxilPIXAddTidToAmplificationShaderPayloadPass(IDxcBlob *blob);
+  CComPtr<IDxcBlob>
+  RunDxilPIXAddTidToAmplificationShaderPayloadPass(IDxcBlob *blob);
   CComPtr<IDxcBlob> RunDxilPIXMeshShaderOutputPass(IDxcBlob *blob);
   CComPtr<IDxcBlob> RunDxilPIXDXRInvocationsLog(IDxcBlob *blob);
-  std::vector<std::string>
+  PassOutput
   RunDxilNonUniformResourceIndexInstrumentation(IDxcBlob *blob,
                                                 std::string &outputText);
   void TestNuriCase(const char *source, const wchar_t *target,
@@ -894,6 +966,123 @@ bool PixTest::InitSupport() {
     m_ver.Initialize(m_dllSupport);
   }
   return true;
+}
+
+static unsigned CountToolsUAVs(DxilModule &DM) {
+  unsigned count = 0;
+  for (auto const &uav : DM.GetUAVs()) {
+    if (uav->GetSpaceID() == static_cast<uint32_t>(-2)) {
+      count++;
+    }
+  }
+  return count;
+}
+
+static int CountToolsUAVRecords(std::vector<std::string> const &lines) {
+  int count = 0;
+  for (std::string const &line : lines) {
+    if (!line.empty() && line[0] == '!' &&
+        line.find(", i32 -2, i32 ") != std::string::npos) {
+      count++;
+    }
+  }
+  return count;
+}
+
+static bool
+RootSignatureHasToolsUAV(const DxilVersionedRootSignatureDesc *rootSignature,
+                         uint32_t shaderRegister) {
+  switch (rootSignature->Version) {
+  case DxilRootSignatureVersion::Version_1_0: {
+    const DxilRootSignatureDesc &desc = rootSignature->Desc_1_0;
+    for (uint32_t i = 0; i < desc.NumParameters; ++i) {
+      const DxilRootParameter &param = desc.pParameters[i];
+      if (param.ParameterType == DxilRootParameterType::UAV &&
+          param.Descriptor.RegisterSpace == static_cast<uint32_t>(-2) &&
+          param.Descriptor.ShaderRegister == shaderRegister) {
+        return true;
+      }
+    }
+    break;
+  }
+  case DxilRootSignatureVersion::Version_1_1: {
+    const DxilRootSignatureDesc1 &desc = rootSignature->Desc_1_1;
+    for (uint32_t i = 0; i < desc.NumParameters; ++i) {
+      const DxilRootParameter1 &param = desc.pParameters[i];
+      if (param.ParameterType == DxilRootParameterType::UAV &&
+          param.Descriptor.RegisterSpace == static_cast<uint32_t>(-2) &&
+          param.Descriptor.ShaderRegister == shaderRegister) {
+        return true;
+      }
+    }
+    break;
+  }
+  }
+  return false;
+}
+
+void PixTest::LoadSubobjectsFromContainerIntoModule(IDxcBlob *container,
+                                                    DxilModule &DM) {
+  const char *blobContent =
+      reinterpret_cast<const char *>(container->GetBufferPointer());
+  const unsigned blobSize = container->GetBufferSize();
+  const hlsl::DxilContainerHeader *containerHeader =
+      hlsl::IsDxilContainerLike(blobContent, blobSize);
+  VERIFY_ARE_NOT_EQUAL(containerHeader, nullptr);
+
+  const hlsl::DxilPartHeader *partHeader =
+      GetDxilPartByType(containerHeader, hlsl::DFCC_RuntimeData);
+  VERIFY_ARE_NOT_EQUAL(partHeader, nullptr);
+
+  hlsl::RDAT::DxilRuntimeData rdat(GetDxilPartData(partHeader),
+                                   partHeader->PartSize);
+  std::unique_ptr<DxilSubobjects> subObjects(new DxilSubobjects());
+  VERIFY_IS_TRUE(LoadSubobjectsFromRDAT(*subObjects, rdat));
+  DM.ResetSubobjects(subObjects.release());
+}
+
+void PixTest::VerifyGlobalRootSignaturesHaveToolsUAVs(
+    DxilSubobjects *subObjects,
+    const std::vector<std::string> &expectedRootSignatureNames,
+    const std::vector<uint32_t> &expectedShaderRegisters) {
+  VERIFY_IS_NOT_NULL(subObjects);
+
+  std::map<std::string, bool> foundRootSignatures;
+  for (const std::string &rootSignatureName : expectedRootSignatureNames) {
+    foundRootSignatures[rootSignatureName] = false;
+  }
+
+  for (auto const &subObject : subObjects->GetSubobjects()) {
+    if (subObject.second->GetKind() !=
+        hlsl::DXIL::SubobjectKind::GlobalRootSignature) {
+      continue;
+    }
+
+    const std::string subObjectName = subObject.first.str();
+    if (foundRootSignatures.find(subObjectName) == foundRootSignatures.end()) {
+      continue;
+    }
+
+    const void *data = nullptr;
+    uint32_t size = 0;
+    constexpr bool notALocalRS = false;
+    VERIFY_IS_TRUE(
+        subObject.second->GetRootSignature(notALocalRS, data, size, nullptr));
+
+    DxilVersionedRootSignatureDesc const *rootSignature = nullptr;
+    DeserializeRootSignature(data, size, &rootSignature);
+    for (uint32_t expectedShaderRegister : expectedShaderRegisters) {
+      VERIFY_IS_TRUE(
+          RootSignatureHasToolsUAV(rootSignature, expectedShaderRegister));
+    }
+    DeleteRootSignature(rootSignature);
+    foundRootSignatures[subObjectName] = true;
+  }
+
+  for (const std::pair<const std::string, bool> &foundRootSignature :
+       foundRootSignatures) {
+    VERIFY_IS_TRUE(foundRootSignature.second);
+  }
 }
 
 void PixTest::TestPixUAVCase(char const *hlsl, wchar_t const *model,
@@ -1110,7 +1299,7 @@ CComPtr<IDxcBlob> PixTest::RunDxilPIXDXRInvocationsLog(IDxcBlob *blob) {
   return pOptimizedModule;
 }
 
-std::vector<std::string> PixTest::RunDxilNonUniformResourceIndexInstrumentation(
+PassOutput PixTest::RunDxilNonUniformResourceIndexInstrumentation(
     IDxcBlob *blob, std::string &outputText) {
 
   CComPtr<IDxcBlob> dxil = FindModule(DFCC_ShaderDebugInfoDXIL, blob);
@@ -1129,11 +1318,13 @@ std::vector<std::string> PixTest::RunDxilNonUniformResourceIndexInstrumentation(
 
   outputText = BlobToUtf8(pText);
 
-  const std::string disassembly = Disassemble(pOptimizedModule);
-  return Tokenize(disassembly, "\n");
+  PassOutput result;
+  result.blob = pOptimizedModule;
+  result.lines = Tokenize(Disassemble(pOptimizedModule), "\n");
+  return result;
 }
 
-std::string
+CComPtr<IDxcBlob>
 PixTest::RunDxilPIXAddTidToAmplificationShaderPayloadPass(IDxcBlob *blob) {
   CComPtr<IDxcBlob> dxil = FindModule(DFCC_ShaderDebugInfoDXIL, blob);
   CComPtr<IDxcOptimizer> pOptimizer;
@@ -1149,13 +1340,15 @@ PixTest::RunDxilPIXAddTidToAmplificationShaderPayloadPass(IDxcBlob *blob) {
   VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(
       dxil, Options.data(), Options.size(), &pOptimizedModule, &pText));
 
-  std::string outputText;
-  if (pText->GetBufferSize() != 0) {
-    outputText = reinterpret_cast<const char *>(pText->GetBufferPointer());
-  }
-
-  return outputText;
+  return pOptimizedModule;
 }
+
+static bool HasDeclaration(const std::string &disassembly,
+                           const std::string &functionName);
+static std::string FindDeclarationLine(const std::string &disassembly,
+                                       const std::string &functionName);
+static bool HasDeclarationLine(const std::string &disassembly,
+                               const std::string &declaration);
 
 TEST_F(PixTest, AddToASPayload) {
 
@@ -1198,10 +1391,30 @@ void MSMain(
   )";
 
   auto as = Compile(m_dllSupport, hlsl, L"as_6_6", {}, L"ASMain");
-  RunDxilPIXAddTidToAmplificationShaderPayloadPass(as);
+  const std::string originalDispatchMeshDeclaration =
+      FindDeclarationLine(Disassemble(as), "dx.op.dispatchMesh");
+  VERIFY_IS_FALSE(originalDispatchMeshDeclaration.empty());
+
+  CComPtr<IDxcBlob> asOutput =
+      RunDxilPIXAddTidToAmplificationShaderPayloadPass(as);
+  VERIFY_IS_FALSE(HasDeclarationLine(Disassemble(asOutput),
+                                     originalDispatchMeshDeclaration));
 
   auto ms = Compile(m_dllSupport, hlsl, L"ms_6_6", {}, L"MSMain");
-  RunDxilPIXMeshShaderOutputPass(ms);
+  const std::string originalGetMeshPayloadDeclaration =
+      FindDeclarationLine(Disassemble(ms), "dx.op.getMeshPayload");
+  VERIFY_IS_FALSE(originalGetMeshPayloadDeclaration.empty());
+
+  CComPtr<IDxcBlob> msOutput = RunDxilPIXMeshShaderOutputPass(ms);
+  const std::string meshDisassembly = Disassemble(msOutput);
+  VERIFY_IS_FALSE(
+      HasDeclarationLine(meshDisassembly, originalGetMeshPayloadDeclaration));
+  VERIFY_IS_FALSE(
+      HasDeclaration(meshDisassembly, "dx.op.storeVertexOutput.i32"));
+  VERIFY_IS_FALSE(
+      HasDeclaration(meshDisassembly, "dx.op.storeVertexOutput.i16"));
+  VERIFY_IS_FALSE(
+      HasDeclaration(meshDisassembly, "dx.op.storeVertexOutput.f16"));
 }
 unsigned FindOrAddVSInSignatureElementForInstanceOrVertexID(
     hlsl::DxilSignature &InputSignature, hlsl::DXIL::SemanticKind semanticKind);
@@ -3279,6 +3492,945 @@ float4 main(int i : A, float j : B) : SV_TARGET
   VERIFY_IS_TRUE(foundGlobalRS);
 }
 
+TEST_F(PixTest, ToolsUav_TwoPixPassesShareOneResource) {
+  const char *source = R"x(
+RWByteAddressBuffer output : register(u0);
+
+[numthreads(1, 1, 1)]
+void main(uint3 tid : SV_DispatchThreadID)
+{
+    output.Store(4 * tid.x, tid.x);
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"cs_6_2", {L"-Od"});
+  PassOutput debugOutput = RunDebugPass(compiled);
+  PassOutput accessOutput = RunShaderAccessTrackingPass(debugOutput.blob);
+
+  ModuleAndHangersOn moduleEtc(accessOutput.blob);
+  VERIFY_ARE_EQUAL(1u, CountToolsUAVs(moduleEtc.GetDxilModule()));
+  VerifyInstrumentedModuleIsValid(
+      accessOutput.blob,
+      "debug instrumentation followed by shader access tracking");
+}
+
+TEST_F(PixTest, ToolsUav_LibraryWithTwoEntryPointsCreatesOnePair) {
+  const char *source = R"x(
+struct [raypayload] MyPayload
+{
+    float2 barycentrics : read(caller) : write(caller,anyhit);
+    uint primitiveIndex : read(caller) : write(caller,anyhit);
+};
+
+[shader("miss")]
+void MissOne(inout MyPayload payload)
+{
+    payload.primitiveIndex = 1;
+}
+
+[shader("miss")]
+void MissTwo(inout MyPayload payload)
+{
+    payload.primitiveIndex = 2;
+}
+)x";
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"lib_6_6", {});
+  CComPtr<IDxcBlob> output = RunDxilPIXDXRInvocationsLog(compiled);
+
+  std::vector<std::string> lines = Tokenize(Disassemble(output), "\n");
+  VERIFY_ARE_EQUAL(2, CountToolsUAVRecords(lines));
+}
+
+TEST_F(PixTest, ToolsUav_ExtendsEveryGlobalRootSignatureSubobject) {
+  const char *source = R"x(
+GlobalRootSignature firstRootSignature = {"CBV(b0)"};
+GlobalRootSignature secondRootSignature = {"SRV(t0)"};
+
+SubobjectToExportsAssociation firstAssociation =
+{
+    "firstRootSignature",
+    "MyClosestHit"
+};
+
+SubobjectToExportsAssociation secondAssociation =
+{
+    "secondRootSignature",
+    "MyMiss"
+};
+
+struct MyPayload
+{
+    float4 color;
+};
+
+[shader("raygeneration")]
+void MyRayGen()
+{
+}
+
+[shader("closesthit")]
+void MyClosestHit(inout MyPayload payload,
+                  in BuiltInTriangleIntersectionAttributes attr)
+{
+}
+
+[shader("miss")]
+void MyMiss(inout MyPayload payload)
+{
+}
+)x";
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"lib_6_6", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  LoadSubobjectsFromContainerIntoModule(compiled, DM);
+  PIXPassHelpers::CreateGlobalUAVResource(DM, 0, "PIX_CountUAV_Handle");
+  PIXPassHelpers::CreateGlobalUAVResource(DM, 1, "PIX_LogUAV_Handle");
+
+  VerifyGlobalRootSignaturesHaveToolsUAVs(
+      DM.GetSubobjects(), {"firstRootSignature", "secondRootSignature"},
+      {0, 1});
+}
+
+TEST_F(PixTest, DebugInstrumentation_RawBufferShaderFlagDeclared) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main(uint threadId : SV_DispatchThreadID)
+{
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"cs_6_2", {L"-Od"});
+  PassOutput output = RunDebugPass(compiled);
+  std::vector<std::string> lines = Tokenize(Disassemble(output.blob), "\n");
+
+  constexpr uint64_t EnableRawAndStructuredBuffers = 0x10;
+  bool foundShaderFlags = false;
+  uint64_t shaderFlags = 0;
+  const std::string tagPrefix = "!{i32 0, i64 ";
+  for (std::string const &line : lines) {
+    std::string::size_type const tagStart = line.find(tagPrefix);
+    if (tagStart == std::string::npos) {
+      continue;
+    }
+    shaderFlags =
+        strtoull(line.c_str() + tagStart + tagPrefix.length(), nullptr, 10);
+    foundShaderFlags = true;
+    break;
+  }
+
+  VERIFY_IS_TRUE(foundShaderFlags);
+  VERIFY_ARE_EQUAL(EnableRawAndStructuredBuffers,
+                   shaderFlags & EnableRawAndStructuredBuffers);
+  VerifyInstrumentedModuleIsValid(output.blob,
+                                  "debug instrumentation shader flags");
+}
+
+TEST_F(PixTest, ToolsUav_RootSignatureSerializationFailurePreservesSignature) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{
+})x";
+
+  DxilDescriptorRange range = {};
+  range.RangeType = DxilDescriptorRangeType::UAV;
+  range.NumDescriptors = 1;
+  range.BaseShaderRegister = 0;
+  range.RegisterSpace = static_cast<uint32_t>(-2);
+  range.OffsetInDescriptorsFromTableStart = DxilDescriptorRangeOffsetAppend;
+
+  DxilRootParameter parameter = {};
+  parameter.ParameterType = DxilRootParameterType::DescriptorTable;
+  parameter.DescriptorTable.NumDescriptorRanges = 1;
+  parameter.DescriptorTable.pDescriptorRanges = &range;
+  parameter.ShaderVisibility = DxilShaderVisibility::All;
+
+  DxilVersionedRootSignatureDesc rootSignature = {};
+  rootSignature.Version = DxilRootSignatureVersion::Version_1_0;
+  rootSignature.Desc_1_0.NumParameters = 1;
+  rootSignature.Desc_1_0.pParameters = &parameter;
+  rootSignature.Desc_1_0.Flags = DxilRootSignatureFlags::None;
+
+  CComPtr<IDxcBlob> serializedRootSignature;
+  CComPtr<IDxcBlobEncoding> errorBlob;
+  SerializeRootSignature(&rootSignature, &serializedRootSignature, &errorBlob,
+                         true);
+  VERIFY_IS_NOT_NULL(serializedRootSignature);
+
+  const uint8_t *serializedData =
+      static_cast<const uint8_t *>(serializedRootSignature->GetBufferPointer());
+  std::vector<uint8_t> originalRootSignature(
+      serializedData,
+      serializedData + serializedRootSignature->GetBufferSize());
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(originalRootSignature);
+
+  std::unique_ptr<DxilSubobjects> subObjects(new DxilSubobjects());
+  constexpr bool notALocalRootSignature = false;
+  subObjects->CreateRootSignature(
+      "testRootSignature", notALocalRootSignature, originalRootSignature.data(),
+      static_cast<uint32_t>(originalRootSignature.size()));
+  DM.ResetSubobjects(subObjects.release());
+
+  // The pre-existing descriptor-table UAV range already occupies register
+  // 0 in the tools-reserved space; adding a second, root-descriptor-based
+  // UAV at the same register+space produces a signature the serializer
+  // rejects. This must fail closed (throw, add nothing) rather than
+  // silently continue instrumentation with a partially-updated or
+  // corrupted signature.
+  bool caught = false;
+  try {
+    PIXPassHelpers::CreateGlobalUAVResource(DM, 0, "PIX_TestUAV");
+  } catch (hlsl::Exception const &) {
+    caught = true;
+  }
+  VERIFY_IS_TRUE(caught);
+
+  const std::vector<uint8_t> &actualRootSignature =
+      DM.GetSerializedRootSignature();
+  VERIFY_ARE_EQUAL(originalRootSignature.size(), actualRootSignature.size());
+  VERIFY_IS_TRUE(std::equal(originalRootSignature.begin(),
+                            originalRootSignature.end(),
+                            actualRootSignature.begin()));
+
+  bool foundRootSignature = false;
+  for (auto const &subObject : DM.GetSubobjects()->GetSubobjects()) {
+    if (subObject.first != "testRootSignature") {
+      continue;
+    }
+
+    const void *data = nullptr;
+    uint32_t size = 0;
+    VERIFY_IS_TRUE(subObject.second->GetRootSignature(notALocalRootSignature,
+                                                      data, size, nullptr));
+    VERIFY_ARE_EQUAL(originalRootSignature.size(), static_cast<size_t>(size));
+    VERIFY_IS_TRUE(std::equal(originalRootSignature.begin(),
+                              originalRootSignature.end(),
+                              static_cast<const uint8_t *>(data)));
+    foundRootSignature = true;
+  }
+  VERIFY_IS_TRUE(foundRootSignature);
+
+  // No UAV resource was created either: the whole request was rejected
+  // atomically, not partially applied.
+  VERIFY_ARE_EQUAL(size_t(0), DM.GetUAVs().size());
+}
+
+// Reviewer item 2.1: when a version 1.1 root signature already holds the
+// requested tools UAV, ExtendRootSig returns without appending a new
+// parameter. The caller must then leave the existing last parameter's
+// flags untouched; only a genuinely appended parameter gets flags None.
+TEST_F(PixTest,
+       ToolsUav_PreservesUnrelatedRootDescriptorFlagsWhenAlreadyPresent) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{
+})x";
+
+  constexpr uint32_t ToolsUAVRegisterSpace = static_cast<uint32_t>(-2);
+  constexpr uint32_t ExistingToolsUAVRegister = 0;
+  constexpr uint32_t NewToolsUAVRegister = 1;
+
+  // Parameter 0: the tools UAV already present at the well-known space.
+  // Parameter 1: an unrelated root descriptor whose flags are not None;
+  // ExtendRootSig's early return must leave this parameter's flags alone.
+  DxilRootParameter1 parameters[2] = {};
+  parameters[0].ParameterType = DxilRootParameterType::UAV;
+  parameters[0].Descriptor.ShaderRegister = ExistingToolsUAVRegister;
+  parameters[0].Descriptor.RegisterSpace = ToolsUAVRegisterSpace;
+  parameters[0].Descriptor.Flags = DxilRootDescriptorFlags::None;
+  parameters[0].ShaderVisibility = DxilShaderVisibility::All;
+
+  parameters[1].ParameterType = DxilRootParameterType::UAV;
+  parameters[1].Descriptor.ShaderRegister = 5;
+  parameters[1].Descriptor.RegisterSpace = 0;
+  parameters[1].Descriptor.Flags = DxilRootDescriptorFlags::DataStatic;
+  parameters[1].ShaderVisibility = DxilShaderVisibility::All;
+
+  DxilVersionedRootSignatureDesc rootSignature = {};
+  rootSignature.Version = DxilRootSignatureVersion::Version_1_1;
+  rootSignature.Desc_1_1.NumParameters = 2;
+  rootSignature.Desc_1_1.pParameters = parameters;
+  rootSignature.Desc_1_1.Flags = DxilRootSignatureFlags::None;
+
+  CComPtr<IDxcBlob> serializedRootSignature;
+  CComPtr<IDxcBlobEncoding> errorBlob;
+  SerializeRootSignature(&rootSignature, &serializedRootSignature, &errorBlob,
+                         true);
+  VERIFY_IS_NOT_NULL(serializedRootSignature);
+
+  std::vector<uint8_t> originalRootSignature(
+      static_cast<const uint8_t *>(serializedRootSignature->GetBufferPointer()),
+      static_cast<const uint8_t *>(
+          serializedRootSignature->GetBufferPointer()) +
+          serializedRootSignature->GetBufferSize());
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(originalRootSignature);
+
+  // Requesting the tools UAV register that is already present must not
+  // append a parameter, and must not touch parameter 1's flags.
+  PIXPassHelpers::CreateGlobalUAVResource(DM, ExistingToolsUAVRegister,
+                                          "PIX_ExistingToolsUAV");
+
+  {
+    const std::vector<uint8_t> &afterFirstCall =
+        DM.GetSerializedRootSignature();
+    DxilVersionedRootSignature deserialized;
+    DeserializeRootSignature(afterFirstCall.data(),
+                             static_cast<uint32_t>(afterFirstCall.size()),
+                             deserialized.get_address_of());
+    VERIFY_ARE_EQUAL(2u, deserialized->Desc_1_1.NumParameters);
+    VERIFY_IS_TRUE(deserialized->Desc_1_1.pParameters[1].Descriptor.Flags ==
+                   DxilRootDescriptorFlags::DataStatic);
+  }
+
+  // A genuinely new tools UAV register must still append a parameter, and
+  // that new parameter (not the unrelated one) gets flags None.
+  PIXPassHelpers::CreateGlobalUAVResource(DM, NewToolsUAVRegister,
+                                          "PIX_NewToolsUAV");
+
+  {
+    const std::vector<uint8_t> &afterSecondCall =
+        DM.GetSerializedRootSignature();
+    DxilVersionedRootSignature deserialized;
+    DeserializeRootSignature(afterSecondCall.data(),
+                             static_cast<uint32_t>(afterSecondCall.size()),
+                             deserialized.get_address_of());
+    VERIFY_ARE_EQUAL(3u, deserialized->Desc_1_1.NumParameters);
+    VERIFY_IS_TRUE(deserialized->Desc_1_1.pParameters[1].Descriptor.Flags ==
+                   DxilRootDescriptorFlags::DataStatic);
+    VERIFY_IS_TRUE(deserialized->Desc_1_1.pParameters[2].Descriptor.Flags ==
+                   DxilRootDescriptorFlags::None);
+  }
+}
+
+// Builds a serialized v1.0 root signature whose only parameter is a root
+// constant costing exactly fillerDwords DWORDs (Num32BitValues), so tests
+// can construct a signature at a precise D3D12 budget position before
+// adding tools UAVs (each a 2-DWORD root descriptor).
+static std::vector<uint8_t>
+BuildFillerRootSignatureBytes(uint32_t fillerDwords) {
+  DxilRootParameter parameter = {};
+  parameter.ParameterType = DxilRootParameterType::Constants32Bit;
+  parameter.Constants.ShaderRegister = 0;
+  parameter.Constants.RegisterSpace = 0;
+  parameter.Constants.Num32BitValues = fillerDwords;
+  parameter.ShaderVisibility = DxilShaderVisibility::All;
+
+  DxilVersionedRootSignatureDesc rootSignature = {};
+  rootSignature.Version = DxilRootSignatureVersion::Version_1_0;
+  rootSignature.Desc_1_0.NumParameters = 1;
+  rootSignature.Desc_1_0.pParameters = &parameter;
+  rootSignature.Desc_1_0.Flags = DxilRootSignatureFlags::None;
+
+  CComPtr<IDxcBlob> serialized;
+  CComPtr<IDxcBlobEncoding> errorBlob;
+  SerializeRootSignature(&rootSignature, &serialized, &errorBlob, true);
+  VERIFY_IS_NOT_NULL(serialized);
+
+  return std::vector<uint8_t>(
+      static_cast<const uint8_t *>(serialized->GetBufferPointer()),
+      static_cast<const uint8_t *>(serialized->GetBufferPointer()) +
+          serialized->GetBufferSize());
+}
+
+// Builds a serialized v1.0 root signature that actually covers a shader
+// declaring RWByteAddressBuffer u0 (a root UAV descriptor for register 0,
+// space 0 -- 2 DWORDs), plus a root constant costing exactly fillerDwords
+// DWORDs. Unlike BuildFillerRootSignatureBytes, this is safe to embed as
+// a real DFCC_RootSignature container part: DxcContainerBuilder validates
+// (DxcValidatorFlags_RootSignatureOnly) any container it adds a root
+// signature part to, and that validation requires the signature to cover
+// every resource the shader actually binds.
+static std::vector<uint8_t>
+BuildRootSignatureCoveringU0Bytes(uint32_t fillerDwords) {
+  DxilRootParameter parameters[2] = {};
+  parameters[0].ParameterType = DxilRootParameterType::UAV;
+  parameters[0].Descriptor.ShaderRegister = 0;
+  parameters[0].Descriptor.RegisterSpace = 0;
+  parameters[0].ShaderVisibility = DxilShaderVisibility::All;
+
+  parameters[1].ParameterType = DxilRootParameterType::Constants32Bit;
+  parameters[1].Constants.ShaderRegister = 0;
+  parameters[1].Constants.RegisterSpace = 1;
+  parameters[1].Constants.Num32BitValues = fillerDwords;
+  parameters[1].ShaderVisibility = DxilShaderVisibility::All;
+
+  DxilVersionedRootSignatureDesc rootSignature = {};
+  rootSignature.Version = DxilRootSignatureVersion::Version_1_0;
+  rootSignature.Desc_1_0.NumParameters = 2;
+  rootSignature.Desc_1_0.pParameters = parameters;
+  rootSignature.Desc_1_0.Flags = DxilRootSignatureFlags::None;
+
+  CComPtr<IDxcBlob> serialized;
+  CComPtr<IDxcBlobEncoding> errorBlob;
+  SerializeRootSignature(&rootSignature, &serialized, &errorBlob, true);
+  VERIFY_IS_NOT_NULL(serialized);
+
+  return std::vector<uint8_t>(
+      static_cast<const uint8_t *>(serialized->GetBufferPointer()),
+      static_cast<const uint8_t *>(serialized->GetBufferPointer()) +
+          serialized->GetBufferSize());
+}
+
+// One-UAV request: filler at 62 DWORDs + one 2-DWORD UAV = exactly 64,
+// the D3D12 budget limit. Must succeed.
+TEST_F(PixTest, ToolsUav_BudgetOneUAVSucceedsAtExactly64Dwords) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{})x";
+
+  std::vector<uint8_t> original = BuildFillerRootSignatureBytes(62);
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(original);
+
+  PIXPassHelpers::CreateGlobalUAVResource(DM, 0, "PIX_TestUAV");
+
+  VERIFY_ARE_EQUAL(size_t(1), DM.GetUAVs().size());
+  const std::vector<uint8_t> &updated = DM.GetSerializedRootSignature();
+  DxilVersionedRootSignature deserialized;
+  DeserializeRootSignature(updated.data(),
+                           static_cast<uint32_t>(updated.size()),
+                           deserialized.get_address_of());
+  VERIFY_ARE_EQUAL(2u, deserialized->Desc_1_0.NumParameters);
+}
+
+// One-UAV request: filler already at 64 DWORDs; adding a 2-DWORD UAV would
+// reach 66, over budget. Must reject atomically: exception thrown, root
+// signature byte-identical to the original, no UAV resource created.
+TEST_F(PixTest, ToolsUav_BudgetOneUAVRejectsWhenAlreadyAt64Dwords) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{})x";
+
+  std::vector<uint8_t> original = BuildFillerRootSignatureBytes(64);
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(original);
+
+  bool caught = false;
+  try {
+    PIXPassHelpers::CreateGlobalUAVResource(DM, 0, "PIX_TestUAV");
+  } catch (hlsl::Exception const &) {
+    caught = true;
+  }
+  VERIFY_IS_TRUE(caught);
+
+  VERIFY_ARE_EQUAL(size_t(0), DM.GetUAVs().size());
+  const std::vector<uint8_t> &actual = DM.GetSerializedRootSignature();
+  VERIFY_ARE_EQUAL(original.size(), actual.size());
+  VERIFY_IS_TRUE(std::equal(original.begin(), original.end(), actual.begin()));
+}
+
+// Boundary check distinct from the exactly-64 case above: filler at 63
+// DWORDs (one short of the limit) plus one 2-DWORD UAV reaches 65 -- one
+// over budget, not merely at it. Must still reject atomically.
+TEST_F(PixTest, ToolsUav_BudgetOneUAVRejectsAt63PlusTwoDwords) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{})x";
+
+  std::vector<uint8_t> original = BuildFillerRootSignatureBytes(63);
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(original);
+
+  bool caught = false;
+  try {
+    PIXPassHelpers::CreateGlobalUAVResource(DM, 0, "PIX_TestUAV");
+  } catch (hlsl::Exception const &) {
+    caught = true;
+  }
+  VERIFY_IS_TRUE(caught);
+
+  VERIFY_ARE_EQUAL(size_t(0), DM.GetUAVs().size());
+  const std::vector<uint8_t> &actual = DM.GetSerializedRootSignature();
+  VERIFY_ARE_EQUAL(original.size(), actual.size());
+  VERIFY_IS_TRUE(std::equal(original.begin(), original.end(), actual.begin()));
+}
+
+// Two-UAV batch request (the DXR invocation log's own pattern): filler at
+// 60 DWORDs + two 2-DWORD UAVs = exactly 64. Must succeed, and both
+// registers must be reserved together.
+TEST_F(PixTest, ToolsUav_BudgetTwoUAVsSucceedsAtExactly64Dwords) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{})x";
+
+  std::vector<uint8_t> original = BuildFillerRootSignatureBytes(60);
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(original);
+
+  llvm::IRBuilder<> Builder(
+      dxilutil::FirstNonAllocaInsertionPt(DM.GetEntryFunction()));
+  std::vector<llvm::CallInst *> handles =
+      PIXPassHelpers::CreateUAVsOnceForModule(
+          DM, Builder, {{0u, "PIX_CountUAV_Handle"}, {1u, "PIX_UAV_Handle"}});
+  VERIFY_ARE_EQUAL(size_t(2), handles.size());
+  VERIFY_IS_NOT_NULL(handles[0]);
+  VERIFY_IS_NOT_NULL(handles[1]);
+
+  VERIFY_ARE_EQUAL(size_t(2), DM.GetUAVs().size());
+  const std::vector<uint8_t> &updated = DM.GetSerializedRootSignature();
+  DxilVersionedRootSignature deserialized;
+  DeserializeRootSignature(updated.data(),
+                           static_cast<uint32_t>(updated.size()),
+                           deserialized.get_address_of());
+  VERIFY_ARE_EQUAL(3u, deserialized->Desc_1_0.NumParameters);
+}
+
+// Two-UAV batch request: filler at 62 DWORDs + two 2-DWORD UAVs = 66, over
+// budget. Must reject the *entire batch* atomically: neither register is
+// added, and no UAV resource is created for either one -- proving the
+// two-UAV caller cannot end up with only one of its two registers
+// reserved.
+TEST_F(PixTest, ToolsUav_BudgetTwoUAVsRejectsAtomically) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{})x";
+
+  std::vector<uint8_t> original = BuildFillerRootSignatureBytes(62);
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(original);
+
+  llvm::IRBuilder<> Builder(
+      dxilutil::FirstNonAllocaInsertionPt(DM.GetEntryFunction()));
+  bool caught = false;
+  try {
+    PIXPassHelpers::CreateUAVsOnceForModule(
+        DM, Builder, {{0u, "PIX_CountUAV_Handle"}, {1u, "PIX_UAV_Handle"}});
+  } catch (hlsl::Exception const &) {
+    caught = true;
+  }
+  VERIFY_IS_TRUE(caught);
+
+  VERIFY_ARE_EQUAL(size_t(0), DM.GetUAVs().size());
+  const std::vector<uint8_t> &actual = DM.GetSerializedRootSignature();
+  VERIFY_ARE_EQUAL(original.size(), actual.size());
+  VERIFY_IS_TRUE(std::equal(original.begin(), original.end(), actual.begin()));
+}
+
+// With two DXR GlobalRootSignature subobjects, one that has room and one
+// already at the 64-DWORD budget, a request must reject atomically:
+// neither subobject is replaced (not even the one with room), and no UAV
+// resource is created. This is the "one unextendable signature blocks
+// everything" transactional requirement across multiple root signatures.
+TEST_F(PixTest,
+       ToolsUav_BudgetRejectionAcrossMultipleGlobalRootSignaturesIsAtomic) {
+  const char *source = R"x(
+[shader("raygeneration")]
+void RayGen()
+{
+})x";
+
+  std::vector<uint8_t> extendable = BuildFillerRootSignatureBytes(0);
+  std::vector<uint8_t> unextendable = BuildFillerRootSignatureBytes(64);
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"lib_6_6", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+
+  std::unique_ptr<DxilSubobjects> subObjects(new DxilSubobjects());
+  constexpr bool notALocalRootSignature = false;
+  subObjects->CreateRootSignature("extendableRootSignature",
+                                  notALocalRootSignature, extendable.data(),
+                                  static_cast<uint32_t>(extendable.size()));
+  subObjects->CreateRootSignature("unextendableRootSignature",
+                                  notALocalRootSignature, unextendable.data(),
+                                  static_cast<uint32_t>(unextendable.size()));
+  DM.ResetSubobjects(subObjects.release());
+
+  bool caught = false;
+  try {
+    PIXPassHelpers::CreateGlobalUAVResource(DM, 0, "PIX_TestUAV");
+  } catch (hlsl::Exception const &) {
+    caught = true;
+  }
+  VERIFY_IS_TRUE(caught);
+
+  VERIFY_ARE_EQUAL(size_t(0), DM.GetUAVs().size());
+
+  std::map<std::string, std::vector<uint8_t> const *> expectedByName{
+      {"extendableRootSignature", &extendable},
+      {"unextendableRootSignature", &unextendable},
+  };
+  int checkedCount = 0;
+  for (auto const &subObject : DM.GetSubobjects()->GetSubobjects()) {
+    std::map<std::string, std::vector<uint8_t> const *>::iterator it =
+        expectedByName.find(subObject.first.str());
+    if (it == expectedByName.end()) {
+      continue;
+    }
+    const void *data = nullptr;
+    uint32_t size = 0;
+    VERIFY_IS_TRUE(subObject.second->GetRootSignature(notALocalRootSignature,
+                                                      data, size, nullptr));
+    std::vector<uint8_t> const &expected = *it->second;
+    VERIFY_ARE_EQUAL(expected.size(), static_cast<size_t>(size));
+    VERIFY_IS_TRUE(std::equal(expected.begin(), expected.end(),
+                              static_cast<const uint8_t *>(data)));
+    ++checkedCount;
+  }
+  VERIFY_ARE_EQUAL(2, checkedCount);
+}
+
+// A batch request containing two entries for the SAME not-yet-existing
+// register (no pre-existing root signature) must be deduplicated before
+// any planning or commit: exactly one resource is created (named for the
+// first request), one root-signature reservation is made, and BOTH
+// result entries resolve to that single resource so a caller can still
+// create a per-request handle for each original index.
+TEST_F(PixTest, ToolsUav_DuplicateNewRequestsNoRootSignatureAreDeduped) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{})x";
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+
+  std::vector<hlsl::DxilResource *> results =
+      PIXPassHelpers::CreateGlobalUAVResources(
+          DM, {{0u, "PIX_First"}, {0u, "PIX_Second"}});
+
+  VERIFY_ARE_EQUAL(size_t(2), results.size());
+  VERIFY_IS_NOT_NULL(results[0]);
+  VERIFY_IS_NOT_NULL(results[1]);
+  VERIFY_ARE_EQUAL(size_t(1), DM.GetUAVs().size());
+  VERIFY_IS_TRUE(results[0] == results[1]);
+  VERIFY_ARE_EQUAL(std::string("PIX_First"), results[0]->GetGlobalName());
+}
+
+// Same duplicate-register scenario, but with a pre-existing root
+// signature that has room for exactly one 2-DWORD UAV descriptor (not
+// two). Deduplication must happen before the root-signature reservation
+// is planned, so this succeeds with a single reservation; without
+// dedup, planning would (incorrectly) request space for two registers
+// and exceed the budget.
+TEST_F(PixTest, ToolsUav_DuplicateNewRequestsWithRootSignatureAreDeduped) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{})x";
+
+  std::vector<uint8_t> original = BuildFillerRootSignatureBytes(62);
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(original);
+
+  std::vector<hlsl::DxilResource *> results =
+      PIXPassHelpers::CreateGlobalUAVResources(
+          DM, {{0u, "PIX_First"}, {0u, "PIX_Second"}});
+
+  VERIFY_ARE_EQUAL(size_t(2), results.size());
+  VERIFY_IS_TRUE(results[0] == results[1]);
+  VERIFY_ARE_EQUAL(size_t(1), DM.GetUAVs().size());
+
+  const std::vector<uint8_t> &updated = DM.GetSerializedRootSignature();
+  DxilVersionedRootSignature deserialized;
+  DeserializeRootSignature(updated.data(),
+                           static_cast<uint32_t>(updated.size()),
+                           deserialized.get_address_of());
+  VERIFY_ARE_EQUAL(2u, deserialized->Desc_1_0.NumParameters);
+}
+
+// Duplicate requests for a register that ALREADY has a tools UAV
+// resource must be fully idempotent: no new resource, no new
+// root-signature reservation, and both requests resolve to the
+// pre-existing resource.
+TEST_F(PixTest, ToolsUav_DuplicateRequestsForExistingResourceAreIdempotent) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{})x";
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+
+  hlsl::DxilResource *existing =
+      PIXPassHelpers::CreateGlobalUAVResource(DM, 0, "PIX_Existing");
+  VERIFY_ARE_EQUAL(size_t(1), DM.GetUAVs().size());
+  const std::vector<uint8_t> afterFirst = DM.GetSerializedRootSignature();
+
+  std::vector<hlsl::DxilResource *> results =
+      PIXPassHelpers::CreateGlobalUAVResources(
+          DM, {{0u, "PIX_Dup1"}, {0u, "PIX_Dup2"}});
+
+  VERIFY_ARE_EQUAL(size_t(2), results.size());
+  VERIFY_IS_TRUE(results[0] == existing);
+  VERIFY_IS_TRUE(results[1] == existing);
+  VERIFY_ARE_EQUAL(size_t(1), DM.GetUAVs().size());
+
+  const std::vector<uint8_t> &afterSecond = DM.GetSerializedRootSignature();
+  VERIFY_ARE_EQUAL(afterFirst.size(), afterSecond.size());
+  VERIFY_IS_TRUE(
+      std::equal(afterFirst.begin(), afterFirst.end(), afterSecond.begin()));
+}
+
+// A real optimizer-pass rejection control (not an assert-success test
+// helper): compiles a full container, embeds a crafted root signature as
+// a DFCC_RootSignature container part, then calls
+// IDxcOptimizer::RunOptimizer directly -- the same entry point
+// RunShaderAccessTrackingPass wraps internally -- capturing its HRESULT
+// explicitly instead of asserting success. At exactly 64 DWORDs after
+// the pass's one tools UAV, the pass must succeed; one DWORD over
+// budget, RunOptimizer must fail closed with no output module, proving
+// the budget check is enforced on the real optimizer-pass path
+// (DxcOptimizer::RunOptimizer catches the thrown hlsl::Exception via
+// CATCH_CPP_RETURN_HRESULT and returns its HRESULT), not merely
+// observable via PixPassHelpers unit tests.
+TEST_F(PixTest, ToolsUav_OptimizerPassRejectsOverBudgetRootSignature) {
+  const char *source = R"x(
+RWByteAddressBuffer output : register(u0);
+
+[numthreads(1, 1, 1)]
+void main(uint3 tid : SV_DispatchThreadID)
+{
+    output.Store(4 * tid.x, tid.x);
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"cs_6_2", {L"-Od"});
+
+  CComPtr<IDxcOptimizer> pOptimizer;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+  std::vector<LPCWSTR> Options;
+  Options.push_back(L"-opt-mod-passes");
+  Options.push_back(L"-hlsl-dxil-pix-shader-access-instrumentation,config=U0:0:"
+                    L"10i0;U0:1:2i0;.0;0;0.");
+
+  // At-budget case: u0 coverage (2 DWORDs) + filler at 60 DWORDs + the
+  // pass's one 2-DWORD tools UAV = exactly 64. Must succeed.
+  {
+    std::vector<uint8_t> atBudget = BuildRootSignatureCoveringU0Bytes(60);
+    CComPtr<IDxcBlob> container = AddRootSignaturePart(compiled, atBudget);
+
+    CComPtr<IDxcBlob> pOutputModule;
+    CComPtr<IDxcBlobEncoding> pText;
+    HRESULT hr = pOptimizer->RunOptimizer(container, Options.data(),
+                                          static_cast<UINT32>(Options.size()),
+                                          &pOutputModule, &pText);
+    VERIFY_SUCCEEDED(hr);
+    VERIFY_IS_TRUE(pOutputModule.p != nullptr);
+  }
+
+  // Over-budget case: u0 coverage (2 DWORDs) + filler at 61 DWORDs + the
+  // pass's one 2-DWORD tools UAV = 65, one over budget. RunOptimizer must
+  // fail closed: a failure HRESULT and no usable output module, with the
+  // caller's input container untouched.
+  {
+    std::vector<uint8_t> overBudget = BuildRootSignatureCoveringU0Bytes(61);
+    CComPtr<IDxcBlob> container = AddRootSignaturePart(compiled, overBudget);
+    std::vector<uint8_t> originalBytes(
+        static_cast<const uint8_t *>(container->GetBufferPointer()),
+        static_cast<const uint8_t *>(container->GetBufferPointer()) +
+            container->GetBufferSize());
+
+    CComPtr<IDxcBlob> pOutputModule;
+    CComPtr<IDxcBlobEncoding> pText;
+    HRESULT hr = pOptimizer->RunOptimizer(container, Options.data(),
+                                          static_cast<UINT32>(Options.size()),
+                                          &pOutputModule, &pText);
+    VERIFY_FAILED(hr);
+    VERIFY_IS_TRUE(pOutputModule.p == nullptr);
+
+    VERIFY_ARE_EQUAL(originalBytes.size(),
+                     static_cast<size_t>(container->GetBufferSize()));
+    VERIFY_IS_TRUE(std::equal(
+        originalBytes.begin(), originalBytes.end(),
+        static_cast<const uint8_t *>(container->GetBufferPointer())));
+  }
+}
+
+static bool HasUnusedDeclaration(std::vector<std::string> const &lines,
+                                 std::string const &functionName) {
+  bool declared = false;
+  for (std::string const &line : lines) {
+    if (line.find("declare") != std::string::npos &&
+        line.find(functionName) != std::string::npos) {
+      declared = true;
+    }
+    if (line.find("call") != std::string::npos &&
+        line.find(functionName) != std::string::npos) {
+      return false;
+    }
+  }
+  return declared;
+}
+
+static bool HasDeclaration(const std::string &disassembly,
+                           const std::string &functionName) {
+  for (const std::string &line : Tokenize(disassembly, "\n")) {
+    if (line.find("declare") != std::string::npos &&
+        line.find(functionName) != std::string::npos) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static std::string FindDeclarationLine(const std::string &disassembly,
+                                       const std::string &functionName) {
+  for (const std::string &line : Tokenize(disassembly, "\n")) {
+    if (line.find("declare") != std::string::npos &&
+        line.find(functionName) != std::string::npos) {
+      return line;
+    }
+  }
+  return {};
+}
+
+static bool HasDeclarationLine(const std::string &disassembly,
+                               const std::string &declaration) {
+  for (const std::string &line : Tokenize(disassembly, "\n")) {
+    if (line == declaration) {
+      return true;
+    }
+  }
+  return false;
+}
+
+TEST_F(PixTest, ConstantColor_UnusedIntOverloadIsErased) {
+  const char *source = R"x(
+float4 main() : SV_Target
+{
+    return float4(1, 2, 3, 4);
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-constantColor");
+
+  VERIFY_IS_FALSE(HasUnusedDeclaration(output.Lines, "dx.op.storeOutput.i32"));
+  VerifyInstrumentedModuleIsValid(output.Module,
+                                  "constant-colour substitution");
+}
+
+TEST_F(PixTest, ConstantColor_NoTargetOverloadsAreErased) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"cs_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-constantColor");
+  const std::string disassembly = Disassemble(output.Module);
+
+  VerifyInstrumentedModuleIsValid(
+      output.Module, "constant-colour substitution with no target");
+  VERIFY_IS_FALSE(HasDeclaration(disassembly, "dx.op.storeOutput.f32"));
+  VERIFY_IS_FALSE(HasDeclaration(disassembly, "dx.op.storeOutput.i32"));
+}
+
+TEST_F(PixTest, RemoveDiscards_UnusedDiscardOverloadIsErased) {
+  const char *source = R"x(
+float4 main() : SV_Target
+{
+    return float4(1, 2, 3, 4);
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-remove-discards");
+
+  VERIFY_IS_FALSE(HasUnusedDeclaration(output.Lines, "dx.op.discard"));
+  VerifyInstrumentedModuleIsValid(output.Module,
+                                  "discard removal with no discard");
+}
+
+TEST_F(PixTest, OperationCacheCleanup_RemovesErasedFunctions) {
+  const char *source = R"x(
+float4 main() : SV_Target
+{
+    return float4(1, 2, 3, 4);
+})x";
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"ps_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  OP *HlslOP = DM.GetOP();
+  llvm::Function *discard =
+      HlslOP->GetOpFunc(DXIL::OpCode::Discard,
+                        llvm::Type::getVoidTy(DM.GetModule()->getContext()));
+
+  VERIFY_ARE_EQUAL(1u,
+                   static_cast<unsigned>(
+                       HlslOP->GetOpFuncList(DXIL::OpCode::Discard).size()));
+  PIXPassHelpers::EraseIfUnused(DM, discard);
+  VERIFY_ARE_EQUAL(0u,
+                   static_cast<unsigned>(
+                       HlslOP->GetOpFuncList(DXIL::OpCode::Discard).size()));
+
+  llvm::Function *recreated =
+      HlslOP->GetOpFunc(DXIL::OpCode::Discard,
+                        llvm::Type::getVoidTy(DM.GetModule()->getContext()));
+  VERIFY_IS_NOT_NULL(recreated);
+  PIXPassHelpers::EraseIfUnused(DM, recreated);
+}
+
+TEST_F(PixTest, DynamicResourceCleanup_VisitorStopsEarly) {
+  const char *source = R"x(
+Texture2D<float4> textures[] : register(t0);
+
+float4 main(float2 uv : TEXCOORD0) : SV_Target
+{
+    return textures[(uint)uv.x].Load(int3(0, 0, 0));
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  bool visitorCalled = false;
+  PIXPassHelpers::ForEachDynamicallyIndexedResource(
+      DM, [&visitorCalled](bool, llvm::Instruction *, llvm::Value *) {
+        visitorCalled = true;
+        return false;
+      });
+
+  VERIFY_IS_TRUE(visitorCalled);
+  OP *HlslOP = DM.GetOP();
+  VERIFY_ARE_EQUAL(
+      0u,
+      static_cast<unsigned>(
+          HlslOP->GetOpFuncList(DXIL::OpCode::CreateHandleFromBinding).size()));
+  VERIFY_ARE_EQUAL(
+      0u,
+      static_cast<unsigned>(
+          HlslOP->GetOpFuncList(DXIL::OpCode::CreateHandleFromHeap).size()));
+}
+
 TEST_F(PixTest, DxilPIXDXRInvocationsLog_SanityTest) {
 
   const char *source = R"x(
@@ -3372,8 +4524,9 @@ void PixTest::TestNuriCase(const char *source, const wchar_t *target,
         Compile(m_dllSupport, source, target, compilationOptions);
 
     std::string outputText;
-    const std::vector<std::string> dxilLines =
+    PassOutput output =
         RunDxilNonUniformResourceIndexInstrumentation(compiledLib, outputText);
+    const std::vector<std::string> &dxilLines = output.lines;
 
     VERIFY_ARE_EQUAL(NuriGetWaveInstructionCount(dxilLines), expectedResult);
 
@@ -3417,6 +4570,34 @@ float4 main(float2 uv : TEXCOORD0) : SV_TARGET
 
   TestNuriCase(source, L"ps_6_6", 1);
   TestNuriCase(sourceWithNuri, L"ps_6_6", 0);
+}
+
+TEST_F(PixTest, NonUniformResourceIndex_QualifiedCleanupValidates) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *source = R"x(
+Texture2D<float4> textures[] : register(t0);
+
+float4 main(float2 uv : TEXCOORD0) : SV_Target
+{
+    uint index = (uint)uv.x;
+    return textures[NonUniformResourceIndex(index)].Load(int3(0, 0, 0));
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_6", {L"-Od"});
+  std::string outputText;
+  PassOutput output =
+      RunDxilNonUniformResourceIndexInstrumentation(compiled, outputText);
+  const std::string disassembly = Disassemble(output.blob);
+
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "qualified non-uniform resource index instrumentation");
+  VERIFY_ARE_EQUAL(0u, NuriGetWaveInstructionCount(output.lines));
+  VERIFY_IS_FALSE(HasDeclaration(disassembly, "dx.op.waveActiveAllEqual.i32"));
+  VERIFY_IS_FALSE(HasDeclaration(disassembly, "dx.op.atomicBinOp.i32"));
 }
 
 TEST_F(PixTest, NonUniformResourceIndex_DescriptorHeap) {
@@ -3815,15 +4996,15 @@ void main() {
 }
 
 TEST_F(PixTest, DebugBreakInstrumentation_NoDebugBreak) {
+  if (m_ver.SkipDxilVersion(1, 10))
+    return;
 
   const char *source = R"x(
-RWByteAddressBuffer buf : register(u0);
 [numthreads(1, 1, 1)]
 void main() {
-    buf.Store(0, 1);
 })x";
 
-  auto compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_10", {});
   auto output = RunDebugBreakPass(compiled);
   bool foundDebugBreak = false;
   for (auto const &line : output.lines) {
@@ -3831,6 +5012,8 @@ void main() {
       foundDebugBreak = true;
   }
   VERIFY_IS_FALSE(foundDebugBreak);
+  VerifyInstrumentedModuleIsValid(output.blob,
+                                  "debug-break instrumentation with no call");
 }
 
 TEST_F(PixTest, DebugBreakInstrumentation_Multiple) {

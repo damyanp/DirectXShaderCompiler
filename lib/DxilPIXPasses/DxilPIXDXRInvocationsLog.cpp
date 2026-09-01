@@ -20,6 +20,8 @@
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Transforms/Utils/Local.h"
 
+#include <vector>
+
 #include "PixPassHelpers.h"
 
 using namespace llvm;
@@ -87,11 +89,18 @@ bool DxilPIXDXRInvocationsLog::runOnModule(Module &M) {
 
     IRBuilder<> Builder(dxilutil::FirstNonAllocaInsertionPt(entryFunction));
 
-    // Add the UAVs that we're going to write to
-    CallInst *HandleForCountUAV = PIXPassHelpers::CreateUAVOnceForModule(
-        DM, Builder, /* registerID */ 0, "PIX_CountUAV_Handle");
-    CallInst *HandleForUAV = PIXPassHelpers::CreateUAVOnceForModule(
-        DM, Builder, /* registerID */ 1, "PIX_UAV_Handle");
+    // Add the UAVs that we're going to write to. Requested together as one
+    // atomic batch (not as two independent CreateUAVOnceForModule calls):
+    // if register 1's root-signature space cannot be reserved, register
+    // 0's reservation (and resource/handle) must not be left committed
+    // either, and vice versa.
+    std::vector<CallInst *> ToolsUAVHandles =
+        PIXPassHelpers::CreateUAVsOnceForModule(
+            DM, Builder,
+            {{/* registerID */ 0u, "PIX_CountUAV_Handle"},
+             {/* registerID */ 1u, "PIX_UAV_Handle"}});
+    CallInst *HandleForCountUAV = ToolsUAVHandles[0];
+    CallInst *HandleForUAV = ToolsUAVHandles[1];
 
     DM.ReEmitDxilResources();
 

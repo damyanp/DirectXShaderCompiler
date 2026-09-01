@@ -15,6 +15,7 @@
 #include "dxc/DXIL/DxilResourceProperties.h"
 #include "dxc/DxilRootSignature/DxilRootSignature.h"
 #include "dxc/HLSL/DxilSpanAllocator.h"
+#include "dxc/Support/exception.h"
 
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
@@ -31,6 +32,7 @@
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include <iostream>
+#include <unordered_map>
 #endif
 
 using namespace llvm;
@@ -185,6 +187,9 @@ static std::vector<uint8_t> SerializeRootSignatureToVector(
   SerializeRootSignature(rootSignature, &serializedRootSignature, &errorBlob,
                          allowReservedRegisterSpace);
   std::vector<uint8_t> ret;
+  if (serializedRootSignature == nullptr) {
+    return ret;
+  }
   auto const *serializedData = reinterpret_cast<const uint8_t *>(
       serializedRootSignature->GetBufferPointer());
   ret.assign(serializedData,
@@ -194,96 +199,293 @@ static std::vector<uint8_t> SerializeRootSignatureToVector(
 }
 
 constexpr uint32_t toolsRegisterSpace = static_cast<uint32_t>(-2);
-constexpr uint32_t toolsUAVRegister = 0;
 
-template <typename RootSigDesc, typename RootParameterDesc>
-void ExtendRootSig(RootSigDesc &rootSigDesc) {
-  auto *existingParams = rootSigDesc.pParameters;
+// The D3D12 root signature cost limit, in 32-bit DWORDs: a descriptor table
+// costs 1, a root constant costs one DWORD per 32-bit value, and a root
+// descriptor (CBV/SRV/UAV) costs 2. Static samplers are outside this budget.
+constexpr uint32_t kMaxRootSignatureCostInDwords = 64;
+constexpr uint32_t kRootDescriptorCostInDwords = 2;
+constexpr uint32_t kDescriptorTableCostInDwords = 1;
+
+// Computes the total DWORD cost of rootSigDesc per the D3D12 root-signature
+// budget rules. Returns false (leaving *outCost unspecified) on arithmetic
+// overflow while summing, or on any parameter whose ParameterType is not
+// one of the recognized kinds -- both treated as a malformed structure the
+// caller must fail closed on rather than silently under- or over-count.
+template <typename RootSigDesc>
+static bool ComputeRootSignatureCostInDwords(const RootSigDesc &rootSigDesc,
+                                             uint32_t *outCost) {
+  uint64_t cost = 0;
   for (uint32_t i = 0; i < rootSigDesc.NumParameters; ++i) {
-    if (rootSigDesc.pParameters[i].ParameterType ==
-        DxilRootParameterType::UAV) {
-      if (rootSigDesc.pParameters[i].Descriptor.RegisterSpace ==
-              toolsRegisterSpace &&
-          rootSigDesc.pParameters[i].Descriptor.ShaderRegister ==
-              toolsUAVRegister) {
-        // Already added
-        return;
-      }
+    switch (rootSigDesc.pParameters[i].ParameterType) {
+    case DxilRootParameterType::DescriptorTable:
+      cost += kDescriptorTableCostInDwords;
+      break;
+    case DxilRootParameterType::Constants32Bit:
+      cost += rootSigDesc.pParameters[i].Constants.Num32BitValues;
+      break;
+    case DxilRootParameterType::CBV:
+    case DxilRootParameterType::SRV:
+    case DxilRootParameterType::UAV:
+      cost += kRootDescriptorCostInDwords;
+      break;
+    default:
+      // Unrecognized parameter type: the structure is malformed relative
+      // to every version this code knows how to cost. Fail closed rather
+      // than silently omitting this parameter's cost.
+      return false;
+    }
+    if (cost > UINT32_MAX) {
+      return false;
     }
   }
-  auto *newParams = new RootParameterDesc[rootSigDesc.NumParameters + 1];
-  if (existingParams != nullptr) {
-    memcpy(newParams, existingParams,
-           rootSigDesc.NumParameters * sizeof(RootParameterDesc));
-    delete[] existingParams;
-  }
-  rootSigDesc.pParameters = newParams;
-  rootSigDesc.pParameters[rootSigDesc.NumParameters].ParameterType =
-      DxilRootParameterType::UAV;
-  rootSigDesc.pParameters[rootSigDesc.NumParameters].Descriptor.RegisterSpace =
-      toolsRegisterSpace;
-  rootSigDesc.pParameters[rootSigDesc.NumParameters].Descriptor.ShaderRegister =
-      toolsUAVRegister;
-  rootSigDesc.pParameters[rootSigDesc.NumParameters].ShaderVisibility =
-      DxilShaderVisibility::All;
-  rootSigDesc.NumParameters++;
+  *outCost = static_cast<uint32_t>(cost);
+  return true;
 }
 
-static std::vector<uint8_t> AddUAVParamterToRootSignature(const void *Data,
-                                                          uint32_t Size) {
-  DxilVersionedRootSignature rootSignature;
-  DeserializeRootSignature(Data, Size, rootSignature.get_address_of());
-  auto *rs = rootSignature.get_mutable();
-  switch (rootSignature->Version) {
-  case DxilRootSignatureVersion::Version_1_0:
-    ExtendRootSig<DxilRootSignatureDesc, DxilRootParameter>(rs->Desc_1_0);
-    break;
-  case DxilRootSignatureVersion::Version_1_1:
-    ExtendRootSig<DxilRootSignatureDesc1, DxilRootParameter1>(rs->Desc_1_1);
-    rs->Desc_1_1.pParameters[rs->Desc_1_1.NumParameters - 1].Descriptor.Flags =
-        hlsl::DxilRootDescriptorFlags::None;
-    break;
-  }
-  return SerializeRootSignatureToVector(rs);
-}
+// Extends rootSigDesc in place to include every register in
+// uavRegistersToAdd that is not already present as a tools UAV, as one
+// atomic operation: either every requested register is added and the
+// final signature is within the D3D12 64-DWORD budget, or rootSigDesc is
+// left completely unmodified and this returns false. Registers already
+// present cost nothing extra and do not by themselves cause a change.
 
-static void AddUAVToShaderAttributeRootSignature(DxilModule &DM) {
-  auto rs = DM.GetSerializedRootSignature();
-  if (!rs.empty()) {
-    std::vector<uint8_t> asVector = AddUAVParamterToRootSignature(
-        rs.data(), static_cast<uint32_t>(rs.size()));
-    DM.ResetSerializedRootSignature(asVector);
+// v1.0 root descriptors have no per-descriptor Flags; nothing to clear.
+static void SetNewUAVDescriptorFlagsIfApplicable(DxilRootParameter *, uint32_t,
+                                                 uint32_t) {}
+// v1.1 root descriptors do; clear Flags only on the newly appended range
+// [firstNewIndex, newCount), matching the original single-register
+// behavior without risking corrupting an unrelated, pre-existing
+// descriptor's flags.
+static void SetNewUAVDescriptorFlagsIfApplicable(DxilRootParameter1 *params,
+                                                 uint32_t firstNewIndex,
+                                                 uint32_t newCount) {
+  for (uint32_t i = firstNewIndex; i < newCount; ++i) {
+    params[i].Descriptor.Flags = hlsl::DxilRootDescriptorFlags::None;
   }
 }
 
-static void AddUAVToDxilDefinedGlobalRootSignatures(DxilModule &DM) {
-  auto *subObjects = DM.GetSubobjects();
-  if (subObjects != nullptr) {
-    for (auto const &subObject : subObjects->GetSubobjects()) {
-      if (subObject.second->GetKind() ==
-          DXIL::SubobjectKind::GlobalRootSignature) {
-        const void *Data = nullptr;
-        uint32_t Size = 0;
-        constexpr bool notALocalRS = false;
-        if (subObject.second->GetRootSignature(notALocalRS, Data, Size,
-                                               nullptr)) {
-          auto extendedRootSig = AddUAVParamterToRootSignature(Data, Size);
-          auto rootSignatureSubObjectName = subObject.first;
-          subObjects->RemoveSubobject(rootSignatureSubObjectName);
-          subObjects->CreateRootSignature(
-              rootSignatureSubObjectName, notALocalRS, extendedRootSig.data(),
-              static_cast<uint32_t>(extendedRootSig.size()));
+template <typename RootSigDesc, typename RootParameterDesc>
+static bool ExtendRootSigWithUAVs(RootSigDesc &rootSigDesc,
+                                  llvm::ArrayRef<uint32_t> uavRegistersToAdd,
+                                  bool *outChanged) {
+  *outChanged = false;
+  std::vector<uint32_t> registersToActuallyAdd;
+  for (uint32_t reg : uavRegistersToAdd) {
+    bool alreadyPresent = false;
+    for (uint32_t i = 0; i < rootSigDesc.NumParameters; ++i) {
+      if (rootSigDesc.pParameters[i].ParameterType ==
+              DxilRootParameterType::UAV &&
+          rootSigDesc.pParameters[i].Descriptor.RegisterSpace ==
+              toolsRegisterSpace &&
+          rootSigDesc.pParameters[i].Descriptor.ShaderRegister == reg) {
+        alreadyPresent = true;
+        break;
+      }
+    }
+    // Defensive dedup: uavRegistersToAdd itself may (still) contain a
+    // duplicate register -- e.g. a caller other than
+    // CreateGlobalUAVResources, which already dedups before reaching
+    // here -- so also refuse to stage the same register twice within
+    // this one call.
+    if (!alreadyPresent) {
+      for (uint32_t staged : registersToActuallyAdd) {
+        if (staged == reg) {
+          alreadyPresent = true;
           break;
         }
       }
     }
+    if (!alreadyPresent) {
+      registersToActuallyAdd.push_back(reg);
+    }
   }
+
+  if (registersToActuallyAdd.empty()) {
+    return true; // Nothing to add: idempotent no-op success.
+  }
+
+  if (rootSigDesc.NumParameters > UINT32_MAX - registersToActuallyAdd.size()) {
+    return false; // Parameter-count overflow guard.
+  }
+  const uint32_t newCount =
+      rootSigDesc.NumParameters +
+      static_cast<uint32_t>(registersToActuallyAdd.size());
+
+  // Stage the extended parameter array locally; rootSigDesc is not
+  // touched until the whole staged result is confirmed within budget.
+  std::unique_ptr<RootParameterDesc[]> stagedParams(
+      new RootParameterDesc[newCount]);
+  if (rootSigDesc.pParameters != nullptr) {
+    memcpy(stagedParams.get(), rootSigDesc.pParameters,
+           rootSigDesc.NumParameters * sizeof(RootParameterDesc));
+  }
+  uint32_t writeIndex = rootSigDesc.NumParameters;
+  for (uint32_t reg : registersToActuallyAdd) {
+    stagedParams[writeIndex].ParameterType = DxilRootParameterType::UAV;
+    stagedParams[writeIndex].Descriptor.RegisterSpace = toolsRegisterSpace;
+    stagedParams[writeIndex].Descriptor.ShaderRegister = reg;
+    stagedParams[writeIndex].ShaderVisibility = DxilShaderVisibility::All;
+    ++writeIndex;
+  }
+
+  RootSigDesc stagedDesc = rootSigDesc;
+  stagedDesc.pParameters = stagedParams.get();
+  stagedDesc.NumParameters = newCount;
+  uint32_t cost = 0;
+  if (!ComputeRootSignatureCostInDwords(stagedDesc, &cost) ||
+      cost > kMaxRootSignatureCostInDwords) {
+    return false; // Over budget or malformed: rootSigDesc untouched.
+  }
+
+  // Only a v1.1 root descriptor has its own Flags; clear them (matching
+  // the pre-existing convention) on exactly the newly appended range, not
+  // any pre-existing parameter.
+  SetNewUAVDescriptorFlagsIfApplicable(stagedParams.get(),
+                                       rootSigDesc.NumParameters, newCount);
+
+  RootParameterDesc *oldParams = rootSigDesc.pParameters;
+  rootSigDesc.pParameters = stagedParams.release();
+  rootSigDesc.NumParameters = newCount;
+  delete[] oldParams;
+  *outChanged = true;
+  return true;
 }
 
-// Set up a UAV with structure of a single int
-hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
-                                            unsigned int hlslBindIndex,
-                                            const char *name) {
+// The outcome of planning a single root signature's extension: whether
+// planning succeeded at all (false means the caller must abort every
+// other planned change too, committing nothing), and if so, whether the
+// signature actually changed (all requested registers may already have
+// been present).
+struct RootSignatureUpdatePlan {
+  bool Success = false;
+  bool Changed = false;
+  std::vector<uint8_t> Bytes;
+};
+
+static RootSignatureUpdatePlan
+PlanRootSignatureUpdate(const void *Data, uint32_t Size,
+                        llvm::ArrayRef<uint32_t> uavRegistersToAdd) {
+  RootSignatureUpdatePlan plan;
+  DxilVersionedRootSignature rootSignature;
+  DeserializeRootSignature(Data, Size, rootSignature.get_address_of());
+  if (rootSignature.get() == nullptr) {
+    return plan; // Malformed input: fail closed (Success stays false).
+  }
+  auto *rs = rootSignature.get_mutable();
+  bool changed = false;
+  bool ok = false;
+  switch (rootSignature->Version) {
+  case DxilRootSignatureVersion::Version_1_0:
+    ok = ExtendRootSigWithUAVs<DxilRootSignatureDesc, DxilRootParameter>(
+        rs->Desc_1_0, uavRegistersToAdd, &changed);
+    break;
+  case DxilRootSignatureVersion::Version_1_1:
+    ok = ExtendRootSigWithUAVs<DxilRootSignatureDesc1, DxilRootParameter1>(
+        rs->Desc_1_1, uavRegistersToAdd, &changed);
+    break;
+  default:
+    return plan; // Unrecognized version: fail closed.
+  }
+  if (!ok) {
+    return plan; // Over budget or malformed: fail closed.
+  }
+  plan.Changed = changed;
+  if (changed) {
+    plan.Bytes = SerializeRootSignatureToVector(rs);
+    if (plan.Bytes.empty()) {
+      plan.Changed = false;
+      return plan; // Serialization failed: fail closed.
+    }
+  }
+  plan.Success = true;
+  return plan;
+}
+
+// Reserves root-signature space for every register in uavRegistersToAdd,
+// across every root signature the module carries (the main per-shader
+// serialized signature, if present, and every DXR GlobalRootSignature
+// subobject), as one atomic transaction: every replacement is computed
+// and validated against the D3D12 64-DWORD budget before anything is
+// committed. If any one signature cannot be extended or would exceed
+// budget, nothing is modified anywhere -- no signature replacement, no
+// UAV resource, no handle, and no partial global-root-signature update.
+// Registers already present in a given signature are treated as already
+// reserved for it (idempotent, no additional cost, no forced change).
+static bool TryReserveToolsUAVRootSignatureSpace(
+    DxilModule &DM, llvm::ArrayRef<uint32_t> uavRegistersToAdd) {
+  if (uavRegistersToAdd.empty()) {
+    return true;
+  }
+
+  bool haveMainRootSigUpdate = false;
+  std::vector<uint8_t> mainRootSigBytes;
+  const std::vector<uint8_t> &mainRs = DM.GetSerializedRootSignature();
+  if (!mainRs.empty()) {
+    RootSignatureUpdatePlan plan = PlanRootSignatureUpdate(
+        mainRs.data(), static_cast<uint32_t>(mainRs.size()), uavRegistersToAdd);
+    if (!plan.Success) {
+      return false;
+    }
+    if (plan.Changed) {
+      haveMainRootSigUpdate = true;
+      mainRootSigBytes = std::move(plan.Bytes);
+    }
+  }
+
+  struct SubobjectUpdate {
+    std::string Name;
+    std::vector<uint8_t> Bytes;
+  };
+  std::vector<SubobjectUpdate> subobjectUpdates;
+  auto *subObjects = DM.GetSubobjects();
+  if (subObjects != nullptr) {
+    for (auto const &subObject : subObjects->GetSubobjects()) {
+      if (subObject.second->GetKind() !=
+          DXIL::SubobjectKind::GlobalRootSignature) {
+        continue;
+      }
+      const void *Data = nullptr;
+      uint32_t Size = 0;
+      constexpr bool notALocalRS = false;
+      if (!subObject.second->GetRootSignature(notALocalRS, Data, Size,
+                                              nullptr)) {
+        continue;
+      }
+      RootSignatureUpdatePlan plan =
+          PlanRootSignatureUpdate(Data, Size, uavRegistersToAdd);
+      if (!plan.Success) {
+        return false; // Abort: nothing committed anywhere.
+      }
+      if (plan.Changed) {
+        subobjectUpdates.push_back(
+            {subObject.first.str(), std::move(plan.Bytes)});
+      }
+    }
+  }
+
+  // Every plan succeeded (or needed no change): commit them all now.
+  if (haveMainRootSigUpdate) {
+    DM.ResetSerializedRootSignature(mainRootSigBytes);
+  }
+  if (subObjects != nullptr) {
+    constexpr bool notALocalRS = false;
+    for (SubobjectUpdate const &update : subobjectUpdates) {
+      subObjects->RemoveSubobject(update.Name);
+      subObjects->CreateRootSignature(
+          update.Name, notALocalRS, update.Bytes.data(),
+          static_cast<uint32_t>(update.Bytes.size()));
+    }
+  }
+  return true;
+}
+
+// The resource-creation half of setting up a tools UAV (a struct of a
+// single int), without touching any root signature. The caller must have
+// already reserved root-signature space for hlslBindIndex (see
+// TryReserveToolsUAVRootSignatureSpace) before calling this.
+static hlsl::DxilResource *CreateGlobalUAVResourceNoRootSigUpdate(
+    hlsl::DxilModule &DM, unsigned int hlslBindIndex, const char *name) {
   LLVMContext &Ctx = DM.GetModule()->getContext();
 
   const char *PIXStructTypeName = ShaderModelHandleTypeName(DM);
@@ -294,11 +496,6 @@ hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
     SmallVector<llvm::Type *, 1> Elements{Type::getInt32Ty(Ctx)};
     UAVStructTy = llvm::StructType::create(Elements, PIXStructTypeName);
   }
-
-  // Since this function should only be called once per module,
-  // we can modify the root sig at the same time:
-  AddUAVToDxilDefinedGlobalRootSignatures(DM);
-  AddUAVToShaderAttributeRootSignature(DM);
 
   unsigned int Id = static_cast<unsigned int>(DM.GetUAVs().size());
   std::unique_ptr<DxilResource> pUAV = llvm::make_unique<DxilResource>();
@@ -319,9 +516,8 @@ hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
     pUAV->SetGlobalSymbol(UndefValue::get(UAVStructTy->getPointerTo()));
   }
   pUAV->SetGlobalName(name);
-  pUAV->SetRW(true); // sets UAV class
-  pUAV->SetSpaceID(
-      (unsigned int)-2);   // This is the reserved-for-tools register space
+  pUAV->SetRW(true);                    // sets UAV class
+  pUAV->SetSpaceID(toolsRegisterSpace); // reserved-for-tools register space
   pUAV->SetSampleCount(0); // This is what compiler generates for a raw UAV
   pUAV->SetGloballyCoherent(false);
   pUAV->SetReorderCoherent(false);
@@ -351,7 +547,117 @@ hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
 
   auto *ret = pUAV.get();
   DM.AddUAV(std::move(pUAV));
+  DM.CollectShaderFlagsForModule();
   return ret;
+}
+
+// Creates (or reuses an existing) tools UAV resource for every requested
+// register, reserving root-signature space for all of them as a single
+// atomic transaction first (see TryReserveToolsUAVRootSignatureSpace).
+// Registers that already have a UAV resource are reused unchanged and do
+// not require (or repeat) root-signature reservation. If reservation
+// fails for any newly-needed register, this throws without creating any
+// resource, root-signature replacement, or partial state for any request
+// in the batch. Requests are deduplicated by register before any planning
+// or commit: two requests for the same not-yet-existing register reserve
+// and create exactly one resource (named for the first such request), and
+// every request -- duplicate or not -- gets a result entry aligned with
+// its original index, so callers can still create per-request handle
+// names via CreateHandleForResource.
+std::vector<hlsl::DxilResource *> CreateGlobalUAVResources(
+    hlsl::DxilModule &DM,
+    llvm::ArrayRef<std::pair<unsigned int, const char *>> requests) {
+  std::vector<hlsl::DxilResource *> results(requests.size(), nullptr);
+
+  // Registers that need a brand-new resource, deduplicated: the first
+  // request seen for a given not-yet-existing register owns the
+  // resource's name and is the only one that reserves root-signature
+  // space and creates the resource; every later duplicate request for
+  // the same register (within this same batch) is resolved below to
+  // that single resource rather than creating (or reserving space for)
+  // a second one.
+  std::unordered_map<unsigned int, size_t> firstIndexForNewRegister;
+  std::vector<size_t> indicesNeedingCreation;
+  std::vector<uint32_t> registersToReserve;
+
+  for (size_t i = 0; i < requests.size(); ++i) {
+    for (auto const &existingUAV : DM.GetUAVs()) {
+      if (existingUAV->GetSpaceID() == toolsRegisterSpace &&
+          existingUAV->GetLowerBound() == requests[i].first) {
+        results[i] = existingUAV.get();
+        break;
+      }
+    }
+    if (results[i] != nullptr)
+      continue;
+
+    if (firstIndexForNewRegister.count(requests[i].first) != 0)
+      continue; // Duplicate of an earlier not-yet-created request; resolved
+                // below once that earlier request's resource exists.
+
+    firstIndexForNewRegister[requests[i].first] = i;
+    indicesNeedingCreation.push_back(i);
+    registersToReserve.push_back(requests[i].first);
+  }
+
+  if (!indicesNeedingCreation.empty()) {
+    if (!TryReserveToolsUAVRootSignatureSpace(DM, registersToReserve)) {
+      throw ::hlsl::Exception(
+          E_FAIL, "PIX: could not extend the root signature to add the tools "
+                  "UAV(s) required for instrumentation without exceeding the "
+                  "root signature's 64-DWORD size limit.");
+    }
+    for (size_t idx : indicesNeedingCreation) {
+      results[idx] = CreateGlobalUAVResourceNoRootSigUpdate(
+          DM, requests[idx].first, requests[idx].second);
+    }
+  }
+
+  // Resolve every duplicate request for a newly-created register (results
+  // not yet filled by the pre-existing-UAV scan above) to the single
+  // resource created for its first occurrence.
+  for (size_t i = 0; i < requests.size(); ++i) {
+    if (results[i] != nullptr)
+      continue;
+    results[i] = results[firstIndexForNewRegister[requests[i].first]];
+  }
+
+  return results;
+}
+
+// Set up a UAV with structure of a single int
+hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
+                                            unsigned int hlslBindIndex,
+                                            const char *name) {
+  std::pair<unsigned int, const char *> request{hlslBindIndex, name};
+  return CreateGlobalUAVResources(DM, request)[0];
+}
+
+void EraseIfUnused(hlsl::DxilModule &DM, llvm::Function *OpFunction) {
+  if (OpFunction != nullptr && OpFunction->user_empty()) {
+    DM.GetOP()->RemoveFunction(OpFunction);
+    OpFunction->eraseFromParent();
+  }
+}
+
+// Set up UAVs with structure of a single int for every request, as one
+// atomic batch (see CreateGlobalUAVResources), and build a handle for
+// each. Preferred over repeated CreateUAVOnceForModule calls whenever a
+// single pass needs more than one tools UAV register, so the root
+// signature reservation for all of them is staged and committed together
+// instead of as independent, non-atomic calls.
+std::vector<llvm::CallInst *> CreateUAVsOnceForModule(
+    hlsl::DxilModule &DM, llvm::IRBuilder<> &Builder,
+    llvm::ArrayRef<std::pair<unsigned int, const char *>> requests) {
+  std::vector<hlsl::DxilResource *> resources =
+      CreateGlobalUAVResources(DM, requests);
+  std::vector<llvm::CallInst *> handles;
+  handles.reserve(requests.size());
+  for (size_t i = 0; i < requests.size(); ++i) {
+    handles.push_back(
+        CreateHandleForResource(DM, Builder, resources[i], requests[i].second));
+  }
+  return handles;
 }
 
 // Set up a UAV with structure of a single int
@@ -359,10 +665,8 @@ llvm::CallInst *CreateUAVOnceForModule(hlsl::DxilModule &DM,
                                        llvm::IRBuilder<> &Builder,
                                        unsigned int hlslBindIndex,
                                        const char *name) {
-  auto uav = CreateGlobalUAVResource(DM, hlslBindIndex, name);
-  auto *handle = CreateHandleForResource(DM, Builder, uav, name);
-
-  return handle;
+  std::pair<unsigned int, const char *> request{hlslBindIndex, name};
+  return CreateUAVsOnceForModule(DM, Builder, request)[0];
 }
 
 llvm::Function *GetEntryFunction(hlsl::DxilModule &DM) {
@@ -399,18 +703,6 @@ hlsl::DXIL::ShaderKind GetFunctionShaderKind(hlsl::DxilModule &DM,
     shaderKind = props.shaderKind;
   }
   return shaderKind;
-}
-
-std::vector<llvm::BasicBlock *> GetAllBlocks(hlsl::DxilModule &DM) {
-  std::vector<llvm::BasicBlock *> ret;
-  auto entryPoints = DM.GetExportedFunctions();
-  for (auto &fn : entryPoints) {
-    auto &blocks = fn->getBasicBlockList();
-    for (auto &block : blocks) {
-      ret.push_back(&block);
-    }
-  }
-  return ret;
 }
 
 ExpandedStruct ExpandStructType(LLVMContext &Ctx,
@@ -547,6 +839,24 @@ void ForEachDynamicallyIndexedResource(
 
   auto CreateHandleFn =
       HlslOP->GetOpFunc(DXIL::OpCode::CreateHandle, Type::getVoidTy(Ctx));
+  llvm::Function *CreateHandleFromBindingFn = HlslOP->GetOpFunc(
+      DXIL::OpCode::CreateHandleFromBinding, Type::getVoidTy(Ctx));
+  llvm::Function *CreateHandleFromHeapFn = HlslOP->GetOpFunc(
+      DXIL::OpCode::CreateHandleFromHeap, Type::getVoidTy(Ctx));
+
+  struct UnusedDeclarationCleanup {
+    hlsl::DxilModule &DM;
+    llvm::Function *CreateHandleFn;
+    llvm::Function *CreateHandleFromBindingFn;
+    llvm::Function *CreateHandleFromHeapFn;
+    ~UnusedDeclarationCleanup() {
+      EraseIfUnused(DM, CreateHandleFn);
+      EraseIfUnused(DM, CreateHandleFromBindingFn);
+      EraseIfUnused(DM, CreateHandleFromHeapFn);
+    }
+  } cleanup{DM, CreateHandleFn, CreateHandleFromBindingFn,
+            CreateHandleFromHeapFn};
+
   for (auto FI = CreateHandleFn->user_begin();
        FI != CreateHandleFn->user_end();) {
     auto *FunctionUser = *FI++;
@@ -562,8 +872,6 @@ void ForEachDynamicallyIndexedResource(
     }
   }
 
-  auto CreateHandleFromBindingFn = HlslOP->GetOpFunc(
-      DXIL::OpCode::CreateHandleFromBinding, Type::getVoidTy(Ctx));
   for (auto FI = CreateHandleFromBindingFn->user_begin();
        FI != CreateHandleFromBindingFn->user_end();) {
     auto *FunctionUser = *FI++;
@@ -579,8 +887,6 @@ void ForEachDynamicallyIndexedResource(
     }
   }
 
-  auto CreateHandleFromHeapFn = HlslOP->GetOpFunc(
-      DXIL::OpCode::CreateHandleFromHeap, Type::getVoidTy(Ctx));
   for (auto FI = CreateHandleFromHeapFn->user_begin();
        FI != CreateHandleFromHeapFn->user_end();) {
     auto *FunctionUser = *FI++;

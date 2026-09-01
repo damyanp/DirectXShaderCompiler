@@ -10,9 +10,11 @@
 #pragma once
 
 #include <functional>
+#include <utility>
 #include <vector>
 
 #include "dxc/DXIL/DxilModule.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
@@ -40,15 +42,29 @@ llvm::CallInst *CreateUAVOnceForModule(hlsl::DxilModule &DM,
                                        llvm::IRBuilder<> &Builder,
                                        unsigned int hlslBindIndex,
                                        const char *name);
+// Batch form of CreateUAVOnceForModule: reserves root-signature space for
+// every requested register as a single atomic transaction (all or
+// nothing) before creating any of the corresponding UAV resources or
+// handles. Use this instead of multiple CreateUAVOnceForModule calls
+// whenever a pass needs more than one tools UAV register, so a later
+// register's root-signature failure cannot leave an earlier register's
+// root-signature change (or resource) partially committed.
+std::vector<llvm::CallInst *> CreateUAVsOnceForModule(
+    hlsl::DxilModule &DM, llvm::IRBuilder<> &Builder,
+    llvm::ArrayRef<std::pair<unsigned int, const char *>> requests);
 hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
                                             unsigned int hlslBindIndex,
                                             const char *name);
+// Batch form of CreateGlobalUAVResource; see CreateUAVsOnceForModule.
+std::vector<hlsl::DxilResource *> CreateGlobalUAVResources(
+    hlsl::DxilModule &DM,
+    llvm::ArrayRef<std::pair<unsigned int, const char *>> requests);
 llvm::CallInst *CreateHandleForResource(hlsl::DxilModule &DM,
                                         llvm::IRBuilder<> &Builder,
                                         hlsl::DxilResourceBase *resource,
                                         const char *name);
 llvm::Function *GetEntryFunction(hlsl::DxilModule &DM);
-std::vector<llvm::BasicBlock *> GetAllBlocks(hlsl::DxilModule &DM);
+void EraseIfUnused(hlsl::DxilModule &DM, llvm::Function *OpFunction);
 std::vector<llvm::Function *>
 GetAllInstrumentableFunctions(hlsl::DxilModule &DM);
 hlsl::DXIL::ShaderKind GetFunctionShaderKind(hlsl::DxilModule &DM,
