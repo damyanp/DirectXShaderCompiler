@@ -123,6 +123,7 @@ public:
   TEST_METHOD(AccessTracking_ModificationReport_Write)
   TEST_METHOD(AccessTracking_ModificationReport_SM66)
   TEST_METHOD(AccessTracking_SamplerAccessInLibrary)
+  TEST_METHOD(AccessTracking_ByteOffsetCheckIgnoresLaterOperand)
 
   TEST_METHOD(PixStructAnnotation_Lib_DualRaygen)
 
@@ -1377,10 +1378,30 @@ std::vector<std::string> Split(std::string str, char delimeter);
 
 static bool HasBufferStoreWithByteOffset(std::vector<std::string> const &lines,
                                          unsigned byteOffset) {
-  std::string needle = "i32 " + std::to_string(byteOffset);
   for (auto const &line : lines) {
-    if (line.find("dx.op.bufferStore") != std::string::npos &&
-        line.find(needle) != std::string::npos) {
+    if (line.find("dx.op.bufferStore") == std::string::npos) {
+      continue;
+    }
+    size_t handlePos = line.find("%dx.types.Handle");
+    if (handlePos == std::string::npos) {
+      continue;
+    }
+    size_t numberPos = line.find("i32 ", handlePos);
+    if (numberPos == std::string::npos) {
+      continue;
+    }
+    numberPos += strlen("i32 ");
+    size_t numberEnd = numberPos;
+    while (numberEnd < line.size() &&
+           isdigit(static_cast<unsigned char>(line[numberEnd]))) {
+      ++numberEnd;
+    }
+    if (numberEnd == numberPos) {
+      continue;
+    }
+    unsigned actualByteOffset = static_cast<unsigned>(
+        std::stoul(line.substr(numberPos, numberEnd - numberPos)));
+    if (actualByteOffset == byteOffset) {
       return true;
     }
   }
@@ -1405,13 +1426,27 @@ void RayGen()
 }
 )";
 
-  auto compiled = Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
-  auto output = RunShaderAccessTrackingPass(
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  PassOutput output = RunShaderAccessTrackingPass(
       compiled, L"S0:0:4i0;M0:20:4i0;U0:40:4i0;.0;0;0.");
-  auto lines = Split(Disassemble(output.blob), '\n');
+  std::vector<std::string> lines = Split(Disassemble(output.blob), '\n');
   VERIFY_IS_TRUE(HasBufferStoreWithByteOffset(lines, 264));
   VerifyInstrumentedModuleIsValid(
       output.blob, "shader access tracking of a library sampler access");
+}
+
+TEST_F(PixTest, AccessTracking_ByteOffsetCheckIgnoresLaterOperand) {
+  std::vector<std::string> matchingLine = {
+      "  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %2, i32 "
+      "264, i32 undef, float %3, float %4, float %5, float %6, i8 15)"};
+  VERIFY_IS_TRUE(HasBufferStoreWithByteOffset(matchingLine, 264));
+
+  std::vector<std::string> laterOperandLine = {
+      "  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %2, i32 "
+      "0, i32 undef, i32 264, i32 undef, i32 undef, i32 undef, i8 1)"};
+  VERIFY_IS_TRUE(HasBufferStoreWithByteOffset(laterOperandLine, 0));
+  VERIFY_IS_FALSE(HasBufferStoreWithByteOffset(laterOperandLine, 264));
 }
 
 TEST_F(PixTest, AddToASGroupSharedPayload) {
@@ -4869,8 +4904,33 @@ float4 main(float4 pos : SV_Position) : SV_Target
     return textures[index].Sample(samp, pos.xy);
 })x";
 
-  auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
-  auto output = RunShaderAccessTrackingPass(compiled);
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  PassOutput output = RunShaderAccessTrackingPass(
+      compiled, L"S0:0:8i0;M0:0:1i0;U0:0:10i0;U0:1:2i0;.0;0;0.");
+
+  bool foundNonEmptyBindPointList = false;
+  for (std::string const &line : output.lines) {
+    size_t bindPointsPos = line.find("DynamicallyIndexedBindPoints=");
+    if (bindPointsPos != std::string::npos &&
+        line[bindPointsPos + strlen("DynamicallyIndexedBindPoints=")] != '.') {
+      foundNonEmptyBindPointList = true;
+    }
+  }
+  VERIFY_IS_TRUE(foundNonEmptyBindPointList);
+
+  std::vector<std::string> disassemblyLines =
+      Tokenize(Disassemble(output.blob), "\n");
+  bool foundSlotLimitCompare = false;
+  for (std::string const &line : disassemblyLines) {
+    if (line.find("CompareWithSlotLimit = icmp") != std::string::npos &&
+        line.find(", 8,") != std::string::npos) {
+      foundSlotLimitCompare = true;
+    }
+  }
+  VERIFY_IS_TRUE(foundSlotLimitCompare);
+  VERIFY_IS_TRUE(HasBufferStoreWithByteOffset(disassemblyLines, 0));
+
   VerifyInstrumentedModuleIsValid(
       output.blob, "shader access tracking of a dynamically indexed resource");
 }
