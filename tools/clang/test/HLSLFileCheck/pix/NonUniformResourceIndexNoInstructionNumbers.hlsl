@@ -12,6 +12,7 @@
 // CHECK: NuriNotInstrumentedMissingInstructionNumber
 // CHECK-NOT: @dx.op.waveActiveAllEqual
 // CHECK-NOT: @dx.op.atomicBinOp
+// CHECK-NOT: PixUAVResource
 
 Texture2D tex[8] : register(t0);
 
