@@ -1381,7 +1381,7 @@ std::vector<std::string> Split(std::string str, char delimeter);
 
 static std::string JoinLines(std::vector<std::string> const &lines) {
   std::string joined;
-  for (auto const &line : lines) {
+  for (std::string const &line : lines) {
     joined += line;
     joined += '\n';
   }
@@ -1435,10 +1435,11 @@ void CSMain()
 }
 )";
 
-  auto compiled = Compile(m_dllSupport, hlsl, L"cs_6_0", {L"-Od"}, L"CSMain");
-  auto output =
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"cs_6_0", {L"-Od"}, L"CSMain");
+  PassOutput output =
       RunShaderAccessTrackingPass(compiled, L"S0:0:2i0;U0:0:10i0;.0;0;0.");
-  auto text = JoinLines(output.lines);
+  std::string text = JoinLines(output.lines);
   VERIFY_IS_TRUE(text.find("U0:4;") != std::string::npos);
   VERIFY_IS_TRUE(text.find("U0:6;") != std::string::npos);
   VerifyInstrumentedModuleIsValid(output.blob,
@@ -1461,9 +1462,11 @@ void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 }
 )";
 
-  auto compiled = Compile(m_dllSupport, hlsl, L"cs_6_6", {L"-Od"}, L"CSMain");
-  auto output = RunShaderAccessTrackingPass(compiled, L"U0:0:10i0;.0;0;0.");
-  auto text = JoinLines(output.lines);
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"cs_6_6", {L"-Od"}, L"CSMain");
+  PassOutput output =
+      RunShaderAccessTrackingPass(compiled, L"U0:0:10i0;.0;0;0.");
+  std::string text = JoinLines(output.lines);
   VERIFY_IS_TRUE(text.find("U0:5;") != std::string::npos);
   VERIFY_IS_TRUE(text.find("U0:0;") == std::string::npos);
   VerifyInstrumentedModuleIsValid(
@@ -1481,9 +1484,11 @@ void CSMain()
 }
 )";
 
-  auto compiled = Compile(m_dllSupport, hlsl, L"cs_6_0", {L"-Od"}, L"CSMain");
-  auto output = RunShaderAccessTrackingPass(compiled, L"U0:0:1i0;.0;0;0.");
-  auto lines = Split(Disassemble(output.blob), '\n');
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"cs_6_0", {L"-Od"}, L"CSMain");
+  PassOutput output =
+      RunShaderAccessTrackingPass(compiled, L"U0:0:1i0;.0;0;0.");
+  std::vector<std::string> lines = Split(Disassemble(output.blob), '\n');
   VERIFY_IS_TRUE(HasBufferStoreWithByteOffset(lines, 4));
   VERIFY_IS_TRUE(!HasBufferStoreWithByteOffset(lines, 16));
   VerifyInstrumentedModuleIsValid(
