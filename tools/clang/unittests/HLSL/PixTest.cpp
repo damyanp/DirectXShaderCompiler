@@ -17,6 +17,7 @@
 #include <array>
 #include <cassert>
 #include <cfloat>
+#include <cstdlib>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -128,7 +129,9 @@ public:
   TEST_METHOD(AccessTracking_SamplerAccessInLibrary)
   TEST_METHOD(AccessTracking_ByteOffsetCheckIgnoresLaterOperand)
   TEST_METHOD(AccessTracking_OobBindlessUsesFunctionShaderKind)
+  TEST_METHOD(AccessTracking_OobOrdinalIsMaskedFromEncodedShaderKind)
   TEST_METHOD(AccessTracking_LibraryNonEntryFunction)
+  TEST_METHOD(AccessTracking_SharedHelperAcrossEntryKindsUsesLibraryKind)
 
   TEST_METHOD(PixStructAnnotation_Lib_DualRaygen)
 
@@ -1434,8 +1437,8 @@ HasBufferStoreValueMatchingMask(std::vector<std::string> const &lines,
     while ((position = line.find("i32 ", position)) != std::string::npos) {
       position += 4;
       char *end = nullptr;
-      uint32_t value =
-          static_cast<uint32_t>(strtoul(line.c_str() + position, &end, 10));
+      uint32_t value = static_cast<uint32_t>(
+          std::strtoul(line.c_str() + position, &end, 10));
       if (end != line.c_str() + position && (value & mask) == maskedValue) {
         return true;
       }
@@ -1587,6 +1590,64 @@ void RayGen()
       "shader access tracking of an out-of-bounds bindless access");
 }
 
+TEST_F(PixTest, AccessTracking_OobOrdinalIsMaskedFromEncodedShaderKind) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+[shader("raygeneration")]
+void RayGen()
+{
+    RWByteAddressBuffer output = ResourceDescriptorHeap[1];
+    output.Store(0, 1);
+}
+)";
+
+  // An out-of-bounds access is encoded as the offending instruction's PIX
+  // ordinal, which is normally small. Hand-craft an ordinal that reaches
+  // into the ShaderKind/indicator bits (24-31) to prove the pass masks it
+  // to the low 24 bits instead of OR-ing it in unmasked.
+  constexpr uint32_t HandwrittenOrdinal = 0x89ABCDEF;
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  CComPtr<IDxcBlob> tagged = CloneModuleAndMutate(
+      ExtractCanonicalDxilPart(compiled),
+      [HandwrittenOrdinal](llvm::Module &M) {
+        // Tag every call instruction (handle creation, annotation, and the
+        // store itself) so the one instrumentation actually reads from --
+        // whichever it turns out to be -- carries the hand-picked ordinal.
+        for (llvm::Function &F : M) {
+          for (llvm::BasicBlock &BB : F) {
+            for (llvm::Instruction &I : BB) {
+              if (llvm::isa<llvm::CallInst>(&I)) {
+                pix_dxil::PixDxilInstNum::AddMD(M.getContext(), &I,
+                                                HandwrittenOrdinal);
+              }
+            }
+          }
+        }
+      });
+
+  PassOutput output = RunShaderAccessTrackingPass(tagged, L".0;0;0.");
+  std::vector<std::string> lines = Split(Disassemble(output.blob), '\n');
+
+  // RayGeneration (7) << 28, indicator bit 27, low 24 bits masked from
+  // HandwrittenOrdinal: 0x70000000 | 0x08000000 | (0x89ABCDEF & 0xFFFFFF).
+  VERIFY_IS_TRUE(
+      HasBufferStoreValueMatchingMask(lines, 0xFFFFFFFF, 0x78ABCDEF));
+  // If the ordinal were OR'd in unmasked, its own high bits would corrupt
+  // the ShaderKind/indicator fields to 0x89ABCDEF | 0x08000000 |
+  // 0x70000000 == 0xF9ABCDEF instead.
+  VERIFY_IS_TRUE(
+      !HasBufferStoreValueMatchingMask(lines, 0xFFFFFFFF, 0xF9ABCDEF));
+
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "shader access tracking of an out-of-bounds access with a "
+                   "hand-crafted high instruction ordinal");
+}
+
 TEST_F(PixTest, AccessTracking_LibraryNonEntryFunction) {
   if (m_ver.SkipDxilVersion(1, 6)) {
     return;
@@ -1617,6 +1678,63 @@ void RayGen()
   VERIFY_IS_TRUE(text.find("NotModified") == std::string::npos);
   VerifyInstrumentedModuleIsValid(
       output.blob, "shader access tracking of a library helper function");
+}
+
+TEST_F(PixTest, AccessTracking_SharedHelperAcrossEntryKindsUsesLibraryKind) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+struct MyPayload
+{
+    float4 color;
+};
+
+[noinline]
+void SharedHelper()
+{
+    RWByteAddressBuffer output = ResourceDescriptorHeap[0];
+    output.Store(0, 1);
+}
+
+[shader("raygeneration")]
+void MyRayGen()
+{
+    RWByteAddressBuffer output = ResourceDescriptorHeap[1];
+    output.Store(0, 2);
+    SharedHelper();
+}
+
+[shader("miss")]
+void MyMiss(inout MyPayload payload)
+{
+    RWByteAddressBuffer output = ResourceDescriptorHeap[2];
+    output.Store(0, 3);
+    SharedHelper();
+}
+)";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  PassOutput output = RunShaderAccessTrackingPass(compiled, L".0;0;0.");
+  std::vector<std::string> lines = Split(Disassemble(output.blob), '\n');
+
+  // The [noinline] helper is reached by two differently kinded entry
+  // points, so its own access must use the ambiguous Library kind
+  // (DXIL::ShaderKind::Library == 6, encoded in the top 4 bits).
+  VERIFY_IS_TRUE(
+      HasBufferStoreValueMatchingMask(lines, 0xF0000000, 0x60000000));
+  // Each entry point's own access must keep its own kind
+  // (RayGeneration == 7, Miss == 11).
+  VERIFY_IS_TRUE(
+      HasBufferStoreValueMatchingMask(lines, 0xF0000000, 0x70000000));
+  VERIFY_IS_TRUE(
+      HasBufferStoreValueMatchingMask(lines, 0xF0000000, 0xB0000000));
+
+  VerifyInstrumentedModuleIsValid(
+      output.blob,
+      "shader access tracking of a helper shared by two entry point kinds");
 }
 
 TEST_F(PixTest, AddToASGroupSharedPayload) {
@@ -3667,8 +3785,8 @@ void main(uint threadId : SV_DispatchThreadID)
     if (tagStart == std::string::npos) {
       continue;
     }
-    shaderFlags =
-        strtoull(line.c_str() + tagStart + tagPrefix.length(), nullptr, 10);
+    shaderFlags = std::strtoull(line.c_str() + tagStart + tagPrefix.length(),
+                                nullptr, 10);
     foundShaderFlags = true;
     break;
   }
