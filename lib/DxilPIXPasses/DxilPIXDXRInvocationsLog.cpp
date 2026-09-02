@@ -89,17 +89,25 @@ bool DxilPIXDXRInvocationsLog::runOnModule(Module &M) {
       continue;
     }
 
-    Modified = true;
-
     Instruction *InsertionPoint =
         dxilutil::FirstNonAllocaInsertionPt(entryFunction);
     IRBuilder<> Builder(InsertionPoint);
 
-    // Add the UAVs that we're going to write to
-    CallInst *HandleForCountUAV = PIXPassHelpers::CreateUAVOnceForModule(
-        DM, Builder, /* registerID */ 0, "PIX_CountUAV_Handle");
-    CallInst *HandleForUAV = PIXPassHelpers::CreateUAVOnceForModule(
-        DM, Builder, /* registerID */ 1, "PIX_UAV_Handle");
+    // Add the UAVs that we're going to write to, as one atomic
+    // transaction: bail before emitting any further IR if the module's
+    // root signatures cannot fit both.
+    PIXPassHelpers::BatchUAVHandles Handles =
+        PIXPassHelpers::CreateUAVHandlesOnceForModule(
+            DM, Builder,
+            {{/* registerID */ 0u, "PIX_CountUAV_Handle"},
+             {/* registerID */ 1u, "PIX_UAV_Handle"}});
+    if (!Handles.Success) {
+      continue;
+    }
+    CallInst *HandleForCountUAV = Handles.Handles[0];
+    CallInst *HandleForUAV = Handles.Handles[1];
+
+    Modified = true;
 
     DM.ReEmitDxilResources();
 
@@ -204,7 +212,7 @@ bool DxilPIXDXRInvocationsLog::runOnModule(Module &M) {
 
     // The counter keeps counting past the log capacity. Skip the stores once
     // the claimed slot is out of range, so the recorded entries stay intact.
-    auto *EntryIndexIsInRange = Builder.CreateICmpULT(
+    Value *EntryIndexIsInRange = Builder.CreateICmpULT(
         EntryIndex, MaxEntryCountAsConstant, "EntryIndexIsInRange");
     TerminatorInst *StoreEntryBlockTerminator =
         SplitBlockAndInsertIfThen(EntryIndexIsInRange, InsertionPoint,
