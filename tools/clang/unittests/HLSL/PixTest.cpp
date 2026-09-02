@@ -165,6 +165,7 @@ public:
   TEST_METHOD(Validation_ControlValidModulePasses)
   TEST_METHOD(Validation_ControlInvalidModuleFails)
   TEST_METHOD(Validation_ControlNonPixUnusedMetadataIsRejected)
+  TEST_METHOD(Validation_ControlCanonicalPartMetadataDivergenceIsRejected)
 
   dxc::DxCompilerDllLoader m_dllSupport;
   VersionSupportInfo m_ver;
@@ -383,6 +384,27 @@ public:
     return pix_test::WrapInNewContainer(m_dllSupport, pBitcodeBlob);
   }
 
+  // Extracts pContainer's canonical DFCC_DXIL part as a bare-part blob (the
+  // form ModuleAndHangersOn already parses). Needed because
+  // ModuleAndHangersOn defaults to DFCC_ShaderDebugInfoDXIL, which can
+  // diverge from DFCC_DXIL -- see issue #8873.
+  CComPtr<IDxcBlobEncoding> ExtractCanonicalDxilPart(IDxcBlob *pContainer) {
+    const DxilContainerHeader *pHeader = IsDxilContainerLike(
+        pContainer->GetBufferPointer(), pContainer->GetBufferSize());
+    VERIFY_IS_TRUE(pHeader != nullptr);
+    DxilPartIterator it =
+        std::find_if(begin(pHeader), end(pHeader), DxilPartIsType(DFCC_DXIL));
+    VERIFY_IS_FALSE(it == end(pHeader));
+
+    CComPtr<IDxcLibrary> pLibrary;
+    VERIFY_SUCCEEDED(m_dllSupport.CreateInstance(CLSID_DxcLibrary, &pLibrary));
+    CComPtr<IDxcBlobEncoding> pPart;
+    VERIFY_SUCCEEDED(pLibrary->CreateBlobWithEncodingFromPinned(
+        const_cast<char *>(GetDxilPartData(*it)), (*it)->PartSize, CP_ACP,
+        &pPart));
+    return pPart;
+  }
+
   ValidationResult ValidateInstrumentedModule(IDxcBlob *pModule) {
     CComPtr<IDxcBlob> pContainer = NormalizeToContainer(pModule);
 
@@ -395,9 +417,12 @@ public:
     // node, not the kind, so text can't separate PIX's own annotations
     // from any other unsupported metadata. Strip only the four known PIX
     // kinds and revalidate; if that alone fixes it, PIX metadata was the
-    // sole cause.
+    // sole cause. Clone from the canonical DFCC_DXIL part -- the same
+    // part `direct` just validated -- not the debug-info part, which can
+    // diverge from it (issue #8873).
     CComPtr<IDxcBlob> strippedContainer =
-        CloneModuleAndMutate(pContainer, StripKnownPixVirtualRegisterMetadata);
+        CloneModuleAndMutate(ExtractCanonicalDxilPart(pContainer),
+                             StripKnownPixVirtualRegisterMetadata);
     if (RunValidator(strippedContainer).Valid) {
       return {true, {}};
     }
@@ -3748,5 +3773,69 @@ float main() : SV_Target
       });
 
   ValidationResult validation = ValidateInstrumentedModule(withForeignMetadata);
+  VERIFY_IS_FALSE(validation.Valid);
+}
+
+// The harness's fallback must strip and revalidate the same canonical
+// DFCC_DXIL part the validator rejected, not a debug-info part that can
+// diverge from it (issue #8873): the canonical part here carries a real
+// defect alongside permitted PIX metadata, while the debug-info part
+// carries only the metadata with no defect.
+TEST_F(PixTest, Validation_ControlCanonicalPartMetadataDivergenceIsRejected) {
+  const char *source = R"x(
+float main() : SV_Target
+{
+    return 0;
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-dxil-annotate-with-virtual-regs");
+  CComPtr<IDxcBlob> cleanContainer = NormalizeToContainer(output.Module);
+
+  // Corrupt a copy's shader-kind tag; disassemble/reassemble regenerates
+  // both parts, so both now carry the corruption alongside the module's
+  // existing PIX metadata.
+  std::string disassembly = Disassemble(output.Module);
+  const std::string shaderKindTag = "!\"ps\",";
+  size_t tagPosition = disassembly.find(shaderKindTag);
+  VERIFY_IS_TRUE(tagPosition != std::string::npos);
+  disassembly.replace(tagPosition, shaderKindTag.size(), "!\"vs\",");
+  CComPtr<IDxcBlobEncoding> pDisassemblyBlob;
+  CreateBlobFromText(m_dllSupport, disassembly.c_str(), &pDisassemblyBlob);
+  CComPtr<IDxcBlob> corruptedContainer =
+      pix_test::WrapInNewContainer(m_dllSupport, pDisassemblyBlob);
+
+  // Splice the clean copy's debug-info part (PIX metadata only, no
+  // corruption) into the corrupted container in place of its own;
+  // IDxcContainerBuilder cannot replace DFCC_DXIL, so the corrupted
+  // container's canonical part keeps the real defect.
+  CComPtr<IDxcContainerReflection> pReflection;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcContainerReflection, &pReflection));
+  VERIFY_SUCCEEDED(pReflection->Load(cleanContainer));
+  UINT32 cleanDebugPartIndex;
+  VERIFY_SUCCEEDED(pReflection->FindFirstPartKind(DFCC_ShaderDebugInfoDXIL,
+                                                  &cleanDebugPartIndex));
+  CComPtr<IDxcBlob> cleanDebugPartContent;
+  VERIFY_SUCCEEDED(
+      pReflection->GetPartContent(cleanDebugPartIndex, &cleanDebugPartContent));
+
+  CComPtr<IDxcContainerBuilder> pContainerBuilder;
+  VERIFY_SUCCEEDED(CreateContainerBuilder(&pContainerBuilder));
+  VERIFY_SUCCEEDED(pContainerBuilder->Load(corruptedContainer));
+  VERIFY_SUCCEEDED(pContainerBuilder->RemovePart(DFCC_ShaderDebugInfoDXIL));
+  VERIFY_SUCCEEDED(pContainerBuilder->AddPart(DFCC_ShaderDebugInfoDXIL,
+                                              cleanDebugPartContent));
+  CComPtr<IDxcOperationResult> pBuildResult;
+  VERIFY_SUCCEEDED(pContainerBuilder->SerializeContainer(&pBuildResult));
+  HRESULT buildStatus;
+  VERIFY_SUCCEEDED(pBuildResult->GetStatus(&buildStatus));
+  VERIFY_SUCCEEDED(buildStatus);
+  CComPtr<IDxcBlob> divergentContainer;
+  VERIFY_SUCCEEDED(pBuildResult->GetResult(&divergentContainer));
+
+  ValidationResult validation = ValidateInstrumentedModule(divergentContainer);
   VERIFY_IS_FALSE(validation.Valid);
 }
