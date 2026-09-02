@@ -172,6 +172,7 @@ public:
   TEST_METHOD(ConstantColor_UnusedIntOverloadIsErased)
   TEST_METHOD(ConstantColor_NoTargetOverloadsAreErased)
   TEST_METHOD(ConstantColor_FromConstantBufferIsWellFormed)
+  TEST_METHOD(ConstantColor_FromConstantBufferInt16NarrowingIsValid)
   TEST_METHOD(RemoveDiscards_UnusedDiscardOverloadIsErased)
   TEST_METHOD(ReduceMSAAToSingleSample_SM66)
   TEST_METHOD(ReduceMSAAToSingleSample_HalfLoad)
@@ -4351,6 +4352,55 @@ float4 main(float4 position : SV_Position) : SV_Target
 
   VerifyInstrumentedModuleIsValid(pNewContainer,
                                   "constant-colour from constant buffer");
+}
+
+// The FileCheck test constantcolorint16FromCB.hlsl proves the IR shape of
+// the integer-narrowing arm (CBufRet.i32 -> trunc i16 -> storeOutput.i16),
+// but does not validate the produced module end-to-end. This test mirrors
+// ConstantColor_FromConstantBufferIsWellFormed's assemble-to-container plus
+// VerifyInstrumentedModuleIsValid pattern for a native 16-bit integer
+// target, so the integer narrowing arm and its unused-overload cleanup are
+// also proven to produce a module the real validator accepts.
+TEST_F(PixTest, ConstantColor_FromConstantBufferInt16NarrowingIsValid) {
+  if (m_ver.SkipDxilVersion(1, 2))
+    return;
+
+  const char *source = R"x(
+uint16_t4 main() : SV_Target
+{
+    return uint16_t4(0, 0, 0, 0);
+})x";
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"ps_6_2",
+                                       {L"-Od", L"-enable-16bit-types"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-constantColor,mod-mode=1");
+
+  CComPtr<IDxcAssembler> pAssembler;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcAssembler, &pAssembler));
+  CComPtr<IDxcOperationResult> pAssembleResult;
+  VERIFY_SUCCEEDED(
+      pAssembler->AssembleToContainer(output.Module, &pAssembleResult));
+  HRESULT assembleStatus;
+  VERIFY_SUCCEEDED(pAssembleResult->GetStatus(&assembleStatus));
+  VERIFY_SUCCEEDED(assembleStatus);
+
+  CComPtr<IDxcBlob> pNewContainer;
+  VERIFY_SUCCEEDED(pAssembleResult->GetResult(&pNewContainer));
+
+  const std::string disassembly = Disassemble(pNewContainer);
+  // Confirm the integer narrowing arm was actually taken (not silently
+  // replaced by the float arm) and that the unused float overload was
+  // erased by the pass's overload cleanup.
+  VERIFY_ARE_NOT_EQUAL(std::string::npos, disassembly.find("trunc i32"));
+  VERIFY_ARE_NOT_EQUAL(std::string::npos,
+                       disassembly.find("dx.op.storeOutput.i16"));
+  VERIFY_IS_FALSE(HasDeclaration(disassembly, "dx.op.storeOutput.f32"));
+
+  VerifyInstrumentedModuleIsValid(
+      pNewContainer, "constant-colour from constant buffer, 16-bit integer "
+                     "narrowing");
 }
 
 static void
