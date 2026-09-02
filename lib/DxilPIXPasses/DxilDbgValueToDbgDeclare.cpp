@@ -869,33 +869,6 @@ static bool IsDITypePointer(DIType *DTy,
   return false;
 }
 
-static bool HasPointerBackedCompositeCopy(llvm::DbgValueInst *DbgValue,
-                                          llvm::DIType *Ty) {
-  const llvm::DITypeIdentifierMap EmptyMap;
-  llvm::DIType *UnaliasedTy = DITypePeelTypeAlias(Ty);
-  if (!llvm::isa<llvm::Constant>(DbgValue->getValue()) ||
-      !llvm::isa<llvm::DICompositeType>(UnaliasedTy)) {
-    return false;
-  }
-
-  for (llvm::BasicBlock &Block : *DbgValue->getParent()->getParent()) {
-    for (llvm::Instruction &Instruction : Block) {
-      auto *OtherDbgValue = llvm::dyn_cast<llvm::DbgValueInst>(&Instruction);
-      if (OtherDbgValue == nullptr || OtherDbgValue == DbgValue ||
-          !llvm::isa<llvm::AllocaInst>(OtherDbgValue->getValue())) {
-        continue;
-      }
-
-      llvm::DIType *OtherTy =
-          OtherDbgValue->getVariable()->getType().resolve(EmptyMap);
-      if (OtherTy != nullptr && DITypePeelTypeAlias(OtherTy) == UnaliasedTy) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 void DxilDbgValueToDbgDeclare::handleDbgValue(llvm::Module &M,
                                               llvm::DbgValueInst *DbgValue) {
   VALUE_TO_DECLARE_LOG("DbgValue named %s", DbgValue->getName().str().c_str());
@@ -955,11 +928,6 @@ void DxilDbgValueToDbgDeclare::handleDbgValue(llvm::Module &M,
       }
     } break;
     }
-  }
-
-  if (HasPointerBackedCompositeCopy(DbgValue, Ty)) {
-    VALUE_TO_DECLARE_LOG("Using pointer-backed composite storage");
-    return;
   }
 
   auto &Register = m_Registers[Variable];

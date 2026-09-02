@@ -158,9 +158,15 @@ public:
   TEST_METHOD(PixStructAnnotation_ResourceAsMember)
   TEST_METHOD(PixStructAnnotation_WheresMyDbgValue)
   TEST_METHOD(DbgValueToDbgDeclare_BackwardLayout)
+  TEST_METHOD(DbgValueToDbgDeclare_SameTypeSiblingDoesNotSuppressConstant)
+  TEST_METHOD(DbgValueToDbgDeclare_UndefEndOfLifeStoresIntoSameShadowSlot)
+  TEST_METHOD(DbgValueToDbgDeclare_DifferentFragmentOfSameVariableNotConflated)
   TEST_METHOD(DebugInstrumentation_DynamicIndexSpanMatchesAllocaRegisterCount)
   TEST_METHOD(PixDbgValueToDbgDeclare_MultiDimensionalStaticGlobalArray)
   TEST_METHOD(AllocaRegisterWrite_DeepAggregateChainIsAnnotated)
+  TEST_METHOD(AllocaRegisterWrite_ArrayOfStructsAncestorFailsClosed)
+  TEST_METHOD(AllocaRegisterWrite_AncestorExtraIndicesFailsClosed)
+  TEST_METHOD(AllocaRegisterWrite_StructMemberIndexBoundIsExclusive)
   TEST_METHOD(EntryBlockInjection_HandlesLabelledAndUnlabelledFirstBlock)
 
   TEST_METHOD(VirtualRegisters_InstructionCounts)
@@ -348,6 +354,31 @@ public:
     Options.push_back(L"-S");
     Options.push_back(L"-opt-mod-passes");
     Options.push_back(L"-dxil-annotate-with-virtual-regs");
+
+    CComPtr<IDxcBlob> pOptimizedModule;
+    CComPtr<IDxcBlobEncoding> pText;
+    VERIFY_SUCCEEDED(pOptimizer->RunOptimizer(
+        pSource, Options.data(), Options.size(), &pOptimizedModule, &pText));
+
+    return Tokenize(BlobToUtf8(pText).c_str(), "\n");
+  }
+
+  // Sibling of RunAnnotationPassOnText for the value-to-declare pass:
+  // hand-authored textual IR builds DISubrange/DIExpression shapes (e.g.
+  // an unknown array length, or a same-variable undef/fragment scenario)
+  // that no HLSL source can express.
+  std::vector<std::string>
+  RunValueToDeclarePassOnText(const std::string &irText) {
+    CComPtr<IDxcBlobEncoding> pSource;
+    CreateBlobFromText(m_dllSupport, irText.c_str(), &pSource);
+
+    CComPtr<IDxcOptimizer> pOptimizer;
+    VERIFY_SUCCEEDED(
+        m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+    std::vector<LPCWSTR> Options;
+    Options.push_back(L"-S");
+    Options.push_back(L"-opt-mod-passes");
+    Options.push_back(L"-dxil-dbg-value-to-dbg-declare");
 
     CComPtr<IDxcBlob> pOptimizedModule;
     CComPtr<IDxcBlobEncoding> pText;
@@ -2194,6 +2225,10 @@ std::string PixTest::Disassemble(IDxcBlob *pProgram) {
 // This function lives in lib\DxilPIXPasses\DxilAnnotateWithVirtualRegister.cpp
 // Declared here so we can test it.
 uint32_t CountStructMembers(llvm::Type const *pType);
+// Same file, same reason: the struct-member-index bound this checks
+// cannot safely be exercised via an IR round-trip test (see the test
+// using it below).
+bool IsValidStructMemberIndex(uint64_t memberIndex, uint64_t elementCount);
 
 PixTest::TestableResults PixTest::TestStructAnnotationCase(
     const char *hlsl, const wchar_t *optimizationLevel, bool validateCoverage,
@@ -2508,8 +2543,14 @@ void main()
 
     auto Testables = TestStructAnnotationCase(hlsl, optimization);
 
-    // Each unoptimized source variable has storage. Optimized copies alias.
-    const size_t ExpectedCount = choice.IsOptimized ? 1u : 2u;
+    // Each source variable has its own storage. Before the item-10.1 fix,
+    // an optimized build's constant-valued "p" was incorrectly
+    // suppressed merely because the unrelated "p2" (a different variable
+    // of the same composite type) happened to be alloca-backed --
+    // dropping "p" from debug info entirely. Suppression is now keyed on
+    // the same variable being updated to alloca-backed storage, so both
+    // variables keep their own representation regardless of optimization.
+    const size_t ExpectedCount = 2u;
     VERIFY_ARE_EQUAL(ExpectedCount, Testables.OffsetAndSizes.size());
 
     for (const auto &os : Testables.OffsetAndSizes) {
@@ -2519,8 +2560,17 @@ void main()
     }
 
     VERIFY_ARE_EQUAL(ExpectedCount, Testables.AllocaWrites.size());
+    // ValidateAllocaWrite expects writes in absolute-register order; sort
+    // by that (regBase + index), since register-assignment order and the
+    // order stores are encountered need not match once both variables
+    // have their own write (previously only one write ever existed here).
+    std::vector<AllocaWrite> SortedAllocaWrites = Testables.AllocaWrites;
+    std::sort(SortedAllocaWrites.begin(), SortedAllocaWrites.end(),
+              [](const AllocaWrite &A, const AllocaWrite &B) {
+                return A.regBase + A.index < B.regBase + B.index;
+              });
     for (size_t i = 0; i < ExpectedCount; ++i) {
-      ValidateAllocaWrite(Testables.AllocaWrites, i, "dummy");
+      ValidateAllocaWrite(SortedAllocaWrites, i, "dummy");
     }
   }
 }
@@ -2588,6 +2638,256 @@ TEST_F(PixTest, DbgValueToDbgDeclare_BackwardLayout) {
   VERIFY_ARE_EQUAL(uint64_t(64), Pieces[0].second);
   VERIFY_ARE_EQUAL(uint64_t(64), Pieces[1].first);
   VERIFY_ARE_EQUAL(uint64_t(16), Pieces[1].second);
+}
+
+// 10.1: HasPointerBackedCompositeCopy previously suppressed a constant-
+// valued dbg.value's own storage whenever ANY other alloca-backed
+// dbg.value in the function shared its (type-alias-peeled) composite
+// type -- not only a genuine, provable update of the same variable and
+// the same slice. That heuristic could not reliably distinguish a real
+// same-update pairing from an unrelated variable, an unrelated fragment
+// of the same variable, or a variable's own undef end-of-life marker
+// (undef is itself an llvm::Constant), so it has been removed entirely
+// (fail open: every dbg.value now always converts to its own storage).
+// This test proves the first of those three failure modes directly: two
+// independent locals of the same composite type, only one of which
+// (varB) is ever alloca-backed. varA's own dbg.value is a constant the
+// whole time and never has any alloca of its own, so it must still get
+// its own dbg.declare-backed storage.
+TEST_F(PixTest, DbgValueToDbgDeclare_SameTypeSiblingDoesNotSuppressConstant) {
+  const char *IR = R"(
+%MyStruct = type { float, float }
+
+define void @main() !dbg !5 {
+entry:
+  call void @llvm.dbg.value(metadata %MyStruct { float 1.000000e+00, float 2.000000e+00 }, i64 0, metadata !10, metadata !15), !dbg !16
+  %varB = alloca %MyStruct, align 4
+  call void @llvm.dbg.value(metadata %MyStruct* %varB, i64 0, metadata !17, metadata !15), !dbg !18
+  ret void
+}
+
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!3, !4}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang", isOptimized: false, runtimeVersion: 0, emissionKind: 1, subprograms: !2)
+!1 = !DIFile(filename: "test.hlsl", directory: "/")
+!2 = !{!5}
+!3 = !{i32 2, !"Dwarf Version", i32 4}
+!4 = !{i32 2, !"Debug Info Version", i32 3}
+!5 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 1, type: !6, isLocal: false, isDefinition: true, scopeLine: 1, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!6 = !DISubroutineType(types: !7)
+!7 = !{null}
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "MyStruct", file: !1, line: 1, size: 64, align: 32, elements: !12)
+!10 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varA", scope: !5, file: !1, line: 2, type: !9)
+!12 = !{!13, !14}
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !9, file: !1, line: 2, baseType: !8, size: 32, align: 32, offset: 0)
+!14 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !9, file: !1, line: 3, baseType: !8, size: 32, align: 32, offset: 32)
+!15 = !DIExpression()
+!16 = !DILocation(line: 2, column: 1, scope: !5)
+!17 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varB", scope: !5, file: !1, line: 4, type: !9)
+!18 = !DILocation(line: 4, column: 1, scope: !5)
+)";
+
+  llvm::LLVMContext Context;
+  llvm::SMDiagnostic Error;
+  std::unique_ptr<llvm::Module> Module =
+      llvm::parseAssemblyString(IR, Error, Context);
+  VERIFY_IS_NOT_NULL(Module.get());
+
+  std::unique_ptr<llvm::ModulePass> Pass(
+      llvm::createDxilDbgValueToDbgDeclarePass());
+  VERIFY_IS_TRUE(Pass->runOnModule(*Module));
+
+  // varA (constant-only) must still get its own dbg.declare-backed
+  // storage: it must not be suppressed merely because varB, a different,
+  // same-typed local, happens to be alloca-backed elsewhere.
+  bool foundVarADeclare = false;
+  for (llvm::BasicBlock &Block : *Module->getFunction("main")) {
+    for (llvm::Instruction &Instruction : Block) {
+      if (llvm::DbgDeclareInst *Declare =
+              llvm::dyn_cast<llvm::DbgDeclareInst>(&Instruction)) {
+        if (Declare->getVariable()->getName() == "varA") {
+          foundVarADeclare = true;
+        }
+      }
+    }
+  }
+  VERIFY_IS_TRUE(foundVarADeclare);
+}
+
+// Every store this pass emits targets a fresh "%N = getelementptr [1 x
+// T], [1 x T]* %ALLOCA, i32 0, i32 0" result, so two stores into the
+// same shadow slot have different destination register names even
+// though they share the same underlying %ALLOCA. Maps each such GEP
+// result register to the shadow alloca it derives from, so callers can
+// compare slot identity rather than register identity.
+static std::map<std::string, std::string>
+MapGepResultsToShadowAllocas(std::vector<std::string> const &lines) {
+  std::map<std::string, std::string> result;
+  for (std::string const &line : lines) {
+    size_t eq = line.find(" = getelementptr [1 x ");
+    if (eq == std::string::npos) {
+      continue;
+    }
+    size_t regStart = line.find_first_not_of(' ');
+    size_t allocaMarker = line.find("]* ", eq);
+    if (allocaMarker == std::string::npos) {
+      continue;
+    }
+    size_t allocaStart = allocaMarker + 3;
+    size_t allocaEnd = line.find(',', allocaStart);
+    result[line.substr(regStart, eq - regStart)] =
+        line.substr(allocaStart, allocaEnd - allocaStart);
+  }
+  return result;
+}
+
+// Returns the underlying shadow alloca (not the GEP result register,
+// which differs on every store even for the same slot) targeted by
+// every "store float <value>, float* <dest>" line.
+static std::vector<std::string>
+FindShadowAllocaDestinations(std::vector<std::string> const &lines,
+                             const char *value) {
+  std::map<std::string, std::string> gepToAlloca =
+      MapGepResultsToShadowAllocas(lines);
+  std::vector<std::string> allocas;
+  const std::string needle = std::string("store float ") + value + ", float* ";
+  for (std::string const &line : lines) {
+    size_t position = line.find(needle);
+    if (position == std::string::npos) {
+      continue;
+    }
+    size_t destStart = position + needle.size();
+    size_t destEnd = line.find_first_of(", ", destStart);
+    std::string reg = line.substr(destStart, destEnd - destStart);
+    std::map<std::string, std::string>::const_iterator it =
+        gepToAlloca.find(reg);
+    if (it != gepToAlloca.end()) {
+      allocas.push_back(it->second);
+    }
+  }
+  return allocas;
+}
+
+// 10.1 (undef end-of-life): a variable that becomes alloca-backed, then
+// later reaches an undef dbg.value for the exact same variable and
+// fragment (its end-of-life marker), must have that undef actually
+// converted -- not suppressed as a supposed duplicate of the earlier
+// alloca-backed representation. Proven by observing the transformed IR
+// directly: the same shadow slots that received the earlier defined
+// values must later receive a store of undef, not merely by asserting
+// the input contained an undef dbg.value.
+TEST_F(PixTest, DbgValueToDbgDeclare_UndefEndOfLifeStoresIntoSameShadowSlot) {
+  const char *IR = R"x(
+%MyStruct = type { float, float }
+
+define void @main() !dbg !5 {
+entry:
+  call void @llvm.dbg.value(metadata %MyStruct { float 1.000000e+00, float 2.000000e+00 }, i64 0, metadata !10, metadata !15), !dbg !16
+  %varD.storage = alloca %MyStruct, align 4
+  call void @llvm.dbg.value(metadata %MyStruct* %varD.storage, i64 0, metadata !10, metadata !15), !dbg !17
+  call void @llvm.dbg.value(metadata %MyStruct undef, i64 0, metadata !10, metadata !15), !dbg !18
+  ret void
+}
+
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!3, !4}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang", isOptimized: false, runtimeVersion: 0, emissionKind: 1, subprograms: !2)
+!1 = !DIFile(filename: "test.hlsl", directory: "/")
+!2 = !{!5}
+!3 = !{i32 2, !"Dwarf Version", i32 4}
+!4 = !{i32 2, !"Debug Info Version", i32 3}
+!5 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 1, type: !6, isLocal: false, isDefinition: true, scopeLine: 1, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!6 = !DISubroutineType(types: !7)
+!7 = !{null}
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "MyStruct", file: !1, line: 1, size: 64, align: 32, elements: !12)
+!10 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varD", scope: !5, file: !1, line: 2, type: !9)
+!12 = !{!13, !14}
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !9, file: !1, line: 2, baseType: !8, size: 32, align: 32, offset: 0)
+!14 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !9, file: !1, line: 3, baseType: !8, size: 32, align: 32, offset: 32)
+!15 = !DIExpression()
+!16 = !DILocation(line: 2, column: 1, scope: !5)
+!17 = !DILocation(line: 3, column: 1, scope: !5)
+!18 = !DILocation(line: 4, column: 1, scope: !5)
+)x";
+
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(IR);
+
+  std::vector<std::string> definedX =
+      FindShadowAllocaDestinations(lines, "1.000000e+00");
+  std::vector<std::string> definedY =
+      FindShadowAllocaDestinations(lines, "2.000000e+00");
+  VERIFY_ARE_EQUAL(size_t(1), definedX.size());
+  VERIFY_ARE_EQUAL(size_t(1), definedY.size());
+
+  std::vector<std::string> undefStores =
+      FindShadowAllocaDestinations(lines, "undef");
+  VERIFY_ARE_EQUAL(size_t(2), undefStores.size());
+  VERIFY_IS_TRUE(std::find(undefStores.begin(), undefStores.end(),
+                           definedX[0]) != undefStores.end());
+  VERIFY_IS_TRUE(std::find(undefStores.begin(), undefStores.end(),
+                           definedY[0]) != undefStores.end());
+}
+
+// 10.1 (fragment independence): a single variable described by two
+// different fragments (bit_piece expressions for its two members).
+// Fragment y becomes alloca-backed; fragment x remains constant-only.
+// Fragment x's own store must still land in its own shadow slot: it
+// must not be conflated with -- or suppressed on account of -- the
+// unrelated fragment y being alloca-backed, even though both fragments
+// belong to the very same DIVariable.
+TEST_F(PixTest,
+       DbgValueToDbgDeclare_DifferentFragmentOfSameVariableNotConflated) {
+  const char *IR = R"x(
+%MyStruct = type { float, float }
+
+define void @main() !dbg !5 {
+entry:
+  call void @llvm.dbg.value(metadata float 9.000000e+00, i64 0, metadata !10, metadata !19), !dbg !16
+  %varE.y.storage = alloca float, align 4
+  call void @llvm.dbg.value(metadata float* %varE.y.storage, i64 0, metadata !10, metadata !20), !dbg !17
+  ret void
+}
+
+declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!3, !4}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !1, producer: "clang", isOptimized: false, runtimeVersion: 0, emissionKind: 1, subprograms: !2)
+!1 = !DIFile(filename: "test.hlsl", directory: "/")
+!2 = !{!5}
+!3 = !{i32 2, !"Dwarf Version", i32 4}
+!4 = !{i32 2, !"Debug Info Version", i32 3}
+!5 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 1, type: !6, isLocal: false, isDefinition: true, scopeLine: 1, flags: DIFlagPrototyped, isOptimized: false, function: void ()* @main)
+!6 = !DISubroutineType(types: !7)
+!7 = !{null}
+!8 = !DIBasicType(name: "float", size: 32, align: 32, encoding: DW_ATE_float)
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "MyStruct", file: !1, line: 1, size: 64, align: 32, elements: !12)
+!10 = !DILocalVariable(tag: DW_TAG_auto_variable, name: "varE", scope: !5, file: !1, line: 2, type: !9)
+!12 = !{!13, !14}
+!13 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !9, file: !1, line: 2, baseType: !8, size: 32, align: 32, offset: 0)
+!14 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !9, file: !1, line: 3, baseType: !8, size: 32, align: 32, offset: 32)
+!16 = !DILocation(line: 2, column: 1, scope: !5)
+!17 = !DILocation(line: 3, column: 1, scope: !5)
+!19 = !DIExpression(DW_OP_bit_piece, 0, 32)
+!20 = !DIExpression(DW_OP_bit_piece, 32, 32)
+)x";
+
+  std::vector<std::string> lines = RunValueToDeclarePassOnText(IR);
+
+  // Fragment x's own constant value must reach its own shadow store: it
+  // must not be dropped merely because fragment y (a different slice of
+  // the same DIVariable) is alloca-backed.
+  VERIFY_ARE_EQUAL(size_t(1),
+                   FindShadowAllocaDestinations(lines, "9.000000e+00").size());
 }
 
 TEST_F(PixTest, PixStructAnnotation_MixedSizes) {
@@ -6041,4 +6341,147 @@ void main()
   VERIFY_IS_TRUE(storeFound);
   // The store three GEPs deep still carries its alloca-register-write.
   VERIFY_IS_TRUE(storeAnnotated);
+}
+
+// 10.3: an ancestor GEP that indexes into an array (an array of structs, in
+// this case) does not bottom out at a StructType, so the pass cannot
+// compute which flattened register the selected array element occupies
+// (that renumbering is separate follow-up work). Rather than silently
+// treating the array index's contribution as zero and attaching metadata
+// for the wrong register, the pass must fail closed: no
+// pix-alloca-reg-write metadata at all.
+TEST_F(PixTest, AllocaRegisterWrite_ArrayOfStructsAncestorFailsClosed) {
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    RawUAV.Store(0, 0);
+})x",
+                                       L"cs_6_0", {L"-Od"});
+  std::string disassembly = Disassemble(compiled);
+
+  // An alloca of an array of two 2-float structs, a GEP that selects
+  // element 1 of the array (bottoming out at ArrayType, not StructType),
+  // then a GEP that selects field 1 of that element, then a store.
+  std::string withArrayOfStructsStore = InjectIntoEntryBlock(
+      disassembly,
+      "  %arrOfStructs = alloca [2 x { float, float }]\n"
+      "  %arrOfStructs.elem = getelementptr [2 x { float, float }], [2 x { "
+      "float, float }]* %arrOfStructs, i32 0, i32 1\n"
+      "  %arrOfStructs.field = getelementptr { float, float }, { float, "
+      "float }* %arrOfStructs.elem, i32 0, i32 1\n"
+      "  store float 1.000000e+00, float* %arrOfStructs.field\n");
+
+  std::vector<std::string> lines =
+      RunAnnotationPassOnText(withArrayOfStructsStore);
+
+  bool allocaRegistered = false;
+  bool storeFound = false;
+  bool storeAnnotated = false;
+  for (const std::string &line : lines) {
+    if (line.find("%arrOfStructs = alloca") != std::string::npos &&
+        line.find("pix-alloca-reg") != std::string::npos) {
+      allocaRegistered = true;
+    }
+    if (line.find("store float 1.000000e+00, float* %arrOfStructs.field") !=
+        std::string::npos) {
+      storeFound = true;
+      if (line.find("pix-alloca-reg-write") != std::string::npos) {
+        storeAnnotated = true;
+      }
+    }
+  }
+
+  // The alloca is registered, so the shape reached the pass and the store
+  // below is the thing under test rather than an artifact of it being
+  // skipped.
+  VERIFY_IS_TRUE(allocaRegistered);
+  VERIFY_IS_TRUE(storeFound);
+  // Fail closed: an array-of-structs ancestor must not produce a guessed
+  // (and potentially wrong) register-write annotation.
+  VERIFY_IS_FALSE(storeAnnotated);
+}
+
+// 10.3 (extra indices): an ancestor GEP can descend more than one level in
+// a single instruction, e.g. selecting a struct member that is itself an
+// array, then an element of that array, all as one GEP's indices. Only
+// operand 2 (the struct-member selector) is accounted for; any indices
+// beyond it are not computed here (that renumbering is separate follow-up
+// work), so silently ignoring them would guess an offset that is missing
+// the array contribution. The pass must fail closed instead.
+TEST_F(PixTest, AllocaRegisterWrite_AncestorExtraIndicesFailsClosed) {
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, R"x(
+RWByteAddressBuffer RawUAV : register(u0);
+[numthreads(1, 1, 1)]
+void main()
+{
+    RawUAV.Store(0, 0);
+})x",
+                                       L"cs_6_0", {L"-Od"});
+  std::string disassembly = Disassemble(compiled);
+
+  // An alloca of a struct whose one member is an array of two 2-float
+  // structs. The ancestor GEP combines the struct-member selection (0)
+  // and the array-element selection (1) into a single instruction's
+  // extra index, then a further GEP selects field 1 of that element.
+  std::string withExtraIndicesStore = InjectIntoEntryBlock(
+      disassembly,
+      "  %multi = alloca { [2 x { float, float }] }\n"
+      "  %multi.ancestor = getelementptr { [2 x { float, float }] }, { [2 "
+      "x { float, float }] }* %multi, i32 0, i32 0, i32 1\n"
+      "  %multi.field = getelementptr { float, float }, { float, float "
+      "}* %multi.ancestor, i32 0, i32 1\n"
+      "  store float 1.000000e+00, float* %multi.field\n");
+
+  std::vector<std::string> lines =
+      RunAnnotationPassOnText(withExtraIndicesStore);
+
+  bool allocaRegistered = false;
+  bool storeFound = false;
+  bool storeAnnotated = false;
+  for (const std::string &line : lines) {
+    if (line.find("%multi = alloca") != std::string::npos &&
+        line.find("pix-alloca-reg") != std::string::npos) {
+      allocaRegistered = true;
+    }
+    if (line.find("store float 1.000000e+00, float* %multi.field") !=
+        std::string::npos) {
+      storeFound = true;
+      if (line.find("pix-alloca-reg-write") != std::string::npos) {
+        storeAnnotated = true;
+      }
+    }
+  }
+
+  // The alloca is registered, so the shape reached the pass and the store
+  // below is the thing under test rather than an artifact of it being
+  // skipped.
+  VERIFY_IS_TRUE(allocaRegistered);
+  VERIFY_IS_TRUE(storeFound);
+  // Fail closed: the extra (array) index on the ancestor GEP must not be
+  // silently dropped and must not produce a guessed annotation.
+  VERIFY_IS_FALSE(storeAnnotated);
+}
+
+// 10.2: a struct member index equal to the struct's element count is one
+// past the last valid member (valid indices are [0, elementCount)). The
+// bound check must be exclusive (>=), not inclusive (>), or an
+// out-of-range equal-to-count index is silently accepted and contributes
+// a guessed offset built from reading past the last real member.
+//
+// This exact boundary is not constructible as an IR round-trip test: a
+// struct GEP with an index equal to the struct's element count fails to
+// even parse ("invalid getelementptr indices"), and building one directly
+// via GetElementPtrInst::Create trips that function's own assertion in
+// this assertions-enabled build. IsValidStructMemberIndex (declared above,
+// alongside CountStructMembers, following that function's existing
+// test-exposure pattern) is unit tested directly instead.
+TEST_F(PixTest, AllocaRegisterWrite_StructMemberIndexBoundIsExclusive) {
+  // Valid: the last real member (index elementCount - 1).
+  VERIFY_IS_TRUE(IsValidStructMemberIndex(1u, 2u));
+  // Invalid: index == elementCount is one past the last member.
+  VERIFY_IS_FALSE(IsValidStructMemberIndex(2u, 2u));
+  // Invalid: comfortably out of range too.
+  VERIFY_IS_FALSE(IsValidStructMemberIndex(5u, 2u));
 }

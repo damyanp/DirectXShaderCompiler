@@ -59,6 +59,19 @@ uint32_t CountStructMembers(llvm::Type const *pType) {
   return Count;
 }
 
+// Valid struct member indices are the exclusive range [0, elementCount);
+// an index equal to elementCount is one past the last real member.
+// Exposed (matching CountStructMembers' pattern above) so this exact
+// boundary can be unit tested directly: LLVM's own getelementptr index
+// verification makes an out-of-bounds struct member index impossible to
+// construct as valid IR (the parser rejects it, and building one via
+// GetElementPtrInst::Create directly trips its own internal assertion in
+// an assertions-enabled build), so there is no safe way to prove this
+// boundary via an IR round-trip test.
+bool IsValidStructMemberIndex(uint64_t memberIndex, uint64_t elementCount) {
+  return memberIndex < elementCount;
+}
+
 namespace {
 using namespace pix_dxil;
 
@@ -378,7 +391,13 @@ bool DxilAnnotateWithVirtualRegister::IsAllocaRegisterWrite(
         auto *pStructType = llvm::dyn_cast<llvm::StructType>(
             pAncestorGEP->getPointerOperandType()->getPointerElementType());
         if (pStructType == nullptr) {
-          continue;
+          // This ancestor level indexes something other than a struct
+          // (for example, an array of structs/vectors). Its contribution
+          // to the flattened offset is not computed here (that
+          // renumbering is tracked as separate follow-up work), so
+          // silently continuing would guess zero and attach metadata for
+          // the wrong register. Fail closed instead.
+          return false;
         }
         if (pAncestorGEP->getNumOperands() < 3) {
           continue;
@@ -391,7 +410,16 @@ bool DxilAnnotateWithVirtualRegister::IsAllocaRegisterWrite(
           return false;
         }
         uint64_t memberIndex = pStructMember->getLimitedValue();
-        if (memberIndex > pStructType->getStructNumElements()) {
+        if (!IsValidStructMemberIndex(memberIndex,
+                                      pStructType->getStructNumElements())) {
+          return false;
+        }
+        if (pAncestorGEP->getNumOperands() > 3) {
+          // This ancestor GEP descends more than one level in a single
+          // instruction (for example, into an array member of the
+          // selected struct field). The indices beyond operand 2 are not
+          // accounted for here, so silently ignoring them would attach
+          // metadata for the wrong register; fail closed instead.
           return false;
         }
         for (uint64_t i = 0; i < memberIndex; ++i) {
