@@ -822,6 +822,11 @@ DxilShaderAccessTracking::GetResourceFromHandle(Value *resHandle,
 // which PIX cannot attribute to a pipeline stage. If more than one entry
 // kind reaches the same helper, keep the module kind. Entry points keep
 // their own kind.
+//
+// A hull entry's patch-constant function is reached through
+// DxilFunctionProps::ShaderProps.HS.patchConstantFunc, not through a
+// CallInst, so it (and anything only it calls) is seeded explicitly below
+// rather than left to fall through to the module's Library kind.
 static std::map<llvm::Function *, DXIL::ShaderKind>
 ResolveShaderKindByReachingEntryPoint(DxilModule &DM) {
   std::map<llvm::Function *, DXIL::ShaderKind> functionToShaderKind;
@@ -838,6 +843,19 @@ ResolveShaderKindByReachingEntryPoint(DxilModule &DM) {
         PIXPassHelpers::GetFunctionShaderKind(DM, entryPoint);
 
     std::vector<llvm::Function *> pending{entryPoint};
+    // A hull entry's patch-constant function is associated by
+    // DxilFunctionProps, not by a CallInst -- normal traversal below never
+    // reaches it. Seed it explicitly so it (and anything it calls) is
+    // attributed to Hull rather than falling through to the module's
+    // Library shader kind.
+    if (DM.HasDxilFunctionProps(entryPoint)) {
+      hlsl::DxilFunctionProps const &entryProps =
+          DM.GetDxilFunctionProps(entryPoint);
+      if (entryProps.IsHS() &&
+          entryProps.ShaderProps.HS.patchConstantFunc != nullptr) {
+        pending.push_back(entryProps.ShaderProps.HS.patchConstantFunc);
+      }
+    }
     std::set<llvm::Function *> visited;
     while (!pending.empty()) {
       llvm::Function *reached = pending.back();

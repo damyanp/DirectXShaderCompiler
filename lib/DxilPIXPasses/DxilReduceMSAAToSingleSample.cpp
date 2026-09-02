@@ -51,7 +51,7 @@ static bool IsMultisampledSRVHandle(Value *TextureHandle, DxilModule &DM) {
 
     unsigned RangeId =
         cast<ConstantInt>(CreateHandle.get_rangeId())->getLimitedValue();
-    auto Resource = DM.GetSRV(RangeId);
+    const DxilResource &Resource = DM.GetSRV(RangeId);
     return Resource.GetKind() == DXIL::ResourceKind::Texture2DMS ||
            Resource.GetKind() == DXIL::ResourceKind::Texture2DMSArray;
   }
