@@ -132,6 +132,7 @@ public:
   TEST_METHOD(AccessTracking_OobOrdinalIsMaskedFromEncodedShaderKind)
   TEST_METHOD(AccessTracking_LibraryNonEntryFunction)
   TEST_METHOD(AccessTracking_SharedHelperAcrossEntryKindsUsesLibraryKind)
+  TEST_METHOD(AccessTracking_HullPatchConstantFunctionAndHelperUseHullKind)
 
   TEST_METHOD(PixStructAnnotation_Lib_DualRaygen)
 
@@ -1735,6 +1736,77 @@ void MyMiss(inout MyPayload payload)
   VerifyInstrumentedModuleIsValid(
       output.blob,
       "shader access tracking of a helper shared by two entry point kinds");
+}
+
+TEST_F(PixTest, AccessTracking_HullPatchConstantFunctionAndHelperUseHullKind) {
+  if (m_ver.SkipDxilVersion(1, 6)) {
+    return;
+  }
+
+  const char *hlsl = R"(
+struct PointOut
+{
+    float3 pos : POSITION;
+};
+
+struct ConstantOut
+{
+    float edges[3] : SV_TessFactor;
+    float inside : SV_InsideTessFactor;
+};
+
+[noinline]
+export void PatchHelper()
+{
+    RWByteAddressBuffer heapBuffer = ResourceDescriptorHeap[0];
+    heapBuffer.Store(0, 1);
+}
+
+ConstantOut PatchConstantFunction(InputPatch<PointOut, 3> patch,
+                                  uint primID : SV_PrimitiveID)
+{
+    RWByteAddressBuffer directBuffer = ResourceDescriptorHeap[1];
+    directBuffer.Store(4, 2);
+
+    PatchHelper();
+
+    ConstantOut output;
+    output.edges[0] = output.edges[1] = output.edges[2] = 1;
+    output.inside = 1;
+    return output;
+}
+
+[shader("hull")]
+[domain("tri")]
+[partitioning("integer")]
+[outputtopology("triangle_cw")]
+[outputcontrolpoints(3)]
+[patchconstantfunc("PatchConstantFunction")]
+PointOut main(InputPatch<PointOut, 3> patch,
+             uint id : SV_OutputControlPointID)
+{
+    return patch[id];
+}
+)";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, hlsl, L"lib_6_6", {L"-Od"});
+  PassOutput output = RunShaderAccessTrackingPass(compiled, L".0;0;0.");
+  std::vector<std::string> lines = Split(Disassemble(output.blob), '\n');
+
+  // Hull (3) << 28. The patch-constant function is associated with its
+  // hull entry only through DxilFunctionProps, not a CallInst, so
+  // without seeding it into the reachability traversal, neither it nor
+  // anything it calls (here, PatchHelper) is ever visited; both would
+  // then fall back to the module's Library (6) kind instead.
+  VERIFY_IS_TRUE(
+      HasBufferStoreValueMatchingMask(lines, 0xF0000000, 0x30000000));
+  VERIFY_IS_TRUE(
+      !HasBufferStoreValueMatchingMask(lines, 0xF0000000, 0x60000000));
+
+  VerifyInstrumentedModuleIsValid(
+      output.blob, "shader access tracking of a hull patch-constant "
+                   "function and its helper");
 }
 
 TEST_F(PixTest, AddToASGroupSharedPayload) {
