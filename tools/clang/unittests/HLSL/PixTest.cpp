@@ -179,7 +179,8 @@ public:
   // (ValidateInstrumentedModule / VerifyInstrumentedModuleIsValid).
   TEST_METHOD(Validation_ControlValidModulePasses)
   TEST_METHOD(Validation_ControlInvalidModuleFails)
-  TEST_METHOD(Validation_ControlBoilerplateOnlyFailureIsRejected)
+  TEST_METHOD(Validation_ControlNonPixUnusedMetadataIsRejected)
+  TEST_METHOD(Validation_ControlCanonicalPartMetadataDivergenceIsRejected)
 
   dxc::DxCompilerDllLoader m_dllSupport;
   VersionSupportInfo m_ver;
@@ -319,18 +320,18 @@ public:
     std::string Errors;
   };
 
-  ValidationResult ValidateInstrumentedModule(IDxcBlob *pModule) {
-    CComPtr<IDxcBlob> pContainer;
-
-    // Some pass runners return a bare bitcode module; others already
-    // return a container. The validator accepts only a container.
+  // The validator (and the assembler, when reconstructing a container
+  // from bare bitcode) both require a container; some pass runners
+  // return bare bitcode instead.
+  CComPtr<IDxcBlob> NormalizeToContainer(IDxcBlob *pModule) {
     if (hlsl::IsDxilContainerLike(pModule->GetBufferPointer(),
                                   pModule->GetBufferSize()) != nullptr) {
-      pContainer = pModule;
-    } else {
-      pContainer = pix_test::WrapInNewContainer(m_dllSupport, pModule);
+      return pModule;
     }
+    return pix_test::WrapInNewContainer(m_dllSupport, pModule);
+  }
 
+  ValidationResult RunValidator(IDxcBlob *pContainer) {
     CComPtr<IDxcValidator> pValidator;
     VERIFY_SUCCEEDED(
         m_dllSupport.CreateInstance(CLSID_DxcValidator, &pValidator));
@@ -350,21 +351,106 @@ public:
     return {false, BlobToUtf8(pValidationErrors)};
   }
 
-  // Significant holds validator diagnostics other than boilerplate and the
-  // permitted metadata exception. PermittedExceptionCount counts the
-  // exception separately.
-  struct FilteredValidationDiagnostics {
-    std::vector<std::string> Significant;
-    int PermittedExceptionCount = 0;
-  };
+  // The four metadata kinds PIX's virtual-register annotation pass
+  // intentionally leaves unused for downstream tools to consume. See
+  // DxilPIXVirtualRegisters.h.
+  static constexpr const char *KnownPixVirtualRegisterMetadataKinds[] = {
+      pix_dxil::PixDxilInstNum::MDName, pix_dxil::PixDxilReg::MDName,
+      pix_dxil::PixAllocaReg::MDName, pix_dxil::PixAllocaRegWrite::MDName};
 
-  // Filters out boilerplate ("Validation failed.") and the permitted
-  // metadata exception: virtual-register annotation passes add metadata
-  // that DXIL does not consume, so the validator reports it as unused. Do
-  // not widen this filter.
-  FilteredValidationDiagnostics
+  // Removes the four known PIX metadata kinds from every function and
+  // instruction.
+  static void StripKnownPixVirtualRegisterMetadata(llvm::Module &M) {
+    llvm::LLVMContext &Ctx = M.getContext();
+    for (const char *kind : KnownPixVirtualRegisterMetadataKinds) {
+      unsigned kindID = Ctx.getMDKindID(kind);
+      for (llvm::Function &F : M) {
+        F.setMetadata(kindID, nullptr);
+        for (llvm::BasicBlock &BB : F) {
+          for (llvm::Instruction &I : BB) {
+            I.setMetadata(kindID, nullptr);
+          }
+        }
+      }
+    }
+  }
+
+  // Parses pContainer into an isolated LLVM module, applies Mutate to it,
+  // and re-serializes into a fresh validator-ready container.
+  template <typename MutatorFn>
+  CComPtr<IDxcBlob> CloneModuleAndMutate(IDxcBlob *pContainer,
+                                        MutatorFn Mutate) {
+    ModuleAndHangersOn moduleEtc(pContainer);
+    llvm::Module *M = moduleEtc.GetDxilModule().GetModule();
+    Mutate(*M);
+
+    llvm::SmallVector<char, 0> bitcode;
+    {
+      llvm::raw_svector_ostream OS(bitcode);
+      llvm::WriteBitcodeToFile(M, OS);
+    }
+
+    CComPtr<IDxcLibrary> pLibrary;
+    VERIFY_SUCCEEDED(m_dllSupport.CreateInstance(CLSID_DxcLibrary, &pLibrary));
+    CComPtr<IDxcBlobEncoding> pBitcodeBlob;
+    VERIFY_SUCCEEDED(pLibrary->CreateBlobWithEncodingFromPinned(
+        bitcode.data(), static_cast<UINT32>(bitcode.size()), CP_ACP,
+        &pBitcodeBlob));
+
+    return pix_test::WrapInNewContainer(m_dllSupport, pBitcodeBlob);
+  }
+
+  // Extracts pContainer's canonical DFCC_DXIL part as a bare-part blob (the
+  // form ModuleAndHangersOn already parses). Needed because
+  // ModuleAndHangersOn defaults to DFCC_ShaderDebugInfoDXIL, which can
+  // diverge from DFCC_DXIL -- see issue #8873.
+  CComPtr<IDxcBlobEncoding> ExtractCanonicalDxilPart(IDxcBlob *pContainer) {
+    const DxilContainerHeader *pHeader = IsDxilContainerLike(
+        pContainer->GetBufferPointer(), pContainer->GetBufferSize());
+    VERIFY_IS_TRUE(pHeader != nullptr);
+    DxilPartIterator it =
+        std::find_if(begin(pHeader), end(pHeader), DxilPartIsType(DFCC_DXIL));
+    VERIFY_IS_FALSE(it == end(pHeader));
+
+    CComPtr<IDxcLibrary> pLibrary;
+    VERIFY_SUCCEEDED(m_dllSupport.CreateInstance(CLSID_DxcLibrary, &pLibrary));
+    CComPtr<IDxcBlobEncoding> pPart;
+    VERIFY_SUCCEEDED(pLibrary->CreateBlobWithEncodingFromPinned(
+        const_cast<char *>(GetDxilPartData(*it)), (*it)->PartSize, CP_ACP,
+        &pPart));
+    return pPart;
+  }
+
+  ValidationResult ValidateInstrumentedModule(IDxcBlob *pModule) {
+    CComPtr<IDxcBlob> pContainer = NormalizeToContainer(pModule);
+
+    ValidationResult direct = RunValidator(pContainer);
+    if (direct.Valid) {
+      return direct;
+    }
+
+    // The validator's "unused metadata" diagnostic names the metadata
+    // node, not the kind, so text can't separate PIX's own annotations
+    // from any other unsupported metadata. Strip only the four known PIX
+    // kinds and revalidate; if that alone fixes it, PIX metadata was the
+    // sole cause. Clone from the canonical DFCC_DXIL part -- the same
+    // part `direct` just validated -- not the debug-info part, which can
+    // diverge from it (issue #8873).
+    CComPtr<IDxcBlob> strippedContainer =
+        CloneModuleAndMutate(ExtractCanonicalDxilPart(pContainer),
+                             StripKnownPixVirtualRegisterMetadata);
+    if (RunValidator(strippedContainer).Valid) {
+      return {true, {}};
+    }
+
+    return direct;
+  }
+
+  // Joins diagnostic lines, skipping blanks and "Validation failed."
+  // boilerplate.
+  static std::string
   GetSignificantValidationDiagnostics(const std::string &errors) {
-    FilteredValidationDiagnostics result;
+    std::string result;
     std::stringstream errorStream(errors);
     std::string line;
     while (std::getline(errorStream, line)) {
@@ -374,26 +460,14 @@ public:
       if (line.empty() || line == "Validation failed.") {
         continue;
       }
-      if (line.find("All metadata must be used by dxil") != std::string::npos) {
-        result.PermittedExceptionCount++;
-        continue;
-      }
-      result.Significant.push_back(line);
+      result += line + "\n";
     }
     return result;
   }
 
-  // True only if the diagnostics contain no significant errors and at
-  // least one instance of the permitted metadata exception.
-  bool IsPermittedValidationException(
-      const FilteredValidationDiagnostics &diagnostics) {
-    return diagnostics.Significant.empty() &&
-           diagnostics.PermittedExceptionCount > 0;
-  }
-
-  // Asserts an instrumented module validates. Accepts a module whose only
-  // diagnostic is the permitted metadata exception; logs and fails on any
-  // other validator error.
+  // Asserts an instrumented module validates, allowing for the four known
+  // PIX metadata kinds being unused; logs and fails on any other
+  // validator error.
   void VerifyInstrumentedModuleIsValid(IDxcBlob *pModule,
                                        const char *description) {
     ValidationResult validation = ValidateInstrumentedModule(pModule);
@@ -401,23 +475,9 @@ public:
       return;
     }
 
-    FilteredValidationDiagnostics diagnostics =
-        GetSignificantValidationDiagnostics(validation.Errors);
-    if (IsPermittedValidationException(diagnostics)) {
-      return;
-    }
-
-    std::string joined;
-    if (diagnostics.Significant.empty()) {
-      joined = "(validator reported failure with no significant diagnostic "
-               "text, and no permitted metadata exception was found)";
-    } else {
-      for (auto const &significantError : diagnostics.Significant) {
-        joined += significantError + "\n";
-      }
-    }
     WEX::Logging::Log::Error(WEX::Common::String().Format(
-        L"Validation failed after %S:\n%S", description, joined.c_str()));
+        L"Validation failed after %S:\n%S", description,
+        GetSignificantValidationDiagnostics(validation.Errors).c_str()));
     VERIFY_FAIL();
   }
 
@@ -4185,7 +4245,8 @@ float main() : SV_Target
 })x";
 
   // Virtual-register annotation adds metadata that DXIL does not consume,
-  // so this module only validates via the permitted metadata exception.
+  // so this module only validates because that metadata is one of the
+  // four known PIX kinds.
   auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
   auto output = RunSinglePass(compiled, L"-dxil-annotate-with-virtual-regs");
   VerifyInstrumentedModuleIsValid(
@@ -4201,20 +4262,11 @@ float main() : SV_Target
     return 0;
 })x";
 
-  // Same shader and pass as Validation_ControlValidModulePasses; only the
-  // corruption below differs.
   auto compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
   auto output = RunSinglePass(compiled, L"-dxil-annotate-with-virtual-regs");
 
-  // Confirm the baseline validates before corrupting it, so the failure
-  // below is caused by the corruption and nothing else.
-  VerifyInstrumentedModuleIsValid(
-      output.Module,
-      "virtual-register annotation of a trivial pixel shader, uncorrupted "
-      "baseline (validation harness control)");
-
-  // Mislabel the shader stage. The validator must reject this regardless
-  // of the permitted metadata exception.
+  // Mislabel the shader stage, so the container carries both the
+  // harness's permitted PIX metadata and a real defect.
   std::string disassembly = Disassemble(output.Module);
   const std::string shaderKindTag = "!\"ps\",";
   auto tagPosition = disassembly.find(shaderKindTag);
@@ -4236,40 +4288,113 @@ float main() : SV_Target
   CComPtr<IDxcBlob> pCorruptedContainer;
   VERIFY_SUCCEEDED(pAssembleResult->GetResult(&pCorruptedContainer));
 
+  // Direct validation's own diagnostic proves the PIX metadata is present
+  // and otherwise unused, alongside rejecting for the mislabeled stage.
+  ValidationResult direct = RunValidator(pCorruptedContainer);
+  VERIFY_IS_FALSE(direct.Valid);
+  VERIFY_IS_TRUE(direct.Errors.find("All metadata must be used by dxil") !=
+                std::string::npos);
+
+  // The harness must still reject it, for a reason other than the
+  // permitted metadata.
   ValidationResult validation = ValidateInstrumentedModule(pCorruptedContainer);
   VERIFY_IS_FALSE(validation.Valid);
-
-  // Confirm the corruption produces a real diagnostic, not just the
-  // permitted metadata exception.
-  FilteredValidationDiagnostics diagnostics =
-      GetSignificantValidationDiagnostics(validation.Errors);
-  VERIFY_IS_FALSE(diagnostics.Significant.empty());
+  VERIFY_IS_FALSE(
+      GetSignificantValidationDiagnostics(validation.Errors).empty());
 }
 
-// Tests that a validator failure is rejected unless its only diagnostic is
-// the permitted metadata exception. A failure with only the "Validation
-// failed." boilerplate and no exception must not pass.
-TEST_F(PixTest, Validation_ControlBoilerplateOnlyFailureIsRejected) {
-  // Boilerplate only, no permitted exception: must be rejected.
-  FilteredValidationDiagnostics boilerplateOnly =
-      GetSignificantValidationDiagnostics("Validation failed.\n");
-  VERIFY_IS_TRUE(boilerplateOnly.Significant.empty());
-  VERIFY_ARE_EQUAL(boilerplateOnly.PermittedExceptionCount, 0);
-  VERIFY_IS_FALSE(IsPermittedValidationException(boilerplateOnly));
+// A foreign, unused instruction metadata kind alongside the module's own
+// permitted PIX metadata must still be rejected: stripping only the four
+// known PIX kinds leaves it behind.
+TEST_F(PixTest, Validation_ControlNonPixUnusedMetadataIsRejected) {
+  const char *source = R"x(
+float main() : SV_Target
+{
+    return 0;
+})x";
 
-  // Permitted exception present: must be accepted.
-  FilteredValidationDiagnostics exceptionOnly =
-      GetSignificantValidationDiagnostics(
-          "Validation failed.\n"
-          "All metadata must be used by dxil's users.\n");
-  VERIFY_IS_TRUE(exceptionOnly.Significant.empty());
-  VERIFY_IS_TRUE(exceptionOnly.PermittedExceptionCount > 0);
-  VERIFY_IS_TRUE(IsPermittedValidationException(exceptionOnly));
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-dxil-annotate-with-virtual-regs");
+  CComPtr<IDxcBlob> pContainer = NormalizeToContainer(output.Module);
 
-  // Real diagnostic present: must be rejected, even with the exception.
-  FilteredValidationDiagnostics realDiagnostic =
-      GetSignificantValidationDiagnostics("Validation failed.\n"
-                                          "Some real validator diagnostic.\n");
-  VERIFY_IS_FALSE(realDiagnostic.Significant.empty());
-  VERIFY_IS_FALSE(IsPermittedValidationException(realDiagnostic));
+  CComPtr<IDxcBlob> withForeignMetadata =
+      CloneModuleAndMutate(pContainer, [](llvm::Module &M) {
+        for (llvm::Function &F : M) {
+          if (F.isDeclaration()) {
+            continue;
+          }
+          llvm::Instruction &I = *F.begin()->begin();
+          I.setMetadata("not-a-pix-kind",
+                        llvm::MDNode::get(M.getContext(), {}));
+          break;
+        }
+      });
+
+  ValidationResult validation = ValidateInstrumentedModule(withForeignMetadata);
+  VERIFY_IS_FALSE(validation.Valid);
+}
+
+// The harness's fallback must strip and revalidate the same canonical
+// DFCC_DXIL part the validator rejected, not a debug-info part that can
+// diverge from it (issue #8873): the canonical part here carries a real
+// defect alongside permitted PIX metadata, while the debug-info part
+// carries only the metadata with no defect.
+TEST_F(PixTest, Validation_ControlCanonicalPartMetadataDivergenceIsRejected) {
+  const char *source = R"x(
+float main() : SV_Target
+{
+    return 0;
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-dxil-annotate-with-virtual-regs");
+  CComPtr<IDxcBlob> cleanContainer = NormalizeToContainer(output.Module);
+
+  // Corrupt a copy's shader-kind tag; disassemble/reassemble regenerates
+  // both parts, so both now carry the corruption alongside the module's
+  // existing PIX metadata.
+  std::string disassembly = Disassemble(output.Module);
+  const std::string shaderKindTag = "!\"ps\",";
+  size_t tagPosition = disassembly.find(shaderKindTag);
+  VERIFY_IS_TRUE(tagPosition != std::string::npos);
+  disassembly.replace(tagPosition, shaderKindTag.size(), "!\"vs\",");
+  CComPtr<IDxcBlobEncoding> pDisassemblyBlob;
+  CreateBlobFromText(m_dllSupport, disassembly.c_str(), &pDisassemblyBlob);
+  CComPtr<IDxcBlob> corruptedContainer =
+      pix_test::WrapInNewContainer(m_dllSupport, pDisassemblyBlob);
+
+  // Splice the clean copy's debug-info part (PIX metadata only, no
+  // corruption) into the corrupted container in place of its own;
+  // IDxcContainerBuilder cannot replace DFCC_DXIL, so the corrupted
+  // container's canonical part keeps the real defect.
+  CComPtr<IDxcContainerReflection> pReflection;
+  VERIFY_SUCCEEDED(
+      m_dllSupport.CreateInstance(CLSID_DxcContainerReflection, &pReflection));
+  VERIFY_SUCCEEDED(pReflection->Load(cleanContainer));
+  UINT32 cleanDebugPartIndex;
+  VERIFY_SUCCEEDED(pReflection->FindFirstPartKind(DFCC_ShaderDebugInfoDXIL,
+                                                  &cleanDebugPartIndex));
+  CComPtr<IDxcBlob> cleanDebugPartContent;
+  VERIFY_SUCCEEDED(
+      pReflection->GetPartContent(cleanDebugPartIndex, &cleanDebugPartContent));
+
+  CComPtr<IDxcContainerBuilder> pContainerBuilder;
+  VERIFY_SUCCEEDED(CreateContainerBuilder(&pContainerBuilder));
+  VERIFY_SUCCEEDED(pContainerBuilder->Load(corruptedContainer));
+  VERIFY_SUCCEEDED(pContainerBuilder->RemovePart(DFCC_ShaderDebugInfoDXIL));
+  VERIFY_SUCCEEDED(pContainerBuilder->AddPart(DFCC_ShaderDebugInfoDXIL,
+                                              cleanDebugPartContent));
+  CComPtr<IDxcOperationResult> pBuildResult;
+  VERIFY_SUCCEEDED(pContainerBuilder->SerializeContainer(&pBuildResult));
+  HRESULT buildStatus;
+  VERIFY_SUCCEEDED(pBuildResult->GetStatus(&buildStatus));
+  VERIFY_SUCCEEDED(buildStatus);
+  CComPtr<IDxcBlob> divergentContainer;
+  VERIFY_SUCCEEDED(pBuildResult->GetResult(&divergentContainer));
+
+  ValidationResult validation = ValidateInstrumentedModule(divergentContainer);
+  VERIFY_IS_FALSE(validation.Valid);
 }
