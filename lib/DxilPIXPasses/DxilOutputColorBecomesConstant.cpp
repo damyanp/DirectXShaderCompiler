@@ -16,7 +16,10 @@
 #include "dxc/DxilPIXPasses/DxilPIXPasses.h"
 #include "dxc/HLSL/DxilGenerationPass.h"
 #include "dxc/HLSL/DxilSpanAllocator.h"
+#include "dxc/Support/exception.h"
 
+#include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/APSInt.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include <array>
@@ -25,6 +28,35 @@
 
 using namespace llvm;
 using namespace hlsl;
+
+namespace {
+// Converts a pass-option float color channel to a signed 64-bit integer
+// for use as an integer render-target constant, without invoking the C++
+// undefined behavior a bare static_cast<int64_t> would for a NaN,
+// +/-infinity, or a finite value outside int64_t's representable range.
+// APFloat::convertToInteger performs that range check itself (it cannot
+// itself invoke UB); opStatus is a bitmask (opOK=0x00, opInvalidOp=0x01,
+// opDivByZero=0x02, opOverflow=0x04, opUnderflow=0x08, opInexact=0x10),
+// so only opOK or exactly opInexact are accepted -- an equality check
+// against opInvalidOp alone would miss opInvalidOp combined with any
+// other bit. A normal in-range value with a fractional part still
+// truncates toward zero exactly as static_cast would (that case reports
+// opInexact and is accepted here), so every previously-valid, finite,
+// in-range value keeps its existing truncation and eventual ConstantInt
+// target-width modulo/truncation behavior unchanged.
+bool ConvertColorChannelToInt64(float value, int64_t *out) {
+  APFloat apf(value);
+  APSInt result(64, /*isUnsigned*/ false);
+  bool isExact = false;
+  APFloat::opStatus status =
+      apf.convertToInteger(result, APFloat::rmTowardZero, &isExact);
+  if (status != APFloat::opOK && status != APFloat::opInexact) {
+    return false;
+  }
+  *out = result.getExtValue();
+  return true;
+}
+} // namespace
 
 class DxilOutputColorBecomesConstant : public ModulePass {
 
@@ -167,13 +199,23 @@ bool DxilOutputColorBecomesConstant::runOnModule(Module &M) {
     const std::array<float, 4> Channels{Red, Green, Blue, Alpha};
     for (size_t ChannelIndex = 0; ChannelIndex < Channels.size();
          ++ChannelIndex) {
-      ReplacementColors[ChannelIndex] =
-          IsFloatOutput
-              ? ConstantFP::get(OutputValueType, Channels[ChannelIndex])
-              : ConstantInt::get(OutputValueType,
-                                 static_cast<uint64_t>(static_cast<int64_t>(
-                                     Channels[ChannelIndex])),
-                                 /*isSigned*/ true);
+      if (IsFloatOutput) {
+        ReplacementColors[ChannelIndex] =
+            ConstantFP::get(OutputValueType, Channels[ChannelIndex]);
+      } else {
+        int64_t IntegerChannelValue = 0;
+        if (!ConvertColorChannelToInt64(Channels[ChannelIndex],
+                                        &IntegerChannelValue)) {
+          throw ::hlsl::Exception(
+              DXC_E_GENERAL_INTERNAL_ERROR,
+              "PIX: a constant-color channel value is not representable "
+              "as the integer render-target output type (NaN, "
+              "infinite, or outside 64-bit signed integer range).");
+        }
+        ReplacementColors[ChannelIndex] = ConstantInt::get(
+            OutputValueType, static_cast<uint64_t>(IntegerChannelValue),
+            /*isSigned*/ true);
+      }
     }
   } break;
   case FromConstantBuffer: {

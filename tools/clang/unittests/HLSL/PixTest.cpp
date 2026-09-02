@@ -173,6 +173,12 @@ public:
   TEST_METHOD(ConstantColor_NoTargetOverloadsAreErased)
   TEST_METHOD(ConstantColor_FromConstantBufferIsWellFormed)
   TEST_METHOD(ConstantColor_FromConstantBufferInt16NarrowingIsValid)
+  TEST_METHOD(ConstantColor_IntegerNaNRejectsCleanly)
+  TEST_METHOD(ConstantColor_IntegerInfinityRejectsCleanly)
+  TEST_METHOD(ConstantColor_IntegerOutOfRangeRejectsCleanly)
+  TEST_METHOD(ConstantColor_IntegerFractionalTruncatesTowardZero)
+  TEST_METHOD(ConstantColor_Int16BoundaryValueSucceeds)
+  TEST_METHOD(ConstantColor_FloatOutputAcceptsNaN)
   TEST_METHOD(RemoveDiscards_UnusedDiscardOverloadIsErased)
   TEST_METHOD(ReduceMSAAToSingleSample_SM66)
   TEST_METHOD(ReduceMSAAToSingleSample_HalfLoad)
@@ -338,6 +344,32 @@ public:
     ret.Module = pOptimizedModule;
     ret.Lines = Tokenize(BlobToUtf8(pText).c_str(), "\n");
     return ret;
+  }
+
+  // Like RunSinglePass, but returns the RunOptimizer HRESULT directly
+  // instead of asserting success, so a pass that is expected to reject
+  // its input (via a thrown hlsl::Exception, converted to a failed
+  // HRESULT by CATCH_CPP_RETURN_HRESULT) can be observed without
+  // aborting the test.
+  HRESULT RunSinglePassCapturingStatus(IDxcBlob *dxil, LPCWSTR passOption,
+                                       SinglePassOutput *output) {
+    CComPtr<IDxcOptimizer> pOptimizer;
+    VERIFY_SUCCEEDED(
+        m_dllSupport.CreateInstance(CLSID_DxcOptimizer, &pOptimizer));
+    std::vector<LPCWSTR> Options;
+    Options.push_back(L"-opt-mod-passes");
+    Options.push_back(passOption);
+    Options.push_back(L"-hlsl-dxilemit");
+
+    CComPtr<IDxcBlob> pOptimizedModule;
+    CComPtr<IDxcBlobEncoding> pText;
+    HRESULT hr = pOptimizer->RunOptimizer(dxil, Options.data(), Options.size(),
+                                          &pOptimizedModule, &pText);
+    output->Module = pOptimizedModule;
+    if (pText != nullptr) {
+      output->Lines = Tokenize(BlobToUtf8(pText).c_str(), "\n");
+    }
+    return hr;
   }
 
   // PIX does not validate the shaders its passes instrument, so a pass
@@ -1448,6 +1480,30 @@ HasBufferStoreValueMatchingMask(std::vector<std::string> const &lines,
         return true;
       }
     }
+  }
+  return false;
+}
+
+// Scans every "float 0x<16 hex digits>" constant in the disassembly --
+// LLVM always prints a float that needs it in this always-double-
+// precision hex form -- and returns true if any is NaN, checked via the
+// IEEE 754 double bit pattern (exponent all-ones, non-zero mantissa)
+// rather than any specific payload value.
+static bool HasNaNFloatConstant(const std::string &disassembly) {
+  const std::string Needle = "float 0x";
+  size_t position = 0;
+  while ((position = disassembly.find(Needle, position)) != std::string::npos) {
+    const char *digitsStart = disassembly.c_str() + position + Needle.size();
+    char *end = nullptr;
+    uint64_t bits = std::strtoull(digitsStart, &end, 16);
+    if (end != digitsStart) {
+      uint64_t exponent = (bits >> 52) & 0x7FF;
+      uint64_t mantissa = bits & 0xFFFFFFFFFFFFFULL;
+      if (exponent == 0x7FF && mantissa != 0) {
+        return true;
+      }
+    }
+    position += Needle.size();
   }
   return false;
 }
@@ -4401,6 +4457,142 @@ uint16_t4 main() : SV_Target
   VerifyInstrumentedModuleIsValid(
       pNewContainer, "constant-colour from constant buffer, 16-bit integer "
                      "narrowing");
+}
+
+// A bare static_cast<int64_t> of a pass-option float is C++ undefined
+// behavior for a NaN, +/-infinity, or a finite value outside int64_t's
+// representable range. These tests call RunSinglePassCapturingStatus
+// (not RunSinglePass, which asserts success internally and would abort
+// the test before a real rejection could be observed) so both the
+// rejecting and the succeeding cases are proven against the real pass.
+// Only "constant-red" is set; the pass's per-channel loop reaches it
+// first, so setting only this one channel is sufficient to exercise the
+// checked-conversion path without needing all four.
+
+static const char *const IntTargetSource = R"(
+int4 main() : SV_Target
+{
+    return int4(0, 0, 0, 0);
+})";
+static const char *const Int16TargetSource = R"(
+int16_t4 main() : SV_Target
+{
+    return int16_t4(0, 0, 0, 0);
+})";
+
+TEST_F(PixTest, ConstantColor_IntegerNaNRejectsCleanly) {
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, IntTargetSource, L"ps_6_0", {L"-Od"});
+
+  SinglePassOutput output;
+  HRESULT hr = RunSinglePassCapturingStatus(
+      compiled, L"-hlsl-dxil-constantColor,constant-red=nan", &output);
+  VERIFY_ARE_EQUAL(DXC_E_GENERAL_INTERNAL_ERROR, hr);
+  VERIFY_IS_TRUE(output.Module == nullptr);
+}
+
+// Covers both signs of infinity in one test: both reach the identical
+// range-check branch, so the sign has no bearing on which branch is
+// exercised.
+TEST_F(PixTest, ConstantColor_IntegerInfinityRejectsCleanly) {
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, IntTargetSource, L"ps_6_0", {L"-Od"});
+
+  SinglePassOutput output;
+  VERIFY_ARE_EQUAL(
+      DXC_E_GENERAL_INTERNAL_ERROR,
+      RunSinglePassCapturingStatus(
+          compiled, L"-hlsl-dxil-constantColor,constant-red=inf", &output));
+  VERIFY_IS_TRUE(output.Module == nullptr);
+
+  VERIFY_ARE_EQUAL(
+      DXC_E_GENERAL_INTERNAL_ERROR,
+      RunSinglePassCapturingStatus(
+          compiled, L"-hlsl-dxil-constantColor,constant-red=-inf", &output));
+  VERIFY_IS_TRUE(output.Module == nullptr);
+}
+
+// 1e19 is finite and well within float's own representable range
+// (float's max magnitude is roughly 3.4e38), so this is a genuinely
+// finite-but-out-of-int64_t-range value, distinct from the infinity
+// cases above -- int64_t's max magnitude is roughly 9.2e18. Covers both
+// signs in one test for the same reason as the infinity case above.
+TEST_F(PixTest, ConstantColor_IntegerOutOfRangeRejectsCleanly) {
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, IntTargetSource, L"ps_6_0", {L"-Od"});
+
+  SinglePassOutput output;
+  VERIFY_ARE_EQUAL(
+      DXC_E_GENERAL_INTERNAL_ERROR,
+      RunSinglePassCapturingStatus(
+          compiled, L"-hlsl-dxil-constantColor,constant-red=1e19", &output));
+  VERIFY_IS_TRUE(output.Module == nullptr);
+
+  VERIFY_ARE_EQUAL(
+      DXC_E_GENERAL_INTERNAL_ERROR,
+      RunSinglePassCapturingStatus(
+          compiled, L"-hlsl-dxil-constantColor,constant-red=-1e19", &output));
+  VERIFY_IS_TRUE(output.Module == nullptr);
+}
+
+// A representable, in-range, fractional value must still truncate
+// toward zero exactly as the original bare static_cast did (3.7 -> 3,
+// not 4; -3.7 -> -3, not -4): this fix only adds a NaN/infinity/range
+// guard, it does not change the truncation behavior for a value that
+// was already valid.
+TEST_F(PixTest, ConstantColor_IntegerFractionalTruncatesTowardZero) {
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, IntTargetSource, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output = RunSinglePass(
+      compiled,
+      L"-hlsl-dxil-constantColor,constant-red=3.7,constant-green=-3.7");
+  const std::string text = Disassemble(output.Module);
+  VERIFY_ARE_NOT_EQUAL(std::string::npos, text.find("i32 3)"));
+  VERIFY_ARE_NOT_EQUAL(std::string::npos, text.find("i32 -3)"));
+  VerifyInstrumentedModuleIsValid(
+      output.Module, "constant-colour integer truncation toward zero");
+}
+
+// A valid, in-range value must still succeed at a target width other
+// than the 32-bit tests above, proving the added check is independent
+// of the eventual ConstantInt target-width truncation.
+TEST_F(PixTest, ConstantColor_Int16BoundaryValueSucceeds) {
+  if (m_ver.SkipDxilVersion(1, 2))
+    return;
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, Int16TargetSource, L"ps_6_2",
+              {L"-Od", L"-enable-16bit-types"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-constantColor,constant-red=3.7");
+  const std::string text = Disassemble(output.Module);
+  VERIFY_ARE_NOT_EQUAL(std::string::npos, text.find("i16 3)"));
+  VerifyInstrumentedModuleIsValid(
+      output.Module, "constant-colour 16-bit integer boundary value");
+}
+
+// The float output path must retain its existing behavior: ConstantFP
+// can represent NaN directly (unlike ConstantInt), so a float target
+// must not be rejected by the integer-only conversion check added above
+// -- IsFloatOutput short-circuits it entirely.
+TEST_F(PixTest, ConstantColor_FloatOutputAcceptsNaN) {
+  const char *source = R"x(
+float4 main() : SV_Target
+{
+    return float4(0, 0, 0, 0);
+})x";
+
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_0", {L"-Od"});
+  SinglePassOutput output =
+      RunSinglePass(compiled, L"-hlsl-dxil-constantColor,constant-red=nan");
+  const std::string text = Disassemble(output.Module);
+  // What matters is that some NaN constant is accepted (not rejected)
+  // for a float target; checked categorically via the IEEE 754 bit
+  // pattern, not any specific payload.
+  VERIFY_IS_TRUE(HasNaNFloatConstant(text));
+  VerifyInstrumentedModuleIsValid(output.Module,
+                                  "constant-colour float output accepts NaN");
 }
 
 static void
