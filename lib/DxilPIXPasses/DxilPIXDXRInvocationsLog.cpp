@@ -212,7 +212,7 @@ bool DxilPIXDXRInvocationsLog::runOnModule(Module &M) {
 
     // The counter keeps counting past the log capacity. Skip the stores once
     // the claimed slot is out of range, so the recorded entries stay intact.
-    auto *EntryIndexIsInRange = Builder.CreateICmpULT(
+    Value *EntryIndexIsInRange = Builder.CreateICmpULT(
         EntryIndex, MaxEntryCountAsConstant, "EntryIndexIsInRange");
     TerminatorInst *StoreEntryBlockTerminator =
         SplitBlockAndInsertIfThen(EntryIndexIsInRange, InsertionPoint,

@@ -170,6 +170,7 @@ public:
   TEST_METHOD(DxilPIXDXRInvocationsLog_OneEntryUsesEntryCountBound)
   TEST_METHOD(DxilPIXDXRInvocationsLog_ExactCapacityUsesEntryCountBound)
   TEST_METHOD(DxilPIXDXRInvocationsLog_OverflowGuardValidates)
+  TEST_METHOD(DxilPIXDXRInvocationsLog_EntryCountCheckRejectsLongerBound)
 
   TEST_METHOD(DebugInstrumentation_TextOutput)
   TEST_METHOD(DebugInstrumentation_BlockReport)
@@ -750,10 +751,24 @@ static int CountToolsUAVRecords(std::vector<std::string> const &lines) {
 static bool
 HasDxrInvocationLogEntryCountCheck(std::vector<std::string> const &lines,
                                    unsigned expectedEntryCount) {
-  const std::string expectedSuffix = ", " + std::to_string(expectedEntryCount);
+  const std::string prefix = "icmp ult i32 %EntryIndexResult, ";
   for (auto const &line : lines) {
-    if (line.find("icmp ult i32 %EntryIndexResult") != std::string::npos &&
-        line.find(expectedSuffix) != std::string::npos) {
+    size_t prefixPos = line.find(prefix);
+    if (prefixPos == std::string::npos) {
+      continue;
+    }
+    size_t numberPos = prefixPos + prefix.size();
+    size_t numberEnd = numberPos;
+    while (numberEnd < line.size() &&
+           isdigit(static_cast<unsigned char>(line[numberEnd]))) {
+      ++numberEnd;
+    }
+    if (numberEnd == numberPos) {
+      continue;
+    }
+    unsigned actualEntryCount = static_cast<unsigned>(
+        std::stoul(line.substr(numberPos, numberEnd - numberPos)));
+    if (actualEntryCount == expectedEntryCount) {
       return true;
     }
   }
@@ -3972,40 +3987,51 @@ void MyMiss(inout MyPayload payload)
 }
 
 TEST_F(PixTest, DxilPIXDXRInvocationsLog_ZeroCapacityEmitsNothing) {
-  auto compiledLib =
+  CComPtr<IDxcBlob> compiledLib =
       Compile(m_dllSupport, kSingleMissInvocationLogShader, L"lib_6_6", {});
 
-  auto oneEntryOutput = RunDxilPIXDXRInvocationsLog(compiledLib, 1);
-  auto oneEntryLines = Tokenize(Disassemble(oneEntryOutput), "\n");
+  CComPtr<IDxcBlob> oneEntryOutput =
+      RunDxilPIXDXRInvocationsLog(compiledLib, 1);
+  std::vector<std::string> oneEntryLines =
+      Tokenize(Disassemble(oneEntryOutput), "\n");
   VERIFY_ARE_EQUAL(2, CountToolsUAVRecords(oneEntryLines));
 
-  auto zeroEntryOutput = RunDxilPIXDXRInvocationsLog(compiledLib, 0);
-  auto zeroEntryLines = Tokenize(Disassemble(zeroEntryOutput), "\n");
+  CComPtr<IDxcBlob> zeroEntryOutput =
+      RunDxilPIXDXRInvocationsLog(compiledLib, 0);
+  std::vector<std::string> zeroEntryLines =
+      Tokenize(Disassemble(zeroEntryOutput), "\n");
   VERIFY_ARE_EQUAL(0, CountToolsUAVRecords(zeroEntryLines));
 }
 
 TEST_F(PixTest, DxilPIXDXRInvocationsLog_OneEntryUsesEntryCountBound) {
-  auto compiledLib =
+  CComPtr<IDxcBlob> compiledLib =
       Compile(m_dllSupport, kSingleMissInvocationLogShader, L"lib_6_6", {});
-  auto output = RunDxilPIXDXRInvocationsLog(compiledLib, 1);
-  auto lines = Tokenize(Disassemble(output), "\n");
+  CComPtr<IDxcBlob> output = RunDxilPIXDXRInvocationsLog(compiledLib, 1);
+  std::vector<std::string> lines = Tokenize(Disassemble(output), "\n");
 
   VERIFY_IS_TRUE(HasDxrInvocationLogEntryCountCheck(lines, 1));
 }
 
 TEST_F(PixTest, DxilPIXDXRInvocationsLog_ExactCapacityUsesEntryCountBound) {
-  auto compiledLib =
+  CComPtr<IDxcBlob> compiledLib =
       Compile(m_dllSupport, kSingleMissInvocationLogShader, L"lib_6_6", {});
-  auto output = RunDxilPIXDXRInvocationsLog(compiledLib, 24);
-  auto lines = Tokenize(Disassemble(output), "\n");
+  CComPtr<IDxcBlob> output = RunDxilPIXDXRInvocationsLog(compiledLib, 24);
+  std::vector<std::string> lines = Tokenize(Disassemble(output), "\n");
 
   VERIFY_IS_TRUE(HasDxrInvocationLogEntryCountCheck(lines, 24));
 }
 
+TEST_F(PixTest, DxilPIXDXRInvocationsLog_EntryCountCheckRejectsLongerBound) {
+  std::vector<std::string> lines = {
+      "  %x = icmp ult i32 %EntryIndexResult, 100"};
+  VERIFY_IS_FALSE(HasDxrInvocationLogEntryCountCheck(lines, 1));
+  VERIFY_IS_TRUE(HasDxrInvocationLogEntryCountCheck(lines, 100));
+}
+
 TEST_F(PixTest, DxilPIXDXRInvocationsLog_OverflowGuardValidates) {
-  auto compiledLib =
+  CComPtr<IDxcBlob> compiledLib =
       Compile(m_dllSupport, kSingleMissInvocationLogShader, L"lib_6_6", {});
-  auto output = RunDxilPIXDXRInvocationsLog(compiledLib, 1);
+  CComPtr<IDxcBlob> output = RunDxilPIXDXRInvocationsLog(compiledLib, 1);
   std::string disassembly = Disassemble(output);
 
   VERIFY_IS_TRUE(disassembly.find("@dx.op.binary.i32") == std::string::npos);
