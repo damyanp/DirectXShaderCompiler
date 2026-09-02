@@ -54,6 +54,7 @@
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/IR/DebugInfo.h"
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Intrinsics.h"
@@ -153,6 +154,10 @@ public:
   TEST_METHOD(DebugInstrumentation_RawBufferShaderFlagDeclared)
   TEST_METHOD(ToolsUav_RootSignatureSerializationFailurePreservesSignature)
   TEST_METHOD(ToolsUav_ExtendingRootSignaturePreservesUnrelatedParameterFlags)
+  TEST_METHOD(ToolsUav_UAVBatchWithinBudgetSucceeds)
+  TEST_METHOD(ToolsUav_UAVBatchOverBudgetRejectsWithNoMutation)
+  TEST_METHOD(ToolsUav_TwoUAVBatchOverBudgetRejectsBothAtomically)
+  TEST_METHOD(ToolsUav_OneUnextendableSubobjectLeavesAllSubobjectsUnchanged)
   TEST_METHOD(ConstantColor_UnusedIntOverloadIsErased)
   TEST_METHOD(ConstantColor_NoTargetOverloadsAreErased)
   TEST_METHOD(RemoveDiscards_UnusedDiscardOverloadIsErased)
@@ -3524,6 +3529,183 @@ void main()
                    DxilRootDescriptorFlags::None);
     DeleteRootSignature(afterAdd);
   }
+}
+
+static std::vector<uint8_t>
+SerializeConstantsOnlyRootSignature(uint32_t costInDwords) {
+  DxilRootParameter1 parameter = {};
+  parameter.ParameterType = DxilRootParameterType::Constants32Bit;
+  parameter.Constants.ShaderRegister = 0;
+  parameter.Constants.RegisterSpace = 0;
+  parameter.Constants.Num32BitValues = costInDwords;
+  parameter.ShaderVisibility = DxilShaderVisibility::All;
+
+  DxilVersionedRootSignatureDesc rootSignature = {};
+  rootSignature.Version = DxilRootSignatureVersion::Version_1_1;
+  rootSignature.Desc_1_1.NumParameters = 1;
+  rootSignature.Desc_1_1.pParameters = &parameter;
+  rootSignature.Desc_1_1.Flags = DxilRootSignatureFlags::None;
+
+  CComPtr<IDxcBlob> serialized;
+  CComPtr<IDxcBlobEncoding> errorBlob;
+  SerializeRootSignature(&rootSignature, &serialized, &errorBlob, true);
+  VERIFY_IS_NOT_NULL(serialized);
+
+  const uint8_t *data =
+      static_cast<const uint8_t *>(serialized->GetBufferPointer());
+  return std::vector<uint8_t>(data, data + serialized->GetBufferSize());
+}
+
+TEST_F(PixTest, ToolsUav_UAVBatchWithinBudgetSucceeds) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{
+})x";
+
+  std::vector<uint8_t> originalRootSignature =
+      SerializeConstantsOnlyRootSignature(62);
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(originalRootSignature);
+
+  llvm::Function *entryFunction = PIXPassHelpers::GetEntryFunction(DM);
+  llvm::IRBuilder<> Builder(dxilutil::FirstNonAllocaInsertionPt(entryFunction));
+  PIXPassHelpers::BatchUAVHandles result =
+      PIXPassHelpers::CreateUAVHandlesOnceForModule(DM, Builder,
+                                                    {{0u, "PIX_TestUAV"}});
+  VERIFY_IS_TRUE(result.Success);
+  VERIFY_IS_NOT_NULL(result.Handles[0]);
+
+  const std::vector<uint8_t> &bytes = DM.GetSerializedRootSignature();
+  DxilVersionedRootSignatureDesc const *afterAdd = nullptr;
+  DeserializeRootSignature(bytes.data(), static_cast<uint32_t>(bytes.size()),
+                           &afterAdd);
+  VERIFY_ARE_EQUAL(afterAdd->Desc_1_1.NumParameters, 2u);
+  VERIFY_IS_TRUE(RootSignatureHasToolsUAV(afterAdd, 0));
+  DeleteRootSignature(afterAdd);
+}
+
+TEST_F(PixTest, ToolsUav_UAVBatchOverBudgetRejectsWithNoMutation) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{
+})x";
+
+  std::vector<uint8_t> originalRootSignature =
+      SerializeConstantsOnlyRootSignature(64);
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(originalRootSignature);
+
+  llvm::Function *entryFunction = PIXPassHelpers::GetEntryFunction(DM);
+  llvm::IRBuilder<> Builder(dxilutil::FirstNonAllocaInsertionPt(entryFunction));
+  PIXPassHelpers::BatchUAVHandles result =
+      PIXPassHelpers::CreateUAVHandlesOnceForModule(DM, Builder,
+                                                    {{0u, "PIX_TestUAV"}});
+  VERIFY_IS_FALSE(result.Success);
+  VERIFY_ARE_EQUAL(DM.GetUAVs().size(), 0u);
+
+  const std::vector<uint8_t> &actualRootSignature =
+      DM.GetSerializedRootSignature();
+  VERIFY_ARE_EQUAL(originalRootSignature.size(), actualRootSignature.size());
+  VERIFY_IS_TRUE(std::equal(originalRootSignature.begin(),
+                            originalRootSignature.end(),
+                            actualRootSignature.begin()));
+}
+
+TEST_F(PixTest, ToolsUav_TwoUAVBatchOverBudgetRejectsBothAtomically) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{
+})x";
+
+  std::vector<uint8_t> originalRootSignature =
+      SerializeConstantsOnlyRootSignature(62);
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+  DM.ResetSerializedRootSignature(originalRootSignature);
+
+  llvm::Function *entryFunction = PIXPassHelpers::GetEntryFunction(DM);
+  llvm::IRBuilder<> Builder(dxilutil::FirstNonAllocaInsertionPt(entryFunction));
+  PIXPassHelpers::BatchUAVHandles result =
+      PIXPassHelpers::CreateUAVHandlesOnceForModule(
+          DM, Builder, {{0u, "PIX_TestUAV0"}, {1u, "PIX_TestUAV1"}});
+  VERIFY_IS_FALSE(result.Success);
+  VERIFY_IS_TRUE(result.Handles.empty());
+  VERIFY_ARE_EQUAL(DM.GetUAVs().size(), 0u);
+
+  const std::vector<uint8_t> &actualRootSignature =
+      DM.GetSerializedRootSignature();
+  VERIFY_ARE_EQUAL(originalRootSignature.size(), actualRootSignature.size());
+  VERIFY_IS_TRUE(std::equal(originalRootSignature.begin(),
+                            originalRootSignature.end(),
+                            actualRootSignature.begin()));
+}
+
+TEST_F(PixTest, ToolsUav_OneUnextendableSubobjectLeavesAllSubobjectsUnchanged) {
+  const char *source = R"x(
+[numthreads(1, 1, 1)]
+void main()
+{
+})x";
+
+  std::vector<uint8_t> roomySignature = SerializeConstantsOnlyRootSignature(0);
+  std::vector<uint8_t> fullSignature = SerializeConstantsOnlyRootSignature(64);
+
+  CComPtr<IDxcBlob> compiled = Compile(m_dllSupport, source, L"cs_6_0", {});
+  ModuleAndHangersOn moduleEtc(compiled);
+  DxilModule &DM = moduleEtc.GetDxilModule();
+
+  std::unique_ptr<DxilSubobjects> subObjects(new DxilSubobjects());
+  constexpr bool notALocalRootSignature = false;
+  subObjects->CreateRootSignature("roomySignature", notALocalRootSignature,
+                                  roomySignature.data(),
+                                  static_cast<uint32_t>(roomySignature.size()));
+  subObjects->CreateRootSignature("fullSignature", notALocalRootSignature,
+                                  fullSignature.data(),
+                                  static_cast<uint32_t>(fullSignature.size()));
+  DM.ResetSubobjects(subObjects.release());
+
+  llvm::Function *entryFunction = PIXPassHelpers::GetEntryFunction(DM);
+  llvm::IRBuilder<> Builder(dxilutil::FirstNonAllocaInsertionPt(entryFunction));
+  PIXPassHelpers::BatchUAVHandles result =
+      PIXPassHelpers::CreateUAVHandlesOnceForModule(DM, Builder,
+                                                    {{0u, "PIX_TestUAV"}});
+  VERIFY_IS_FALSE(result.Success);
+
+  bool foundRoomySignature = false;
+  bool foundFullSignature = false;
+  for (const std::pair<llvm::StringRef, std::unique_ptr<DxilSubobject>>
+           &subObject : DM.GetSubobjects()->GetSubobjects()) {
+    const void *data = nullptr;
+    uint32_t size = 0;
+    if (subObject.first == "roomySignature") {
+      VERIFY_IS_TRUE(subObject.second->GetRootSignature(notALocalRootSignature,
+                                                        data, size, nullptr));
+      VERIFY_ARE_EQUAL(roomySignature.size(), static_cast<size_t>(size));
+      VERIFY_IS_TRUE(std::equal(roomySignature.begin(), roomySignature.end(),
+                                static_cast<const uint8_t *>(data)));
+      foundRoomySignature = true;
+    } else if (subObject.first == "fullSignature") {
+      VERIFY_IS_TRUE(subObject.second->GetRootSignature(notALocalRootSignature,
+                                                        data, size, nullptr));
+      VERIFY_ARE_EQUAL(fullSignature.size(), static_cast<size_t>(size));
+      VERIFY_IS_TRUE(std::equal(fullSignature.begin(), fullSignature.end(),
+                                static_cast<const uint8_t *>(data)));
+      foundFullSignature = true;
+    }
+  }
+  VERIFY_IS_TRUE(foundRoomySignature);
+  VERIFY_IS_TRUE(foundFullSignature);
 }
 
 static bool HasUnusedDeclaration(std::vector<std::string> const &lines,
