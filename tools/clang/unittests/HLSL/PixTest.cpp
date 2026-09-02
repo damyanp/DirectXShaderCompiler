@@ -4782,7 +4782,8 @@ float4 main(float4 pos : SV_Position) : SV_Target
   // index already marked NonUniformResourceIndex would be skipped.
   // Instrumentation inserts WaveActiveAllEqual, which requires the WaveOps
   // shader flag.
-  auto compiled = Compile(m_dllSupport, source, L"ps_6_6", {L"-Od"});
+  CComPtr<IDxcBlob> compiled =
+      Compile(m_dllSupport, source, L"ps_6_6", {L"-Od"});
   CComPtr<IDxcBlob> dxil = FindModule(DFCC_ShaderDebugInfoDXIL, compiled);
 
   CComPtr<IDxcOptimizer> pOptimizer;
