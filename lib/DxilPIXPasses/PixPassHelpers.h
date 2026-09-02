@@ -10,9 +10,11 @@
 #pragma once
 
 #include <functional>
+#include <utility>
 #include <vector>
 
 #include "dxc/DXIL/DxilModule.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
@@ -43,6 +45,19 @@ llvm::CallInst *CreateUAVOnceForModule(hlsl::DxilModule &DM,
 hlsl::DxilResource *CreateGlobalUAVResource(hlsl::DxilModule &DM,
                                             unsigned int hlslBindIndex,
                                             const char *name);
+// Result of CreateUAVHandlesOnceForModule: Handles is valid only when
+// Success is true.
+struct BatchUAVHandles {
+  bool Success = false;
+  std::vector<llvm::CallInst *> Handles;
+};
+// Atomic batch form of CreateUAVOnceForModule+CreateGlobalUAVResource,
+// for a caller that needs more than one tools UAV register together (so
+// a later register's root-signature failure cannot leave an earlier
+// register's change committed). See PixPassHelpers.cpp for details.
+BatchUAVHandles CreateUAVHandlesOnceForModule(
+    hlsl::DxilModule &DM, llvm::IRBuilder<> &Builder,
+    llvm::ArrayRef<std::pair<unsigned int, const char *>> requests);
 llvm::CallInst *CreateHandleForResource(hlsl::DxilModule &DM,
                                         llvm::IRBuilder<> &Builder,
                                         hlsl::DxilResourceBase *resource,
