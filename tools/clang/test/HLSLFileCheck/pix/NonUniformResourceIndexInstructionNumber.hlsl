@@ -2,12 +2,10 @@
 
 // With the annotation prepass in place, the diagnostic is addressed to
 // the ordinal of the createHandle that performed the unmarked dynamic
-// indexing. The pass encodes that ordinal as a shift. A shift of zero
-// aliases the diagnostic onto bit 0.
-//
-// Match any non-zero shift rather than a literal ordinal. A createHandle
-// whose index comes from an interpolated input is never the first
-// numbered instruction.
+// indexing, encoded as a shift within a 32-bit word. A shift of zero
+// does not mean instruction 0: ordinals 32 and 64 also give a zero
+// shift, in a different word. This test establishes only that the
+// shift is not zero.
 
 // CHECK-NOT: NuriNotInstrumentedMissingInstructionNumber
 // CHECK: @dx.op.waveActiveAllEqual
