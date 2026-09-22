@@ -16937,10 +16937,12 @@ void Sema::CheckHLSLArrayAccess(const Expr *expr) {
                  OverloadedOperatorKind::OO_Subscript);
 
   const Expr *RHS = OperatorCallExpr->getArg(1); // first subscript expression
+  // HLSL Change Starts - Avoid evaluating vector-to-scalar casts here.
   if (const auto *Cast = dyn_cast<CastExpr>(RHS)) {
     if (Cast->getCastKind() == CK_HLSLVectorToScalarCast)
       return;
   }
+  // HLSL Change Ends
   llvm::APSInt index;
   if (RHS->EvaluateAsInt(index, Context)) {
     int64_t intIndex = index.getLimitedValue();
