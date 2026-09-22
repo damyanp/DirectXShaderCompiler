@@ -4240,6 +4240,53 @@ Sema::ActOnArraySubscriptExpr(Scope *S, Expr *base, SourceLocation lbLoc,
     idx = result.get();
   }
 
+  // HLSL Change Starts - Check constant vector subscript indices.
+  if (getLangOpts().HLSL) {
+    if (hlsl::IsVectorType(this, base->getType())) {
+      llvm::APSInt Index;
+      bool Evaluated = false;
+      for (const Expr *IndexExpr = idx;
+           const auto *Cast = dyn_cast<CastExpr>(IndexExpr);
+           IndexExpr = Cast->getSubExpr()) {
+        if (Cast->getCastKind() == CK_HLSLVectorToScalarCast) {
+          Evaluated = Cast->EvaluateAsInt(Index, Context);
+          if (!Evaluated) {
+            Expr::EvalResult VectorResult;
+            const Expr *VectorExpr = Cast->getSubExpr();
+            if (VectorExpr->EvaluateAsRValue(VectorResult, Context) &&
+                VectorResult.Val.isVector() &&
+                VectorResult.Val.getVectorLength() == 1) {
+              const APValue &Element = VectorResult.Val.getVectorElt(0);
+              if (Element.isFloat()) {
+                Index = llvm::APSInt(
+                    Context.getIntWidth(idx->getType()),
+                    !idx->getType()->isSignedIntegerOrEnumerationType());
+                bool Ignored;
+                Element.getFloat().convertToInteger(
+                    Index, llvm::APFloat::rmTowardZero, &Ignored);
+                Evaluated = true;
+              }
+            }
+          }
+          break;
+        }
+      }
+      if (!Evaluated)
+        Evaluated = idx->EvaluateAsInt(Index, Context);
+      if (Evaluated) {
+        int64_t IntIndex = Index.getLimitedValue();
+        if (IntIndex < 0 || static_cast<uint64_t>(IntIndex) >=
+                                hlsl::GetHLSLVecSize(base->getType())) {
+          Diag(idx->getExprLoc(),
+               diag::err_hlsl_vector_element_index_out_of_bounds)
+              << static_cast<int>(IntIndex);
+          return ExprError();
+        }
+      }
+    }
+  }
+  // HLSL Change Ends
+
   // HLSL Change Starts - Check for subscript access of out indices
   // Disallow component access for out indices for DXIL path. We still allow
   // this in SPIR-V path.

@@ -24,6 +24,8 @@ line upon naming the release. Refer to previous for appropriate section names.
 
 #### Bug Fixes
 
+- Fixed a crash when a vector-to-scalar cast is used as a vector index.
+  [#8940](https://github.com/microsoft/DirectXShaderCompiler/issues/8940).
 - Fixed derivative operations being moved into divergent control flow, which
   could produce incorrect results
   [#8001](https://github.com/microsoft/DirectXShaderCompiler/issues/8001).
