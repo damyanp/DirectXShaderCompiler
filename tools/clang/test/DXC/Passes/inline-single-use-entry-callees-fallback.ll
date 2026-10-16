@@ -1,15 +1,15 @@
 ; RUN: python -c "import sys; print(open(sys.argv[1]).read().replace('@selected',sys.argv[2]))" %s @shared > %t.ll
-; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-entry-wrapper -verify -S | FileCheck %s -check-prefix=SHARED
+; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-single-use-entry-callees -verify -S | FileCheck %s -check-prefix=SHARED
 ; RUN: python -c "import sys; print(open(sys.argv[1]).read().replace('@selected',sys.argv[2]))" %s @address_taken > %t.ll
-; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-entry-wrapper -verify -S | FileCheck %s -check-prefix=ADDRESS
+; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-single-use-entry-callees -verify -S | FileCheck %s -check-prefix=ADDRESS
 ; RUN: python -c "import sys; print(open(sys.argv[1]).read().replace('@selected',sys.argv[2]))" %s @exported > %t.ll
-; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-entry-wrapper -verify -S | FileCheck %s -check-prefix=EXPORTED
+; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-single-use-entry-callees -verify -S | FileCheck %s -check-prefix=EXPORTED
 ; RUN: python -c "import sys; print(open(sys.argv[1]).read().replace('@selected',sys.argv[2]))" %s @noinline > %t.ll
-; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-entry-wrapper -verify -S | FileCheck %s -check-prefix=NOINLINE
+; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-single-use-entry-callees -verify -S | FileCheck %s -check-prefix=NOINLINE
 ; RUN: python -c "import sys; print(open(sys.argv[1]).read().replace('@selected',sys.argv[2]))" %s @recursive > %t.ll
-; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-entry-wrapper -verify -S | FileCheck %s -check-prefix=RECURSIVE
+; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-single-use-entry-callees -verify -S | FileCheck %s -check-prefix=RECURSIVE
 ; RUN: python -c "import sys; print(open(sys.argv[1]).read().replace('@selected',sys.argv[2]))" %s @shader_root > %t.ll
-; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-entry-wrapper -verify -S | FileCheck %s -check-prefix=ROOT
+; RUN: %dxopt %t.ll -hlsl-passes-resume -hl-inline-single-use-entry-callees -verify -S | FileCheck %s -check-prefix=ROOT
 
 ; Single-use callees are not inlined early when they are shared, address-taken,
 ; externally visible, noinline, recursive, or another shader root.

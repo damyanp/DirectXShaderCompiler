@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 //                                                                           //
-// HLInlineEntryWrapper.cpp                                                  //
+// HLInlineSingleUseEntryCallees.cpp                                         //
 // Copyright (C) Microsoft Corporation. All rights reserved.                 //
 // This file is distributed under the University of Illinois Open Source     //
 // License. See LICENSE.TXT for details.                                     //
@@ -21,11 +21,10 @@ using namespace llvm;
 
 namespace {
 
-// The bottom-up inliner fully expands a callee before cloning it into its
-// caller. For a callee with exactly one call site in the entry, that clone
-// copies the whole expanded body only to delete the original. Inlining such
-// callees top-down first lets their own callees be expanded once, directly in
-// the entry.
+// The bottom-up inliner expands a function before it copies that function into
+// its caller. If the function has one call site in the entry's call tree, this
+// can copy a large body and then delete the original. This pass starts at the
+// entry and works inward, so nested functions expand in the entry.
 Function *getSingleUseCallee(CallInst *CI, hlsl::HLModule &HLM) {
   Function *Callee = CI->getCalledFunction();
   if (!Callee || Callee->isDeclaration() || !Callee->hasLocalLinkage() ||
@@ -41,12 +40,12 @@ Function *getSingleUseCallee(CallInst *CI, hlsl::HLModule &HLM) {
   return Callee;
 }
 
-class HLInlineEntryWrapper : public ModulePass {
+class HLInlineSingleUseEntryCallees : public ModulePass {
   bool InsertLifetime;
 
 public:
   static char ID;
-  explicit HLInlineEntryWrapper(bool InsertLifetime = false)
+  explicit HLInlineSingleUseEntryCallees(bool InsertLifetime = false)
       : ModulePass(ID), InsertLifetime(InsertLifetime) {}
 
   bool runOnModule(Module &M) override {
@@ -106,10 +105,13 @@ public:
 
 } // namespace
 
-char HLInlineEntryWrapper::ID = 0;
-ModulePass *llvm::createHLInlineEntryWrapperPass(bool InsertLifetime) {
-  return new HLInlineEntryWrapper(InsertLifetime);
+char HLInlineSingleUseEntryCallees::ID = 0;
+ModulePass *llvm::createHLInlineSingleUseEntryCalleesPass(bool InsertLifetime) {
+  return new HLInlineSingleUseEntryCallees(InsertLifetime);
 }
 
-INITIALIZE_PASS(HLInlineEntryWrapper, "hl-inline-entry-wrapper",
-                "Inline single-use HLSL entry callees top-down", false, false)
+INITIALIZE_PASS(HLInlineSingleUseEntryCallees,
+                "hl-inline-single-use-entry-callees",
+                "Inline eligible callees that have one call site, starting at "
+                "the shader entry",
+                false, false)

@@ -1,4 +1,4 @@
-; RUN: %dxopt %s -hlsl-passes-resume -hl-inline-entry-wrapper -verify -hlsl-hlemit -S | FileCheck %s
+; RUN: %dxopt %s -hlsl-passes-resume -hl-inline-single-use-entry-callees -verify -hlsl-hlemit -S | FileCheck %s
 
 ; Collapse the small helpers before the ordinary inliner sees the payload.
 ; Keep the shader entry and its input/output structure marshalling unchanged.

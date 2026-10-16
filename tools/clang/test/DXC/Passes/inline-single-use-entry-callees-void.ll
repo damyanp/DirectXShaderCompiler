@@ -1,4 +1,4 @@
-; RUN: %dxopt %s -hlsl-passes-resume -hl-inline-entry-wrapper -verify -hlsl-hlemit -S | FileCheck %s
+; RUN: %dxopt %s -hlsl-passes-resume -hl-inline-single-use-entry-callees -verify -hlsl-hlemit -S | FileCheck %s
 
 ; CHECK-LABEL: define void @main()
 ; CHECK-NEXT: store i32 42, i32* @output

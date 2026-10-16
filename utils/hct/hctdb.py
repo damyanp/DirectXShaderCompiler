@@ -7176,9 +7176,10 @@ class db_dxil(object):
             "hl-legalize-parameter", "HLLegalizeParameter", "Legalize parameter", []
         )
         add_pass(
-            "hl-inline-entry-wrapper",
-            "HLInlineEntryWrapper",
-            "Inline single-use HLSL entry callees top-down",
+            "hl-inline-single-use-entry-callees",
+            "HLInlineSingleUseEntryCallees",
+            "Inline eligible callees that have one call site, "
+            "starting at the shader entry",
             [],
         )
         add_pass(

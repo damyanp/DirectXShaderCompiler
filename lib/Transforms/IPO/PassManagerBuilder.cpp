@@ -410,8 +410,9 @@ void PassManagerBuilder::populateModulePassManager(
 
   MPM.add(createHLLegalizeParameter()); // legalize parameters before inline.
   if (HLSLEarlyInlining && Inliner) {
-    if (HLSLInlineEntryWrappers)
-      MPM.add(createHLInlineEntryWrapperPass(HLSLEnableLifetimeMarkers));
+    if (HLSLInlineSingleUseEntryCallees)
+      MPM.add(
+          createHLInlineSingleUseEntryCalleesPass(HLSLEnableLifetimeMarkers));
     MPM.add(Inliner);
     Inliner = nullptr;
   }

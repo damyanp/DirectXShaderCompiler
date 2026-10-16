@@ -1,4 +1,4 @@
-; RUN: %dxopt %s -hlsl-passes-resume -hl-inline-entry-wrapper -verify -S | FileCheck %s
+; RUN: %dxopt %s -hlsl-passes-resume -hl-inline-single-use-entry-callees -verify -S | FileCheck %s
 
 ; A single-use callee of the entry is inlined even when it does real work,
 ; and single-use callees exposed by that inlining are inlined in program order.

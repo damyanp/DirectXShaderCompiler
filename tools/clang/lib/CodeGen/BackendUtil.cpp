@@ -340,7 +340,7 @@ void EmitAssemblyHelper::CreatePasses() {
 
   // HLSL Change - begin
   PMBuilder.HLSLHighLevel = CodeGenOpts.HLSLHighLevel;
-  PMBuilder.HLSLInlineEntryWrappers = LangOpts.HLSL;
+  PMBuilder.HLSLInlineSingleUseEntryCallees = LangOpts.HLSL;
   PMBuilder.HLSLAllowPreserveValues = CodeGenOpts.HLSLAllowPreserveValues;
   PMBuilder.HLSLOnlyWarnOnUnrollFail = CodeGenOpts.HLSLOnlyWarnOnUnrollFail;
   PMBuilder.HLSLUnrollCountIsHint =

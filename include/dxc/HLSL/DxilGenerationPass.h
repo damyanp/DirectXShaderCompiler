@@ -130,8 +130,11 @@ void initializeDxilLoopDeletionPass(llvm::PassRegistry &);
 ModulePass *createHLLegalizeParameter();
 void initializeHLLegalizeParameterPass(llvm::PassRegistry &);
 
-ModulePass *createHLInlineEntryWrapperPass(bool InsertLifetime = false);
-void initializeHLInlineEntryWrapperPass(llvm::PassRegistry &);
+// Start at the shader entry and inline eligible functions with one call site
+// in its call tree. Run before the bottom-up inliner to reduce code copying.
+ModulePass *createHLInlineSingleUseEntryCalleesPass(
+    bool InsertLifetime = false);
+void initializeHLInlineSingleUseEntryCalleesPass(llvm::PassRegistry &);
 
 bool AreDxilResourcesDense(llvm::Module *M,
                            hlsl::DxilResourceBase **ppNonDense);

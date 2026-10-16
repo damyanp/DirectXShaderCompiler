@@ -1,4 +1,4 @@
-; RUN: %dxopt %s -hlsl-passes-resume -hl-inline-entry-wrapper -verify -hlsl-hlemit -S | FileCheck %s
+; RUN: %dxopt %s -hlsl-passes-resume -hl-inline-single-use-entry-callees -verify -hlsl-hlemit -S | FileCheck %s
 
 ; Stop at a shared forwarder rather than changing either of its callers.
 ; CHECK-LABEL: define i32 @main(i32 %x)

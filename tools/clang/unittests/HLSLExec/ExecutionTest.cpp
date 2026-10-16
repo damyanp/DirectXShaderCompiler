@@ -195,7 +195,7 @@ public:
   TEST_CLASS_SETUP(ExecutionTestClassSetup)
 
   TEST_METHOD(BasicComputeTest);
-  TEST_METHOD(EntryForwardingWrapperTest);
+  TEST_METHOD(SingleUseEntryCalleeInliningTest);
   TEST_METHOD(BasicTriangleTest);
   TEST_METHOD(BasicTriangleOpTest);
 
@@ -1827,7 +1827,7 @@ TEST_F(ExecutionTest, BasicComputeTest) {
 #endif
 }
 
-TEST_F(ExecutionTest, EntryForwardingWrapperTest) {
+TEST_F(ExecutionTest, SingleUseEntryCalleeInliningTest) {
   static const char pShader[] = R"(
     RWByteAddressBuffer output : register(u0);
 
