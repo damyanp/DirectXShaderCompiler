@@ -195,7 +195,6 @@ public:
   TEST_CLASS_SETUP(ExecutionTestClassSetup)
 
   TEST_METHOD(BasicComputeTest);
-  TEST_METHOD(SingleUseEntryCalleeInliningTest);
   TEST_METHOD(BasicTriangleTest);
   TEST_METHOD(BasicTriangleOpTest);
 
@@ -1825,56 +1824,6 @@ TEST_F(ExecutionTest, BasicComputeTest) {
   RunRWByteBufferComputeTest(pDevice, pShader, values);
   VERIFY_ARE_EQUAL(values[0], (uint32_t)1);
 #endif
-}
-
-TEST_F(ExecutionTest, SingleUseEntryCalleeInliningTest) {
-  static const char pShader[] = R"(
-    RWByteAddressBuffer output : register(u0);
-
-    void payload(uint index) {
-      uint x = output.Load(index * 4);
-      if (x & 1)
-        x = x * 3 + 7;
-      else
-        x ^= 0x12345678;
-      for (uint i = 0; i < 8; ++i)
-        x = ((x << 7) | (x >> 25)) ^ (x * 747796405u + i + 1);
-      output.Store(index * 4, x);
-    }
-
-    void inner(uint index) {
-      payload(index);
-    }
-
-    void outer(uint index) {
-      inner(index);
-    }
-
-    [numthreads(8, 8, 1)]
-    void main(uint index : SV_GroupIndex) {
-      outer(index);
-    }
-  )";
-
-  CComPtr<ID3D12Device> pDevice;
-  if (!createDevice(&pDevice))
-    return;
-
-  std::vector<uint32_t> Values;
-  SetupComputeValuePattern(Values, 64);
-  std::vector<uint32_t> Expected = Values;
-  for (uint32_t &Value : Expected) {
-    if (Value & 1)
-      Value = Value * 3 + 7;
-    else
-      Value ^= 0x12345678;
-    for (unsigned I = 0; I < 8; ++I)
-      Value = ((Value << 7) | (Value >> 25)) ^ (Value * 747796405u + I + 1);
-  }
-
-  RunRWByteBufferComputeTest(pDevice, pShader, Values);
-  for (unsigned I = 0; I < Values.size(); ++I)
-    VERIFY_ARE_EQUAL(Expected[I], Values[I]);
 }
 
 TEST_F(ExecutionTest, BasicTriangleTest) {

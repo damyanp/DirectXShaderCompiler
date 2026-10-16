@@ -10,10 +10,26 @@
 ; CHECK-NEXT: %first.slot.i = alloca i32
 ; CHECK-NEXT: %inner.slot.i = alloca i32
 ; CHECK-NEXT: %main.slot = alloca i32
-; CHECK: store i32 %v, i32* @output
-; CHECK: call i32 @shared(
-; CHECK: call i32 @shared(
-; CHECK: ret i32
+; CHECK-NEXT: store i32 %x, i32* %main.slot
+; CHECK-NEXT: %v = load i32, i32* %main.slot
+; CHECK-NEXT: %condition = icmp eq i32 %v, 0
+; CHECK-NEXT: br i1 %condition, label %zero, label %nonzero
+; CHECK: zero:
+; CHECK-NEXT: ret i32 0
+; CHECK: nonzero:
+; CHECK-NEXT: store i32 %v, i32* @output
+; CHECK-NEXT: store i32 %v, i32* %inner.slot.i
+; CHECK-NEXT: store i32 %v, i32* %first.slot.i
+; CHECK-NEXT: [[FIRST_V:%.*]] = load i32, i32* %first.slot.i
+; CHECK-NEXT: [[A:%.*]] = mul i32 [[FIRST_V]], 3
+; CHECK-NEXT: [[B:%.*]] = call i32 @shared(i32 [[A]])
+; CHECK-NEXT: store i32 [[B]], i32* %second.slot.i
+; CHECK-NEXT: [[SECOND_V:%.*]] = load i32, i32* %second.slot.i
+; CHECK-NEXT: [[C:%.*]] = call i32 @shared(i32 [[SECOND_V]])
+; CHECK-NEXT: [[D:%.*]] = load i32, i32* %inner.slot.i
+; CHECK-NEXT: [[E:%.*]] = add i32 [[C]], [[D]]
+; CHECK-NEXT: ret i32 [[E]]
+; CHECK-NEXT: }
 ; CHECK-NOT: define internal i32 @inner(
 ; CHECK-NOT: define internal i32 @first(
 ; CHECK-NOT: define internal i32 @second(
