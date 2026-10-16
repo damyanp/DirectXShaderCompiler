@@ -7176,6 +7176,12 @@ class db_dxil(object):
             "hl-legalize-parameter", "HLLegalizeParameter", "Legalize parameter", []
         )
         add_pass(
+            "hl-inline-entry-wrapper",
+            "HLInlineEntryWrapper",
+            "Inline single-use HLSL entry callees top-down",
+            [],
+        )
+        add_pass(
             "scalarrepl-param-hlsl",
             "SROA_Parameter_HLSL",
             "Scalar Replacement of Aggregates HLSL (parameters)",

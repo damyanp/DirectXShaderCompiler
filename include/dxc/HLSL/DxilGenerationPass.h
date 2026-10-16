@@ -130,6 +130,9 @@ void initializeDxilLoopDeletionPass(llvm::PassRegistry &);
 ModulePass *createHLLegalizeParameter();
 void initializeHLLegalizeParameterPass(llvm::PassRegistry &);
 
+ModulePass *createHLInlineEntryWrapperPass(bool InsertLifetime = false);
+void initializeHLInlineEntryWrapperPass(llvm::PassRegistry &);
+
 bool AreDxilResourcesDense(llvm::Module *M,
                            hlsl::DxilResourceBase **ppNonDense);
 

@@ -140,6 +140,7 @@ public:
   bool HLSLEnablePartialLifetimeMarkers = false; // HLSL Change
   bool HLSLEnableDebugNops = false; // HLSL Change
   bool HLSLEarlyInlining = true; // HLSL Change
+  bool HLSLInlineEntryWrappers = false; // HLSL Change
   bool HLSLNoSink = false; // HLSL Change
   void addHLSLPasses(legacy::PassManagerBase &MPM); // HLSL Change
 
