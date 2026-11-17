@@ -15,7 +15,30 @@
 
 #include <string.h>
 
+CROSS_PLATFORM_UUIDOF(WinAdapterTestInterface,
+                     "12345678-9abc-def0-1234-56789abcdef0")
+struct WinAdapterTestInterface : public IUnknown {};
+
 namespace {
+
+TEST(WinAdapterTest, InterfaceUuid) {
+  const GUID expected = {0x12345678,
+                         0x9abc,
+                         0xdef0,
+                         {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0}};
+  const GUID actual = __uuidof(WinAdapterTestInterface);
+  EXPECT_EQ(0, memcmp(&expected, &actual, sizeof(GUID)));
+  WinAdapterTestInterface *object = nullptr;
+  const GUID *iid = nullptr;
+  void **address = nullptr;
+  const auto capture = [&](REFIID value, void **pointer) {
+    iid = &value;
+    address = pointer;
+  };
+  capture(IID_PPV_ARGS(&object));
+  EXPECT_EQ(0, memcmp(&expected, iid, sizeof(GUID)));
+  EXPECT_EQ(reinterpret_cast<void **>(&object), address);
+}
 
 // Check that WArgV.
 TEST(WArgVTest, suppressAndTrap) {

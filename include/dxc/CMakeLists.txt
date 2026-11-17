@@ -27,7 +27,20 @@ set(DXC_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/dxcisense.h)
 
 if (NOT WIN32)
-  set(DXC_PLATFORM_PUBLIC_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/WinAdapter.h)
+  set(DXC_PLATFORM_PUBLIC_HEADERS
+      ${CMAKE_CURRENT_SOURCE_DIR}/WinAdapter.h
+      ${DIRECTX_HEADER_INCLUDE_DIR}/wsl/stubs/basetsd.h
+      ${DIRECTX_HEADER_INCLUDE_DIR}/wsl/stubs/rpcndr.h)
+  if (NOT DIRECTX_HEADER_LICENSE)
+    set(DIRECTX_HEADER_LICENSE ${DIRECTX_HEADER_INCLUDE_DIR}/../LICENSE)
+  endif()
+  install(CODE "if (NOT EXISTS \"${DIRECTX_HEADER_LICENSE}\")
+    message(FATAL_ERROR \"DirectX-Headers license not found at ${DIRECTX_HEADER_LICENSE}; set DIRECTX_HEADER_LICENSE to its LICENSE file\")
+  endif()" COMPONENT dxc-headers)
+  install(FILES ${DIRECTX_HEADER_LICENSE}
+      DESTINATION include/dxc
+      RENAME LICENSE-MIT.txt
+      COMPONENT dxc-headers)
 endif()
 
 # This target just needs to exist for the distribution build, it doesn't need to

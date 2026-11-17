@@ -12,12 +12,21 @@ The included licenses apply to the following files:
 
 | License file | Applies to |
 |---|---|
-|LICENSE-MIT.txt    |d3d12shader.h|
+|LICENSE-MIT.txt    |d3d12shader.h, basetsd.h, rpcndr.h|
 |LICENSE-LLVM.txt   |all other files|
 
 ## Changelog
 
 ### Upcoming Release
+
+#### Breaking Changes
+
+- On Linux and macOS, the DXC API's `BOOL`, `LONG` and `ULONG` types are now 32
+  bits wide, as on Windows. Previously they were `bool`, `long` and
+  `unsigned long`. This breaks binary compatibility with earlier releases.
+  Rebuild programs that use the API against the new headers, update FFI
+  bindings, and do not mix binaries and libraries from before and after this
+  change.
 
 #### SPIR-V
 
